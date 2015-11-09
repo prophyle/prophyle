@@ -5,9 +5,25 @@
 #include <unordered_set>
 #include <zlib.h>
 #include "kseq.h"
+
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+
+namespace logging = boost::log;
+
+
 KSEQ_INIT(gzFile, gzread)
 
 using namespace std;
+
+void init()
+{
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::info
+    );
+}
 
 char nucl_complement(char n)
 {   
