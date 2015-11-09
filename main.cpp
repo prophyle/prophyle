@@ -113,7 +113,9 @@ class KmerSet {
 	string pop()
 	{
 		string kmer=*(kmers_set.begin());
+		//this->debug();
 		this->pop(kmer);
+		//this->debug();
 		return kmer;		
 	}
 	
@@ -122,7 +124,11 @@ class KmerSet {
 	}
 	
 	void debug(){
-		cout << << endl;
+		printf("Set of k-mers:\n");
+		for ( auto it = this->kmers_set.begin(); it != this->kmers_set.end(); ++it ){
+			printf("%s ", it->c_str());
+		}
+		printf("\n\n");
 		
 	}
 };
@@ -164,14 +170,20 @@ int main(){
 		bool extending=true;
 		while(extending){
 			candidate_kmer=contig.substr(contig.size()-k,k-1)+"?";
+
+			//printf("candidate for extension %s\n", candidate_kmer.c_str());
 			
 			extending=false;
 			for(char x: {'A','C','G','T'}){
 				candidate_kmer[k-1]=x;
 
 				if (kmers_set.pop(candidate_kmer)){
+					//printf("yes %c\n", x);
 					extending=true;
+					contig=contig+string(1,x);
 					break;
+				} else {
+					//printf("no %c\n", x);
 				}
 			}
 		}
