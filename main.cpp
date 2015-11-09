@@ -2,26 +2,28 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <vector>
 #include <unordered_set>
 #include <zlib.h>
 #include "kseq.h"
 
+#include <boost/algorithm/string/join.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 
 namespace logging = boost::log;
 
-
 KSEQ_INIT(gzFile, gzread)
 
 using namespace std;
 
-void init()
+void log_init()
 {
     logging::core::get()->set_filter
     (
-        logging::trivial::severity >= logging::trivial::info
+        logging::trivial::severity >= logging::trivial::warning
+        //logging::trivial::severity >= logging::trivial::debug
     );
 }
 
@@ -108,17 +110,23 @@ class KmerSet {
 	
 	void insert(string kmer)
 	{
+	    BOOST_LOG_TRIVIAL(debug) << "Inserting kmer " << kmer;
+	    BOOST_LOG_TRIVIAL(trace) << "Set of kmers: " << this->debug_internal_state();
 		this->kmers_set.insert(kmer);	
+	    BOOST_LOG_TRIVIAL(trace) << "Set of kmers: " << this->debug_internal_state();
 	}
 
 	bool pop(string &kmer)
 	{
+	    BOOST_LOG_TRIVIAL(debug) << "Poping kmer " << kmer;
+	    BOOST_LOG_TRIVIAL(trace) << "Set of kmers: " << this->debug_internal_state();
 		auto search = kmers_set.find(kmer);
 		if (search != kmers_set.end()){
 			kmers_set.erase(kmer);
 			reverse_compl(kmer);
 			kmers_set.erase(kmer);
 			reverse_compl(kmer);
+		    BOOST_LOG_TRIVIAL(trace) << "Set of kmers: " << this->debug_internal_state();
 			return true;
 		}
 		else{
@@ -139,19 +147,43 @@ class KmerSet {
 		return this->kmers_set.size();
 	}
 	
-	void debug(){
-		printf("Set of k-mers:\n");
-		for ( auto it = this->kmers_set.begin(); it != this->kmers_set.end(); ++it ){
-			printf("%s ", it->c_str());
-		}
-		printf("\n\n");
-		
+	string debug_internal_state(){
+		return boost::algorithm::join(this->kmers_set, ", ");
 	}
 };
 
+void extend_contig_to_right(KmerSet &kmers_set,vector<char> &contig,int k) {
+	BOOST_LOG_TRIVIAL(debug) << "Extending contig: " << string(contig.begin(),contig.end());
+
+	string candidate_kmer(k,'x');
+	bool extending=true;
+	while(extending){
+		for(int ci=contig.size()-k+1,i=0;i<k-1;i++,ci++){
+			candidate_kmer[i]=contig[ci];
+		}
+		
+		extending=false;
+		for(char base: {'A','C','G','T'}){
+			candidate_kmer[k-1]=base;
+			BOOST_LOG_TRIVIAL(debug) << "Candidate kmer for extension: " << candidate_kmer;
+			
+			if (kmers_set.pop(candidate_kmer)){
+				BOOST_LOG_TRIVIAL(debug) << " ...yes";
+				extending=true;
+				contig.push_back(base);
+				BOOST_LOG_TRIVIAL(debug) << "Current state of contig: " << string(contig.begin(),contig.end());
+				break;
+			} else {
+				BOOST_LOG_TRIVIAL(debug) << " ...no";
+			}
+		}
+	}
+}
+
 int main(){
+	log_init();
+	
 	int k=2;
-	printf("pseudoassembler\n");
 	
 	gzFile fp;
 	kseq_t *seq;
@@ -162,7 +194,7 @@ int main(){
 	fp = gzopen("tests/Borrelia_garinii.fa", "r");
 	seq = kseq_init(fp);
 	while ((l = kseq_read(seq)) >= 0) {
-		printf("name: %s\n", seq->name.s);
+	    BOOST_LOG_TRIVIAL(info) << "Loading sequence: " << seq->name.s;
 		int positions=strlen(seq->seq.s)-k+1;
 		for (int i=0;i<positions;i++){
 			if (is_kmer_valid(&(seq->seq.s[i]),k)){
@@ -174,38 +206,28 @@ int main(){
 		}
 	}
 	
-	string contig;
+	
 	
 	while (kmers_set.size() > 0){
 		// initial kmer
-		contig=kmers_set.pop();		
+		string initial_kmer(kmers_set.pop());
+		vector<char> contig(initial_kmer.begin(),initial_kmer.end());		
+	    BOOST_LOG_TRIVIAL(debug) << "Initial kmer: " << string(contig.begin(),contig.end());
 		
 		//extending
-		string candidate_kmer;
+		extend_contig_to_right(kmers_set,contig,k);
 
-		bool extending=true;
-		while(extending){
-			candidate_kmer=contig.substr(contig.size()-k,k-1)+"?";
-
-			//printf("candidate for extension %s\n", candidate_kmer.c_str());
-			
-			extending=false;
-			for(char x: {'A','C','G','T'}){
-				candidate_kmer[k-1]=x;
-
-				if (kmers_set.pop(candidate_kmer)){
-					//printf("yes %c\n", x);
-					extending=true;
-					contig=contig+string(1,x);
-					break;
-				} else {
-					//printf("no %c\n", x);
-				}
+		//printing
+		printf(">");
+		int i=0;
+		for(char x: contig){
+			if (i%40==0){
+				printf("\n");
 			}
+			printf("%c",x);
+			i++;
 		}
-	    std::cout << ">\n" << contig << "\n";
-		
-			
+		printf("\n");
 	}
 
 	kseq_destroy(seq);
