@@ -1,7 +1,12 @@
 #! /usr/bin/env python3
 
+import os
 import metag
+import datetime
+
 from tree_formatter import *
+
+
 t=read_newick("id_tree_bin.newick",format=10)
 #t.render("test.pdf")
 
@@ -36,12 +41,15 @@ def find_last_possible_leaf(leaf):
 
 for leaf in t.iter_leaves():
 	last_possible=find_last_possible_leaf(leaf)
-	print(leaf.name,last_possible.name)
+	#print(leaf.name,last_possible.name)
 	if hasattr(leaf,"fastapath"):
-		print(leaf.fastapath)
+		#print(leaf.fastapath)
 		fastas_fn=leaf.fastapath.split("@")
 		kmers_set=set()
+		print( datetime.datetime.now().time() )
 		for fasta_fn in fastas_fn:
-			kmers_set|=metag.set_from_fasta(fasta_fn,10)
-		print(kmers_set)
+			if os.path.isfile(fasta_fn):
+				print(fasta_fn)
+				kmers_set|=metag.set_from_fasta(fasta_fn,20)
+		#print(kmers_set)
 

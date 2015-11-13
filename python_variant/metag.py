@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
 import os
+import numpy
+import re
 from Bio import SeqIO
 
 comp_dict={
@@ -23,8 +25,11 @@ def canonical_repr(dna):
 	reverse_complement=reverse_complement(forward)
 	return forward if forward < reverse_complement else reverse_complement
 
+reg_dna=re.compile(r"^[ACGT]+$")
+reg_seed=re.compile(r"^[#-]+$")
 def is_dna(dna):
-	return set([x for x in dna]).issubset(dna_alphabet)
+	#return set([x for x in dna]).issubset(dna_alphabet)
+	return bool(reg_dna.match(dna))
 
 def set_from_fasta(fasta_fn,k,canonical=False):
 	set_of_kmers=set()
@@ -40,6 +45,59 @@ def set_from_fasta(fasta_fn,k,canonical=False):
 					set_of_kmers.add(kmer)
 					set_of_kmers.add(reverse_complement(kmer))
 	return set_of_kmers
+
+dna_dict={
+		"A": 0,
+		"C": 1,
+		"G": 2,
+		"T": 3,
+	}
+
+
+def mask_from_seed(seed):
+	base = max(dna_dict.values())+1
+	j=1
+	mask = len(seed)*[0]
+	for i in range(len(seed)):
+		if seed[i]=="#":
+			mask[i]=j
+			j *= base
+	#print(mask)
+	return mask
+
+#def set_from_fasta_n(fasta_fn,k):
+#	seed=k*"#"
+#	with open(fasta_fn) as f:
+#		lines = [line.strip().upper() for line in f if line[0]!=">"]
+#		fasta = "".join(lines)
+#		lines=[]
+#		nseed=numpy.array(mask_from_seed(seed))
+#		index=set()
+#		for i in range(len(fasta)-len(nseed)+1):
+#			substr=fasta[i:i+len(nseed)]
+#			# valid dna string?
+#			if reg_dna.match(substr):
+#				nkmer = numpy.array( [ dna_dict[x] for x in substr ] )
+#				number = numpy.dot( nseed, nkmer )
+#				index.add(number)
+#	return index
+
+def set_from_fasta_n(fasta_fn,k):
+	with open(fasta_fn) as f:
+		lines = [line.strip().upper() for line in f if line[0]!=">"]
+		fasta = "".join(lines)
+		lines=[]
+		nseed=numpy.array([4**i for i in range(k)])
+		index=set()
+		for i in range(len(fasta)-len(nseed)+1):
+			substr=fasta[i:i+len(nseed)]
+			# valid dna string?
+			if is_dna(substr):
+				nkmer = numpy.array( [ dna_dict[x] for x in substr ] )
+				number = numpy.dot( nseed, nkmer )
+				index.add(number)
+	return index
+
 
 def set_to_fasta(fasta_fn,set_of_kmers,assemble=False):
 	with open(fasta_fn,"w+") as fasta_fo:
