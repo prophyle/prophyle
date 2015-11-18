@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger()
 handler = logging.StreamHandler()
 formatter = logging.Formatter(
-        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+        '%(asctime)s %(levelname)-8s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
@@ -82,6 +82,15 @@ class TreeIndex:
 	#def _save_kmers_to_dict(kmers_set,rightmost_leaf):
 	#	for kmer in kmers_set:
 
+	@staticmethod
+	def _node_debug(node):
+		if hasattr(node,"common_name") and node.common_name!="":
+			return "{}_{}".format(node.name,node.common_name)
+		elif hasattr(node,"sci_name") and node.sci_name!="":
+			return "{}_{}".format(node.name,node.sci_name)
+		else:
+			return "{}".format(node.name)
+
 	def create_fasta(self,node,kmers_set):
 		fasta_fn=os.path.join(self.directory,"{}.fa".format(node.name))
 		logger.info('Creating FASTA "{}"'.format(fasta_fn))
@@ -89,11 +98,12 @@ class TreeIndex:
 		metag.set_to_fasta(
 				fasta_fn=fasta_fn,
 				set_of_kmers=kmers_set,
-				assemble=True
+				assemble=True,
+				contig_prefix="node{}".format(node.name),
 			)
 
 	def get_shared_kmers(self,node,k):
-		logger.info('BEGIN get share k-mers for node "{}"'.format(node.name))
+		logger.info('BEGIN get share k-mers for node "{}"'.format(self._node_debug(node)))
 		if node.is_leaf():
 			kmers_set=set()
 			if hasattr(node,"fastapath"):
@@ -103,7 +113,7 @@ class TreeIndex:
 					if os.path.isfile(fasta_fn):
 						logger.info(' ...reading "{}"'.format(fasta_fn))
 						kmers_set|=metag.set_from_fasta(fasta_fn,k)
-			logger.info('END get share k-mers for node "{}"'.format(node.name))
+			logger.info('END get share k-mers for node "{}"'.format(self._node_debug(node)))
 			logger.debug('... kmers (from fasta files): "{}"'.format(", ".join(kmers_set)))
 			return kmers_set
 		else:
@@ -114,8 +124,8 @@ class TreeIndex:
 			for (i,reduced_set) in enumerate(list_of_reduced_sets):
 				if len(reduced_set)>0:
 					self.create_fasta(children[i],reduced_set)
-			logger.info('END get share k-mers for node "{}"'.format(node.name))
-			logger.info('BEGIN get share k-mers for node "{}"'.format(node.name))
+			logger.info('END get share k-mers for node "{}"'.format(self._node_debug(node)))
+			logger.info('BEGIN get share k-mers for node "{}"'.format(self._node_debug(node)))
 			logger.debug('... kmers (from children): "{}"'.format(", ".join(intersection)))
 			return intersection
 
@@ -126,4 +136,4 @@ class TreeIndex:
 
 
 ti=TreeIndex("id_tree_bin.newick",directory="index")
-ti.build_index(k=10)
+ti.build_index(k=20)
