@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 import os
-import numpy
 import re
 from Bio import SeqIO
 
@@ -32,6 +31,24 @@ def is_dna(dna):
 	return bool(reg_dna.match(dna))
 
 def set_from_fasta(fasta_fn,k,canonical=False):
+	reg_splitting=re.compile("[^ACGT]")
+	set_of_kmers=set()
+	fasta_sequences = SeqIO.parse(open(fasta_fn),'fasta')
+	for fasta_seq in fasta_sequences:
+		name, sequence = fasta_seq.id, str(fasta_seq.seq)
+		sequences_ok=reg_splitting.split(sequence)
+		for seq in sequences_ok:
+			for i in range(len(seq)-k+1):
+				kmer=seq[i:i+k]
+				if canonical:
+					set_of_kmers.add(canonical_repr(kmer))
+				else:
+					set_of_kmers.add(kmer)
+					set_of_kmers.add(reverse_complement(kmer))
+	return set_of_kmers
+
+
+def set_from_fasta_deprec(fasta_fn,k,canonical=False):
 	set_of_kmers=set()
 	fasta_sequences = SeqIO.parse(open(fasta_fn),'fasta')
 	for fasta in fasta_sequences:
@@ -46,43 +63,17 @@ def set_from_fasta(fasta_fn,k,canonical=False):
 					set_of_kmers.add(reverse_complement(kmer))
 	return set_of_kmers
 
-dna_dict={
-		"A": 0,
-		"C": 1,
-		"G": 2,
-		"T": 3,
-	}
-
-
-def mask_from_seed(seed):
-	base = max(dna_dict.values())+1
-	j=1
-	mask = len(seed)*[0]
-	for i in range(len(seed)):
-		if seed[i]=="#":
-			mask[i]=j
-			j *= base
-	#print(mask)
-	return mask
-
-#def set_from_fasta_n(fasta_fn,k):
-#	seed=k*"#"
-#	with open(fasta_fn) as f:
-#		lines = [line.strip().upper() for line in f if line[0]!=">"]
-#		fasta = "".join(lines)
-#		lines=[]
-#		nseed=numpy.array(mask_from_seed(seed))
-#		index=set()
-#		for i in range(len(fasta)-len(nseed)+1):
-#			substr=fasta[i:i+len(nseed)]
-#			# valid dna string?
-#			if reg_dna.match(substr):
-#				nkmer = numpy.array( [ dna_dict[x] for x in substr ] )
-#				number = numpy.dot( nseed, nkmer )
-#				index.add(number)
-#	return index
 
 def set_from_fasta_n(fasta_fn,k):
+	dna_dict={
+			"A": 0,
+			"C": 1,
+			"G": 2,
+			"T": 3,
+		}
+
+	import numpy
+
 	with open(fasta_fn) as f:
 		lines = [line.strip().upper() for line in f if line[0]!=">"]
 		fasta = "".join(lines)
@@ -99,11 +90,12 @@ def set_from_fasta_n(fasta_fn,k):
 	return index
 
 
+
 def set_to_fasta(fasta_fn,set_of_kmers,assemble=False):
 	with open(fasta_fn,"w+") as fasta_fo:
 		if assemble:
 			set_of_kmers|=set([reverse_complement(kmer) for kmer in set_of_kmers])
-			print(set_of_kmers)
+			#print(set_of_kmers)
 			i=0
 			while len(set_of_kmers)>0:
 				initial_kmer=min(set_of_kmers)
@@ -126,11 +118,12 @@ def set_to_fasta(fasta_fn,set_of_kmers,assemble=False):
 								set_of_kmers.remove(cand_kmer_rc)
 							extending=True
 							break
-				fasta_fo.write("".join([">contig",str(i),os.linesep,"".join(contig),os.linesep]))
+				fasta_fo.write("".join([">contig_",fasta_fn,"_",str(i),os.linesep,"".join(contig),os.linesep]))
 				i+=1				
 		else:
 			for kmer,i in enumerate(set_of_kmers):
 				fasta_fo.write("".join([">contig",str(i),os.linesep,kmer,os.linesep]))
+
 
 def and_diff(source_fasta_1_fn, source_fasta_2_fn, filtered_fasta_1_fn, filtered_fasta_2_fn, upper_fasta_fn):
 	set_1=set_from_fasta(source_fasta_1_fn)
