@@ -101,9 +101,10 @@ class TreeIndex:
 				assemble=True,
 				contig_prefix="node{}".format(node.name),
 			)
+		logger.info('... FASTA created "{}"'.format(fasta_fn))
 
 	def get_shared_kmers(self,node,k):
-		logger.info('BEGIN get share k-mers for node "{}"'.format(self._node_debug(node)))
+		logger.info('BEGIN get shared k-mers for node "{}"'.format(self._node_debug(node)))
 		if node.is_leaf():
 			kmers_set=set()
 			if hasattr(node,"fastapath"):
@@ -113,7 +114,7 @@ class TreeIndex:
 					if os.path.isfile(fasta_fn):
 						logger.info(' ...reading "{}"'.format(fasta_fn))
 						kmers_set|=metag.set_from_fasta(fasta_fn,k)
-			logger.info('END get share k-mers for node "{}"'.format(self._node_debug(node)))
+			logger.info('END get shared k-mers for node "{}"'.format(self._node_debug(node)))
 			logger.debug('... kmers (from fasta files): "{}"'.format(", ".join(kmers_set)))
 			return kmers_set
 		else:
@@ -124,15 +125,13 @@ class TreeIndex:
 			for (i,reduced_set) in enumerate(list_of_reduced_sets):
 				if len(reduced_set)>0:
 					self.create_fasta(children[i],reduced_set)
-			logger.info('END get share k-mers for node "{}"'.format(self._node_debug(node)))
-			logger.info('BEGIN get share k-mers for node "{}"'.format(self._node_debug(node)))
+			logger.info('END get shared k-mers for node "{}"'.format(self._node_debug(node)))
 			logger.debug('... kmers (from children): "{}"'.format(", ".join(intersection)))
 			return intersection
 
 	def build_index(self,k):
 		logger.info('Going to build index for k={}'.format(k))
 		self.get_shared_kmers(self.tree.get_tree_root(),k=k)
-
 
 
 ti=TreeIndex("id_tree_bin.newick",directory="index")
