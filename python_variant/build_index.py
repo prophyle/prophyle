@@ -135,4 +135,4 @@ class TreeIndex:
 
 
 ti=TreeIndex("id_tree_bin.newick",directory="index")
-ti.build_index(k=20)
+ti.build_index(k=25)

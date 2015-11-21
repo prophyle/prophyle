@@ -190,6 +190,7 @@ def set_to_fasta(fasta_fn,set_of_kmers,assemble=False,contig_prefix=""):
 #	set_to_fasta(upper_fasta_fn,upper_set)
 
 if __name__ == "__main__":
+	k=25
 	fasta_fn="../tests/Borrelia_garinii.fa"
-	kmers=set_from_fasta(fasta_fn,k=15)
+	kmers=set_from_fasta(fasta_fn,k=k)
 	set_to_fasta("test.fa",kmers,assemble=False)
