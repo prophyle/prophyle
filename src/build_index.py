@@ -99,7 +99,7 @@ class TreeIndex:
 
 	def create_fasta(self,node,kmers_set):
 		fasta_fn=os.path.join(self.directory,"{}.fa".format(node.name))
-		logger.info('Creating FASTA "{}" (assembling {} kmers)'.format(fasta_fn,kmers_set//2))
+		logger.info('Creating FASTA "{}" (assembling {} kmers)'.format(fasta_fn,len(kmers_set)//2))
 		logger.debug('... from k-mers "{}"'.format(", ".format(kmers_set)))
 		metag.set_to_fasta(
 				fasta_fn=fasta_fn,
