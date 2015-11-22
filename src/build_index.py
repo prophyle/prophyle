@@ -170,8 +170,13 @@ if __name__ == "__main__":
 
 	k=args.k
 	assert k>0
-	newick_fn=args.newick_fn,
+	newick_fn=args.newick_fn
 	output_dir_fn=args.output_dir_fn
+
+	logger.info("Starting index construction")
+	logger.info("       newick : {}".format(newick_fn))
+	logger.info("   output dir : {}".format(output_dir_fn))
+	logger.info("            k : {}".format(k))
 
 	ti=TreeIndex(
 			tree_newick_fn=newick_fn,
