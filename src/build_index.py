@@ -3,6 +3,8 @@
 import os
 import metag
 import datetime
+import sys
+import argparse
 
 from tree_formatter import *
 
@@ -53,6 +55,7 @@ class TreeIndex:
 
 	def __init__(self,tree_newick_fn,format=10,directory="./"):
 		self.tree=read_newick(tree_newick_fn,format=format)
+		self.newick_directory=os.path.dirname(tree_newick_fn)
 		self.directory=directory
 		os.makedirs(directory,exist_ok=True)
 
@@ -111,6 +114,7 @@ class TreeIndex:
 				fastas_fn=node.fastapath.split("@")
 				#print( datetime.datetime.now().time() )
 				for fasta_fn in fastas_fn:
+					fasta_fn=os.path.join(self.newick_directory,fasta_fn)
 					if os.path.isfile(fasta_fn):
 						logger.info(' ...reading "{}"'.format(fasta_fn))
 						kmers_set|=metag.set_from_fasta(fasta_fn,k)
@@ -134,5 +138,43 @@ class TreeIndex:
 		self.get_shared_kmers(self.tree.get_tree_root(),k=k)
 
 
-ti=TreeIndex("id_tree_bin.newick",directory="index")
-ti.build_index(k=25)
+if __name__ == "__main__":
+
+	parser = argparse.ArgumentParser(description='Build index.')
+	parser.add_argument(
+			'-n','--newick-tree'
+			type=str,
+			metavar='str',
+			dest='newick_fn',
+			required=True,
+			help='Taxonomic tree (Newick).',
+		)
+	parser.add_argument(
+			'-k',
+			type=int,
+			metavar='int',
+			dest='k',
+			required=True,
+			help='K-mer length k.',
+		)
+	parser.add_argument(
+			'-o','--output-dir'
+			type=str,
+			metavar='str',
+			dest='output_dir_fn',
+			required=True,
+			help='Output directory.',
+		)
+
+	args = parser.parse_args()
+
+	k=args.k
+	assert k>0
+	newick_fn=args.newick_fn,
+	output_dir_fn=args.output_dir_fn
+
+	ti=TreeIndex(
+			tree_newick_fn=newick_fn,
+			directory=output_dir_fn
+		)
+	ti.build_index(k=k)
