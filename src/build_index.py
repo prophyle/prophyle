@@ -142,7 +142,7 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description='Build index.')
 	parser.add_argument(
-			'-n','--newick-tree'
+			'-n','--newick-tree',
 			type=str,
 			metavar='str',
 			dest='newick_fn',
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 			help='K-mer length k.',
 		)
 	parser.add_argument(
-			'-o','--output-dir'
+			'-o','--output-dir',
 			type=str,
 			metavar='str',
 			dest='output_dir_fn',
