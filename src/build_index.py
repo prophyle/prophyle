@@ -51,6 +51,9 @@ logger.setLevel(logging.INFO)
 #				)
 
 
+def size_in_mb(file_fn):
+	return os.path.getsize(file_fn)/(1024**2)
+
 class TreeIndex:
 
 	def __init__(self,tree_newick_fn,format=10,directory="./"):
@@ -96,7 +99,7 @@ class TreeIndex:
 
 	def create_fasta(self,node,kmers_set):
 		fasta_fn=os.path.join(self.directory,"{}.fa".format(node.name))
-		logger.info('Creating FASTA "{}" (assembly step)'.format(fasta_fn))
+		logger.info('Creating FASTA "{}" (assembling {} kmers)'.format(fasta_fn,kmers_set//2))
 		logger.debug('... from k-mers "{}"'.format(", ".format(kmers_set)))
 		metag.set_to_fasta(
 				fasta_fn=fasta_fn,
@@ -116,12 +119,12 @@ class TreeIndex:
 				for fasta_fn in fastas_fn:
 					fasta_fn=os.path.join(self.newick_directory,fasta_fn)
 					if os.path.isfile(fasta_fn):
-						logger.info('Reading FASTA "{}"'.format(fasta_fn))
+						logger.info('Loading FASTA "{}" (size: {} MB)'.format(fasta_fn,size_in_mb(fasta_fn)))
 						kmers_set|=metag.set_from_fasta(fasta_fn,k)
-						logger.info('Reading FASTA "{}" finished'.format(fasta_fn))
+						logger.info('... FASTA loaded "{}"'.format(fasta_fn))
 					else:
 						logger.warning('FASTA "{}" does not exist'.format(fasta_fn))
-			logger.info('END get shared k-mers for node "{}"'.format(self._node_debug(node)))
+			logger.info('END get shared k-mers for node "{}" ({} kmers)'.format(self._node_debug(node),len(kmers_set//2)))
 			logger.debug('... kmers (from fasta files): "{}"'.format(", ".join(kmers_set)))
 			return kmers_set
 		else:
@@ -132,7 +135,7 @@ class TreeIndex:
 			for (i,reduced_set) in enumerate(list_of_reduced_sets):
 				if len(reduced_set)>0:
 					self.create_fasta(children[i],reduced_set)
-			logger.info('END get shared k-mers for node "{}"'.format(self._node_debug(node)))
+			logger.info('END get shared k-mers for node "{}" ({} kmers)'.format(self._node_debug(node,len(kmers_set//2))))
 			logger.debug('... kmers (from children): "{}"'.format(", ".join(intersection)))
 			return intersection
 
