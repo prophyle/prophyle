@@ -96,7 +96,7 @@ class TreeIndex:
 
 	def create_fasta(self,node,kmers_set):
 		fasta_fn=os.path.join(self.directory,"{}.fa".format(node.name))
-		logger.info('Creating FASTA "{}"'.format(fasta_fn))
+		logger.info('Creating FASTA "{}" (assembly step)'.format(fasta_fn))
 		logger.debug('... from k-mers "{}"'.format(", ".format(kmers_set)))
 		metag.set_to_fasta(
 				fasta_fn=fasta_fn,
@@ -116,8 +116,11 @@ class TreeIndex:
 				for fasta_fn in fastas_fn:
 					fasta_fn=os.path.join(self.newick_directory,fasta_fn)
 					if os.path.isfile(fasta_fn):
-						logger.info(' ...reading "{}"'.format(fasta_fn))
+						logger.info('Reading FASTA "{}"'.format(fasta_fn))
 						kmers_set|=metag.set_from_fasta(fasta_fn,k)
+						logger.info('Reading FASTA "{}" finished'.format(fasta_fn))
+					else:
+						logger.warning('FASTA "{}" does not exist'.format(fasta_fn))
 			logger.info('END get shared k-mers for node "{}"'.format(self._node_debug(node)))
 			logger.debug('... kmers (from fasta files): "{}"'.format(", ".join(kmers_set)))
 			return kmers_set
