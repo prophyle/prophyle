@@ -7,4 +7,5 @@ include("contrib/gatbcore.cmake")
 
 add_executable(proc main.cpp)
 add_dependencies(proc gatbcore)
+target_link_libraries(proc ${gatbcore_LIB})
 
