@@ -1,14 +1,25 @@
 cmake_minimum_required (VERSION 2.6)
 project (proc)
 
-include(ExternalProject)
 
-include("contrib/gatbcore.cmake")
-include("contrib/zlib.cmake")
-
-add_definitions(" --std=c++11")
+add_definitions(" --std=c++11 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 add_executable(proc main.cpp)
-add_dependencies(proc gatbcore zlib)
-target_link_libraries(proc ${gatbcore_LIB} ${zlib_LIB})
 
+include(ExternalProject)
+
+include("cmake-ext/klib.cmake")
+add_dependencies(proc klib)
+
+include("cmake-ext/gatbcore.cmake")
+add_dependencies(proc gatbcore)
+target_link_libraries(proc ${gatbcore_LIB})
+
+include("cmake-ext/zlib.cmake")
+add_dependencies(proc zlib)
+target_link_libraries(proc ${zlib_LIB})
+
+find_package( Boost 1.46 COMPONENTS program_options REQUIRED )
+include_directories( ${Boost_INCLUDE_DIR} )
+target_link_libraries(proc ${Boost_LIBRARIES})
