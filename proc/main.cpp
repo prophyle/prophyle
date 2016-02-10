@@ -5,6 +5,11 @@
 #include <vector>
 #include "kseq.h"
 
+#include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
+
 #include <cstdio>
 
 #include <gatb/tools/math/Integer.hpp>
@@ -12,6 +17,9 @@
 const int32_t k=20;
 const int32_t fasta_line_length=60;
 const int32_t max_contig_length=10000000;
+
+static const uint8_t nt4_nt256[] = "ACGTN";
+
 
 KSEQ_INIT(gzFile, gzread);
 
@@ -143,6 +151,47 @@ int kmers_from_fasta(const string &fasta_fn, T &set, int32_t k){
 	return 0;
 }
 
+template <typename T1, typename T2>
+int32_t intersection(const std::vector<T1> &sets, T2 &intersection){
+	assert(sets.len()>0);
+
+	int32_t max=0,i_max=0;
+
+	for(int32_t i=0;i<sets.len();i++){
+		if (sets[i].size()>max){
+			max=sets[i].size();
+			i_max=i;
+		}
+	}
+
+	assert(max != 0);
+	
+	intersection.clear();
+
+	T1 &minimal = sets[i_max];
+	std::copy(
+		minimal.begin(), minimal.end(),
+		std::inserter(intersection,intersection.begin())
+	);
+
+	for(int32_t i=0;i<sets.len();i++){
+		if (i==i_max){
+			continue;
+		}
+
+		T1 &current_set=sets[i];
+
+		for(const nkmer_t &nkmer: intersection){
+			if(current_set.count(nkmer)){
+				intersection.erase(nkmer);
+			}
+		}
+	}
+
+	return 0;
+}
+
+
 int ordered_to_unordered(const ordered_set_t &ordered_set, unordered_set_t &unordered_set){
 	unordered_set.clear();
 
@@ -223,18 +272,61 @@ int assemble(const string &fasta_fn, T &set, int32_t k){
 }
 
 
-
-//using boost::unordered_set;
-
-/********************************************************************************/
-/*                              Kmer management                                 */
-/*                                                                              */
-/* This snippet shows how instantiate the Model class and how to get info       */
-/* about it.                                                                    */
-/*                                                                              */
-/********************************************************************************/
 int main (int argc, char* argv[])
 {
+
+	std::string intersection_fn;
+	std::vector<std::string> input_fns;
+	std::vector<std::string> output_fns;
+
+	FILE *intersection_fo;
+	std::vector<FILE *> input_fos;
+	std::vector<FILE *> output_fos;
+
+    try
+    {
+        namespace po = boost::program_options;
+        
+        po::positional_options_description pos;
+        pos.add("input-file", -1);
+        
+        po::options_description vol("Command-line parameters");
+
+        vol.add_options()
+               ("input,i", po::value<std::vector<std::string>>(&input_fns)->required(), "Input files.")
+               ("output,o", po::value<std::vector<std::string>>(&output_fns)->required(), "Output files.")
+               ("intersection,x", po::value<std::string>(&intersection_fn)->required(), "Intersection file.")
+               ;
+
+
+		po::variables_map vm;
+        try
+        {
+            po::store(po::command_line_parser(argc, argv).options(vol).positional(pos).run(),vm); // can throw
+            po::notify(vm); // throws on error, so do after help in case there are any problems
+            
+            if (input_fns.size() != output_fns.size()) {
+                fprintf(stderr,"There must be equal number of input and output files.\n");
+		        return EXIT_FAILURE;
+            }
+            
+        }
+        catch(po::error& e)
+        {
+            std::cout << vol << "\n";
+            fprintf(stderr,"%s.\n",e.what());
+	        return EXIT_FAILURE;
+        }
+        
+    }
+    catch(std::exception& e)
+    {
+        fprintf(stderr,"Unhandled Exception: %s.\n",e.what());
+        return EXIT_FAILURE;
+    }
+
+
+
 	std::string fasta_in1="test1.fa";
 	std::string fasta_in2="test2.fa";
 	std::string fasta_out1="out1.fa";
