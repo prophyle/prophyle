@@ -1,22 +1,23 @@
-#include <gatb/gatb_core.hpp>
-#include <unordered_map>
-#include <boost/unordered_set.hpp>
-#include <unordered_set>
-#include <vector>
 #include "kseq.h"
+
+#include <cstdio>
+#include <climits>
+
+#include <vector>
+#include <unordered_set>
+#include <boost/unordered_set.hpp>
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-#include <cstdio>
-
+#include <gatb/gatb_core.hpp>
 #include <gatb/tools/math/Integer.hpp>
 
-const int32_t k=20;
+const int32_t k=10;
 const int32_t fasta_line_length=60;
-const int32_t max_contig_length=10000000;
+const int32_t max_contig_length=1000000;
 
 static const uint8_t nt4_nt256[] = "ACGTN";
 
@@ -54,9 +55,13 @@ struct contig_t{
 	char *r_ext;
 	char *l_ext;
 
+	char *r_ext_border;
+	char *l_ext_border;
+
 	contig_t(uint32_t k){
 		this->k=k;
 		seq_buffer=new char[k+2*max_contig_length+1]();
+		l_ext_border=seq_buffer;
 	}
 
 	int32_t reinit(const char *base_kmer){
@@ -86,6 +91,10 @@ struct contig_t{
 
 	~contig_t(){
 		delete[] seq_buffer;
+	}
+
+	bool is_full(){
+		return (r_ext==r_ext_border) || (l_ext==l_ext_border);
 	}
 
 	int32_t print_to_fasta(FILE* fasta_file, char* contig_name, char *comment=nullptr) const {
@@ -152,38 +161,56 @@ int kmers_from_fasta(const string &fasta_fn, T &set, int32_t k){
 }
 
 template <typename T1, typename T2>
-int32_t intersection(const std::vector<T1> &sets, T2 &intersection){
+int32_t find_intersection(const std::vector<T1> &sets, T2 &intersection){
 	assert(sets.len()>0);
 
-	int32_t max=0,i_max=0;
+	/* 
+		1) Find the smallest set from sets.
+	*/
 
-	for(int32_t i=0;i<sets.len();i++){
-		if (sets[i].size()>max){
-			max=sets[i].size();
-			i_max=i;
+	int32_t min=INT32_MAX;
+	int32_t i_min=-1;
+
+	cout << "searching min" << endl;
+
+	for(int32_t i=0;i<sets.size();i++){
+		if (sets[i].size()<min){
+			min=sets[i].size();
+			i_min=i;
+			cout << "new min" << i << endl;
 		}
 	}
 
-	assert(max != 0);
-	
-	intersection.clear();
+	assert(i_min != Int32.MaxValue && i_min!=-1);
 
-	T1 &minimal = sets[i_max];
+	/*
+		2) Take it as the intersection.
+	*/
+
+	cout << "2" << endl;
+
+	intersection.clear();
+	cout << "2.1" << endl;
 	std::copy(
-		minimal.begin(), minimal.end(),
-		std::inserter(intersection,intersection.begin())
+		sets[i_min].cbegin(), sets[i_min].cend(),
+		std::inserter(intersection,intersection.end())
 	);
 
-	for(int32_t i=0;i<sets.len();i++){
-		if (i==i_max){
-			continue;
-		}
+	cout << "first intersectino size " << intersection.size() << endl;
 
-		T1 &current_set=sets[i];
+	/*
+		3) Remove elements from intersection present in other sets.
+	*/
 
-		for(const nkmer_t &nkmer: intersection){
-			if(current_set.count(nkmer)){
-				intersection.erase(nkmer);
+	for(const T1 &current_set : sets) {
+
+		for(boost::unordered_set<nkmer_t>::iterator it = intersection.begin(); it !=intersection.end();){
+
+			if(current_set.find(*it) == current_set.cend()){
+				it=intersection.erase(it);
+			}
+			else{
+				++it;
 			}
 		}
 	}
@@ -192,14 +219,20 @@ int32_t intersection(const std::vector<T1> &sets, T2 &intersection){
 }
 
 
-int ordered_to_unordered(const ordered_set_t &ordered_set, unordered_set_t &unordered_set){
-	unordered_set.clear();
+template <typename T1, typename T2>
+int32_t remove_subset(std::vector<T1> &sets, const T2 &subset){
 
-    for(nkmer_t const &element: ordered_set){
-     	unordered_set.insert(element);
-    }
-	return 0;
+	for(int32_t i=0;i<sets.size();i++){
+
+		T1 &current_set = sets[i];
+
+		for(const nkmer_t &nkmer : subset){
+			current_set.erase(nkmer);
+		}
+	}
+
 }
+
 
 template <typename T>
 int assemble(const string &fasta_fn, T &set, int32_t k){
@@ -258,6 +291,10 @@ int assemble(const string &fasta_fn, T &set, int32_t k){
 				}
 
 			}
+
+			if(contig.is_full()){
+				extending=false;
+			}
 		}
 
 		contig.print_to_fasta(file,"conting xx");
@@ -278,10 +315,6 @@ int main (int argc, char* argv[])
 	std::string intersection_fn;
 	std::vector<std::string> input_fns;
 	std::vector<std::string> output_fns;
-
-	FILE *intersection_fo;
-	std::vector<FILE *> input_fos;
-	std::vector<FILE *> output_fos;
 
     try
     {
@@ -325,111 +358,32 @@ int main (int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+	std::vector< boost::unordered_set<nkmer_t> > full_sets(output_fns.size());
 
-
-	std::string fasta_in1="test1.fa";
-	std::string fasta_in2="test2.fa";
-	std::string fasta_out1="out1.fa";
-	std::string fasta_out2="out2.fa";
-	std::string fasta_out3="out3.fa";
-
-	//const int32_t init_size=2000000;
-
-	ordered_set_t os_in1;
-	ordered_set_t os_in2;
-	ordered_set_t os_out1;
-	ordered_set_t os_out2;
-	ordered_set_t os_out3;
-
-	unordered_set_t us_in1;
-	unordered_set_t us_in2;
-	unordered_set_t us_out1;
-	unordered_set_t us_out2;
-	unordered_set_t us_out3;
-
-	cout << "ordered in1" << endl;
-	kmers_from_fasta(fasta_in1, os_in1, k);
-	cout << "size " << os_in1.size() << endl;
-	cout << "ordered in2" << endl;
-	kmers_from_fasta(fasta_in2, os_in2, k);
-
-	//cout << "unordered in1" << endl;
-	//std::copy(us_in1.begin(), us_in1.end(), std::inserter(os_in1,os_in1.begin()));
-	//cout << "unordered in2" << endl;
-	//std::copy(us_in2.begin(), us_in2.end(), std::inserter(os_in2,os_in2.begin()));
-
-
-	cout << "ordered out3" << endl;
-	std::set_intersection(
-		os_in1.begin(), os_in1.end(),
-		os_in2.begin(), os_in2.end(),
-    	std::inserter(os_out3, os_out3.end())
-    );
-	//cout << "unordered out3" << endl;
-	//std::copy(os_out3.begin(), os_out3.end(), std::inserter(us_out3,us_out3.begin()));
-
-	cout << "ordered out1" << endl;
-	std::set_symmetric_difference(
-		os_in1.begin(), os_in1.end(),
-		os_out3.begin(), os_out3.end(),
-    	std::inserter(os_out1, os_out1.end())
-    );
-
-	cout << "ordered out2" << endl;
-	std::set_symmetric_difference(
-		os_in2.begin(), os_in2.end(),
-		os_out3.begin(), os_out3.end(),
-    	std::inserter(os_out2, os_out2.end())
-    );
-
-	assemble("out.fa",os_in1,k);
-
-	return 0;
-
-
-    // We define a sequence of nucleotides
-    //const char* seq = "CATTGATAGTGGATGGT";
-    const char* seq = "TTTTTTTCCACFGTCCCCCCCCCC";
-    std::cout << "Initial sequence: " << seq << std::endl;
-
-    // We configure a data object with a sequence (in ASCII format)
-    Data data ((char*)seq);
-
-    // We declare a kmer model with kmer of size 5.
-    // Note that we want "direct" kmers, not the min(forward,revcomp) default behavior.
-    Kmer<>::ModelCanonical model (5);
-
-    // We declare an iterator on a given sequence.
-    Kmer<>::ModelCanonical::Iterator it (model);
-
-	Kmer<>::ModelCanonical::Kmer kmer;
-    //std::unordered_set< uint64_t > s;
-    boost::unordered_set< uint64_t > s;
-
-    // We configure the iterator with our sequence
-    it.setData (data);
-
-    // We iterate the kmers.
-    for (it.first(); !it.isDone(); it.next())
-    {
-		kmer = model.codeSeed (
-			 model.toString(it->value()).c_str() , Data::ASCII
-		);
-
-        //std::cout << "kmer " << model.toString(it->value()) << ",  value " << it->value() << std::endl;
-        s.insert(kmer.value().getVal());
+    for(int32_t i=0;i<input_fns.size();i++){
+    	cout << "Loading " << input_fns[i] << endl;
+    	kmers_from_fasta(input_fns[i],full_sets[i],k);
     }
 
-     for ( auto itt = s.begin(); itt != s.end(); ++itt ){
-     	kmer.set(*itt);
-     	cout << *itt << " " << model.toString( kmer.value() )  << endl;
+    boost::unordered_set<nkmer_t> intersection;
+
+	cout << "Intersection" << endl;
+
+    find_intersection(full_sets, intersection);
+    cout << "intersection size " <<  intersection.size() << endl;
+
+	cout << "Removing subsets" << endl;
+
+    remove_subset(full_sets, intersection);
+
+    for(int32_t i=0;i<input_fns.size();i++){
+    	cout << "Assembling " << input_fns[i] << endl;
+		assemble(output_fns[i],full_sets[i],k);
     }
 
-    for(auto const &element: s){
-     	cout << element  << endl;
-    }
+   	cout << "Assembling intersection" << endl;
+	assemble(intersection_fn,intersection,k);
 
 
-
-
+    return 0;
 }
