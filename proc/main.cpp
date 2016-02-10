@@ -15,7 +15,7 @@
 #include <gatb/gatb_core.hpp>
 #include <gatb/tools/math/Integer.hpp>
 
-const int32_t k=10;
+const int32_t k=22;
 const int32_t fasta_line_length=60;
 const int32_t max_contig_length=1000000;
 
