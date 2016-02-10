@@ -2,8 +2,9 @@ cmake_minimum_required (VERSION 2.6)
 project (proc)
 
 
-add_definitions(" --std=c++11 -Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+add_definitions(" --std=c++11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lprofiler -pg")
+set(CMAKE_CXX_FLAGS " -lprofiler -pg ${CMAKE_CXX_FLAGS} -Wall ")
 
 add_executable(proc main.cpp)
 
