@@ -13,9 +13,9 @@ include(ExternalProject)
 include("cmake-ext/klib.cmake")
 add_dependencies(proc klib)
 
-include("cmake-ext/gatbcore.cmake")
-add_dependencies(proc gatbcore)
-target_link_libraries(proc ${gatbcore_LIB})
+#include("cmake-ext/gatbcore.cmake")
+#add_dependencies(proc gatbcore)
+#target_link_libraries(proc ${gatbcore_LIB})
 
 include("cmake-ext/zlib.cmake")
 add_dependencies(proc zlib)
