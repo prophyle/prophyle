@@ -62,6 +62,7 @@ struct contig_t{
 		this->k=k;
 		seq_buffer=new char[k+2*max_contig_length+1]();
 		l_ext_border=seq_buffer;
+		r_ext_border=seq_buffer+k+2*max_contig_length;
 	}
 
 	int32_t reinit(const char *base_kmer){
@@ -94,7 +95,7 @@ struct contig_t{
 	}
 
 	bool is_full(){
-		return (r_ext==r_ext_border) || (l_ext==l_ext_border);
+		return (r_ext>=r_ext_border) || (l_ext<=l_ext_border);
 	}
 
 	int32_t print_to_fasta(FILE* fasta_file, char* contig_name, char *comment=nullptr) const {
