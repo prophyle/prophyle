@@ -21,6 +21,25 @@ const int32_t max_contig_length=1000000;
 
 static const uint8_t nt4_nt256[] = "ACGTN";
 
+static const uint8_t nt256_nt4[] = {
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+        4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
+    };
+
 
 KSEQ_INIT(gzFile, gzread);
 
@@ -28,6 +47,63 @@ KSEQ_INIT(gzFile, gzread);
 typedef uint64_t nkmer_t;
 typedef std::set<nkmer_t> ordered_set_t;
 typedef std::unordered_set<nkmer_t> unordered_set_t;
+
+
+template<typename T>
+int32_t encode_forward(const char *kmers, int32_t k, T &nkmer){
+	nkmer=0;
+	for (int32_t i=0;i<k;i++){
+		uint8_t nt4 = nt256_nt4[kmers[i]];
+		if (nt4==4){
+			return -1;
+		}
+
+		nkmer <<= 2;
+		nkmer |= nt4;
+	}
+	return 0;
+}
+
+template<typename T>
+int32_t encode_reverse(const char *kmers, int32_t k, T &nkmer){
+	nkmer=0;
+	for (int32_t i=0;i<k;i++){
+		uint8_t nt4 = nt256_nt4[kmers[k-i-1]];
+		if (nt4==4){
+			return -1;
+		}
+
+		//complement
+		nt4 = 3-nt4;
+
+		nkmer <<= 2;
+		nkmer |= nt4;
+	}
+	return 0;
+}
+
+template<typename T>
+int32_t encode_canonical(const char *kmers, int32_t k, T &nkmer){
+	T nkmer_f;
+	T nkmer_r;
+
+	int32_t error_code;
+
+	error_code=encode_forward(kmers, k, nkmer_f);
+	if(error_code!=0){
+		return error_code;
+	}
+
+	error_code=encode_reverse(kmers, k, nkmer_r);
+	if(error_code!=0){
+		return error_code;
+	}
+
+	nkmer=std::min(nkmer_f,nkmer_r);
+
+	return 0;
+}
+
 
 char complement(char x){
 	switch(x){
@@ -78,15 +154,27 @@ struct contig_t{
 	}
 
 	int32_t r_extend(char c){
-		*r_ext=c;
+		uint8_t nt4 = nt256_nt4[c];
+
+		if (nt4==4){
+			return -1;
+		}
+
+		*r_ext=nt4_nt256[nt4];
 		++r_ext;
 		*r_ext='\0';
 		return 0;
 	}
 
 	int32_t l_extend(char c){
+		uint8_t nt4 = nt256_nt4[c];
+
+		if (nt4==4){
+			return -1;
+		}
+
 		--l_ext;
-		*l_ext=complement(c);
+		*l_ext=nt4_nt256[3-nt4];
 		return 0;
 	}
 
