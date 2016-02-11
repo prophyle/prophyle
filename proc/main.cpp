@@ -230,7 +230,6 @@ struct contig_t{
 template<typename _set_T>
 int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
 
-
 	set.clear();
 
  	gzFile fp;
@@ -240,10 +239,13 @@ int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
     fp = gzopen(fasta_fn.c_str(), "r");
     seq = kseq_init(fp);
 
+
     char buffer[100]={};
 
+	typename _set_T::value_type nkmer;
+
 	for(int32_t seqid=0;(l = kseq_read(seq)) >= 0;seqid++) {
-		auto nkmer=*(set.begin());
+		std::cout << "kmers from fasta" << std::endl;
 
 		std::cout << "starting iterator" << std::endl;
 		for(char *kmer=seq->seq.s; kmer < (seq->seq.s) + (seq->seq.l) -k +1 ;kmer++){
@@ -352,11 +354,11 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 		i++;
 		//printf("writing contig %d\n",i);
 
-		const auto central_kmer=*(set.begin());
-		set.erase(central_kmer);
+		const auto central_nkmer=*(set.begin());
+		set.erase(central_nkmer);
 
 		std::string central_kmer_string;
-		decode_kmer(central_kmer,k,central_kmer_string);
+		decode_kmer(central_nkmer,k,central_kmer_string);
 		contig.reinit(central_kmer_string.c_str());
 
 		strncpy(kmer_str,central_kmer_string.c_str(),k);
@@ -364,8 +366,7 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 		//printf("central k-mer: %s\n",central_kmer_string.c_str());
 
-		auto nkmer=*(set.begin())-*(set.begin());
-
+		typename _set_T::value_type nkmer;
 
 		bool extending = true;
 		while (extending){
