@@ -15,9 +15,12 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-const int32_t k=22;
+typedef __uint128_t nkmer_t;
+typedef std::set<nkmer_t> set_t;
+
 const int32_t fasta_line_length=60;
 const int32_t max_contig_length=1000000;
+const int32_t max_allowed_kmer_length=sizeof(nkmer_t)*4;
 
 static const uint8_t nt4_nt256[] = "ACGTN";
 
@@ -41,22 +44,14 @@ static const uint8_t nt256_nt4[] = {
     };
 
 
-KSEQ_INIT(gzFile, gzread);
-
-
-typedef __uint128_t nkmer_t;
-
-//typedef std::set<nkmer_t> ordered_set_t;
-//typedef std::unordered_set<nkmer_t> unordered_set_t;
-
-typedef std::set<nkmer_t> set_t;
+KSEQ_INIT(gzFile, gzread)
 
 
 template<typename _nkmer_T>
 int32_t encode_forward(const char *kmers, const int32_t k, _nkmer_T &nkmer){
 	nkmer=0;
 	for (int32_t i=0;i<k;i++){
-		uint8_t nt4 = nt256_nt4[kmers[i]];
+		uint8_t nt4 = nt256_nt4[static_cast<int32_t>(kmers[i])];
 		if (nt4==4){
 			return -1;
 		}
@@ -71,7 +66,7 @@ template<typename _nkmer_T>
 int32_t encode_reverse(const char *kmers, const int32_t k, _nkmer_T &nkmer){
 	nkmer=0;
 	for (int32_t i=0;i<k;i++){
-		uint8_t nt4 = nt256_nt4[kmers[k-i-1]];
+		uint8_t nt4 = nt256_nt4[static_cast<int32_t>(kmers[k-i-1])];
 		if (nt4==4){
 			return -1;
 		}
@@ -148,15 +143,15 @@ struct contig_t{
 	char *r_ext_border;
 	char *l_ext_border;
 
-	contig_t(uint32_t k){
-		this->k=k;
+	contig_t(uint32_t _k){
+		this->k=_k;
 		seq_buffer=new char[k+2*max_contig_length+1]();
 		l_ext_border=seq_buffer;
 		r_ext_border=seq_buffer+k+2*max_contig_length;
 	}
 
 	int32_t reinit(const char *base_kmer){
-		assert(strlen(base_kmer)==k);
+		assert(static_cast<int32_t>(strlen(base_kmer))==k);
 
 		l_ext = r_ext = &seq_buffer[max_contig_length];
 		*r_ext='\0';
@@ -168,7 +163,7 @@ struct contig_t{
 	}
 
 	int32_t r_extend(char c){
-		uint8_t nt4 = nt256_nt4[c];
+		uint8_t nt4 = nt256_nt4[static_cast<int32_t>(c)];
 
 		if (nt4==4){
 			return -1;
@@ -181,7 +176,7 @@ struct contig_t{
 	}
 
 	int32_t l_extend(char c){
-		uint8_t nt4 = nt256_nt4[c];
+		uint8_t nt4 = nt256_nt4[static_cast<int32_t>(c)];
 
 		if (nt4==4){
 			return -1;
@@ -200,17 +195,14 @@ struct contig_t{
 		return (r_ext>=r_ext_border) || (l_ext<=l_ext_border);
 	}
 
-	int32_t print_to_fasta(FILE* fasta_file, char* contig_name, char *comment=nullptr) const {
+	int32_t print_to_fasta(FILE* fasta_file, const char* contig_name, const char *comment=nullptr) const {
 		if (comment==nullptr){
 			fprintf(fasta_file,">%s\n",contig_name);
 		} else {
 			fprintf(fasta_file,">%s %s\n",contig_name,comment);
 		}
 
-		int32_t buffer_len=r_ext-l_ext;
 		char print_buffer[fasta_line_length+1]={0};
-
-		int32_t j=0;
 
 		for (char *p=l_ext;p<r_ext;p+=fasta_line_length){
 			strncpy(print_buffer,p,fasta_line_length);
@@ -238,9 +230,6 @@ int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
 
     fp = gzopen(fasta_fn.c_str(), "r");
     seq = kseq_init(fp);
-
-
-    char buffer[100]={};
 
 	typename _set_T::value_type nkmer;
 
@@ -333,6 +322,7 @@ int32_t remove_subset(std::vector<_set_T> &sets, const _subset_T &subset){
 		}
 	}
 
+	return 0;
 }
 
 
@@ -343,16 +333,15 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 	FILE *file=fopen(fasta_fn.c_str(),"w+");
 
-	char kmer_str[k+1];
+	char kmer_str[max_allowed_kmer_length+1];
 
 	contig_t contig(k);
 
 	const std::vector<char> nucls = {'A','C','G','T'};
 
-	int i=0;
+	//int32_t i=0;
+	int32_t contig_id=0;
 	while(set.size()>0){
-		i++;
-		//printf("writing contig %d\n",i);
 
 		const auto central_nkmer=*(set.begin());
 		set.erase(central_nkmer);
@@ -397,7 +386,11 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 			}
 		}
 
-		contig.print_to_fasta(file,"conting xx");
+		std::stringstream ss;
+		ss<<"contig_"<<contig_id;
+		const std::string contig_name(ss.str());
+		contig.print_to_fasta(file,contig_name.c_str());
+		contig_id++;
 	}
 
 	fclose(file);
@@ -411,6 +404,7 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 int main (int argc, char* argv[])
 {
+	const int32_t k=22;
 
 	std::string intersection_fn;
 	std::vector<std::string> input_fns;
@@ -460,7 +454,7 @@ int main (int argc, char* argv[])
 
 	std::vector< boost::unordered_set<nkmer_t> > full_sets(output_fns.size());
 
-    for(int32_t i=0;i<input_fns.size();i++){
+    for(int32_t i=0;i<static_cast<int32_t>(input_fns.size());i++){
     	std::cout << "Loading " << input_fns[i] << std::endl;
     	kmers_from_fasta(input_fns[i],full_sets[i],k);
     }
@@ -476,7 +470,7 @@ int main (int argc, char* argv[])
 
     remove_subset(full_sets, intersection);
 
-    for(int32_t i=0;i<input_fns.size();i++){
+    for(int32_t i=0;i<static_cast<int32_t>(input_fns.size());i++){
     	std::cout << "Assembling " << input_fns[i] << std::endl;
 		assemble(output_fns[i],full_sets[i],k);
     }
