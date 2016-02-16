@@ -355,8 +355,6 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 		strncpy(kmer_str,central_kmer_string.c_str(),k);
 		kmer_str[k]='\0';
 
-		//printf("central k-mer: %s\n",central_kmer_string.c_str());
-
 		typename _set_T::value_type nkmer;
 
 		bool extending = true;
