@@ -2,12 +2,13 @@
 
 #include <zlib.h>
 
+#include <cinttypes>
 #include <cstdio>
-#include <limits>
 #include <iostream>
-
+#include <limits>
 #include <vector>
-//#include <unordered_set>
+
+
 #include <boost/unordered_set.hpp>
 
 #include <boost/program_options.hpp>
@@ -16,6 +17,7 @@
 #include <boost/program_options/variables_map.hpp>
 
 typedef __uint128_t nkmer_t;
+//typedef uint64_t nkmer_t;
 typedef std::set<nkmer_t> set_t;
 
 const int32_t fasta_line_length=60;
@@ -404,7 +406,7 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 int main (int argc, char* argv[])
 {
-	const int32_t k=22;
+	int32_t k=22;
 
 	std::string intersection_fn;
 	std::vector<std::string> input_fns;
@@ -423,6 +425,7 @@ int main (int argc, char* argv[])
                ("input,i", po::value<std::vector<std::string>>(&input_fns)->required(), "Input files.")
                ("output,o", po::value<std::vector<std::string>>(&output_fns)->required(), "Output files.")
                ("intersection,x", po::value<std::string>(&intersection_fn)->required(), "Intersection file.")
+               ("kmer-size,k", po::value<int32_t>(&k), "K-mer size. [22]")
                ;
 
 
@@ -449,6 +452,11 @@ int main (int argc, char* argv[])
     catch(std::exception& e)
     {
         fprintf(stderr,"Unhandled Exception: %s.\n",e.what());
+        return EXIT_FAILURE;
+    }
+
+    if(k < 2 || max_allowed_kmer_length<k){
+        fprintf(stderr, "K-mer size must satisfy 1 < k <= %" PRId32 ".\n", max_allowed_kmer_length);
         return EXIT_FAILURE;
     }
 
