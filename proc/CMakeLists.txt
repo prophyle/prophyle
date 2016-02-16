@@ -2,10 +2,21 @@ cmake_minimum_required (VERSION 2.6)
 project (proc)
 
 
-add_definitions(" --std=c++11")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lprofiler -pg")
 #set(CMAKE_CXX_FLAGS " -lprofiler -pg ${CMAKE_CXX_FLAGS} -Wall ")
-set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
+
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "Setting build type to 'DEBUG' as none was specified.")
+    set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "DEBUG" "RELEASE" "RELWITHDEBINFO")
+endif()
+
+set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}                -std=c++11 -Wall -Wextra -Wno-missing-field-initializers -Wshadow ")
+set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}        -O3 -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3 -march=native -DNDEBUG -g")
+set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}          -O0 -g -pedantic")
+
+
 
 add_executable(proc main.cpp)
 
