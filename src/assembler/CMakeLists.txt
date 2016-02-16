@@ -6,8 +6,8 @@ project (proc)
 #set(CMAKE_CXX_FLAGS " -lprofiler -pg ${CMAKE_CXX_FLAGS} -Wall ")
 
 if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "Setting build type to 'DEBUG' as none was specified.")
-    set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build." FORCE)
+    message(STATUS "Setting build type to 'RELEASE' as none was specified.")
+    set(CMAKE_BUILD_TYPE RELEASE CACHE STRING "Choose the type of build." FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "DEBUG" "RELEASE" "RELWITHDEBINFO")
 endif()
 
