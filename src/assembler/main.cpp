@@ -236,14 +236,14 @@ int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
 	typename _set_T::value_type nkmer;
 
 	for(int32_t seqid=0;(l = kseq_read(seq)) >= 0;seqid++) {
-		std::cout << "kmers from fasta" << std::endl;
+		//std::cout << "kmers from fasta" << std::endl;
 
-		std::cout << "starting iterator" << std::endl;
+		//std::cout << "starting iterator" << std::endl;
 		for(char *kmer=seq->seq.s; kmer < (seq->seq.s) + (seq->seq.l) -k +1 ;kmer++){
 			encode_canonical(kmer, k, nkmer);
 			set.insert(nkmer);
 		}
-		std::cout << "iterator finished" << std::endl;
+		//std::cout << "iterator finished" << std::endl;
 
     }
 
@@ -264,13 +264,13 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 	int32_t min=std::numeric_limits<int32_t>::max();
 	int32_t i_min=-1;
 
-	std::cout << "searching min" << std::endl;
+	//std::cout << "searching min" << std::endl;
 
 	for(int32_t i=0;i<static_cast<int32_t>(sets.size());i++){
 		if (static_cast<int32_t>(sets[i].size())<min){
 			min=sets[i].size();
 			i_min=i;
-			std::cout << "new min" << i << std::endl;
+			//std::cout << "new min" << i << std::endl;
 		}
 	}
 
@@ -280,10 +280,10 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 		2) Take it as the intersection.
 	*/
 
-	std::cout << "2" << std::endl;
+	//std::cout << "2" << std::endl;
 
 	intersection.clear();
-	std::cout << "2.1" << std::endl;
+	//std::cout << "2.1" << std::endl;
 	std::copy(
 		sets[i_min].cbegin(), sets[i_min].cend(),
 		std::inserter(intersection,intersection.end())
