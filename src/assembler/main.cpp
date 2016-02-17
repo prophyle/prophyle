@@ -266,8 +266,8 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 
 	std::cout << "searching min" << std::endl;
 
-	for(int32_t i=0;i<sets.size();i++){
-		if (sets[i].size()<min){
+	for(int32_t i=0;i<static_cast<int32_t>(sets.size());i++){
+		if (static_cast<int32_t>(sets[i].size())<min){
 			min=sets[i].size();
 			i_min=i;
 			std::cout << "new min" << i << std::endl;
@@ -315,7 +315,7 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 template<typename _set_T, typename _subset_T>
 int32_t remove_subset(std::vector<_set_T> &sets, const _subset_T &subset){
 
-	for(int32_t i=0;i<sets.size();i++){
+	for(int32_t i=0;i<static_cast<int32_t>(sets.size());i++){
 
 		_set_T &current_set = sets[i];
 
@@ -420,9 +420,9 @@ int main (int argc, char* argv[])
         po::options_description vol("Command-line parameters");
 
         vol.add_options()
-               ("input,i", po::value<std::vector<std::string>>(&input_fns)->required(), "Input files.")
-               ("output,o", po::value<std::vector<std::string>>(&output_fns)->required(), "Output files.")
-               ("intersection,x", po::value<std::string>(&intersection_fn)->required(), "Intersection file.")
+               ("input,i", po::value<std::vector<std::string>>(&input_fns)->required(), "Input FASTA files.")
+               ("output,o", po::value<std::vector<std::string>>(&output_fns)->required(), "Output FASTA files. They will contain the same k-mers as input file except those from intersection.")
+               ("intersection,x", po::value<std::string>(&intersection_fn)->required(), "Intersection FASTA file.")
                ("kmer-size,k", po::value<int32_t>(&k), "K-mer size. [22]")
                ;
 
