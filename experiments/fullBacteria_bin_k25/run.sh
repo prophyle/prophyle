@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 ../../src/build_index.py \
-	-n ../../trees/1from10.newick \
+	-n ../../trees/bacteria.orig.newick \
 	-o ./index \
 	-l ../../ \
-	-k 31 \
+	-k 25 \
