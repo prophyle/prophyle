@@ -12,6 +12,7 @@ ExternalProject_Add(zlib
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_INSTALL_PREFIX=${zlib_INSTALL}
+        -DCMAKE_MACOSX_RPATH=0
     )
 
 include_directories(${zlib_INSTALL}/include)
