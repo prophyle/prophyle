@@ -1,10 +1,11 @@
 #! /usr/bin/env python3
 
 import os
-import metag
+import shutil
 import datetime
 import sys
 import argparse
+import snakemake
 
 from tree_formatter import *
 
@@ -12,47 +13,51 @@ import logging
 
 logger = logging.getLogger()
 handler = logging.StreamHandler()
-formatter = logging.Formatter(
-        '%(asctime)s %(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-#t=read_newick("id_tree_bin.newick",format=10)
-#t.render("test.pdf")
-
-#for leaf in t.iter_leaves():
-#	#print (leaf.name, leaf.named_lineage)
-#	if hasattr(leaf,"fastapath"):
-#		print(leaf.fastapath)
-#	print(leaf.features)
-#	print(leaf.infasta_seqnum)
-#	print()
-
-#def NodeIndex:
-#	def __init__(self,node,output_fasta_fn):
-#		self.node=node
-#		self.output_fasta_fn=output_fasta_fn
-#		self.kmers_set=set()
-#		self.fasta_fo=None
-#
-#	def add_kmer(self,kmer):
-#		self.kmers_set.add(kmers_set)
-#
-#	def add_kmers(self,kmers_set):
-#		self.kmers_set|=kmers_set
-#
-#	def __del__(self):
-#		if len(self.kmers)>0:
-#			metag.set_to_fasta(
-#					fasta_fn=self.output_fasta_fn,
-#					set_of_kmers=self.kmers_set,
-#					assemble=True
-#				)
-
 
 def size_in_mb(file_fn):
 	return os.path.getsize(file_fn)/(1024**2)
+
+def merge_fasta_files(input_files,output_file):
+	"""Merge files, remove empty lines.
+	"""
+
+	logger.info('Merging. Input: {}. Output: {}.'.format(input_files,output_file))
+
+	with open(output_file,"w+") as of_fo:
+		for if_fn in input_files:
+			with open(if_fn) as if_fo:
+				for line in if_fo:
+					if line.strip()=="":
+						continue
+					of_fo.write(line)
+
+def assembly(input_files, output_files, intersection_file):
+	assert(len(input_files)==len(output_files))
+	logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
+	snakemake.shell("""
+			"{assembler}" \
+				-i "{i}" \
+				-o "{o}" \
+				-x "{x}" \
+			""".format(
+					assembler="../../src/assembler/assembler",
+					i='" -i "'.join(input_files),
+					o='" -o "'.join(output_files),
+					x=intersection_file,
+				)
+		)
+	logger.info('Finished assembly')
+
+def nonreduced_fasta_fn(node):
+	return node.name+"_1.fa"
+	
+def reduced_fasta_fn(node):
+	return node.name+"_2.fa"
 
 class TreeIndex:
 
@@ -61,32 +66,6 @@ class TreeIndex:
 		self.newick_directory=os.path.dirname(tree_newick_fn)
 		self.directory=directory
 		os.makedirs(directory,exist_ok=True)
-
-
-	#def _rightmost_descendant(self,node):
-	#	while not node.is_leaf():
-	#		node=node.get_children()[-1]
-	#	return node
-	#
-	#def _rightmost_leaf_of_subtree(self,leaf):
-	#	node=leaf
-	#	while node.get_ancestors() is not None:
-	#		#print(node.name)
-	#		ancestors=node.get_ancestors()
-	#		if len(ancestors)==0:
-	#			break
-	#		father=ancestors[0]
-	#		fathers_children=father.get_children()
-	#		assert(len(fathers_children)<=2)
-	#		if len(fathers_children)!=1:
-	#			if fathers_children[1]==node:
-	#				break
-	#		node=father
-	#
-	#	return _rightmost_descendant(node)
-	#
-	#def _save_kmers_to_dict(kmers_set,rightmost_leaf):
-	#	for kmer in kmers_set:
 
 	@staticmethod
 	def _node_debug(node):
@@ -97,51 +76,44 @@ class TreeIndex:
 		else:
 			return "{}".format(node.name)
 
-	def create_fasta(self,node,kmers_set):
-		fasta_fn=os.path.join(self.directory,"{}.fa".format(node.name))
-		logger.info('Creating FASTA "{}" (assembling {} kmers)'.format(fasta_fn,len(kmers_set)//2))
-		logger.debug('... from k-mers "{}"'.format(", ".format(kmers_set)))
-		metag.set_to_fasta(
-				fasta_fn=fasta_fn,
-				set_of_kmers=kmers_set,
-				assemble=True,
-				contig_prefix="node{}".format(node.name),
-			)
-		logger.info('... FASTA created "{}"'.format(fasta_fn))
-
-	def get_shared_kmers(self,node,k):
-		logger.info('BEGIN get shared k-mers for node "{}"'.format(self._node_debug(node)))
+	def process_node(self,node,k):
 		if node.is_leaf():
+			logger.info('BEGIN process leaf node "{}"'.format(self._node_debug(node)))
 			kmers_set=set()
+
 			if hasattr(node,"fastapath"):
 				fastas_fn=node.fastapath.split("@")
-				#print( datetime.datetime.now().time() )
-				for fasta_fn in fastas_fn:
-					fasta_fn=os.path.join(self.newick_directory,fasta_fn)
-					if os.path.isfile(fasta_fn):
-						logger.info('Loading FASTA "{}" (size: {} MB)'.format(fasta_fn,size_in_mb(fasta_fn)))
-						kmers_set|=metag.set_from_fasta(fasta_fn,k)
-						logger.info('... FASTA loaded "{}"'.format(fasta_fn))
-					else:
-						logger.warning('FASTA "{}" does not exist'.format(fasta_fn))
-			logger.info('END get shared k-mers for node "{}" ({} kmers)'.format(self._node_debug(node),len(kmers_set)//2))
-			logger.debug('... kmers (from fasta files): "{}"'.format(", ".join(kmers_set)))
-			return kmers_set
+				merge_fasta_files(fastas_fn,nonreduced_fasta_fn(node))
+				logger.info('FASTA files merged, "{}" created'.format(nonreduced_fasta_fn(node)))
+			logger.info('END processing leaf node "{}"'.format(self._node_debug(node)))
+
 		else:
+			logger.info('BEGIN process non-leaf node "{}"'.format(self._node_debug(node)))
 			children=node.get_children()
-			list_of_full_sets=[self.get_shared_kmers(child,k=k) for child in children]
-			intersection=set.intersection(*list_of_full_sets)
-			list_of_reduced_sets=[full_set-intersection for full_set in list_of_full_sets]
-			for (i,reduced_set) in enumerate(list_of_reduced_sets):
-				if len(reduced_set)>0:
-					self.create_fasta(children[i],reduced_set)
-			logger.info('END get shared k-mers for node "{}" ({} kmers)'.format(self._node_debug(node),len(intersection)//2))
-			logger.debug('... kmers (from children): "{}"'.format(", ".join(intersection)))
-			return intersection
+
+			# 1) process children
+			for child in children:
+				self.process_node(child,k=k)
+
+			# 2) k-mer propagation & assembly
+			input_files=[nonreduced_fasta_fn(x) for x in children]
+			output_files=[reduced_fasta_fn(x) for x in children]
+			intersection_file=nonreduced_fasta_fn(node)
+
+			# 2a) 1 child
+			if len(input_files)==1:
+				shutil.copyfile(input_files[0],intersection_file)
+				open(output_files[0], 'w').close()
+
+			# 2b) several children
+			else:
+				assembly(input_files,output_files,intersection_file)
+			
+			logger.info('END processing non-leaf node "{}"'.format(self._node_debug(node)))
 
 	def build_index(self,k):
 		logger.info('Going to build index for k={}'.format(k))
-		self.get_shared_kmers(self.tree.get_tree_root(),k=k)
+		self.process_node(self.tree.get_tree_root(),k=k)
 
 
 if __name__ == "__main__":
