@@ -36,21 +36,25 @@ def merge_fasta_files(input_files,output_file):
 						continue
 					of_fo.write(line)
 
-def assembly(input_files, output_files, intersection_file):
+def assembly(input_files, output_files, intersection_file, k):
 	assert(len(input_files)==len(output_files))
 	logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
-	snakemake.shell("""
+	cmd = """
 			"{assembler}" \
 				-i "{i}" \
 				-o "{o}" \
 				-x "{x}" \
+				-k {k} \
 			""".format(
 					assembler="../../src/assembler/assembler",
 					i='" -i "'.join(input_files),
 					o='" -o "'.join(output_files),
 					x=intersection_file,
+					k=k,
 				)
-		)
+	logger.info('Cmd to be run: {}'.format(cmd))
+
+	snakemake.shell(cmd)
 	logger.info('Finished assembly')
 
 class TreeIndex:
@@ -110,7 +114,7 @@ class TreeIndex:
 
 			# 2b) several children
 			else:
-				assembly(input_files,output_files,intersection_file)
+				assembly(input_files,output_files,intersection_file,k)
 			
 			logger.info('END processing non-leaf node "{}"'.format(self._node_debug(node)))
 
