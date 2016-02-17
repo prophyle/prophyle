@@ -1,4 +1,7 @@
 #! /usr/bin/env bash
 
-../../src/build_index.py -n ../../fasta_libraries/library_bacteria/id_tree_bin.newick -o ./index -k 20
-
+../../src/build_index.py \
+	-n ../../trees/bacteria.newick \
+	-o ./index \
+	-l ../../ \
+	-k 20 \

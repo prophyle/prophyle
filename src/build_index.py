@@ -53,19 +53,15 @@ def assembly(input_files, output_files, intersection_file):
 		)
 	logger.info('Finished assembly')
 
-def nonreduced_fasta_fn(node):
-	return node.name+"_1.fa"
-	
-def reduced_fasta_fn(node):
-	return node.name+"_2.fa"
-
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,format=10,directory="./"):
+	def __init__(self,tree_newick_fn,index_dir,library_dir,format=10):
+		self.tree_newick_fn=tree_newick_fn
 		self.tree=read_newick(tree_newick_fn,format=format)
-		self.newick_directory=os.path.dirname(tree_newick_fn)
-		self.directory=directory
-		os.makedirs(directory,exist_ok=True)
+		self.newick_dir=os.path.dirname(tree_newick_fn)
+		self.index_dir=index_dir
+		self.library_dir=library_dir
+		os.makedirs(self.index_dir,exist_ok=True)
 
 	@staticmethod
 	def _node_debug(node):
@@ -76,15 +72,22 @@ class TreeIndex:
 		else:
 			return "{}".format(node.name)
 
+	def nonreduced_fasta_fn(self,node):
+		return os.path.join(self.index_dir,node.name+".full.fa")
+		
+	def reduced_fasta_fn(self,node):
+		return os.path.join(self.index_dir,node.name+".reduced.fa")
+
 	def process_node(self,node,k):
 		if node.is_leaf():
 			logger.info('BEGIN process leaf node "{}"'.format(self._node_debug(node)))
-			kmers_set=set()
 
 			if hasattr(node,"fastapath"):
 				fastas_fn=node.fastapath.split("@")
-				merge_fasta_files(fastas_fn,nonreduced_fasta_fn(node))
-				logger.info('FASTA files merged, "{}" created'.format(nonreduced_fasta_fn(node)))
+				for i in range(len(fastas_fn)):
+					fastas_fn[i]=os.path.join(self.library_dir,fastas_fn[i])
+				merge_fasta_files(fastas_fn,self.nonreduced_fasta_fn(node))
+				logger.info('FASTA files merged, "{}" created'.format(self.nonreduced_fasta_fn(node)))
 			logger.info('END processing leaf node "{}"'.format(self._node_debug(node)))
 
 		else:
@@ -96,9 +99,9 @@ class TreeIndex:
 				self.process_node(child,k=k)
 
 			# 2) k-mer propagation & assembly
-			input_files=[nonreduced_fasta_fn(x) for x in children]
-			output_files=[reduced_fasta_fn(x) for x in children]
-			intersection_file=nonreduced_fasta_fn(node)
+			input_files=[self.nonreduced_fasta_fn(x) for x in children]
+			output_files=[self.reduced_fasta_fn(x) for x in children]
+			intersection_file=self.nonreduced_fasta_fn(node)
 
 			# 2a) 1 child
 			if len(input_files)==1:
@@ -141,7 +144,15 @@ if __name__ == "__main__":
 			metavar='str',
 			dest='output_dir_fn',
 			required=True,
-			help='Output directory.',
+			help='Output directory (for index).',
+		)
+	parser.add_argument(
+			'-l','--library-dir',
+			type=str,
+			metavar='str',
+			dest='library_dir_fn',
+			required=True,
+			help='Directory with the library.',
 		)
 
 	args = parser.parse_args()
@@ -150,6 +161,7 @@ if __name__ == "__main__":
 	assert k>0
 	newick_fn=args.newick_fn
 	output_dir_fn=args.output_dir_fn
+	library_dir_fn=args.library_dir_fn
 
 	logger.info("Starting index construction")
 	logger.info("       newick : {}".format(newick_fn))
@@ -158,6 +170,7 @@ if __name__ == "__main__":
 
 	ti=TreeIndex(
 			tree_newick_fn=newick_fn,
-			directory=output_dir_fn
+			library_dir=library_dir_fn,
+			index_dir=output_dir_fn,
 		)
 	ti.build_index(k=k)
