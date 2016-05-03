@@ -1,0 +1,3 @@
+[submodule "src/kmer-index/bwa"]
+	path = src/kmer-index/bwa
+	url = http://github.com/lh3/bwa
