@@ -50,7 +50,7 @@ all:$(PROG)
 #exk:libbwa.a $(AOBJS) bwtexk.o
 #		$(CC) $(CFLAGS) $(DFLAGS) $(AOBJS) bwtexk.o -o $@ -L. -lbwa $(LIBS)
 exk: bwa/libbwa.a $(AOBJS2) bwtexk.o
-		$(CC) $(CFLAGS) $(DFLAGS) $(AOBJS2) bwtexk.o -o $@ -L. -lbwa $(INCLUDES) $(LIBS)
+		$(CC) $(CFLAGS) $(DFLAGS) $(AOBJS2) bwtexk.o -o $@ -Lbwa -lbwa $(INCLUDES) $(LIBS)
 
 #bwtexk.o: bwtaln.h bwtexk.h bwt.h bwtgap.h utils.h bwa.h bntseq.h malloc_wrap.h
 
