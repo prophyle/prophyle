@@ -1,0 +1,8 @@
+.PHONY: test
+
+
+test: testref.fa.bwt
+	../exk -a 2 testref.fa query.fa
+
+testref.fa.bwt: testref.fa
+	bwa index testref.fa
