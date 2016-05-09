@@ -41,6 +41,12 @@ all:$(PROG)
 
 clean:
 	rm -f gmon.out *.o a.out $(PROG) *~ *.a
+	$(MAKE) -C bwa clean
 
 exk: bwa/libbwa.a $(AOBJS2) bwtexk.o
 	$(CC) $(INCLUDES) $(CFLAGS) $(DFLAGS) $(AOBJS2) bwtexk.o -o $@ -Lbwa -lbwa $(LIBS)
+
+#bwa/libbwa.a $(AOBJS2) bwtexk.o:
+bwa/libbwa.a:
+	 $(MAKE) -C bwa
+
