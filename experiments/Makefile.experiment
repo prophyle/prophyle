@@ -1,0 +1,28 @@
+.PHONY: all renderfasta
+
+include *.mk
+
+#ASSEMBLER=../../bin/assembler
+EXK=../../bin/exk
+BUILD_FA=../../src/build_index.py
+BWA=bwa
+
+all: index.fa.bwt
+
+index.fa:
+	$(BUILD_FA) \
+	-n $(TREE) \
+	-o ./index \
+	-l ../../ \
+	-k $(K) \
+
+	@cat index/*.reduced.fa > index.fa
+
+renderfasta:
+	@cat index/*.reduced.fa > index.fa
+
+%.sa %.pac %.bwt %.amb %.ann: %
+	$(BWA) index -a is $<
+
+clean:
+	rm -fr index index.fa.*
