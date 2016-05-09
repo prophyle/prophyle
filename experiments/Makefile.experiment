@@ -25,4 +25,4 @@ renderfasta:
 	$(BWA) index -a is $<
 
 clean:
-	rm -fr index index.fa.*
+	rm -fr index index.fa index.fa.*
