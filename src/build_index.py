@@ -46,7 +46,7 @@ def assembly(input_files, output_files, intersection_file, k):
 				-x "{x}" \
 				-k {k} \
 			""".format(
-					assembler="../../src/assembler/assembler",
+					assembler="../../bin/assembler",
 					i='" -i "'.join(input_files),
 					o='" -o "'.join(output_files),
 					x=intersection_file,
