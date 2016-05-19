@@ -175,17 +175,18 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	bwa_seq_close(ks);
 }
 
-
-int bwa_exk(int argc, char *argv[])
+int exk_match(int argc, char *argv[])
 {
 	int c, opte = -1;
 	exk_opt_t *opt;
 	char *prefix;
 
 	opt = exk_init_opt();
-	while ((c = getopt(argc, argv, "a:n:o:e:i:d:l:k:LR:m:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	while ((c = getopt(argc, argv, "uvk:n:o:e:i:d:l:LR:m:t:NM:O:E:q:f:b012IYB:")) >= 0) {
 		switch (c) {
-		case 'a': opt->kmer_length = atoi(optarg); break;
+		//case 'v': opt->output_rids = 1; break;
+		//case 'u': opt->use_klcp = 1; break;
+		case 'k': opt->kmer_length = atoi(optarg); break;
 		case 'e': opte = atoi(optarg); break;
 		case 't': opt->n_threads = atoi(optarg); break;
 		case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
@@ -208,17 +209,22 @@ int bwa_exk(int argc, char *argv[])
 
 	if (optind + 2 > argc) {
 		fprintf(stderr, "\n");
-		fprintf(stderr, "Usage:   exk exk [options] <prefix> <in.fq>\n\n");
-		fprintf(stderr, "Options: -t INT    number of threads [%d]\n", opt->n_threads);
-		fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
-    fprintf(stderr, "         -f FILE   file to write output to instead of stdout\n");
-		fprintf(stderr, "         -B INT    length of barcode\n");
-		fprintf(stderr, "         -I        the input is in the Illumina 1.3+ FASTQ-like format\n");
-		fprintf(stderr, "         -b        the input read file is in the BAM format\n");
-		fprintf(stderr, "         -0        use single-end reads only (effective with -b)\n");
-		fprintf(stderr, "         -1        use the 1st read in a pair (effective with -b)\n");
-		fprintf(stderr, "         -2        use the 2nd read in a pair (effective with -b)\n");
-		fprintf(stderr, "         -Y        filter Casava-filtered sequences\n");
+		fprintf(stderr, "Usage:   exk match [options] <prefix> <in.fq>\n\n");
+		fprintf(stderr, "Options: -k INT    length of k-mer\n");
+		//fprintf(stderr, "         -u        use klcp for matching\n");
+		//fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
+
+		// fprintf(stderr, "         -t INT    number of threads [%d]\n", opt->n_threads);
+		// fprintf(stderr, "         -B INT    length of barcode\n");
+		// fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
+    // fprintf(stderr, "         -f FILE   file to write output to instead of stdout\n");
+		// fprintf(stderr, "         -B INT    length of barcode\n");
+		// fprintf(stderr, "         -I        the input is in the Illumina 1.3+ FASTQ-like format\n");
+		// fprintf(stderr, "         -b        the input read file is in the BAM format\n");
+		// fprintf(stderr, "         -0        use single-end reads only (effective with -b)\n");
+		// fprintf(stderr, "         -1        use the 1st read in a pair (effective with -b)\n");
+		// fprintf(stderr, "         -2        use the 2nd read in a pair (effective with -b)\n");
+		// fprintf(stderr, "         -Y        filter Casava-filtered sequences\n");
 		fprintf(stderr, "\n");
 		return 1;
 	}
@@ -255,7 +261,7 @@ int main(int argc, char *argv[])
 	for (i = 1; i < argc; ++i) ksprintf(&pg, " %s", argv[i]);
 	bwa_pg = pg.s;
 	if (argc < 2) return usage();
-	else ret = bwa_exk(argc, argv);
+	else ret = exk_match(argc, argv);
 
 	err_fflush(stdout);
 	err_fclose(stdout);
