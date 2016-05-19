@@ -236,31 +236,11 @@ int bwa_exk(int argc, char *argv[])
 static int usage()
 {
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Program: bwa (alignment via Burrows-Wheeler transformation)\n");
-	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
-	fprintf(stderr, "Contact: Heng Li <lh3@sanger.ac.uk>\n\n");
-	fprintf(stderr, "Usage:   bwa <command> [options]\n\n");
-	fprintf(stderr, "Command: index         index sequences in the FASTA format\n");
-	fprintf(stderr, "         mem           BWA-MEM algorithm\n");
-	fprintf(stderr, "         fastmap       identify super-maximal exact matches\n");
-	fprintf(stderr, "         pemerge       merge overlapping paired ends (EXPERIMENTAL)\n");
-	fprintf(stderr, "         aln           gapped/ungapped alignment\n");
-	fprintf(stderr, "         samse         generate alignment (single ended)\n");
-	fprintf(stderr, "         sampe         generate alignment (paired ended)\n");
-	fprintf(stderr, "         bwasw         BWA-SW for long queries\n");
+	fprintf(stderr, "Program: exk (alignment of k-mers)\n");
+	fprintf(stderr, "Usage:   exk command [options]\n\n");
+	fprintf(stderr, "Command: index         construct klcp array\n");
+	fprintf(stderr, "Command: match         align k-mers\n");
 	fprintf(stderr, "\n");
-	fprintf(stderr, "         shm           manage indices in shared memory\n");
-	fprintf(stderr, "         fa2pac        convert FASTA to PAC format\n");
-	fprintf(stderr, "         pac2bwt       generate BWT from PAC\n");
-	fprintf(stderr, "         pac2bwtgen    alternative algorithm for generating BWT\n");
-	fprintf(stderr, "         bwtupdate     update .bwt to the new format\n");
-	fprintf(stderr, "         bwt2sa        generate SA from BWT and Occ\n");
-	fprintf(stderr, "\n");
-	fprintf(stderr,
-"Note: To use BWA, you need to first index the genome with `bwa index'.\n"
-"      There are three alignment algorithms in BWA: `mem', `bwasw', and\n"
-"      `aln/samse/sampe'. If you are not sure which to use, try `bwa mem'\n"
-"      first. Please `man ./bwa.1' for the manual.\n\n");
 	return 1;
 }
 
