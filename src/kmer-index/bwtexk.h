@@ -5,6 +5,8 @@
 #include "bwt.h"
 #include "bwtaln.h"
 #include "bwa.h"
+#include "klcp.h"
+#include "exkutils.h"
 
 struct __bwa_seqio_t;
 typedef struct __bwa_seqio_t bwa_seqio_t;
@@ -12,15 +14,6 @@ typedef struct __bwa_seqio_t bwa_seqio_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct {
-	int mode; // bit 24-31 are the barcode length
-	int n_threads;
-	int trim_qual;
-
-	int kmer_length;
-
-} exk_opt_t;
 
 	exk_opt_t *exk_init_opt();
   bwa_seqio_t *bwa_seq_open(const char *fn);
@@ -31,7 +24,7 @@ typedef struct {
 
 	void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt);
 
-	void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs, const exk_opt_t *opt);
+	void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs, const exk_opt_t *opt, klcp_t* klcp);
 
 #ifdef __cplusplus
 }
