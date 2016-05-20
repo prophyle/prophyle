@@ -26,8 +26,8 @@ endif
 
 all:$(PROG)
 
-exk:libbwa.a $(AOBJS) bwtexk.o
-		$(CC) $(CFLAGS) $(DFLAGS) $(AOBJS) bwtexk.o -o $@ -L. -lbwa $(LIBS)
+exk:libbwa.a $(AOBJS) bwtexk.o klcp.o bitarray.o
+		$(CC) $(CFLAGS) $(DFLAGS) $(AOBJS) bwtexk.o klcp.o bitarray.o -o $@ -L. -lbwa $(LIBS)
 
 bwamem-lite:libbwa.a example.o
 		$(CC) $(CFLAGS) $(DFLAGS) example.o -o $@ -L. -lbwa $(LIBS)
@@ -63,7 +63,9 @@ bwt.o: utils.h bwt.h kvec.h malloc_wrap.h
 #bwt_gen.o: QSufSort.h malloc_wrap.h
 #bwt_lite.o: bwt_lite.h malloc_wrap.h
 bwtaln.o: bwtaln.h bwt.h bwtgap.h utils.h bwa.h bntseq.h malloc_wrap.h
-bwtexk.o: bwtaln.h bwtexk.h bwt.h bwtgap.h utils.h bwa.h bntseq.h malloc_wrap.h
+bitarray.o: bitarray.h
+klcp.o: bitarray.h bwtaln.h bwtexk.h bwt.h bwtgap.h utils.h bwa.h bntseq.h malloc_wrap.h
+bwtexk.o: bwtaln.h bwtexk.h bwt.h bwtgap.h utils.h bwa.h bntseq.h malloc_wrap.h klcp.h
 bwtgap.o: bwtgap.h bwt.h bwtaln.h malloc_wrap.h
 bwtindex.o: bntseq.h bwa.h bwt.h utils.h rle.h rope.h malloc_wrap.h
 #bwtsw2_aux.o: bntseq.h bwt_lite.h utils.h bwtsw2.h bwt.h kstring.h
