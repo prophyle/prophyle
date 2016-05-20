@@ -40,9 +40,6 @@ uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
 			break;
 		}
 	}
-	if (new_k > k) {
-		fprintf(stderr, "FUCK new_k = %llu k = %llu\n", new_k, k);
-	}
 	return new_k;
 	//return klcp->prev[k];
 }
@@ -53,16 +50,10 @@ uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
 	while (new_l < klcp->seq_len && is_member(klcp->klcp, new_l)) {
 		overall_increase++;
 		new_l++;
-		if (new_l / SAMPLING_DISTANCE >= size) {
-			fprintf(stderr, "FUCK %llu %llu\n", new_l, size);
-		}
 		if (new_l % SAMPLING_DISTANCE == 0 && new_l < size / SAMPLING_DISTANCE) {
 			new_l = klcp->next[new_l / SAMPLING_DISTANCE];
 			break;
 		}
-	}
-	if (new_l < l) {
-		fprintf(stderr, "FUCK new_l = %llu l = %llu\n", new_l, l);
 	}
 	return new_l;
 	//return klcp->next[l];
