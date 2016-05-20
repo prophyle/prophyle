@@ -115,7 +115,7 @@ void output_chromosomes(const bwaidx_t* idx, const int seq_len, const uint64_t k
 												const uint64_t l, int8_t* seen_rids_marks) {
 	int* seen_rids = malloc((l - k + 1) * sizeof(int));
 	int rids_cnt = 0;
-	for(int t = k; t <= l && t <= k + 10; ++t) {
+	for(int t = k; t <= l && t <= k; ++t) {
 		int strand;
 		int pos = bwa_sa2pos(idx->bns, idx->bwt, t, seq_len, &strand);//bwt_sa(bwt, t);
 		int rid = bns_pos2rid(idx->bns, pos);
