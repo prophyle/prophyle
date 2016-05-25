@@ -115,7 +115,7 @@ void output_chromosomes(const bwaidx_t* idx, const int seq_len, const uint64_t k
 												const uint64_t l, int8_t* seen_rids_marks) {
 	int* seen_rids = malloc((l - k + 1) * sizeof(int));
 	int rids_cnt = 0;
-	for(int t = k; t <= l && t <= k; ++t) {
+	for(int t = k; t <= l; ++t) {
 		int strand;
 		int pos = bwa_sa2pos(idx->bns, idx->bwt, t, seq_len, &strand);//bwt_sa(bwt, t);
 		int rid = bns_pos2rid(idx->bns, pos);
@@ -187,7 +187,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 				}
 			}
 			//fprintf(stderr, "start_pos = %d\n", start_pos);
-			//fprintf(stderr, "found k = %d, l = %d\n", k, l);
+			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			if (opt->output_rids) {
 				output_chromosomes(idx, opt->kmer_length, k, l, seen_rids_marks);
 			}
