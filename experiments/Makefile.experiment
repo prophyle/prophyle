@@ -22,7 +22,7 @@ Makefile.generated:
 	> Makefile.generated
 
 index.fa: index/ Makefile.generated
-	make -f Makefile.generated
+	$(MAKE) -f Makefile.generated
 
 	@cat index/*.reduced.fa > index.fa
 
