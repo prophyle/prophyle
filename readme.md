@@ -21,5 +21,11 @@
 ## Building the indexes
 
 ```bash
-  make -q experiments
+  make -C experiments -j 10
+```
+
+For a quick experiment:
+
+```bash
+  make -C experiments/01* -j 10
 ```
