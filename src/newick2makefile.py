@@ -130,7 +130,7 @@ class TreeIndex:
 
 	def build_index(self,k):
 		print()
-		print("K=8")
+		print("K={}".format(k))
 		print("ASSEMBLER=../../bin/assembler")
 		print()
 		print("all: {}".format(self.nonreduced_fasta_fn(self.tree.get_tree_root())))

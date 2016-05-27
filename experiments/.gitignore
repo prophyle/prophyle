@@ -1,2 +1,8 @@
-*.fa
-*.fa.fai
+index*
+*.klcp
+*.fa.amb
+*.fa.ann
+*.fa.bwt
+*.fa.pac
+*.fa.sa
+Makefile.generated
