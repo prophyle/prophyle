@@ -6,23 +6,40 @@ include *.mk
 EXK=../../bin/exk
 BUILD_FA=../../src/build_index.py
 BWA=bwa
+NEWICK2MAKEFILE=../../bin/newick2makefile.py
 
 all: index.fa.bwt
 
-index.fa:
-	$(BUILD_FA) \
+index/:
+	mkdir index
+
+Makefile.generated:
+	$(NEWICK2MAKEFILE) \
 	-n $(TREE) \
 	-o ./index \
 	-l ../../ \
 	-k $(K) \
+	> Makefile.generated
+
+index.fa: index/ Makefile.generated
+	make -f Makefile.generated
 
 	@cat index/*.reduced.fa > index.fa
 
-renderfasta:
-	@cat index/*.reduced.fa > index.fa
+#index.fa:
+#	$(BUILD_FA) \
+#	-n $(TREE) \
+#	-o ./index \
+#	-l ../../ \
+#	-k $(K) \
+#
+#	@cat index/*.reduced.fa > index.fa
+#
+#renderfasta:
+#	@cat index/*.reduced.fa > index.fa
 
 %.sa %.pac %.bwt %.amb %.ann: %
 	$(BWA) index -a is $<
 
 clean:
-	rm -fr index index.fa index.fa.*
+	rm -fr index index.fa index.fa.* Makefile.generated
