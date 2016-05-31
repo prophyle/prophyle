@@ -11,6 +11,7 @@ typedef struct {
 	int use_klcp;
 	int kmer_length;
 	int output_rids;
+	int skip_after_fail;
 
 } exk_opt_t;
 

@@ -272,11 +272,12 @@ int exk_match(int argc, char *argv[])
 	char *prefix;
 
 	opt = exk_init_opt();
-	while ((c = getopt(argc, argv, "uvk:n:o:e:i:d:l:LR:m:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	while ((c = getopt(argc, argv, "suvk:n:o:e:i:d:l:LR:t:NM:O:E:q:f:b012IYB:")) >= 0) {
 		switch (c) {
 		case 'v': opt->output_rids = 1; break;
 		case 'u': opt->use_klcp = 1; break;
 		case 'k': opt->kmer_length = atoi(optarg); break;
+		case 's': opt->skip_after_fail = 1; break;
 		case 'e': opte = atoi(optarg); break;
 		case 't': opt->n_threads = atoi(optarg); break;
 		case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
