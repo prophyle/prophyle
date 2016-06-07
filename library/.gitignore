@@ -3,4 +3,6 @@
 *.fa
 *.fai
 .complete
+*.fq
+*.sam
 
