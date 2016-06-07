@@ -1,5 +1,8 @@
 *.ffn
 *.fna
 *.fa
+*.fai
 .complete
+*.fq
+*.sam
 
