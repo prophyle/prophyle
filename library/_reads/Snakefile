@@ -13,7 +13,7 @@ rnftools.mishmash.sample("simulation_bacteria",reads_in_tuple=1)
 for fn in fns:
 	rnftools.mishmash.DwgSim(
 		fasta=fn,
-		coverage=0.1,
+		coverage=0.5,
 		read_length_1=100,
 		read_length_2=0,
 		error_rate_1=0,

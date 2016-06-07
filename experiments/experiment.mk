@@ -5,7 +5,7 @@ include *.mk
 #ASSEMBLER=../../bin/assembler
 EXK=../../bin/exk
 BUILD_FA=../../src/build_index.py
-BWA=bwa
+BWA=../../bin/bwa
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
 FINAL_FA=../../bin/create_final_fasta.py
 
