@@ -2,7 +2,11 @@ SUBDIRS := $(wildcard */.)
 
 .PHONY: clean all $(SUBDIRS)
 
-all: $(SUBDIRS)
+all: .complete
+
+.complete: $(SUBDIRS)
+	bash -c "find . -name '*.fna' -o -name '*.ffn' | parallel --no-notice --verbose samtools faidx {}"
+	touch .complete
 
 $(SUBDIRS):
 	$(MAKE) -C $@
