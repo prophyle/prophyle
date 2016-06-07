@@ -1,1 +1,1 @@
-../Makefile.experiment
+../experiment.mk
