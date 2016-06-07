@@ -1,6 +1,8 @@
 # k-mer propagation experiments
 
-## Prerequisities
+## Getting started
+
+### Prerequisities
 
 * GIT
 * CMake
@@ -8,12 +10,15 @@
 * Python 3 with ete3 library, Snakemake, and RNFtools
 * SamTools
 
-### Recommended way of installation using [Anaconda](https://www.continuum.io/downloads)
+#### Recommended way of installation using [Anaconda](https://www.continuum.io/downloads)
 
 Environment installation:
 
 ```bash
-	conda create -y --name metang -c etetoolkit -c bioconda python==3.4 ete3 ete3_external_apps snakemake samtools git cmake
+	conda create -y --name metang \
+		-c etetoolkit -c bioconda \
+		python==3.4 ete3 ete3_external_apps \
+		snakemake samtools git cmake
 ```
 
 Environment activation:
@@ -28,24 +33,28 @@ RNFtools installation (in the activated environment)
 	pip install git+http://github.com/karel-brinda/rnftools
 ```
 
-## Compilation of all programs
+### Compile all programs
 
 ```bash
   make -C src
 ```
 
-## Downloading genomic libraries
+### Download genomic libraries and simulate reads
 ```bash
   make -C libraries
 ```
 
-## Building the indexes
+## How to use
+
+### Build the BWT-indexes
+
+For all experiments:
 
 ```bash
   make -C experiments -j 10
 ```
 
-For a quick experiment:
+For first experiment only (quick testing):
 
 ```bash
   make -C experiments/01* -j 10
