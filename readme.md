@@ -18,7 +18,7 @@ Environment installation:
 	conda create -y --name metang \
 		-c etetoolkit -c bioconda \
 		python==3.4 ete3 ete3_external_apps \
-		snakemake samtools git cmake parallel
+		snakemake samtools cmake parallel
 ```
 
 Environment activation:
@@ -65,4 +65,11 @@ For first experiment only (quick testing):
 
 ```bash
   make -C experiments/01* -j 10
+```
+
+Approx. time:
+```bash
+real    21m4.152s
+user    48m2.228s
+sys     1m27.988s
 ```
