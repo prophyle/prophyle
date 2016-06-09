@@ -4,4 +4,4 @@ RSYNC_SERVER = "rsync://$NCBI_SERVER"
 
 clean:
 	rm -f .complete
-	find . -type d |  xargs rm -fr
+	find . -mindepth 1 -type d |  xargs rm -fr
