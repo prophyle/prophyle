@@ -44,6 +44,13 @@ RNFtools installation (in the activated environment)
   make -C libraries
 ```
 
+Approx. time:
+```
+real    14m31.329s
+user    3m20.748s
+sys     1m40.644s
+```
+
 ## How to use
 
 ### Build the BWT-indexes
