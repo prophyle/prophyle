@@ -18,7 +18,7 @@ Environment installation:
 	conda create -y --name metang \
 		-c etetoolkit -c bioconda \
 		python==3.4 ete3 ete3_external_apps \
-		snakemake samtools git cmake
+		snakemake samtools git cmake parallel
 ```
 
 Environment activation:
@@ -30,7 +30,7 @@ Environment activation:
 RNFtools installation (in the activated environment)
 
 ```bash
-	pip install git+http://github.com/karel-brinda/rnftools
+	pip install git+git://github.com/karel-brinda/rnftools
 ```
 
 ### Compile all programs
