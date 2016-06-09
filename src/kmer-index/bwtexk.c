@@ -172,6 +172,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		}
 		uint64_t k, l;
 		int start_pos = 0;
+		int zero_streak = 0;
+		int was_one = 0;
 		while (start_pos <= p->len - opt->kmer_length) {
 			if (start_pos == 0) {
 				k = 0;
@@ -190,6 +192,26 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			if (opt->output_rids) {
 				output_chromosomes(idx, opt->kmer_length, k, l, seen_rids_marks);
+			}
+			if (opt->skip_after_fail) {
+				if (k <= l) {
+					was_one = 1;
+					zero_streak = 0;
+				} else {
+					if (was_one) {
+						if (zero_streak == 0) {
+							zero_streak += opt->kmer_length - 2;
+							if (opt->output_rids) {
+								for(int ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
+									fprintf(stdout, "0 \n");
+								}
+							}
+							start_pos += opt->kmer_length - 2;
+						} else {
+							zero_streak++;
+						}
+					}
+				}
 			}
 			start_pos++;
 		}
@@ -304,6 +326,7 @@ int exk_match(int argc, char *argv[])
 		fprintf(stderr, "Options: -k INT    length of k-mer\n");
 		fprintf(stderr, "         -u        use klcp for matching\n");
 		fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
+		fprintf(stderr, "         -s        skip k-1 k-mers after failing matching k-mer\n");
 
 		// fprintf(stderr, "         -t INT    number of threads [%d]\n", opt->n_threads);
 		// fprintf(stderr, "         -B INT    length of barcode\n");
