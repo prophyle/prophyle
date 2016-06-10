@@ -1,7 +1,5 @@
 language: cpp
 
-sudo: true
-
 cache:
   apt: true
 
@@ -19,6 +17,7 @@ matrix:
   include:
 
     - os: linux 
+      sudo: true
       compiler: gcc
       addons:
         apt:
