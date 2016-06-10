@@ -1,5 +1,7 @@
 language: cpp
 
+sudo: true
+
 cache:
   apt: true
 
