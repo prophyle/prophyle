@@ -4,11 +4,9 @@
 
 ### Prerequisities
 
-* GIT
 * CMake
 * C++ with Boost
-* Python 3 with ete3 library, Snakemake, and RNFtools
-* SamTools
+* Python 3 with ete3 library
 
 #### Recommended way of installation using [Anaconda](https://www.continuum.io/downloads)
 
@@ -18,19 +16,13 @@ Environment installation:
 	conda create -y --name metang \
 		-c etetoolkit -c bioconda \
 		python==3.4 ete3 ete3_external_apps \
-		snakemake samtools cmake parallel
+		cmake parallel
 ```
 
 Environment activation:
 
 ```bash
 	source activate metang
-```
-
-RNFtools installation (in the activated environment)
-
-```bash
-	pip install git+git://github.com/karel-brinda/rnftools
 ```
 
 ### Compile all programs
@@ -41,7 +33,7 @@ RNFtools installation (in the activated environment)
 
 ### Download genomic libraries and simulate reads
 ```bash
-  make -C libraries
+  make -C library
 ```
 
 Approx. time:
@@ -51,17 +43,22 @@ user    3m20.748s
 sys     1m40.644s
 ```
 
+### Download simulated reads
+```bash
+  make -C reads
+```
+
 ## How to use
 
 ### Build the BWT-indexes
 
-For all experiments:
+#### All experiments:
 
 ```bash
   make -C experiments -j 10
 ```
 
-For first experiment only (quick testing):
+#### First experiment only
 
 ```bash
   make -C experiments/01* -j 10
