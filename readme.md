@@ -1,5 +1,7 @@
 # k-mer propagation experiments
 
+[![Build Status](https://travis-ci.com/karel-brinda/MetaNG.svg?token=LzzDiQkWWqF4hBjZahmQ&branch=master)](https://travis-ci.com/karel-brinda/MetaNG)
+
 ## Getting started
 
 ### Prerequisities
