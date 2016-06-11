@@ -70,7 +70,8 @@ void construct_klcp_recursion(const bwt_t* bwt, int k, int l, int i, int kmer_le
 	}
 	if (i == kmer_length - 1) {
 		//fprintf(stderr, "New entry found! k = %d, l = %d\n", k, l);
-		for(int t = k; t < l; ++t) {
+		int t;
+		for(t = k; t < l; ++t) {
 			//klcp->klcp[t] = 1;
 			add_to_bitarray(klcp->klcp, t);
 		}
@@ -128,7 +129,8 @@ void construct_aux_arrays(klcp_t* klcp) {
 	int take_current = 1;
 	int prev_one = -1;
 	klcp->prev = malloc(prev_size(klcp) * sizeof(uint64_t));
-	for(int i = 0; i < klcp->seq_len; ++i) {
+	int i;
+	for(i = 0; i < klcp->seq_len; ++i) {
 		if (take_current) {
 			if (i % SAMPLING_DISTANCE == 0) {
 				klcp->prev[i / SAMPLING_DISTANCE] = i;
@@ -150,7 +152,7 @@ void construct_aux_arrays(klcp_t* klcp) {
 	take_current = 1;
 	int next_zero = -1;
 	klcp->next = malloc(next_size(klcp) * sizeof(uint64_t));
-	for(int i = klcp->seq_len; i >= 0; --i) {
+	for(i = klcp->seq_len; i >= 0; --i) {
 		if (i < klcp->seq_len && is_member(klcp->klcp, i)) {
 			if (take_current) {
 				next_zero = i + 1;
@@ -204,7 +206,8 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
   klcp_t* klcp = malloc(sizeof(klcp_t));
   klcp->seq_len = n;
 	klcp->klcp = create_bitarray(n);
-	for(int i = 0; i < klcp->klcp->capacity; ++i) {
+	int i;
+	for(i = 0; i < klcp->klcp->capacity; ++i) {
 		klcp->klcp->values[i] = 0;
 	}
 	construct_klcp_recursion(bwt, 0, n, 0, kmer_length, klcp);

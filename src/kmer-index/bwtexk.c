@@ -45,8 +45,7 @@ exk_opt_t *exk_init_opt()
 int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k, uint64_t* l, int start_pos)
 {
 	bwtint_t ok, ol;
-	int i, bid;
-	bid = 0;
+	int i;
 	*k = 0; *l = bwt->seq_len;
 
 	//fprintf(stderr, "start k = %d, l = %d\n", *k, *l);
@@ -69,8 +68,7 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 															uint64_t* k, uint64_t* l, int start_pos, klcp_t* klcp)
 {
 	bwtint_t ok, ol;
-	int i, bid;
-	bid = 0;
+	int i;
 	//int start_k = *k;
 	//int start_l = *l;
 	//fprintf(stderr, "initial k = %d, l = %d\n", *k, *l);
@@ -115,7 +113,8 @@ void output_chromosomes(const bwaidx_t* idx, const int seq_len, const uint64_t k
 												const uint64_t l, int8_t* seen_rids_marks) {
 	int* seen_rids = malloc((l - k + 1) * sizeof(int));
 	int rids_cnt = 0;
-	for(int t = k; t <= l; ++t) {
+	int t;
+	for(t = k; t <= l; ++t) {
 		int strand;
 		int pos = bwa_sa2pos(idx->bns, idx->bwt, t, seq_len, &strand);//bwt_sa(bwt, t);
 		int rid = bns_pos2rid(idx->bns, pos);
@@ -131,7 +130,8 @@ void output_chromosomes(const bwaidx_t* idx, const int seq_len, const uint64_t k
 		}
 	}
 	fprintf(stdout, "%d ", rids_cnt);
-	for(int r = 0; r < rids_cnt; ++r) {
+	int r;
+	for(r = 0; r < rids_cnt; ++r) {
 		fprintf(stdout, "%d ", seen_rids[r]);
 		seen_rids_marks[seen_rids[r]] = 0;
 	}
@@ -147,7 +147,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	bwt_t* bwt = idx->bwt;
 
 	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
-	for(int i = 0; i < idx->bns->n_seqs; ++i) {
+	for(i = 0; i < idx->bns->n_seqs; ++i) {
 		seen_rids_marks[i] = 0;
 	}
 	fprintf(stdout, "\n");
@@ -202,7 +202,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 						if (zero_streak == 0) {
 							zero_streak += opt->kmer_length - 2;
 							if (opt->output_rids) {
-								for(int ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
+								int ind;
+								for(ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
 									fprintf(stdout, "0 \n");
 								}
 							}
@@ -268,11 +269,9 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	}
 
 	ks = bwa_open_reads_new(opt->mode, fn_fa);
-	int seq_len = 1;
 	float total_time = 0;
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
 		tot_seqs += n_seqs;
-		seq_len = seqs[0].len;
 		t = clock();
 		bwa_cal_sa(0, idx, n_seqs, seqs, opt, klcp);
 		total_time += (float)(clock() - t) / CLOCKS_PER_SEC;
@@ -423,9 +422,7 @@ int main(int argc, char *argv[])
 {
 	extern char *bwa_pg;
 	int i, ret = 0;
-	double t_real;
 	kstring_t pg = {0,0,0};
-	t_real = realtime();
 	ksprintf(&pg, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s", PACKAGE_VERSION, argv[0]);
 	for (i = 1; i < argc; ++i) ksprintf(&pg, " %s", argv[i]);
 	bwa_pg = pg.s;
