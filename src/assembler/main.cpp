@@ -16,8 +16,8 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-typedef __uint128_t nkmer_t;
-//typedef uint64_t nkmer_t;
+//typedef __uint128_t nkmer_t;
+typedef uint64_t nkmer_t;
 typedef std::set<nkmer_t> set_t;
 
 const int32_t fasta_line_length=60;
