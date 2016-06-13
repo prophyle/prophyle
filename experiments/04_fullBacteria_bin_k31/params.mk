@@ -1,2 +1,2 @@
 TREE=../../trees/bacteria.bin.newick
-K=25
+K=31
