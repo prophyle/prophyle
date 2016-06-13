@@ -14,7 +14,7 @@ all: index.fa.bwt
 index/:
 	mkdir index
 
-Makefile.generated:
+Makefile.generated: $(NEWICK2MAKEFILE) $(TREE)
 	$(NEWICK2MAKEFILE) \
 	-n $(TREE) \
 	-o ./index \
