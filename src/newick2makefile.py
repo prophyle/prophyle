@@ -26,15 +26,38 @@ def merge_fasta_files(input_files,output_file):
 	"""Merge files, remove empty lines.
 	"""
 
-	cmd =  (
-			"{o}: {i}\n" +
-			"\t@cat \\\n" +
-			"\t\t{i} \\\n" +
-			"\t\t > {o}\n\n"
-		).format(
-			i=' \\\n\t\t'.join(input_files),
-			o=output_file,
-		)
+	if len(input_files)==1:
+
+		ln_name=os.path.basename(output_file)
+		ln_dir=os.path.dirname(output_file)
+		rel_path=os.path.relpath(input_files[0],ln_dir)
+
+		cmd =  (
+				"{o}: {i}\n" +
+				#"{o}:\n" +
+				"\t(cd {d} && ln -sf {i2} {o2})\n" +
+				#"\ttouch {o}\n"
+				"\n"
+			).format(
+				o=output_file,
+				i=input_files[0],
+				d=ln_dir,
+				i2=rel_path,
+				o2=ln_name,
+			)
+
+
+	else:
+
+		cmd =  (
+				"{o}: {i}\n" +
+				"\t@cat \\\n" +
+				"\t\t{i} \\\n" +
+				"\t\t > {o}\n\n"
+			).format(
+				i=' \\\n\t\t'.join(input_files),
+				o=output_file,
+			)
 	print(cmd)
 
 def assembly(input_files, output_files, intersection_file, k):
