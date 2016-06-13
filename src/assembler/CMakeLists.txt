@@ -4,6 +4,8 @@ project (assembler)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lprofiler -pg")
 #set(CMAKE_CXX_FLAGS " -lprofiler -pg ${CMAKE_CXX_FLAGS} -Wall ")
 
+set(Boost_USE_STATIC_LIBS 1)
+
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to 'RELEASE' as none was specified.")
     set(CMAKE_BUILD_TYPE RELEASE CACHE STRING "Choose the type of build." FORCE)
