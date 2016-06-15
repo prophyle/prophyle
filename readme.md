@@ -85,3 +85,11 @@ Example:
 ```bash
 make -j 7 TIME=~/.linuxbrew/bin/time -C experiments/
 ```
+
+#### Run all experiments in serial setting
+
+Example: run experiments 1 by 1, each with 10 Make threads:
+```
+	cd experiments && ./run_serial.sh -j 10
+```
+
