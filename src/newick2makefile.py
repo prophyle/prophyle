@@ -5,7 +5,6 @@ import shutil
 import datetime
 import sys
 import argparse
-import snakemake
 
 from tree_formatter import *
 
