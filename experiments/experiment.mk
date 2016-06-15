@@ -13,12 +13,12 @@ FINAL_FA=../../bin/create_final_fasta.py
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S),Darwin)
-	TIME=gtime
+	TIME=gtime -v
 else
-	TIME=time
+	TIME=time -v
 endif
 
-all: index.fa.bwt index.fa.$(K).bit.klcp
+all: index.fa.bwt index.fa.$(K).bit.klcp _time_log.log
 
 index/:
 	mkdir index
@@ -42,8 +42,6 @@ index.fa: index/.complete
 	$(TIME) -o 2_merging_fasta.log \
 	$(FINAL_FA) index > index.fa
 
-	#@cat index/*.reduced.fa > index.fa
-
 %.sa %.pac %.bwt %.amb %.ann: %
 	$(TIME) -o 3_bwa_index.log \
 	$(BWA) index -a is $<
@@ -55,6 +53,10 @@ index.fa: index/.complete
 %.fai: %
 	$(TIME) -o 5_fasta_index.log \
 	$(SAMTOOLS) faidx $<
+
+_time_log.log: index.fa.$(K).bit.klcp
+	tail -n +1 [0-9]*.log > _time_log.log
+
 
 clean:
 	rm -f index.fa index.fa.* Makefile.generated *.log
