@@ -75,3 +75,13 @@ real    21m4.152s
 user    48m2.228s
 sys     1m27.988s
 ```
+
+#### Redefinition of ``time``
+
+Useful when the default ``time`` installed in the system does not support verbose mode ``-v``.
+
+Example:
+
+```bash
+make -j 7 TIME=~/.linuxbrew/bin/time -C experiments/
+```
