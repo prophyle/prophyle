@@ -13,10 +13,11 @@ FINAL_FA=../../bin/create_final_fasta.py
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S),Darwin)
-	TIME=gtime -v
+	TIME?=gtime
 else
-	TIME=time -v
+	TIME?=time
 endif
+TTIME:=$(TIME) -v
 
 all: index.fa.bwt index.fa.$(K).bit.klcp _time_log.log
 
@@ -33,31 +34,31 @@ Makefile.generated: $(NEWICK2MAKEFILE) $(TREE)
 
 
 index/.complete: index/ Makefile.generated
-	$(TIME) -o 1_kmer_propagation.log \
+	$(TTIME) -o 1_kmer_propagation.log \
 	$(MAKE) -f Makefile.generated
 
 	touch index/.complete
 
 index.fa: index/.complete
-	$(TIME) -o 2_merging_fasta.log \
+	$(TTIME) -o 2_merging_fasta.log \
 	$(FINAL_FA) index > index.fa
 
 %.sa %.pac %.bwt %.amb %.ann: %
-	$(TIME) -o 3_bwa_index.log \
+	$(TTIME) -o 3_bwa_index.log \
 	$(BWA) index -a is $<
 
 %.$(K).bit.klcp: % %.bwt
-	$(TIME) -o 4_klcp.log \
+	$(TTIME) -o 4_klcp.log \
 	$(EXK) index -k $(K) $<
 
 %.fai: %
-	$(TIME) -o 5_fasta_index.log \
+	$(TTIME) -o 5_fasta_index.log \
 	$(SAMTOOLS) faidx $<
 
 _time_log.log: index.fa.$(K).bit.klcp
 	tail -n +1 [0-9]*.log > _time_log.log
 
-
 clean:
 	rm -f index.fa index.fa.* Makefile.generated *.log
 	rm -fr index/
+
