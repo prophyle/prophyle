@@ -11,6 +11,7 @@
 * Boost 1.46+ 
 * ZLib
 * Python 3 with ete3 library
+* GNU time (on OS X using ``brew install gnu-time``)
 
 #### Recommended way of installation using [Anaconda](https://www.continuum.io/downloads)
 
