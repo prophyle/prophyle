@@ -52,11 +52,17 @@ index.fa: index/.complete
 	$(EXK) index -k $(K) $<
 
 %.fai: %
-	$(TTIME) -o 5_fasta_index.log \
+	$(TTIME) -o x_fasta_index.log \
 	$(SAMTOOLS) faidx $<
 
 _time_log.log: index.fa.$(K).bit.klcp
-	tail -n +1 [0-9]*.log > _time_log.log
+	du -sh *.fa.* | grep -v "fa.amb" > 5_index_size.log
+	echo > _main_log.log
+	date >> _main_log.log
+	pwd >> _main_log.log
+	echo >> _main_log.log
+
+	tail -n +1 [0-9]*.log >> _main_log.log
 
 clean:
 	rm -f index.fa index.fa.* Makefile.generated *.log
