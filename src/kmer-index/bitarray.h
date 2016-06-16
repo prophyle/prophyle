@@ -1,13 +1,14 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include <stdint.h>
 
 typedef struct {
   char* values;
-  int size;
-  int capacity;
+  uint64_t size;
+  uint64_t capacity;
 } bitarray_t;
 
-bitarray_t* create_bitarray(int n);
+bitarray_t* create_bitarray(uint64_t n);
 
 void add_to_bitarray(bitarray_t* array, int value);
 

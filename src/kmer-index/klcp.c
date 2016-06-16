@@ -59,7 +59,7 @@ uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
 	//return klcp->next[l];
 }
 
-void construct_klcp_recursion(const bwt_t* bwt, int k, int l, int i, int kmer_length, klcp_t* klcp) {
+void construct_klcp_recursion(const bwt_t* bwt, bwtint_t k, bwtint_t l, int i, int kmer_length, klcp_t* klcp) {
 	if (k > l) {
 		//fprintf(stderr, "exit on i = %d\n", i);
 		return;
@@ -105,7 +105,7 @@ void klcp_dump(const char *fn, const klcp_t* klcp)
 {
 	FILE *fp;
 	fp = xopen(fn, "wb");
-	err_fwrite(&klcp->seq_len, sizeof(int), 1, fp);
+	err_fwrite(&klcp->seq_len, sizeof(uint64_t), 1, fp);
 	err_fwrite(klcp->klcp->values, sizeof(char), klcp->klcp->capacity, fp);
 	err_fwrite(klcp->prev, sizeof(uint64_t), prev_size(klcp), fp);
 	err_fwrite(klcp->next, sizeof(uint64_t), next_size(klcp), fp);
@@ -178,7 +178,7 @@ void klcp_restore(const char *fn, klcp_t* klcp)
 {
 	FILE *fp;
 	fp = xopen(fn, "rb");
-	err_fread_noeof(&klcp->seq_len, sizeof(int), 1, fp);
+	err_fread_noeof(&klcp->seq_len, sizeof(uint64_t), 1, fp);
 	klcp->klcp->size = klcp->seq_len;
 	klcp->klcp->capacity = (klcp->seq_len + 7) / 8;
 	klcp->klcp->values = (char*)calloc(klcp->klcp->capacity, sizeof(char));
@@ -210,7 +210,7 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 	for(i = 0; i < klcp->klcp->capacity; ++i) {
 		klcp->klcp->values[i] = 0;
 	}
-	construct_klcp_recursion(bwt, 0, n, 0, kmer_length, klcp);
+	construct_klcp_recursion(bwt, (bwtint_t)0, (bwtint_t)n, 0, kmer_length, klcp);
 	construct_aux_arrays(klcp);
 	// fprintf(stderr, "DIRECT\n");
 	// construct_klcp_direct(bwt, kmer_length, klcp);
