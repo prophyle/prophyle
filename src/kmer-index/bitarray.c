@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include "bitarray.h"
 
-bitarray_t* create_bitarray(int n)
+bitarray_t* create_bitarray(uint64_t n)
 {
   bitarray_t* array = malloc(sizeof(bitarray_t));
 	array->values = calloc(n, sizeof(char));
