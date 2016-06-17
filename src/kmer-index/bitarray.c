@@ -5,9 +5,9 @@
 bitarray_t* create_bitarray(uint64_t n)
 {
   bitarray_t* array = malloc(sizeof(bitarray_t));
-	array->values = calloc(n, sizeof(char));
   array->size = n;
   array->capacity = (n + 7) / 8;
+	array->values = calloc(array->capacity, sizeof(char));
   return array;
 }
 
