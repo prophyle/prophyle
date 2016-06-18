@@ -109,31 +109,39 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 	return len;
 }
 
-void output_chromosomes(const bwaidx_t* idx, const int seq_len, const uint64_t k,
-												const uint64_t l, int8_t* seen_rids_marks) {
-	int* seen_rids = malloc((l - k + 1) * sizeof(int));
-	int rids_cnt = 0;
-	int t;
+int* get_chromosomes(const bwaidx_t* idx, const int query_length, const uint64_t k,
+										 const uint64_t l, int* seen_rids, int8_t* seen_rids_marks, int* rids_cnt) {
+	free(seen_rids);
+	seen_rids = malloc((l - k + 1) * sizeof(int));
+	*rids_cnt = 0;
+	uint64_t t;
 	for(t = k; t <= l; ++t) {
 		int strand;
-		int pos = bwa_sa2pos(idx->bns, idx->bwt, t, seq_len, &strand);//bwt_sa(bwt, t);
+		uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, t, query_length, &strand);//bwt_sa(bwt, t);
 		int rid = bns_pos2rid(idx->bns, pos);
 		int seen = 0;
 		if (rid != -1) {
 			seen = seen_rids_marks[rid];
 		}
 		if (!seen && rid != -1) {
-			seen_rids[rids_cnt] = rid;
-			++rids_cnt;
+			seen_rids[*rids_cnt] = rid;
+			++(*rids_cnt);
 			seen_rids_marks[rid] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
 		}
 	}
+	int r;
+	for(r = 0; r < *rids_cnt; ++r) {
+		seen_rids_marks[seen_rids[r]] = 0;
+	}
+	return seen_rids;
+}
+
+void output_chromosomes(int* seen_rids, const int rids_cnt) {
 	fprintf(stdout, "%d ", rids_cnt);
 	int r;
 	for(r = 0; r < rids_cnt; ++r) {
 		fprintf(stdout, "%d ", seen_rids[r]);
-		seen_rids_marks[seen_rids[r]] = 0;
 	}
 	fprintf(stdout, "\n");
 }
@@ -147,6 +155,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	bwt_t* bwt = idx->bwt;
 
 	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
+	int* seen_rids = NULL;
+	int rids_cnt;
 	for(i = 0; i < idx->bns->n_seqs; ++i) {
 		seen_rids_marks[i] = 0;
 	}
@@ -170,7 +180,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			}
 			fprintf(stdout, "\n");
 		}
-		uint64_t k, l;
+		uint64_t k = 0, l = 0, prev_k = 0, prev_l = 0;
 		int start_pos = 0;
 		int zero_streak = 0;
 		int was_one = 0;
@@ -191,8 +201,26 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			//fprintf(stderr, "start_pos = %d\n", start_pos);
 			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			if (opt->output_rids) {
-				output_chromosomes(idx, opt->kmer_length, k, l, seen_rids_marks);
+				if (k <= l) {
+					if (l - k == prev_l - prev_k) {
+						if (!seen_rids) {
+							fprintf(stdout, "0 \n");
+							fprintf(stderr, "seen_rids wasn't initialized before, but we want to use it\n");
+							return;
+						} else {
+							output_chromosomes(seen_rids, rids_cnt);
+						}
+					} else {
+						get_chromosomes(idx, opt->kmer_length, k, l, seen_rids, seen_rids_marks, &rids_cnt);
+						output_chromosomes(seen_rids, rids_cnt);
+					}
+				}
+				else {
+					fprintf(stdout, "0 \n");
+				}
 			}
+			prev_k = k;
+			prev_l = l;
 			if (opt->skip_after_fail) {
 				if (k <= l) {
 					was_one = 1;
