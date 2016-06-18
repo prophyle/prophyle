@@ -161,9 +161,11 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		seen_rids_marks[i] = 0;
 	}
 	fprintf(stdout, "\n");
+	int rids_computations = 0;
+	int using_prev_rids = 0;
 	for (i = 0; i != n_seqs; ++i) {
-		if (i % 1000 == 1) {
-			fprintf(stderr, "processed %d reads in chunk\n", i);
+		if (i % 1000 == 0) {
+			fprintf(stderr, "starting processing %d-th read in chunk\n", i);
 		}
 		bwa_seq_t *p = seqs + i;
 		p->sa = 0; p->type = BWA_TYPE_NO_MATCH; p->c1 = p->c2 = 0; p->n_aln = 0; p->aln = 0;
@@ -198,20 +200,21 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					bwt_cal_sa_coord(bwt, opt->kmer_length, p->seq, &k, &l, start_pos);
 				}
 			}
-			//fprintf(stderr, "start_pos = %d\n", start_pos);
-			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
+			// fprintf(stderr, "start_pos = %d\n", start_pos);
+			// fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			if (opt->output_rids) {
 				if (k <= l) {
 					if (l - k == prev_l - prev_k) {
+						using_prev_rids++;
 						if (!seen_rids) {
 							fprintf(stdout, "0 \n");
 							fprintf(stderr, "seen_rids wasn't initialized before, but we want to use it\n");
-							return;
 						} else {
 							output_chromosomes(seen_rids, rids_cnt);
 						}
 					} else {
-						get_chromosomes(idx, opt->kmer_length, k, l, seen_rids, seen_rids_marks, &rids_cnt);
+						rids_computations++;
+						seen_rids = get_chromosomes(idx, opt->kmer_length, k, l, seen_rids, seen_rids_marks, &rids_cnt);
 						output_chromosomes(seen_rids, rids_cnt);
 					}
 				}
@@ -250,6 +253,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
 		p->name = 0; p->seq = p->rseq = p->qual = 0;
 	}
+	fprintf(stderr, "rids computed: %d\n", rids_computations);
+	fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
 }
 
 bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
