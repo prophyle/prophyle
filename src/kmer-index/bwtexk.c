@@ -111,57 +111,49 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 
 size_t get_positions(const bwaidx_t* idx, const int query_length,
 										 const uint64_t k, const uint64_t l,
-										 uint64_t* positions) {
-	free(positions);
-	positions = malloc((l - k + 1) * sizeof(uint64_t));
+										 uint64_t** positions) {
+	free(*positions);
+	*positions = malloc((l - k + 1) * sizeof(uint64_t));
 	uint64_t t;
 	for(t = k; t <= l; ++t) {
 		int strand;
 		uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, t, query_length, &strand);//bwt_sa(bwt, t);
-		positions[t - k] = pos;
-		fprintf(stderr, "positions[%d] = %llu\n", t - k, positions[t - k]);
+		(*positions)[t - k] = pos;
+		//fprintf(stdout, "%llu(%d) ", (*positions)[t - k], strand);
 	}
+	//fprintf(stdout, "\n");
 	return l - k + 1;
 }
 
 size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
-																const uint64_t* positions, int* seen_rids,
-																int8_t* seen_rids_marks) {
-	fprintf(stderr, "0\n");
-	free(seen_rids);
-	seen_rids = malloc(positions_cnt * sizeof(int));
+																const uint64_t* positions, int** seen_rids,
+																int8_t** seen_rids_marks) {
+	free(*seen_rids);
+	*seen_rids = malloc(positions_cnt * sizeof(int));
 	size_t rids_cnt = 0;
 	int i;
-	fprintf(stderr, "1\n");
 	for(i = 0; i < positions_cnt; ++i) {
-		fprintf(stderr, "1.5\n");
 		uint64_t pos = positions[i];
-		fprintf(stderr, "2\n");
 		if (pos == (uint64_t)-1) {
 			continue;
 		}
-		fprintf(stderr, "3\n");
 		int rid = bns_pos2rid(idx->bns, pos);
 		int seen = 0;
-		fprintf(stderr, "4\n");
 		if (rid != -1) {
-			seen = seen_rids_marks[rid];
+			seen = (*seen_rids_marks)[rid];
 		}
-		fprintf(stderr, "5\n");
 		if (!seen && rid != -1) {
-			seen_rids[rids_cnt] = rid;
+			(*seen_rids)[rids_cnt] = rid;
 			++rids_cnt;
-			seen_rids_marks[rid] = 1;
+			(*seen_rids_marks)[rid] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
 		}
-		fprintf(stderr, "6\n");
 	}
 	int r;
 	for(r = 0; r < rids_cnt; ++r) {
-		seen_rids_marks[seen_rids[r]] = 0;
+		(*seen_rids_marks)[(*seen_rids)[r]] = 0;
 	}
-	fprintf(stderr, "7\n");
 	return rids_cnt;
 }
 
@@ -184,7 +176,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 
 	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
 	int* seen_rids = NULL;
-	uint64_t* positions = malloc(10000 * sizeof(uint64_t));
+	uint64_t* positions = NULL;
 	int rids_cnt;
 	for(i = 0; i < idx->bns->n_seqs; ++i) {
 		seen_rids_marks[i] = 0;
@@ -229,12 +221,12 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					bwt_cal_sa_coord(bwt, opt->kmer_length, p->seq, &k, &l, start_pos);
 				}
 			}
-		  fprintf(stderr, "start_pos = %d\n", start_pos);
-			fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
+		  //fprintf(stderr, "start_pos = %d\n", start_pos);
+			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
 			if (opt->output_rids) {
 				if (k <= l) {
-					if (l - k == prev_l - prev_k) {
+					if (0) { //l - k == prev_l - prev_k) {
 						using_prev_rids++;
 						if (!seen_rids) {
 							fprintf(stdout, "0 \n");
@@ -244,20 +236,11 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 						}
 					} else {
 						rids_computations++;
-						fprintf(stderr, "1\n");
 						size_t positions_cnt = get_positions(idx, opt->kmer_length,
-							k, l, positions);
-						fprintf(stderr, "2\n");
-						int g;
-						fprintf(stderr, "pos cnt = %d\n", positions_cnt);
-						for(g = 0; g < positions_cnt; ++g) {
-							fprintf(stderr, "positions[%d] = %llu\n", g, positions[g]);
-						}
+							k, l, &positions);
 						rids_cnt = get_contigs_from_positions(idx, opt->kmer_length,
-							positions_cnt, positions, seen_rids, seen_rids_marks);
-						fprintf(stderr, "3\n");
+							positions_cnt, positions, &seen_rids, &seen_rids_marks);
 						output_chromosomes(seen_rids, rids_cnt);
-						fprintf(stderr, "4\n");
 					}
 				}
 				else {
