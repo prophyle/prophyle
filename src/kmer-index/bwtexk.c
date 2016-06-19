@@ -118,6 +118,9 @@ int* get_chromosomes(const bwaidx_t* idx, const int query_length, const uint64_t
 	for(t = k; t <= l; ++t) {
 		int strand;
 		uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, t, query_length, &strand);//bwt_sa(bwt, t);
+		if (pos == (uint64_t)-1) {
+			fprintf(stderr, "FUCK, pos = -1!\n");
+		}
 		int rid = bns_pos2rid(idx->bns, pos);
 		int seen = 0;
 		if (rid != -1) {
@@ -182,7 +185,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			}
 			fprintf(stdout, "\n");
 		}
-		uint64_t k = 0, l = 0, prev_k = 0, prev_l = 0;
+		uint64_t k = 0, l = 0, prev_k = 0, prev_l = -1;
 		int start_pos = 0;
 		int zero_streak = 0;
 		int was_one = 0;
@@ -202,6 +205,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			}
 			// fprintf(stderr, "start_pos = %d\n", start_pos);
 			// fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
+			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
 			if (opt->output_rids) {
 				if (k <= l) {
 					if (l - k == prev_l - prev_k) {
