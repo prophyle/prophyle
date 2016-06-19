@@ -17,7 +17,8 @@ ifeq ($(UNAME_S),Darwin)
 else
 	TIME?=time
 endif
-TTIME:=$(TIME) -v
+#TTIME:=$(TIME) -v
+TTIME:=$(TIME)
 
 all: index.fa.bwt index.fa.$(K).bit.klcp _time_log.log
 
