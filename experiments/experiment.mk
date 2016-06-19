@@ -45,7 +45,7 @@ index.fa: index/.complete
 
 %.sa %.pac %.bwt %.amb %.ann: %
 	$(TTIME) -o 3_bwa_index.log \
-	$(BWA) index -a is $<
+	$(BWA) index $<
 
 %.$(K).bit.klcp: % %.bwt
 	$(TTIME) -o 4_klcp.log \
