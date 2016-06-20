@@ -10,8 +10,8 @@ typedef struct {
 
 bitarray_t* create_bitarray(uint64_t n);
 
-void add_to_bitarray(bitarray_t* array, int value);
+void add_to_bitarray(bitarray_t* array, uint64_t value);
 
-void delete_from_bitarray(bitarray_t* array, int value);
+void delete_from_bitarray(bitarray_t* array, uint64_t value);
 
-int is_member(bitarray_t* array, int value);
+int is_member(bitarray_t* array, uint64_t value);

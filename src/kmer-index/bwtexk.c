@@ -51,13 +51,18 @@ int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k,
 	//fprintf(stderr, "start k = %d, l = %d\n", *k, *l);
 	for (i = start_pos; i < start_pos + len; ++i) {
 		ubyte_t c = str[i];
+		if (c > 3) {
+			*k = 1;
+			*l = 0;
+			return i - start_pos;
+		}
 		if (c < 4) {
 			bwt_2occ(bwt, *k - 1, *l, c, &ok, &ol);
 			*k = bwt->L2[c] + ok + 1;
 			*l = bwt->L2[c] + ol;
 			//fprintf(stderr, "after i = %d character, cur k = %d, l = %d\n", i, *k, *l);
 		}
-		if (*k > *l || c > 3) { // then restart
+		if (*k > *l) { // then restart
 			return i - start_pos;
 		}
 	}
@@ -69,25 +74,6 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 {
 	bwtint_t ok, ol;
 	int i;
-	//int start_k = *k;
-	//int start_l = *l;
-	//fprintf(stderr, "initial k = %d, l = %d\n", *k, *l);
-
-	// if (*k != klcp->prev[start_k]) {
-	// 	fprintf(stderr, "init k = %d, found k = %d, prev[k] = %d\n", start_k, *k, klcp->prev[start_k]);
-	// 	fprintf(stderr, "klcp[start_k] = %d, klcp[*k] = %d\n", is_member(klcp->klcp, start_k), is_member(klcp->klcp, *k));
-	// 	int a;
-	// 	scanf("%d", &a);
-	// }
-
-	// if (*l != klcp->next[start_l]) {
-	// 	fprintf(stderr, "init l = %d, found l = %d, next[l] = %d\n", start_l, *l, klcp->next[start_l]);
-	// 	fprintf(stderr, "init k = %d\n", start_k);
-	// 	fprintf(stderr, "klcp[start_l] = %d, klcp[*l] = %d\n", is_member(klcp->klcp, start_l), is_member(klcp->klcp, *l));
-	// 	int a;
-	// 	scanf("%d", &a);
-	// }
-
 	*k = decrease_k(klcp, *k);
 	*l = increase_l(klcp, *l);
 
@@ -96,13 +82,18 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 	//fprintf(stderr, "start k = %d, l = %d\n", *k, *l);
 	for (i = start_pos; i < start_pos + len; ++i) {
 		ubyte_t c = str[i];
+		if (c > 3) { // then restart
+			*k = 1;
+			*l = 0;
+			return i - start_pos;
+		}
 		if (c < 4) {
 			bwt_2occ(bwt, *k - 1, *l, c, &ok, &ol);
 			*k = bwt->L2[c] + ok + 1;
 			*l = bwt->L2[c] + ol;
 			//fprintf(stderr, "after i = %d character, cur k = %d, l = %d\n", i, *k, *l);
 		}
-		if (*k > *l || c > 3) { // then restart
+		if (*k > *l) { // then restart
 			return i - start_pos;
 		}
 	}
@@ -113,10 +104,13 @@ void output_chromosomes(const bwaidx_t* idx, const int seq_len, const uint64_t k
 												const uint64_t l, int8_t* seen_rids_marks) {
 	int* seen_rids = malloc((l - k + 1) * sizeof(int));
 	int rids_cnt = 0;
-	int t;
+	uint64_t t;
 	for(t = k; t <= l; ++t) {
 		int strand;
-		int pos = bwa_sa2pos(idx->bns, idx->bwt, t, seq_len, &strand);//bwt_sa(bwt, t);
+		uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, t, seq_len, &strand);//bwt_sa(bwt, t);
+		if (pos == (uint64_t)-1) {
+			continue;
+		}
 		int rid = bns_pos2rid(idx->bns, pos);
 		int seen = 0;
 		if (rid != -1) {
@@ -147,8 +141,9 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	bwt_t* bwt = idx->bwt;
 
 	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
-	for(i = 0; i < idx->bns->n_seqs; ++i) {
-		seen_rids_marks[i] = 0;
+	uint64_t index;
+	for(index = 0; index < idx->bns->n_seqs; ++index) {
+		seen_rids_marks[index] = 0;
 	}
 	fprintf(stdout, "\n");
 	for (i = 0; i != n_seqs; ++i) {
