@@ -65,7 +65,7 @@ kmers_restarted.txt: ../../reads/simulation_bacteria.1000000.fq index.fa.bwt kme
 	$(EXK) match -k $(K) -v index.fa ../../reads/simulation_bacteria.1000000.fq > kmers_restarted.txt
 
 _main_log.log: index.fa.$(K).bit.klcp kmers_rolling.txt kmers_restarted.txt
-	du -sh *.fa.* | grep -v "fa.amb" > 6_index_size.log
+	du -sh *.fa.* | grep -v "fa.amb" > 7_index_size.log
 	echo > _main_log.log
 	date >> _main_log.log
 	pwd >> _main_log.log
