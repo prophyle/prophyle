@@ -56,7 +56,7 @@ index.fa: index/.complete
 #	$(TTIME) -o x_fasta_index.log \
 #	$(SAMTOOLS) faidx $<
 
-kmers_rolling.txt: ../../reads/simulation_bacteria.1000000.fq index.fa.bwt
+kmers_rolling.txt: ../../reads/simulation_bacteria.1000000.fq index.fa.bwt index.fa.$(K).bit.klcp
 	$(TTIME) -o 5_matching_rolling.log \
 	$(EXK) match -k $(K) -u -v index.fa ../../reads/simulation_bacteria.1000000.fq > kmers_rolling.txt
 
