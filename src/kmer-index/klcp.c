@@ -127,7 +127,7 @@ void construct_aux_arrays(klcp_t* klcp) {
 	int take_current = 1;
 	uint64_t prev_one = -1;
 	klcp->prev = malloc(prev_size(klcp) * sizeof(uint64_t));
-	uint64_t i;
+	int64_t i;
 	for(i = 0; i < klcp->seq_len; ++i) {
 		if (take_current) {
 			if (i % SAMPLING_DISTANCE == 0) {
