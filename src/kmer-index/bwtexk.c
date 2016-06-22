@@ -233,11 +233,14 @@ bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
 	return ks;
 }
 
-void bns_destroy_name_and_anno(bntseq_t* bns) {
+void bwa_destroy_unused_fields(bwaidx_t* bwa) {
 	int64_t i;
-	for (i = 0; i < bns->n_seqs; ++i) {
-		free(bns->anns[i].name);
-		free(bns->anns[i].anno);
+	for (i = 0; i < bwa->bns->n_seqs; ++i) {
+		free(bwa->bns->anns[i].name);
+		free(bwa->bns->anns[i].anno);
+	}
+	if (bwa->pac) {
+		free(bwa->pac);
 	}
 }
 
@@ -257,7 +260,7 @@ void bwa_idx_destroy_without_bns_name_and_anno(bwaidx_t *idx)
 	if (idx->mem == 0) {
 		if (idx->bwt) bwt_destroy(idx->bwt);
 		if (idx->bns) bns_destroy_without_names_and_annos(idx->bns);
-		if (idx->pac) free(idx->pac);
+		//if (idx->pac) free(idx->pac);
 	} else {
 		free(idx->bwt); free(idx->bns->anns); free(idx->bns);
 		if (!idx->is_shm) free(idx->mem);
@@ -277,7 +280,7 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 		return;
 	}
 
-	bns_destroy_name_and_anno(idx->bns);
+	bwa_destroy_unused_fields(idx);
 
 	klcp_t* klcp = malloc(sizeof(klcp_t));
 	klcp->klcp = malloc(sizeof(bitarray_t));
