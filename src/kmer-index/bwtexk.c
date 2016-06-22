@@ -234,16 +234,11 @@ bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
 }
 
 void bns_destroy_name_and_anno(bntseq_t* bns) {
-	int c;
-	fprintf(stderr, "enter int\n");
-	scanf("%d", &c);
 	int64_t i;
 	for (i = 0; i < bns->n_seqs; ++i) {
 		free(bns->anns[i].name);
 		free(bns->anns[i].anno);
 	}
-	fprintf(stderr, "enter int\n");
-	scanf("%d", &c);
 }
 
 void bns_destroy_without_names_and_annos(bntseq_t* bns) {
