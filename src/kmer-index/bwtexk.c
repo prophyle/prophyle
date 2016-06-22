@@ -233,14 +233,14 @@ bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
 	return ks;
 }
 
-void bwa_destroy_unused_fields(bwaidx_t* bwa) {
+void bwa_destroy_unused_fields(bwaidx_t* idx) {
 	int64_t i;
-	for (i = 0; i < bwa->bns->n_seqs; ++i) {
-		free(bwa->bns->anns[i].name);
-		free(bwa->bns->anns[i].anno);
+	for (i = 0; i < idx->bns->n_seqs; ++i) {
+		free(idx->bns->anns[i].name);
+		free(idx->bns->anns[i].anno);
 	}
-	if (bwa->pac) {
-		free(bwa->pac);
+	if (idx->pac) {
+		free(idx->pac);
 	}
 }
 
@@ -310,7 +310,12 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
 	//fprintf(stderr, "increase per k-mer = %lf\n", 1.0 * overall_increase / (tot_seqs * (seq_len - opt->kmer_length + 1)));
 	// destroy
-	destroy_klcp(klcp);
+	if (opt->use_klcp) {
+		destroy_klcp(klcp);
+	} else {
+		free(klcp->klcp);
+		free(klcp);
+	}
 	bwa_idx_destroy_without_bns_name_and_anno(idx);
 	bwa_seq_close(ks);
 }
