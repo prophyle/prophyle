@@ -2,6 +2,14 @@
 #include<stdlib.h>
 #include "bitarray.h"
 
+void destroy_bitarray(bitarray_t* array) {
+  if (array == 0) {
+    return;
+  }
+  free(array->values);
+  free(array);
+}
+
 bitarray_t* create_bitarray(uint64_t n)
 {
   bitarray_t* array = malloc(sizeof(bitarray_t));

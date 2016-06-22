@@ -21,6 +21,16 @@ const uint32_t SAMPLING_DISTANCE = 128;
 
 uint64_t overall_increase = 0;
 
+void destroy_klcp(klcp_t* klcp) {
+	if (klcp == 0) {
+		return;
+	}
+	destroy_bitarray(klcp->klcp);
+	free(klcp->next);
+	free(klcp->prev);
+	free(klcp);
+}
+
 uint64_t prev_size(const klcp_t* klcp) {
 	return (klcp->seq_len + SAMPLING_DISTANCE - 1) / SAMPLING_DISTANCE;
 }
