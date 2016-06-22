@@ -130,6 +130,7 @@ void output_chromosomes(const bwaidx_t* idx, const int seq_len, const uint64_t k
 		seen_rids_marks[seen_rids[r]] = 0;
 	}
 	fprintf(stdout, "\n");
+	free(seen_rids);
 }
 
 void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
@@ -212,11 +213,10 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			start_pos++;
 		}
 		//fprintf(stdout, "#\n");
-
-
 		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
 		p->name = 0; p->seq = p->rseq = p->qual = 0;
 	}
+	free(seen_rids_marks);
 }
 
 bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
@@ -233,22 +233,56 @@ bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
 	return ks;
 }
 
+void bns_destroy_name_and_anno(bntseq_t* bns) {
+	int c;
+	fprintf(stderr, "enter int\n");
+	scanf("%d", &c);
+	int64_t i;
+	for (i = 0; i < bns->n_seqs; ++i) {
+		free(bns->anns[i].name);
+		free(bns->anns[i].anno);
+	}
+	fprintf(stderr, "enter int\n");
+	scanf("%d", &c);
+}
+
+void bns_destroy_without_names_and_annos(bntseq_t* bns) {
+	if (bns == 0) return;
+	else {
+		if (bns->fp_pac) err_fclose(bns->fp_pac);
+		free(bns->ambs);
+		free(bns->anns);
+		free(bns);
+	}
+}
+
+void bwa_idx_destroy_without_bns_name_and_anno(bwaidx_t *idx)
+{
+	if (idx == 0) return;
+	if (idx->mem == 0) {
+		if (idx->bwt) bwt_destroy(idx->bwt);
+		if (idx->bns) bns_destroy_without_names_and_annos(idx->bns);
+		if (idx->pac) free(idx->pac);
+	} else {
+		free(idx->bwt); free(idx->bns->anns); free(idx->bns);
+		if (!idx->is_shm) free(idx->mem);
+	}
+	free(idx);
+}
+
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	int n_seqs, tot_seqs = 0;
 	bwa_seq_t *seqs;
 	bwa_seqio_t *ks;
 	clock_t t;
-	bwt_t *bwt;
 	bwaidx_t* idx;
 
-	{ // load BWT
-		//fprintf(stderr, "%s\n", prefix);
-		if ((idx = bwa_idx_load(prefix, BWA_IDX_ALL)) == 0) {
-			fprintf(stderr, "Couldn't load idx from %s\n", prefix);
-			return;
-		}
-		bwt = idx->bwt;
+	if ((idx = bwa_idx_load(prefix, BWA_IDX_ALL)) == 0) {
+		fprintf(stderr, "Couldn't load idx from %s\n", prefix);
+		return;
 	}
+
+	bns_destroy_name_and_anno(idx->bns);
 
 	klcp_t* klcp = malloc(sizeof(klcp_t));
 	klcp->klcp = malloc(sizeof(bitarray_t));
@@ -261,6 +295,7 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	  strcat(fn, kmer_length_str);
 	  strcat(fn, ".bit.klcp");
 		klcp_restore(fn, klcp);
+		free(fn);
 	}
 
 	ks = bwa_open_reads_new(opt->mode, fn_fa);
@@ -277,7 +312,8 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
 	//fprintf(stderr, "increase per k-mer = %lf\n", 1.0 * overall_increase / (tot_seqs * (seq_len - opt->kmer_length + 1)));
 	// destroy
-	bwt_destroy(bwt);
+	destroy_klcp(klcp);
+	bwa_idx_destroy_without_bns_name_and_anno(idx);
 	bwa_seq_close(ks);
 }
 
