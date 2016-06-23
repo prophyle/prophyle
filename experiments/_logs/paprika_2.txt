@@ -167,6 +167,20 @@ Number of k-mer occurencies: 6680638419
 13193744inputs+25055280outputs (21major+11966minor)pagefaults 0swaps
 
 ==> 05_fullBacteria_orig_k25/3_bwa_index.log <==
+15382.31user 189.66system 4:23:15elapsed 98%CPU (0avgtext+0avgdata 68469376maxresident)k
+8551696inputs+75209904outputs (4major+158990659minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/4_klcp.log <==
+4702.45user 114.73system 1:21:19elapsed 98%CPU (0avgtext+0avgdata 130778688maxresident)k
+1922336inputs+9851904outputs (17major+104307404minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/5_matching_rolling.log <==
+629.46user 88.28system 13:22.70elapsed 89%CPU (0avgtext+0avgdata 117725568maxresident)k
+51534184inputs+6788904outputs (4major+51848163minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/6_matching_restarted.log <==
+731.88user 43.79system 13:55.13elapsed 92%CPU (0avgtext+0avgdata 117725824maxresident)k
+35383920inputs+6788904outputs (3major+12723224minor)pagefaults 0swaps
 
 ==> 05_fullBacteria_orig_k25/7_contigs_stats.log <==
 Number of contigs: 119833825
@@ -175,3 +189,11 @@ Average length: 84.18615641284921
    ..st. dev: 1067.0252894416092
 Median length: 28
 Number of k-mer occurencies: 7212337335
+
+==> 05_fullBacteria_orig_k25/8_index_size.log <==
+4.7G	index.fa.25.bit.klcp
+5.1G	index.fa.ann
+9.4G	index.fa.bwt
+4.5G	index.fa.fai
+2.4G	index.fa.pac
+4.7G	index.fa.sa
