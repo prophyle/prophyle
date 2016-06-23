@@ -120,7 +120,6 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
 																const uint64_t* positions, int** seen_rids,
 																int8_t** seen_rids_marks) {
-	free(*seen_rids);
 	*seen_rids = malloc(positions_cnt * sizeof(int));
 	size_t rids_cnt = 0;
 	int i;
@@ -172,6 +171,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	int rids_cnt;
 	for(i = 0; i < idx->bns->n_seqs; ++i) {
 		seen_rids_marks[i] = 0;
+	}
 	uint64_t index;
 	for(index = 0; index < idx->bns->n_seqs; ++index) {
 		seen_rids_marks[index] = 0;
@@ -221,7 +221,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
 			if (opt->output_rids) {
 				if (k <= l) {
-					if (0) { //l - k == prev_l - prev_k) {
+					if (0) {
 						using_prev_rids++;
 						if (!seen_rids) {
 							fprintf(stdout, "0 \n");
