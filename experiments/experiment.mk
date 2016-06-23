@@ -17,9 +17,10 @@ ifeq ($(UNAME_S),Darwin)
 else
 	TIME?=time
 endif
-TTIME:=$(TIME) -v
+#TTIME:=$(TIME) -v
+TTIME:=$(TIME)
 
-all: index.fa.bwt index.fa.$(K).bit.klcp _time_log.log
+all: index.fa.bwt index.fa.$(K).bit.klcp _main_log.log
 
 index/:
 	mkdir index
@@ -43,20 +44,30 @@ index.fa: index/.complete
 	$(TTIME) -o 2_merging_fasta.log \
 	$(FINAL_FA) index > index.fa
 
+7_contigs_stats.log: index.fa.fai
+	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > 7_contigs_stats.log
+
 %.sa %.pac %.bwt %.amb %.ann: %
 	$(TTIME) -o 3_bwa_index.log \
-	$(BWA) index -a is $<
+	$(BWA) index $<
 
 %.$(K).bit.klcp: % %.bwt
 	$(TTIME) -o 4_klcp.log \
 	$(EXK) index -k $(K) $<
 
 %.fai: %
-	$(TTIME) -o x_fasta_index.log \
 	$(SAMTOOLS) faidx $<
 
-_time_log.log: index.fa.$(K).bit.klcp
-	du -sh *.fa.* | grep -v "fa.amb" > 5_index_size.log
+kmers_rolling.txt: ../../reads/simulation_bacteria.1000000.fq index.fa.bwt index.fa.$(K).bit.klcp
+	$(TTIME) -o 5_matching_rolling.log \
+	$(EXK) match -k $(K) -u -v index.fa ../../reads/simulation_bacteria.1000000.fq > kmers_rolling.txt
+
+kmers_restarted.txt: ../../reads/simulation_bacteria.1000000.fq index.fa.bwt kmers_rolling.txt
+	$(TTIME) -o 6_matching_restarted.log \
+	$(EXK) match -k $(K) -v index.fa ../../reads/simulation_bacteria.1000000.fq > kmers_restarted.txt
+
+_main_log.log: index.fa.$(K).bit.klcp kmers_rolling.txt kmers_restarted.txt 7_contigs_stats.log
+	du -sh *.fa.* | grep -v "fa.amb" > 8_index_size.log
 	echo > _main_log.log
 	date >> _main_log.log
 	pwd >> _main_log.log

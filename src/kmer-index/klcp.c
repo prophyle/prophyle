@@ -21,6 +21,16 @@ const uint32_t SAMPLING_DISTANCE = 128;
 
 uint64_t overall_increase = 0;
 
+void destroy_klcp(klcp_t* klcp) {
+	if (klcp == 0) {
+		return;
+	}
+	destroy_bitarray(klcp->klcp);
+	free(klcp->next);
+	free(klcp->prev);
+	free(klcp);
+}
+
 uint64_t prev_size(const klcp_t* klcp) {
 	return (klcp->seq_len + SAMPLING_DISTANCE - 1) / SAMPLING_DISTANCE;
 }
@@ -41,7 +51,6 @@ uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
 		}
 	}
 	return new_k;
-	//return klcp->prev[k];
 }
 
 uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
@@ -56,7 +65,6 @@ uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
 		}
 	}
 	return new_l;
-	//return klcp->next[l];
 }
 
 void construct_klcp_recursion(const bwt_t* bwt, bwtint_t k, bwtint_t l, int i, int kmer_length, klcp_t* klcp) {
@@ -70,7 +78,7 @@ void construct_klcp_recursion(const bwt_t* bwt, bwtint_t k, bwtint_t l, int i, i
 	}
 	if (i == kmer_length - 1) {
 		//fprintf(stderr, "New entry found! k = %d, l = %d\n", k, l);
-		int t;
+		uint64_t t;
 		for(t = k; t < l; ++t) {
 			//klcp->klcp[t] = 1;
 			add_to_bitarray(klcp->klcp, t);
@@ -127,9 +135,9 @@ static bwtint_t fread_fix(FILE *fp, bwtint_t size, void *a)
 
 void construct_aux_arrays(klcp_t* klcp) {
 	int take_current = 1;
-	int prev_one = -1;
+	uint64_t prev_one = -1;
 	klcp->prev = malloc(prev_size(klcp) * sizeof(uint64_t));
-	int i;
+	int64_t i;
 	for(i = 0; i < klcp->seq_len; ++i) {
 		if (take_current) {
 			if (i % SAMPLING_DISTANCE == 0) {
@@ -150,7 +158,7 @@ void construct_aux_arrays(klcp_t* klcp) {
 		}
 	}
 	take_current = 1;
-	int next_zero = -1;
+	uint64_t next_zero = -1;
 	klcp->next = malloc(next_size(klcp) * sizeof(uint64_t));
 	for(i = klcp->seq_len; i >= 0; --i) {
 		if (i < klcp->seq_len && is_member(klcp->klcp, i)) {
@@ -189,24 +197,16 @@ void klcp_restore(const char *fn, klcp_t* klcp)
 	fread_fix(fp, sizeof(uint64_t) * next_size(klcp), klcp->next);
 	err_fclose(fp);
 	fprintf(stderr, "klcp was read\n");
-  //xassert(seq_len == klcp->seq_len, "seq_len != klcp->seq_len");
-  //fprintf(stdout, "klcp->seq_len = %d, seq_len = %d\n", klcp->seq_len, seq_len);
-  // for(int i = 0; i < seq_len; ++i) {
-  //   xassert(klcp->klcp[i] == test_klcp[i], "test_klcp[i] != klcp->klcp[i]");
-  // }
-  // for(int i = 0; i < 10; ++i) {
-  //   fprintf(stdout, "%d %d\n", klcp->klcp[i], test_klcp[i]);
-  // }
 }
 
 klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 	double t_real;
 	t_real = realtime();
-	int n = bwt->seq_len;
+	uint64_t n = bwt->seq_len;
   klcp_t* klcp = malloc(sizeof(klcp_t));
   klcp->seq_len = n;
 	klcp->klcp = create_bitarray(n);
-	int i;
+	uint64_t i;
 	for(i = 0; i < klcp->klcp->capacity; ++i) {
 		klcp->klcp->values[i] = 0;
 	}

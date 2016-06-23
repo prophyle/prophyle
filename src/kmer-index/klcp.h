@@ -13,6 +13,7 @@ typedef struct {
   uint64_t* next;
 } klcp_t;
 
+void destroy_klcp(klcp_t* klcp);
 klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length);
 void klcp_restore(const char *fn, klcp_t* klcp);
 void exk_index_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt);
