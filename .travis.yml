@@ -55,6 +55,7 @@ matrix:
 
 script:
   - make -C src
+  - ./tests/test_exk.sh
   
 
 cache:

@@ -51,13 +51,18 @@ int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k,
 	//fprintf(stderr, "start k = %d, l = %d\n", *k, *l);
 	for (i = start_pos; i < start_pos + len; ++i) {
 		ubyte_t c = str[i];
+		if (c > 3) {
+			*k = 1;
+			*l = 0;
+			return i - start_pos;
+		}
 		if (c < 4) {
 			bwt_2occ(bwt, *k - 1, *l, c, &ok, &ol);
 			*k = bwt->L2[c] + ok + 1;
 			*l = bwt->L2[c] + ol;
 			//fprintf(stderr, "after i = %d character, cur k = %d, l = %d\n", i, *k, *l);
 		}
-		if (*k > *l || c > 3) { // then restart
+		if (*k > *l) { // then restart
 			return i - start_pos;
 		}
 	}
@@ -69,25 +74,6 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 {
 	bwtint_t ok, ol;
 	int i;
-	//int start_k = *k;
-	//int start_l = *l;
-	//fprintf(stderr, "initial k = %d, l = %d\n", *k, *l);
-
-	// if (*k != klcp->prev[start_k]) {
-	// 	fprintf(stderr, "init k = %d, found k = %d, prev[k] = %d\n", start_k, *k, klcp->prev[start_k]);
-	// 	fprintf(stderr, "klcp[start_k] = %d, klcp[*k] = %d\n", is_member(klcp->klcp, start_k), is_member(klcp->klcp, *k));
-	// 	int a;
-	// 	scanf("%d", &a);
-	// }
-
-	// if (*l != klcp->next[start_l]) {
-	// 	fprintf(stderr, "init l = %d, found l = %d, next[l] = %d\n", start_l, *l, klcp->next[start_l]);
-	// 	fprintf(stderr, "init k = %d\n", start_k);
-	// 	fprintf(stderr, "klcp[start_l] = %d, klcp[*l] = %d\n", is_member(klcp->klcp, start_l), is_member(klcp->klcp, *l));
-	// 	int a;
-	// 	scanf("%d", &a);
-	// }
-
 	*k = decrease_k(klcp, *k);
 	*l = increase_l(klcp, *l);
 
@@ -96,13 +82,18 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 	//fprintf(stderr, "start k = %d, l = %d\n", *k, *l);
 	for (i = start_pos; i < start_pos + len; ++i) {
 		ubyte_t c = str[i];
+		if (c > 3) { // then restart
+			*k = 1;
+			*l = 0;
+			return i - start_pos;
+		}
 		if (c < 4) {
 			bwt_2occ(bwt, *k - 1, *l, c, &ok, &ol);
 			*k = bwt->L2[c] + ok + 1;
 			*l = bwt->L2[c] + ol;
 			//fprintf(stderr, "after i = %d character, cur k = %d, l = %d\n", i, *k, *l);
 		}
-		if (*k > *l || c > 3) { // then restart
+		if (*k > *l) { // then restart
 			return i - start_pos;
 		}
 	}
@@ -164,6 +155,7 @@ void output_chromosomes(int* seen_rids, const int rids_cnt) {
 		fprintf(stdout, "%d ", seen_rids[r]);
 	}
 	fprintf(stdout, "\n");
+	free(seen_rids);
 }
 
 void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
@@ -180,6 +172,9 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	int rids_cnt;
 	for(i = 0; i < idx->bns->n_seqs; ++i) {
 		seen_rids_marks[i] = 0;
+	uint64_t index;
+	for(index = 0; index < idx->bns->n_seqs; ++index) {
+		seen_rids_marks[index] = 0;
 	}
 	fprintf(stdout, "\n");
 	int rids_computations = 0;
@@ -273,13 +268,12 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			start_pos++;
 		}
 		//fprintf(stdout, "#\n");
-
-
 		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
 		p->name = 0; p->seq = p->rseq = p->qual = 0;
 	}
 	fprintf(stderr, "rids computed: %d\n", rids_computations);
 	fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
+	free(seen_rids_marks);
 }
 
 bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
@@ -296,22 +290,54 @@ bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
 	return ks;
 }
 
+void bwa_destroy_unused_fields(bwaidx_t* idx) {
+	int64_t i;
+	for (i = 0; i < idx->bns->n_seqs; ++i) {
+		free(idx->bns->anns[i].name);
+		free(idx->bns->anns[i].anno);
+	}
+	if (idx->pac) {
+		free(idx->pac);
+	}
+}
+
+void bns_destroy_without_names_and_annos(bntseq_t* bns) {
+	if (bns == 0) return;
+	else {
+		if (bns->fp_pac) err_fclose(bns->fp_pac);
+		free(bns->ambs);
+		free(bns->anns);
+		free(bns);
+	}
+}
+
+void bwa_idx_destroy_without_bns_name_and_anno(bwaidx_t *idx)
+{
+	if (idx == 0) return;
+	if (idx->mem == 0) {
+		if (idx->bwt) bwt_destroy(idx->bwt);
+		if (idx->bns) bns_destroy_without_names_and_annos(idx->bns);
+		//if (idx->pac) free(idx->pac);
+	} else {
+		free(idx->bwt); free(idx->bns->anns); free(idx->bns);
+		if (!idx->is_shm) free(idx->mem);
+	}
+	free(idx);
+}
+
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	int n_seqs, tot_seqs = 0;
 	bwa_seq_t *seqs;
 	bwa_seqio_t *ks;
 	clock_t t;
-	bwt_t *bwt;
 	bwaidx_t* idx;
 
-	{ // load BWT
-		//fprintf(stderr, "%s\n", prefix);
-		if ((idx = bwa_idx_load(prefix, BWA_IDX_ALL)) == 0) {
-			fprintf(stderr, "Couldn't load idx from %s\n", prefix);
-			return;
-		}
-		bwt = idx->bwt;
+	if ((idx = bwa_idx_load(prefix, BWA_IDX_ALL)) == 0) {
+		fprintf(stderr, "Couldn't load idx from %s\n", prefix);
+		return;
 	}
+
+	bwa_destroy_unused_fields(idx);
 
 	klcp_t* klcp = malloc(sizeof(klcp_t));
 	klcp->klcp = malloc(sizeof(bitarray_t));
@@ -324,6 +350,7 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	  strcat(fn, kmer_length_str);
 	  strcat(fn, ".bit.klcp");
 		klcp_restore(fn, klcp);
+		free(fn);
 	}
 
 	ks = bwa_open_reads_new(opt->mode, fn_fa);
@@ -340,7 +367,13 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
 	//fprintf(stderr, "increase per k-mer = %lf\n", 1.0 * overall_increase / (tot_seqs * (seq_len - opt->kmer_length + 1)));
 	// destroy
-	bwt_destroy(bwt);
+	if (opt->use_klcp) {
+		destroy_klcp(klcp);
+	} else {
+		free(klcp->klcp);
+		free(klcp);
+	}
+	bwa_idx_destroy_without_bns_name_and_anno(idx);
 	bwa_seq_close(ks);
 }
 
