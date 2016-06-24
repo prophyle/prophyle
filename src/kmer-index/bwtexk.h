@@ -15,6 +15,12 @@ typedef struct __bwa_seqio_t bwa_seqio_t;
 extern "C" {
 #endif
 
+typedef struct {
+	uint64_t position;
+	int strand;
+	int rid;
+} bwt_position_t;
+
 	exk_opt_t *exk_init_opt();
   bwa_seqio_t *bwa_seq_open(const char *fn);
   bwa_seqio_t *bwa_bam_open(const char *fn, int which);
