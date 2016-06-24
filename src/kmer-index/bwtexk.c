@@ -135,7 +135,7 @@ bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
 	}
 	int rid = bns_pos2rid(idx->bns, pos);
 	if (rid == 50528513) {
-		fprintf(stderr, "FUCK! pos = %llu, rid = %d\n", pos, rid);
+		fprintf(stderr, "ERROR! pos = %llu, rid = %d\n", pos, rid);
 	}
 	position.rid = rid;
 	return position;
@@ -159,7 +159,7 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 			seen = (*seen_rids_marks)[rid];
 			(*positions + i)->rid = rid;
 		} else {
-			fprintf(stderr, "FUCK\n");
+			fprintf(stderr, "ERROR, rid = -1\n");
 		}
 		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
 		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
