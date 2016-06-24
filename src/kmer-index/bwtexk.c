@@ -69,13 +69,18 @@ int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k,
 	return len;
 }
 
+uint64_t last_decreased_k;
+uint64_t last_increased_l;
+
 int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 															uint64_t* k, uint64_t* l, int start_pos, klcp_t* klcp)
 {
 	bwtint_t ok, ol;
 	int i;
 	*k = decrease_k(klcp, *k);
+	last_decreased_k = *k;
 	*l = increase_l(klcp, *l);
+	last_increased_l = *l;
 
 	//fprintf(stderr, "increased k = %d, l = %d\n", *k, *l);
 
@@ -117,14 +122,14 @@ size_t get_positions(const bwaidx_t* idx, const int query_length,
 	return l - k + 1;
 }
 
-bwt_position_t* get_position(const bwaidx_t* idx, const int query_length,
+bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
 														const uint64_t sa_position) {
 	int strand;
 	uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, sa_position,
 														query_length, &strand);
-	bwt_position_t* position = malloc(sizeof(bwt_position_t));
-	position->position = pos;
-	position->strand = strand;
+	bwt_position_t position;
+	position.position = pos;
+	position.strand = strand;
 	if (pos == (uint64_t)-1) {
 		return position;
 	}
@@ -132,7 +137,7 @@ bwt_position_t* get_position(const bwaidx_t* idx, const int query_length,
 	if (rid == 50528513) {
 		fprintf(stderr, "FUCK! pos = %llu, rid = %d\n", pos, rid);
 	}
-	position->rid = rid;
+	position.rid = rid;
 	return position;
 }
 
@@ -156,6 +161,8 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 		} else {
 			fprintf(stderr, "FUCK\n");
 		}
+		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
+		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
 		if (!seen && rid != -1) {
 			(*seen_rids)[rids_cnt] = rid;
 			++rids_cnt;
@@ -193,19 +200,34 @@ void shift_positions_by_one(bwaidx_t* idx, int positions_cnt, bwt_position_t** p
 			position->position++;
 		} else {
 			if (position->position == 0) {
-				position = get_position(idx, query_length, k + i);
+				bwt_position_t new_position = get_position(idx, query_length, k + i);
+				position->position = new_position.position;
+				position->strand = new_position.strand;
+				position->rid = new_position.rid;
 			} else {
 				position->position--;
 			}
 		}
-		fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
-		 	position->position, position->rid, idx->bns->anns[position->rid].offset, idx->bns->anns[position->rid + 1].offset);
+		// fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
+		//  	position->position, position->rid, idx->bns->anns[position->rid].offset, idx->bns->anns[position->rid + 1].offset);
 		if (position->position + query_length >= idx->bns->l_pac) {
-			position = get_position(idx, query_length, k + i);
+			//fprintf(stdout, "1\n");
+			bwt_position_t new_position = get_position(idx, query_length, k + i);
+			position->position = new_position.position;
+			position->strand = new_position.strand;
+			position->rid = new_position.rid;
 		} else if (position->position + query_length >= idx->bns->anns[position->rid + 1].offset) {
-			position = get_position(idx, query_length, k + i);
+			//fprintf(stdout, "2\n");
+			bwt_position_t new_position = get_position(idx, query_length, k + i);
+			position->position = new_position.position;
+			position->strand = new_position.strand;
+			position->rid = new_position.rid;
 		} else if (position->position < idx->bns->anns[position->rid].offset) {
-			position = get_position(idx, query_length, k + i);
+			//fprintf(stdout, "3\n");
+			bwt_position_t new_position = get_position(idx, query_length, k + i);
+			position->position = new_position.position;
+			position->strand = new_position.strand;
+			position->rid = new_position.rid;
 		}
 	}
 }
@@ -248,10 +270,12 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			}
 			fprintf(stdout, "\n");
 		}
-		uint64_t k = 0, l = 0, prev_k = 0, prev_l = -1;
+		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
 		int start_pos = 0;
 		int zero_streak = 0;
 		int was_one = 0;
+		last_decreased_k = 1;
+		last_increased_l = 0;
 		while (start_pos <= p->len - opt->kmer_length) {
 			if (start_pos == 0) {
 				k = 0;
@@ -272,7 +296,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			if (opt->output_rids) {
 				if (k <= l) {
 					size_t positions_cnt = l - k + 1;
-					if (prev_l - prev_k == l - k) {
+					if (prev_l - prev_k == l - k
+							&& last_increased_l - last_decreased_k == l - k) {
 						using_prev_rids++;
 						shift_positions_by_one(idx, positions_cnt, &positions, opt->kmer_length, k, l);
 					} else {
@@ -282,10 +307,10 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					}
 					rids_cnt = get_contigs_from_positions(idx, opt->kmer_length,
 						positions_cnt, &positions, &seen_rids, &seen_rids_marks);
-					//output_chromosomes(seen_rids, rids_cnt);
+					output_chromosomes(seen_rids, rids_cnt);
 				}
 				else {
-					//fprintf(stdout, "0 \n");
+					fprintf(stdout, "0 \n");
 				}
 			}
 			prev_k = k;
@@ -301,7 +326,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 							if (opt->output_rids) {
 								int ind;
 								for(ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
-									//fprintf(stdout, "0 \n");
+									fprintf(stdout, "0 \n");
 								}
 							}
 							start_pos += opt->kmer_length - 2;
