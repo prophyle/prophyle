@@ -4,11 +4,22 @@ import re
 #from datetime import datetime
 import datetime
 import sys
+from io import StringIO
 
 #r=re.compile(r"(\d+\.\d+)user (\d+\.\d+)system (\d+):(\d+\.\d+)elapsed (\d+)%CPU \(\d+avgtext\+\d+avgdata (\d+)maxresident\)")
 r=re.compile(r"([0-9.]+)user ([0-9.]+)system ([0-9.:]+)elapsed (\d+)%CPU \(\d+avgtext\+\d+avgdata (\d+)maxresident\)")
 
+
+def rm_ms(delta):
+    return delta - datetime.timedelta(microseconds=delta.microseconds)
+
 last_section = None
+
+
+old_stdout = sys.stdout
+sys.stdout = mystdout = StringIO()
+
+toc=[]
 
 for line in sys.stdin:
 
@@ -39,11 +50,12 @@ for line in sys.stdin:
 
 		print()
 		print("```")
-		print("User time:     {}".format(user_time))
-		print("System time:   {}".format(system_time))
-		print("Elapsed time:  {}".format(elapsed_time))
+		print("User time:     {}".format(rm_ms(user_time)))
+		print("System time:   {}".format(rm_ms(system_time)))
+		print("Elapsed time:  {}".format(rm_ms(elapsed_time)))
+		print("CPU usage:     {:7}%".format(round(100*(user_time.total_seconds() + system_time.total_seconds()) / elapsed_time.total_seconds())))
 		print()
-		print("Memory peak:   {} GB".format(round(memory_gb,2)))
+		print("Memory peak:   {:7.2f} GB".format(round(memory_gb,2)))
 		print("```")
 		print()
 	else:
@@ -51,13 +63,27 @@ for line in sys.stdin:
 		if line[0]=="#":
 
 			parts=line.split("/")
+			name=parts[0].replace("## ","")
+			full_name=line.replace("## ","").strip()
 
 			if last_section!=parts[0]:
 				last_section=parts[0]
+				print("***")
 				print(last_section)
+				toc.append("* [{}](#{})".format(name,name))
+			toc.append("  * [{}](#{})".format(full_name,full_name.replace("/","").replace(".","")))
 			print()
 			print("#"+line,end="")
 		elif line[0].strip()=="":
 			print()
 		else:
 			print("* "+line,end="")
+
+sys.stdout = old_stdout
+
+print("Table of Contents")
+print("=================")
+print()
+print("\n".join(toc))
+print()
+print(mystdout.getvalue())
