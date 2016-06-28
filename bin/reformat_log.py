@@ -71,7 +71,7 @@ for line in sys.stdin:
 				print("***")
 				print(last_section)
 				toc.append("* [{}](#{})".format(name,name))
-			toc.append("  * [{}](#{})".format(full_name,full_name.replace("/","").replace(".","")))
+			toc.append("  * [{}](#{})".format(full_name,full_name.replace("/","").replace(".","").lower()))
 			print()
 			print("#"+line,end="")
 		elif line[0].strip()=="":
