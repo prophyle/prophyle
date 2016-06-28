@@ -63,10 +63,10 @@ for line in sys.stdin:
 		if line[0]=="#":
 
 			parts=line.split("/")
-			name=parts[0].replace("## ","")
+			name=parts[0].replace("## ","").strip()
 			full_name=line.replace("## ","").strip()
 
-			if last_section!=parts[0]:
+			if last_section!=parts[0] and len(parts)>1:
 				last_section=parts[0]
 				print("***")
 				print(last_section)

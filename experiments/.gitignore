@@ -1,4 +1,5 @@
 *.txt
+*.md
 index*
 *.klcp
 *.fa.amb
