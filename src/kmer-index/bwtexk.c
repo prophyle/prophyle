@@ -69,18 +69,17 @@ int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k,
 	return len;
 }
 
-uint64_t last_decreased_k;
-uint64_t last_increased_l;
-
 int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
-															uint64_t* k, uint64_t* l, int start_pos, klcp_t* klcp)
+															uint64_t* k, uint64_t* l,
+															uint64_t* decreased_k, uint64_t* increased_l,
+															int start_pos, klcp_t* klcp)
 {
 	bwtint_t ok, ol;
 	int i;
 	*k = decrease_k(klcp, *k);
-	last_decreased_k = *k;
+	*decreased_k = *k;
 	*l = increase_l(klcp, *l);
-	last_increased_l = *l;
+	*increased_l = *l;
 
 	//fprintf(stderr, "increased k = %d, l = %d\n", *k, *l);
 
@@ -134,9 +133,6 @@ bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
 		return position;
 	}
 	int rid = bns_pos2rid(idx->bns, pos);
-	if (rid == 50528513) {
-		fprintf(stderr, "ERROR! pos = %llu, rid = %d\n", pos, rid);
-	}
 	position.rid = rid;
 	return position;
 }
@@ -265,7 +261,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 
 		if (opt->output_rids) {
 			fprintf(stdout, "#");
-			for(j = 0; j < p->len; ++j) {
+			for(j = (int)p->len - 1; j>= 0; j--) {
 				fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
 			}
 			fprintf(stdout, "\n");
@@ -274,8 +270,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		int start_pos = 0;
 		int zero_streak = 0;
 		int was_one = 0;
-		last_decreased_k = 1;
-		last_increased_l = 0;
+		uint64_t decreased_k = 1;
+		uint64_t increased_l = 0;
 		while (start_pos <= p->len - opt->kmer_length) {
 			if (start_pos == 0) {
 				k = 0;
@@ -283,7 +279,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 				bwt_cal_sa_coord(bwt, opt->kmer_length, p->seq, &k, &l, start_pos);
 			} else {
 				if (opt->use_klcp && k <= l) {
-					bwt_cal_sa_coord_continue(bwt, 1, p->seq, &k, &l, start_pos + opt->kmer_length - 1, klcp);
+					bwt_cal_sa_coord_continue(bwt, 1, p->seq, &k, &l, &decreased_k, &increased_l, start_pos + opt->kmer_length - 1, klcp);
 				} else {
 					k = 0;
 					l = 0;
@@ -297,7 +293,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 				if (k <= l) {
 					size_t positions_cnt = l - k + 1;
 					if (prev_l - prev_k == l - k
-							&& last_increased_l - last_decreased_k == l - k) {
+							&& increased_l - decreased_k == l - k) {
 						using_prev_rids++;
 						shift_positions_by_one(idx, positions_cnt, &positions, opt->kmer_length, k, l);
 					} else {
