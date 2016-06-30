@@ -42,7 +42,7 @@ def get_kmers_from_fasta(fasta_fn, k, reverse_complement=True):
 
 	reg_splitting=re.compile("[^ACGT]")
 	set_of_kmers=set()
-	for name, sequence in load_fasta(fasta_fn):
+	for name, sequence in load_fasta(fasta_fn).items():
 		sequences_ok=reg_splitting.split(sequence)
 		for seq in sequences_ok:
 			for i in range(len(seq)-k+1):
