@@ -4,9 +4,6 @@ import sys
 import os
 import argparse
 import re
-from itertools import product, repeat
-from Bio import SeqIO
-
 
 reg_splitting=re.compile("[^ACGT]")
 
