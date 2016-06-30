@@ -28,7 +28,7 @@ matrix:
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
         - sudo apt-get install zlib1g-dev git-svn bats
         - ./bin/install-boost.sh
-        - sudo pip3 install biopython
+        - sudo pip install biopython
 
     - os: osx
       compiler: clang-3.7
