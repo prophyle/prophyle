@@ -39,6 +39,7 @@ exk_opt_t *exk_init_opt()
 	o->kmer_length = 14;
 	o->use_klcp = 0;
 	o->output_rids = 0;
+	o->skip_positions_on_border = 1;
 	return o;
 }
 
@@ -137,10 +138,16 @@ bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
 	return position;
 }
 
+int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_length) {
+	return (position->position + query_length >= idx->bns->l_pac
+		|| position->position + query_length > idx->bns->anns[position->rid + 1].offset
+		|| position->position < idx->bns->anns[position->rid].offset);
+}
+
 size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
 																bwt_position_t** positions, int** seen_rids,
-																int8_t** seen_rids_marks) {
+																int8_t** seen_rids_marks, int skip_positions_on_border) {
 	*seen_rids = malloc(positions_cnt * sizeof(int));
 	size_t rids_cnt = 0;
 	int i;
@@ -159,11 +166,17 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 		}
 		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
 		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
-		if (!seen && rid != -1) {
+		if (!seen && rid != -1 && (!skip_positions_on_border || !position_on_border(idx, *positions + i, query_length))) {
 			(*seen_rids)[rids_cnt] = rid;
 			++rids_cnt;
 			(*seen_rids_marks)[rid] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
+		}
+		if (position_on_border(idx, *positions + i, query_length)) {
+			// bwt_position_t* pos = (*positions + i);
+			// fprintf(stderr, "on border: pos = %llu, rid = %d, offset = %llu, offset[+1] = %llu\n",
+			// 	pos->position, pos->rid, idx->bns->anns[pos->rid].offset,
+			// 	idx->bns->anns[pos->rid + 1].offset);
 		}
 	}
 	int r;
@@ -204,27 +217,6 @@ void shift_positions_by_one(bwaidx_t* idx, int positions_cnt, bwt_position_t** p
 				position->position--;
 			}
 		}
-		// fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
-		//  	position->position, position->rid, idx->bns->anns[position->rid].offset, idx->bns->anns[position->rid + 1].offset);
-		if (position->position + query_length >= idx->bns->l_pac) {
-			//fprintf(stdout, "1\n");
-			bwt_position_t new_position = get_position(idx, query_length, k + i);
-			position->position = new_position.position;
-			position->strand = new_position.strand;
-			position->rid = new_position.rid;
-		} else if (position->position + query_length >= idx->bns->anns[position->rid + 1].offset) {
-			//fprintf(stdout, "2\n");
-			bwt_position_t new_position = get_position(idx, query_length, k + i);
-			position->position = new_position.position;
-			position->strand = new_position.strand;
-			position->rid = new_position.rid;
-		} else if (position->position < idx->bns->anns[position->rid].offset) {
-			//fprintf(stdout, "3\n");
-			bwt_position_t new_position = get_position(idx, query_length, k + i);
-			position->position = new_position.position;
-			position->strand = new_position.strand;
-			position->rid = new_position.rid;
-		}
 	}
 }
 
@@ -239,7 +231,6 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
 	int* seen_rids = NULL;
 	bwt_position_t* positions = NULL;
-	int rids_cnt;
 	uint64_t index;
 	for(index = 0; index < idx->bns->n_seqs; ++index) {
 		seen_rids_marks[index] = 0;
@@ -301,8 +292,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 						get_positions(idx, opt->kmer_length,
 							k, l, &positions);
 					}
-					rids_cnt = get_contigs_from_positions(idx, opt->kmer_length,
-						positions_cnt, &positions, &seen_rids, &seen_rids_marks);
+					int rids_cnt = get_contigs_from_positions(idx, opt->kmer_length,
+						positions_cnt, &positions, &seen_rids, &seen_rids_marks, opt->skip_positions_on_border);
 					output_chromosomes(seen_rids, rids_cnt);
 				}
 				else {
@@ -451,12 +442,13 @@ int exk_match(int argc, char *argv[])
 	char *prefix;
 
 	opt = exk_init_opt();
-	while ((c = getopt(argc, argv, "suvk:n:o:e:i:d:l:LR:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	while ((c = getopt(argc, argv, "psuvk:n:o:e:i:d:l:LR:t:NM:O:E:q:f:b012IYB:")) >= 0) {
 		switch (c) {
 		case 'v': opt->output_rids = 1; break;
 		case 'u': opt->use_klcp = 1; break;
 		case 'k': opt->kmer_length = atoi(optarg); break;
 		case 's': opt->skip_after_fail = 1; break;
+		case 'p': opt->skip_positions_on_border = 0; break;
 		case 'e': opte = atoi(optarg); break;
 		case 't': opt->n_threads = atoi(optarg); break;
 		case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
