@@ -40,7 +40,7 @@ matrix:
         - sudo brew install llvm37 boost159 bats python3
         - sudo brew unlink cmake && sudo brew install cmake31
         - sudo pip install --upgrade jinja2 nose
-        - pip3 install biopython
+        - sudo pip3 install biopython
 
 script:
   - ( make -C src )
