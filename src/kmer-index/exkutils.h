@@ -12,7 +12,7 @@ typedef struct {
 	int kmer_length;
 	int output_rids;
 	int skip_after_fail;
-
+	int skip_positions_on_border;
 } exk_opt_t;
 
 #endif //
