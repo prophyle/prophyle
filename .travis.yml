@@ -28,8 +28,6 @@ matrix:
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
         - sudo apt-get install zlib1g-dev git-svn bats
         - ./bin/install-boost.sh
-        - sudo easy_install3 pip
-        - sudo pip install biopython
 
     - os: osx
       compiler: clang-3.7
@@ -41,7 +39,6 @@ matrix:
         - sudo brew install llvm37 boost159 bats python3
         - sudo brew unlink cmake && sudo brew install cmake31
         - sudo pip install --upgrade jinja2 nose
-        - sudo pip3 install biopython
 
 script:
   - ( make -C src )
