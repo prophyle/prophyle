@@ -50,7 +50,7 @@ index.fa.pac: index.fa $(BWA)
 
 index.fa.bwt: index.fa.pac $(BWA)
 	$(TTIME) -o 2.2_bwa_pac2bwt.log \
-	$(BWA) pac2bwt index.fa.pac index.fa.bwt
+	$(BWA) pac2bwt -d index.fa.pac index.fa.bwt
 
 	$(TTIME) -o 2.3_bwa_bwtupdate.log \
 	$(BWA) bwtupdate index.fa.bwt
