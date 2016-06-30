@@ -31,4 +31,4 @@ kmers_expected.%.txt: bwa_index/test_seq.fa
 	$(FK) -i $< -k $* > $@
 
 diff.%.txt: kmers_expected.%.txt kmers_matched.%.txt
-	diff $^ | tee > $@
+	diff $^ | tee $@

@@ -21,14 +21,31 @@ def reverse_complement_str(dna):
 	reverse_complement="".join([comp_dict[x] for x in dna[::-1]])
 	return reverse_complement
 
+def load_fasta(fasta_fn):
+	sd={}
+	name=None
+	seq=[]
+	with open(fasta_fn) as f:
+		for x in f:
+			s=x.strip()
+			if x!="":
+				if x[0]==">":
+					if name!=None:
+						sd[name]="".join(s)
+					name=x[1:]
+				else:
+					seq.append(s)
+	if name!=None:
+		sd[name]="".join(seq)
+
+	return sd
+
 def get_kmers_from_fasta(fasta_fn, k, reverse_complement=True):
 	kmers=set()
 
 	reg_splitting=re.compile("[^ACGT]")
 	set_of_kmers=set()
-	fasta_sequences = SeqIO.parse(fasta_fn,'fasta')
-	for fasta_seq in fasta_sequences:
-		name, sequence = fasta_seq.id, str(fasta_seq.seq).upper()
+	for name, sequence in load_fasta(fasta_fn):
 		sequences_ok=reg_splitting.split(sequence)
 		for seq in sequences_ok:
 			for i in range(len(seq)-k+1):
