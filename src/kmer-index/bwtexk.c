@@ -16,6 +16,7 @@
 #include "bwase.h"
 #include "kstring.h"
 #include "klcp.h"
+#include "bwautils.h"
 
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "0.0.1"
@@ -161,7 +162,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 
 		if (opt->output_rids) {
 			fprintf(stdout, "#");
-			for(j = 0; j < p->len; ++j) {
+			for(j = (int)p->len - 1; j >= 0; j--) {
 				fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
 			}
 			fprintf(stdout, "\n");
@@ -219,55 +220,6 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	free(seen_rids_marks);
 }
 
-bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
-{
-	bwa_seqio_t *ks;
-	if (mode & BWA_MODE_BAM) { // open BAM
-		int which = 0;
-		if (mode & BWA_MODE_BAM_SE) which |= 4;
-		if (mode & BWA_MODE_BAM_READ1) which |= 1;
-		if (mode & BWA_MODE_BAM_READ2) which |= 2;
-		if (which == 0) which = 7; // then read all reads
-		ks = bwa_bam_open(fn_fa, which);
-	} else ks = bwa_seq_open(fn_fa);
-	return ks;
-}
-
-void bwa_destroy_unused_fields(bwaidx_t* idx) {
-	int64_t i;
-	for (i = 0; i < idx->bns->n_seqs; ++i) {
-		free(idx->bns->anns[i].name);
-		free(idx->bns->anns[i].anno);
-	}
-	if (idx->pac) {
-		free(idx->pac);
-	}
-}
-
-void bns_destroy_without_names_and_annos(bntseq_t* bns) {
-	if (bns == 0) return;
-	else {
-		if (bns->fp_pac) err_fclose(bns->fp_pac);
-		free(bns->ambs);
-		free(bns->anns);
-		free(bns);
-	}
-}
-
-void bwa_idx_destroy_without_bns_name_and_anno(bwaidx_t *idx)
-{
-	if (idx == 0) return;
-	if (idx->mem == 0) {
-		if (idx->bwt) bwt_destroy(idx->bwt);
-		if (idx->bns) bns_destroy_without_names_and_annos(idx->bns);
-		//if (idx->pac) free(idx->pac);
-	} else {
-		free(idx->bwt); free(idx->bns->anns); free(idx->bns);
-		if (!idx->is_shm) free(idx->mem);
-	}
-	free(idx);
-}
-
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	int n_seqs, tot_seqs = 0;
 	bwa_seq_t *seqs;
@@ -275,11 +227,11 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	clock_t t;
 	bwaidx_t* idx;
 
-	if ((idx = bwa_idx_load(prefix, BWA_IDX_ALL)) == 0) {
+	if ((idx = bwa_idx_load_partial(prefix, BWA_IDX_ALL)) == 0) {
 		fprintf(stderr, "Couldn't load idx from %s\n", prefix);
 		return;
 	}
-
+	fprintf(stderr, "BWA loaded\n");
 	bwa_destroy_unused_fields(idx);
 
 	klcp_t* klcp = malloc(sizeof(klcp_t));
