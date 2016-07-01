@@ -41,10 +41,8 @@ matrix:
         - sudo pip install --upgrade jinja2 nose
 
 script:
-  - ( make -C src )
-  - ( ./tests/test_exk.sh )
-  - ( cd tests/quick_querying && ../../bin/exk_match_1step.py -k 2 ./fa.fa ./fq.fq )
-  - ( make -C tests/exk_exhaustive/ )
+  - make -C src
+  - make -C tests
   
 
 cache:
