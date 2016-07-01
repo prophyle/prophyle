@@ -37,7 +37,7 @@ def load_fasta(fasta_fn):
 	if name!=None:
 		sd[name]="".join(seq)
 
-	print("Loaded {}".format(fasta_fn),file=sys.stderr)
+	print("Loaded {} ({} bp)".format(fasta_fn, sum([len(x) for x in sd.values()])),file=sys.stderr)
 	return sd
 
 #######
@@ -49,14 +49,13 @@ def load_fasta(fasta_fn):
 def get_kmers_from_fasta(fasta_fn, k, mode="a"):
 	assert mode in ["a","c","r","f"]
 
-	print("Extracting k-mers from {} (mode: {})".format(fasta_fn, mode),file=sys.stderr)
-
-	kmers=set()
-
 	reg_splitting=re.compile("[^ACGT]")
 	set_of_kmers=set()
-	for name, sequence in load_fasta(fasta_fn).items():
-		sequences_ok=reg_splitting.split(sequence)
+
+	fasta_dict=load_fasta(fasta_fn)
+	print("Extracting k-mers from {} (mode: {})".format(fasta_fn, mode),file=sys.stderr)
+	for name in fasta_dict:
+		sequences_ok=reg_splitting.split(fasta_dict[name])
 		for seq in sequences_ok:
 			if mode=="c":
 				for i in range(len(seq)-k+1):
@@ -70,8 +69,8 @@ def get_kmers_from_fasta(fasta_fn, k, mode="a"):
 						kmer=seq[i:i+k]
 						set_of_kmers.add(kmer)
 				if mode=="a" or mode=="r":
-					for i in range(len(seq)-k+1):
-						seq_rc=reverse_complement_str(seq)
+					seq_rc=reverse_complement_str(seq)
+					for i in range(len(seq_rc)-k+1):
 						kmer_rc=seq_rc[i:i+k]
 						set_of_kmers.add(kmer_rc)
 
