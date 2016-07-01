@@ -47,6 +47,8 @@ def load_fasta(fasta_fn):
 # c = canonical
 #######
 def get_kmers_from_fasta(fasta_fn, k, mode="a"):
+	assert mode in ["a","c","r","f"]
+
 	kmers=set()
 
 	reg_splitting=re.compile("[^ACGT]")
@@ -54,26 +56,25 @@ def get_kmers_from_fasta(fasta_fn, k, mode="a"):
 	for name, sequence in load_fasta(fasta_fn).items():
 		sequences_ok=reg_splitting.split(sequence)
 		for seq in sequences_ok:
-
 			if mode=="c":
 				for i in range(len(seq)-k+1):
 					kmer=seq[i:i+k]
 					kmer_rc=reverse_complement_str(kmer)
-					set_of_kmers.add(min(kmer))
+					set_of_kmers.add(min(kmer,kmer_rc))
 
 			else:
-				if mode=="a" or mode="f"
+				if mode=="a" or mode=="f":
 					for i in range(len(seq)-k+1):
 						kmer=seq[i:i+k]
 						set_of_kmers.add(kmer)
-				if mode=="a" or mode="r"
+				if mode=="a" or mode=="r":
 					for i in range(len(seq)-k+1):
 						seq_rc=reverse_complement_str(seq)
 						kmer_rc=seq_rc[i:i+k]
 						set_of_kmers.add(kmer_rc)
 
 
-	print("K-mers extracted from {} (mode: )".format(fasta_fn, mode),file=sys.stderr)
+	print("K-mers extracted from {} (mode: {})".format(fasta_fn, mode),file=sys.stderr)
 
 	return set_of_kmers
 
@@ -134,9 +135,9 @@ elif args.format=="fa":
 kmers=get_kmers_from_fasta(args.input, args.k, mode=args.mode)
 kmers=list(kmers)
 kmers.sort()
+print(kmers,file=sys.stderr)
 
 i = 1
 for kmer in kmers:
-	kmer=''.join(kmer)
 	pr(i,kmer)
 	i += 1
