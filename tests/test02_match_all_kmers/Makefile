@@ -12,9 +12,10 @@ FK=../../bin/_fa_to_kmers.py
 FA=index.fa
 K=2 3 4 5 6 7 8
 
-targets = $(addprefix diff., $(K))
+diffs = $(addsuffix .txt, $(addprefix diff., $(K)))
 
-all: $(addsuffix .txt, $(targets))
+all: $(diffs)
+	@for f in $^; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
 
 clean:
 	rm -f *.fq *.txt index.fa.*
