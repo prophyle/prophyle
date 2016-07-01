@@ -3,7 +3,7 @@
 SHELL=/bin/bash -o pipefail
 
 ASM=../../bin/assembler
-F2K=../../bin/_fa_to_kmers.py
+F2K=../../bin/_fa_to_kmers.py -m c
 
 K=6 8
 
