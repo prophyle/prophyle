@@ -18,13 +18,13 @@ all: \
 	$(addprefix diff_s., $(targets)) \
 
 match_rol_s.%.txt:
-	$(M) -k $* $(FA) $(FQ) > $@
+	$(M) -u -s -k $* $(FA) $(FQ) > $@
 
 match_rol.%.txt:
-	$(M) -k $* $(FA) $(FQ) > $@
+	$(M) -u -k $* $(FA) $(FQ) > $@
 
 match_res_s.%.txt:
-	$(M) -k $* $(FA) $(FQ) > $@
+	$(M) -s -k $* $(FA) $(FQ) > $@
 
 match_res.%.txt:
 	$(M) -k $* $(FA) $(FQ) > $@
