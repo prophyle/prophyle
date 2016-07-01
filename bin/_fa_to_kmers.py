@@ -19,6 +19,8 @@ def reverse_complement_str(dna):
 	return reverse_complement
 
 def load_fasta(fasta_fn):
+	print("Loading {}".format(fasta_fn),file=sys.stderr)
+
 	sd={}
 	name=None
 	seq=[]
@@ -35,9 +37,18 @@ def load_fasta(fasta_fn):
 	if name!=None:
 		sd[name]="".join(seq)
 
+	print("Loaded {}".format(fasta_fn),file=sys.stderr)
 	return sd
 
-def get_kmers_from_fasta(fasta_fn, k, reverse_complement=True):
+#######
+# a = all (both strands)
+# f = forward
+# r = reversed
+# c = canonical
+#######
+def get_kmers_from_fasta(fasta_fn, k, mode="a"):
+	assert mode in ["a","c","r","f"]
+
 	kmers=set()
 
 	reg_splitting=re.compile("[^ACGT]")
@@ -45,12 +56,25 @@ def get_kmers_from_fasta(fasta_fn, k, reverse_complement=True):
 	for name, sequence in load_fasta(fasta_fn).items():
 		sequences_ok=reg_splitting.split(sequence)
 		for seq in sequences_ok:
-			for i in range(len(seq)-k+1):
-				kmer=seq[i:i+k]
-				set_of_kmers.add(kmer)
-				if reverse_complement:
+			if mode=="c":
+				for i in range(len(seq)-k+1):
+					kmer=seq[i:i+k]
 					kmer_rc=reverse_complement_str(kmer)
-					set_of_kmers.add(kmer_rc)
+					set_of_kmers.add(min(kmer,kmer_rc))
+
+			else:
+				if mode=="a" or mode=="f":
+					for i in range(len(seq)-k+1):
+						kmer=seq[i:i+k]
+						set_of_kmers.add(kmer)
+				if mode=="a" or mode=="r":
+					for i in range(len(seq)-k+1):
+						seq_rc=reverse_complement_str(seq)
+						kmer_rc=seq_rc[i:i+k]
+						set_of_kmers.add(kmer_rc)
+
+
+	print("K-mers extracted from {} (mode: {})".format(fasta_fn, mode),file=sys.stderr)
 
 	return set_of_kmers
 
@@ -71,9 +95,10 @@ parser.add_argument(
 	)
 
 parser.add_argument(
-		'-n','--no-revcomp',
-		action='store_true',
-		help='do not add reverse complements',
+		'-m','--mode',
+		choices=["a","c","f","r"],
+		default="a",
+		help='mode (a = all kmers, c = canonical, f = forward k-mers, r = reversed)',
 	)
 
 parser.add_argument(
@@ -107,12 +132,12 @@ elif args.format=="fq":
 elif args.format=="fa":
 	pr=print_fa
 
-kmers=get_kmers_from_fasta(args.input,args.k,not args.no_revcomp)
+kmers=get_kmers_from_fasta(args.input, args.k, mode=args.mode)
 kmers=list(kmers)
 kmers.sort()
+print(kmers,file=sys.stderr)
 
 i = 1
 for kmer in kmers:
-	kmer=''.join(kmer)
 	pr(i,kmer)
 	i += 1
