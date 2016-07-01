@@ -26,14 +26,14 @@ def load_fasta(fasta_fn):
 	seq=[]
 	with open(fasta_fn) as f:
 		for x in f:
-			s=x.strip()
+			x=x.upper().strip()
 			if x!="":
 				if x[0]==">":
 					if name!=None:
-						sd[name]="".join(s)
+						sd[name]="".join(seq)
 					name=x[1:]
 				else:
-					seq.append(s)
+					seq.append(x)
 	if name!=None:
 		sd[name]="".join(seq)
 
@@ -48,6 +48,8 @@ def load_fasta(fasta_fn):
 #######
 def get_kmers_from_fasta(fasta_fn, k, mode="a"):
 	assert mode in ["a","c","r","f"]
+
+	print("Extracting k-mers from {} (mode: {})".format(fasta_fn, mode),file=sys.stderr)
 
 	kmers=set()
 
@@ -134,8 +136,9 @@ elif args.format=="fa":
 
 kmers=get_kmers_from_fasta(args.input, args.k, mode=args.mode)
 kmers=list(kmers)
+
+print("Sorting k-mers from {}".format(args.input),file=sys.stderr)
 kmers.sort()
-print(kmers,file=sys.stderr)
 
 i = 1
 for kmer in kmers:
