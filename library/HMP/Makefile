@@ -6,6 +6,10 @@ include ../conf.mk
 all: .complete
 
 .complete:
+	ifeq (,$(wildcard all_seqs.fa))
 	curl $(HMP_SERVER)/HMREFG/all_seqs.fa.bz2 | bzip2 -d > all_seqs.fa
+	endif
+	ifeq (,$(wildcard gi_taxid_nucl.dmp))
 	curl $(FTP_SERVER)/pub/taxonomy/gi_taxid_nucl.dmp.gz | gzip -d > gi_taxid_nucl.dmp
+	endif
 	touch .complete
