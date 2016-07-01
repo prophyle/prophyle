@@ -30,7 +30,7 @@ def load_fasta(fasta_fn):
 			if x!="":
 				if x[0]==">":
 					if name!=None:
-						sd[name]="".join(x)
+						sd[name]="".join(seq)
 					name=x[1:]
 				else:
 					seq.append(x)
