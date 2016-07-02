@@ -43,11 +43,11 @@ _out_L.k%.txt: _out_L.k%.fa
 _out_R.k%.txt: _out_R.k%.fa
 	$(F2K) -i $< -k $* > $@
 
-_inp_L.k%.txt: test_L.fa
+_inp_L.k%.txt: $(FA1)
 	$(F2K) -i $< -k $* > $@
 
-_inp_R.k%.txt: test_R.fa
+_inp_R.k%.txt: $(FA2)
 	$(F2K) -i $< -k $* > $@
 
-_out1.%.fa _out2.%.fa _intersect.%.fa:
-	$(ASM) -k $* -i $(FA1) -i $(FA2) -o _out1.$*.fa -o _out2.$*.fa -x _intersect.$*.fa
+_out_L.k%.fa _out_R.k%.fa _intersect.k%.fa: $(FA1) $(FA2)
+	$(ASM) -k $* -i $(FA1) -i $(FA2) -o _out_L.k$*.fa -o _out_R.k$*.fa -x _intersect.k$*.fa
