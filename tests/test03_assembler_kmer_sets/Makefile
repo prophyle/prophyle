@@ -3,7 +3,7 @@
 SHELL=/bin/bash -o pipefail
 
 ASM=../../bin/assembler
-F2K=../../bin/_fa_to_kmers.py -m c
+F2K=../../bin/_fa_to_kmers.py -m a
 
 FA1=test_L.fa
 FA2=test_R.fa
