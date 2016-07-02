@@ -138,7 +138,7 @@ elif args.format=="fa":
 kmers=get_kmers_from_fasta(args.input, args.k, mode=args.mode)
 kmers=list(kmers)
 
-print("Sorting k-mers from {} ({} kmers)".format(args.input, len(kmers)),file=sys.stderr)
+print("Sorting all included k-mers from {} ({} kmers)".format(args.input, len(kmers)),file=sys.stderr)
 kmers.sort()
 
 i = 1
