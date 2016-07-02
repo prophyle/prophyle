@@ -29,7 +29,7 @@ def print_fq(i,kmer):
 
 def print_fa(i,kmer):
 	print('>'+str(i))
-	print(kmer+'\n')
+	print(kmer)
 
 def print_txt(i,kmer):
 	print(kmer)

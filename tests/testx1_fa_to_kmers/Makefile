@@ -12,4 +12,4 @@ gen_%.txt:
 	$(F2K) -m $* > $@
 
 clean:
-	rm gen*.txt
+	rm -f gen*.txt
