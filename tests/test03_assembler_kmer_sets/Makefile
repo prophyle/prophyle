@@ -8,7 +8,7 @@ F2K=../../bin/_fa_to_kmers.py -m a
 FA1=test_L.fa
 FA2=test_R.fa
 
-K= 2 7 10
+K= 7 10
 
 diffs1 = $(addsuffix .txt, $(addprefix diff_L.k, $(K)))
 diffs2 = $(addsuffix .txt, $(addprefix diff_R.k, $(K)))
