@@ -5,6 +5,9 @@ SHELL=/bin/bash -o pipefail
 ASM=../../bin/assembler
 F2K=../../bin/_fa_to_kmers.py -m c
 
+FA1=test1.fa
+FA2=test2.fa
+
 K=6 8
 
 diffs1 = $(addsuffix .txt, $(addprefix diff1., $(K)))
@@ -46,5 +49,5 @@ _inp1.%.txt: test1.fa
 _inp2.%.txt: test2.fa
 	$(F2K) -i $< -k $* > $@
 
-_out1.%.fa _out2.%.fa _intersect.%.fa: test1.fa test2.fa
-	$(ASM) -k $* -i test1.fa -i test2.fa -o _out1.$*.fa -o _out2.$*.fa -x _intersect.$*.fa
+_out1.%.fa _out2.%.fa _intersect.%.fa:
+	$(ASM) -k $* -i $(FA1) -i $(FA2) -o _out1.$*.fa -o _out2.$*.fa -x _intersect.$*.fa
