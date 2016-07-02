@@ -241,10 +241,10 @@ int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
 				//std::cout << "problem" <<std::endl;
 			}
 		}
-		std::cout << "  " << fasta_fn << " loaded - #kmers: " << set.size()<<std::endl;
-		//std::cout << "iterator finished" << std::endl;
-
 	}
+
+	std::cout << "  " << fasta_fn << " loaded - #kmers: " << set.size()<<std::endl;
+	//std::cout << "iterator finished" << std::endl;
 
 	kseq_destroy(seq);
 	gzclose(fp);
