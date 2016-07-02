@@ -31,6 +31,7 @@ def load_fasta(fasta_fn):
 				if x[0]==">":
 					if name!=None:
 						sd[name]="".join(seq)
+						seq=[]
 					name=x[1:]
 				else:
 					seq.append(x)
@@ -55,7 +56,8 @@ def get_kmers_from_fasta(fasta_fn, k, mode="a"):
 	fasta_dict=load_fasta(fasta_fn)
 	print("Extracting k-mers from {} (mode: {})".format(fasta_fn, mode),file=sys.stderr)
 	for name in fasta_dict:
-		sequences_ok=reg_splitting.split(fasta_dict[name])
+		sequence=fasta_dict[name]
+		sequences_ok=reg_splitting.split(sequence)
 		for seq in sequences_ok:
 			if mode=="c":
 				for i in range(len(seq)-k+1):
@@ -136,7 +138,7 @@ elif args.format=="fa":
 kmers=get_kmers_from_fasta(args.input, args.k, mode=args.mode)
 kmers=list(kmers)
 
-print("Sorting k-mers from {}".format(args.input),file=sys.stderr)
+print("Sorting k-mers from {} ({} kmers)".format(args.input, len(kmers)),file=sys.stderr)
 kmers.sort()
 
 i = 1

@@ -8,7 +8,6 @@
 #include <limits>
 #include <vector>
 
-
 #include <boost/unordered_set.hpp>
 
 #include <boost/program_options.hpp>
@@ -482,7 +481,26 @@ int main (int argc, char* argv[])
 
 	std::cout << "Removing this intersection from all kmer sets" << std::endl;
 
+	int32_t intersection_size  = intersection.size();
+
+	std::vector<int32_t> old_sizes;	
+	for (auto const &x : full_sets){
+		old_sizes.insert(old_sizes.end(),x.size());
+	}
+
 	remove_subset(full_sets, intersection);
+
+	std::vector<int32_t> new_sizes;	
+	for (auto const &x : full_sets){
+		new_sizes.insert(new_sizes.end(),x.size());
+	}
+
+	//for (auto a=old_sizes.begin(),auto b=new_sizes.begin();a<old_sizes.end() && b<new_sizes.end();++a,++b){
+	for (int32_t i=0;i<old_sizes.size();i++){
+		assert(old_sizes[i]==new_sizes[i]+intersection_size);
+		std::cout << old_sizes[i] << " " << new_sizes[i] << " ...inter:" << intersection_size << std::endl;
+	}
+
 
 	std::cout << "=============" << std::endl;
 	std::cout << "3) Assembling" << std::endl;
