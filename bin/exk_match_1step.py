@@ -42,12 +42,12 @@ parser.add_argument(
 	)
 parser.add_argument(
 		'-u',
-		action='store_false',
+		action='store_true',
 		help='use rolling window',
 	)
 parser.add_argument(
 		'-s',
-		action='store_false',
+		action='store_true',
 		help='skip k-1 k-mers after failing matching k-mer',
 	)
 parser.add_argument(
