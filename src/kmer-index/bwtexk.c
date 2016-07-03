@@ -140,7 +140,7 @@ bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
 }
 
 int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_length) {
-	return (position->position + query_length >= idx->bns->l_pac
+	return (position->position + query_length > idx->bns->l_pac
 		|| position->position + query_length > idx->bns->anns[position->rid + 1].offset
 		|| position->position < idx->bns->anns[position->rid].offset);
 }
