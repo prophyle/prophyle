@@ -221,18 +221,16 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 
 void exk_index_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	bwt_t *bwt;
-	bwaidx_t* idx;
 	// initialization
 	{ // load BWT
 		//fprintf(stderr, "%s\n", prefix);
-		if ((idx = bwa_idx_load(prefix, BWA_IDX_ALL)) == 0) {
+		if ((bwt = bwa_idx_load_bwt(prefix)) == 0) {
 			fprintf(stderr, "Couldn't load idx from %s\n", prefix);
 			return;
 		}
-		bwt = idx->bwt;
 	}
 
-	klcp_t* klcp = construct_klcp(idx->bwt, opt->kmer_length);
+	klcp_t* klcp = construct_klcp(bwt, opt->kmer_length);
   fprintf(stdout, "klcp constructed\n");
   char* fn = malloc((strlen(prefix) + 10) * sizeof(char));
   strcpy(fn, prefix);
