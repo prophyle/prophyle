@@ -428,7 +428,7 @@ int exk_match(int argc, char *argv[])
 		fprintf(stderr, "         -u        use klcp for matching\n");
 		fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
 		fprintf(stderr, "         -s        skip k-1 k-mers after failing matching k-mer\n");
-
+		fprintf(stderr, "         -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output\n");
 		// fprintf(stderr, "         -t INT    number of threads [%d]\n", opt->n_threads);
 		// fprintf(stderr, "         -B INT    length of barcode\n");
 		// fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
