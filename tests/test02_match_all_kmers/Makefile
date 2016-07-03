@@ -30,7 +30,7 @@ exk_output.%.txt: kmers_all.%.fq
 	$(M) -k $* $(FA) $< > $@
 
 kmers_matched.%.txt: exk_output.%.txt
-	cat $< | grep -B 1 '^[1-9]' | grep "#" | sed 's/\#//' | sort > $@
+	cat $< | (grep -B 1 '^[1-9]' || true) | (grep "#" || true) | sed 's/\#//' | sort > $@
 
 kmers_expected.%.txt: $(FA)
 	$(FK) -i $< -k $* > $@
