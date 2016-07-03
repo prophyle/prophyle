@@ -140,8 +140,10 @@ bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
 }
 
 int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_length) {
+	//fprintf(stdout, "%llu %d %llu\n", position->position, query_length, idx->bns->l_pac);
+	//fprintf(stdout, "%d %d\n", position->rid, idx->bns->n_seqs);
 	return (position->position + query_length > idx->bns->l_pac
-		|| position->position + query_length > idx->bns->anns[position->rid + 1].offset
+		|| (position->rid + 1 < idx->bns->n_seqs && position->position + query_length > idx->bns->anns[position->rid + 1].offset)
 		|| position->position < idx->bns->anns[position->rid].offset);
 }
 
@@ -154,6 +156,7 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
 		uint64_t pos = (*positions)[i].position;
+		//fprintf(stdout, "%llu\n", pos);
 		if (pos == (uint64_t)-1) {
 			continue;
 		}
@@ -172,12 +175,6 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 			++rids_cnt;
 			(*seen_rids_marks)[rid] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
-		}
-		if (position_on_border(idx, *positions + i, query_length)) {
-			// bwt_position_t* pos = (*positions + i);
-			// fprintf(stderr, "on border: pos = %llu, rid = %d, offset = %llu, offset[+1] = %llu\n",
-			// 	pos->position, pos->rid, idx->bns->anns[pos->rid].offset,
-			// 	idx->bns->anns[pos->rid + 1].offset);
 		}
 	}
 	int r;
