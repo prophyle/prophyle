@@ -67,23 +67,27 @@ $(KLCP): index.fa index.fa.bwt index.fa.sa
 	$(SAMTOOLS) faidx $<
 
 kmers_rolling.txt: $(READS) index.fa.sa $(KLCP) 
-	$(TTIME) -o 3.1_matching_rolling.log \
-	$(EXK) match -k $(K) -u -v index.fa $(READS) > kmers_rolling.txt
+	$(TTIME) -o 3.1a_matching_rolling.log \
+	$(EXK) match -l 3.1b_matching_rolling.log  \
+		-k $(K) -u -v index.fa $(READS) > $@
 
 kmers_restarted.txt: $(READS) index.fa.sa \
 	kmers_rolling.txt
-	$(TTIME) -o 3.2_matching_restarted.log \
-	$(EXK) match -k $(K) -v index.fa $(READS) > kmers_restarted.txt
+	$(TTIME) -o 3.2a_matching_restarted.log \
+	$(EXK) match -l 3.2b_matching_restarted.log \
+		-k $(K) -v index.fa $(READS) > $@
 
 kmers_rolling_skipping.txt: $(READS) index.fa.sa $(KLCP) \
 	kmers_restarted.txt
-	$(TTIME) -o 3.3_matching_rolling_skipping.log \
-	$(EXK) match -k $(K) -u -v -s index.fa $(READS) > kmers_rolling_skipping.txt
+	$(TTIME) -o 3.3a_matching_rolling_skipping.log \
+	$(EXK) match -l 3.3b_matching_rolling_skipping.log \
+		-k $(K) -u -v -s index.fa $(READS) > $@
 
 kmers_restarted_skipping.txt: $(READS) index.fa.sa kmers_rolling.txt \
 	kmers_rolling_skipping.txt
-	$(TTIME) -o 3.4_matching_restarted_skipping.log \
-	$(EXK) match -k $(K) -v -s index.fa $(READS) > kmers_restarted_skipping.txt
+	$(TTIME) -o 3.4a_matching_restarted_skipping.log \
+	$(EXK) match -l 3.4b_matching_restarted_skipping.log \
+		-k $(K) -v -s index.fa $(READS) > $@
 
 4.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > 4.1_contigs_stats.log
