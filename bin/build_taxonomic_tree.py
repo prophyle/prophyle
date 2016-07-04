@@ -4,12 +4,6 @@ import sys, os, argparse, re
 from collections import deque
 from ete3 import PhyloTree, NCBITaxa
 
-def read_buf(file, buf_size=536870912):
-	buf = file.read(buf_size)+file.readline()
-	while buf:
-		yield buf
-		buf = file.read(buf_size)+file.readline()
-
 def index_of(taxid, taxa_list):
 	for i, seq in enumerate(taxa_list):
 		if taxid == seq[5]:
@@ -41,7 +35,7 @@ parser.add_argument('-a', '--assign-only',
 					default = None,
 					dest='dmp_file',
 					help = 'only assign the taxids to the sequences and store them in the given file')
-parser.add_argument('-b', '--build_tree',
+parser.add_argument('-b', '--build-tree',
 					type=str,
 					metavar='assignments_file',
 					default = None,
@@ -69,7 +63,7 @@ if assignments_file is not None:
 else:
 	seqs = []
 	skipped = 0
-	for dirpath, dirnames, filenames in os.walk(library_dir):
+	for dirpath, _, filenames in os.walk(library_dir):
 		for filename in (f for f in filenames if f.endswith(".fai")):
 			fn = os.path.join(dirpath, filename)
 			with open(fn, 'r') as faidx:
@@ -85,7 +79,7 @@ else:
 					except:
 						if skipped == 0:
 							error.write("NOT ACQUIRED:\n")
-						error.write(fn + " " + str(seqname) + "\n")
+						error.write(fn + "\t" + str(seqname) + "\n")
 						skipped += 1
 						pass
 
@@ -98,38 +92,36 @@ else:
 		found = True
 		finished = False
 		seq = [-1,-1,-1,-1,-1]
-		for buf in read_buf(taxid_map):
-			if finished: break
-			for line in buf.splitlines():
-				(gi, _, taxid) = line.partition("\t")
-				gi = int(gi)
-				while seqs and seq[4] < gi:
-					if not found:
-						if skipped == 0:
-							error.write("NOT ASSIGNED:\n")
-						error.write(str(seq[0]) + " " + str(seq[1])+"\n")
-						skipped += 1
-					else:
-						found = False
-					seq = seqs.pop()
-				if seq[4] == gi:
-					found = True
-					ass_seqs.append(seq.append(taxid.strip()))
-				if not seqs and seq[4] < gi:
-					if not found:
-						if skipped == 0:
-							error.write("\n\nNOT ASSIGNED:\n\n")
-						error.write(str(seq[0]) + " " + str(seq[1])+"\n")
-						skipped += 1
-					finished = True
-					break
+		for line in taxid_map:
+			(gi, _, taxid) = line.partition("\t")
+			gi = int(gi)
+			while seqs and seq[4] < gi:
+				if not found:
+					if skipped == 0:
+						error.write("NOT ASSIGNED:\n")
+					error.write(str(seq[0]) + " " + str(seq[1])+"\n")
+					skipped += 1
+				else:
+					found = False
+				seq = seqs.pop()
+			if seq[4] == gi:
+				found = True
+				ass_seqs.append(seq)
+				ass_seqs[-1].append(int(taxid.strip()))
+			if not seqs and seq[4] < gi:
+				if not found:
+					if skipped == 0:
+						error.write("\n\nNOT ASSIGNED:\n\n")
+					error.write(str(seq[0]) + " " + str(seq[1])+"\n")
+					skipped += 1
+				finished = True
+				break
 
 	print("Assigned " + str(seqs_no-skipped) + " seqs (" + str(skipped) + " skipped)")
 
 	if dmp_file is not None:
 		with open(dmp_file, 'w') as output:
 			for seq in ass_seqs:
-				print(seq)
 				output.write("\t".join(map(str,seq))+"\n")
 		print("Assignments written to " + dmp_file)
 		print("Launch again with --build_tree " + dmp_file +
@@ -151,7 +143,6 @@ ncbi = NCBITaxa()
 topo = ncbi.get_topology(taxids)
 new_id = 1
 count = 0
-library_dir = library_dir[library_dir.find("library"):]
 for node in topo.traverse("preorder"):
 	node.name = new_id
 	new_id += 1

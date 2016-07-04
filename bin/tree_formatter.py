@@ -200,7 +200,7 @@ class NewickError(Exception):
         #print >>sys.stderr, 'error: ' + str(value)
         Exception.__init__(self, value)
         
-def read_newick(newick, root_node=None, format=0):
+def read_newick(newick, root_node=None, format=10):
     """ Reads a newick tree from either a string or a file, and returns
     an ETE tree structure.
 
