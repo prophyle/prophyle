@@ -1,0 +1,585 @@
+==> 01_1from10_bin_k31/1.1_kmer_propagation.log <==
+2200.69user 57.26system 2:38.13elapsed 1427%CPU (0avgtext+0avgdata 4707392maxresident)k
+1993352inputs+3923184outputs (18major+36151903minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/1.2_merging_fasta.log <==
+55.57user 2.24system 1:00.97elapsed 94%CPU (0avgtext+0avgdata 34112maxresident)k
+16inputs+2539248outputs (0major+10133minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.1_bwa_fa2pac.log <==
+12.70user 1.59system 0:20.99elapsed 68%CPU (0avgtext+0avgdata 5700336maxresident)k
+56inputs+1836576outputs (0major+431111minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.2_bwa_pac2bwt.log <==
+556.50user 2.85system 9:22.64elapsed 99%CPU (0avgtext+0avgdata 41714992maxresident)k
+32inputs+1042696outputs (0major+71968minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.3_bwa_bwtupdate.log <==
+4.41user 1.35system 0:13.35elapsed 43%CPU (0avgtext+0avgdata 6263520maxresident)k
+64inputs+2085384outputs (0major+2571minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.4_bwa_bwt2sa.log <==
+249.67user 1.01system 4:14.25elapsed 98%CPU (0avgtext+0avgdata 6264192maxresident)k
+40inputs+1042696outputs (0major+28253minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.5_klcp.log <==
+721.26user 2.20system 12:06.71elapsed 99%CPU (0avgtext+0avgdata 14032928maxresident)k
+32inputs+1042696outputs (0major+208325minor)pagefaults 0swaps
+pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.1a_matching_rolling.log <==
+91.05user 2.00system 1:34.36elapsed 98%CPU (0avgtext+0avgdata 10343088maxresident)k
+0inputs+873456outputs (0major+399902minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.1b_matching_rolling.log <==
+bwt_loading	0.45s
+sa_loading	0.21s
+bns_loading	4.69s
+klcp_loading	0.19s
+matching_time	87.44s
+reads	1000000
+kmers	70000000
+rpm	686201
+kpm	48034063
+
+==> 01_1from10_bin_k31/3.1_matching_rolling.log <==
+103.74user 12.76system 2:05.07elapsed 93%CPU (0avgtext+0avgdata 10342368maxresident)k
+5503352inputs+873448outputs (0major+7234177minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.2a_matching_restarted.log <==
+130.68user 1.70system 2:13.27elapsed 99%CPU (0avgtext+0avgdata 8257184maxresident)k
+0inputs+873456outputs (0major+297889minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.2b_matching_restarted.log <==
+bwt_loading	0.44s
+sa_loading	0.21s
+bns_loading	4.70s
+matching_time	126.95s
+reads	1000000
+kmers	70000000
+rpm	472621
+kpm	33083481
+
+==> 01_1from10_bin_k31/3.2_matching_restarted.log <==
+134.85user 7.52system 2:23.05elapsed 99%CPU (0avgtext+0avgdata 8256896maxresident)k
+80inputs+873448outputs (1major+6125099minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.3a_matching_rolling_skipping.log <==
+89.27user 2.00system 1:31.83elapsed 99%CPU (0avgtext+0avgdata 10343104maxresident)k
+0inputs+872584outputs (0major+332192minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.3b_matching_rolling_skipping.log <==
+bwt_loading	0.45s
+sa_loading	0.21s
+bns_loading	4.69s
+klcp_loading	0.19s
+matching_time	85.65s
+reads	1000000
+kmers	70000000
+rpm	700529
+kpm	49037043
+
+==> 01_1from10_bin_k31/3.3_matching_rolling_skipping.log <==
+97.99user 9.33system 1:48.44elapsed 98%CPU (0avgtext+0avgdata 10343024maxresident)k
+0inputs+872576outputs (0major+8101941minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.4a_matching_restarted_skipping.log <==
+127.49user 1.75system 2:09.90elapsed 99%CPU (0avgtext+0avgdata 8256976maxresident)k
+0inputs+872584outputs (0major+302833minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.4b_matching_restarted_skipping.log <==
+bwt_loading	0.45s
+sa_loading	0.21s
+bns_loading	4.71s
+matching_time	123.80s
+reads	1000000
+kmers	70000000
+rpm	484652
+kpm	33925613
+
+==> 01_1from10_bin_k31/3.4_matching_restarted_skipping.log <==
+129.60user 2.33system 2:12.68elapsed 99%CPU (0avgtext+0avgdata 8256976maxresident)k
+0inputs+872576outputs (0major+352140minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/4.1_contigs_stats.log <==
+Number of contigs: 8495372
+Total length: 1067712578
+Average length: 125.68167444580413
+   ..st. dev: 1581.592628853994
+Median length: 34.0
+Number of k-mer occurencies: 812851418
+
+==> 01_1from10_bin_k31/4.2_index_size.log <==
+510M	index.fa.31.bit.klcp
+388M	index.fa.ann
+1019M	index.fa.bwt
+510M	index.fa.pac
+510M	index.fa.sa
+
+==> 02_1from10_bin_k25/1.1_kmer_propagation.log <==
+2147.29user 54.53system 2:28.58elapsed 1481%CPU (0avgtext+0avgdata 4701600maxresident)k
+0inputs+4051568outputs (0major+35661341minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/1.2_merging_fasta.log <==
+64.61user 2.33system 1:09.05elapsed 96%CPU (0avgtext+0avgdata 33760maxresident)k
+0inputs+2676504outputs (0major+9120minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/2.1_bwa_fa2pac.log <==
+14.50user 1.77system 0:22.99elapsed 70%CPU (0avgtext+0avgdata 6793792maxresident)k
+64inputs+2082440outputs (0major+562654minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/2.2_bwa_pac2bwt.log <==
+573.90user 3.13system 9:40.26elapsed 99%CPU (0avgtext+0avgdata 41835632maxresident)k
+32inputs+1045704outputs (0major+69279minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/2.3_bwa_bwtupdate.log <==
+4.46user 1.36system 0:12.65elapsed 46%CPU (0avgtext+0avgdata 6281248maxresident)k
+56inputs+2091408outputs (0major+2784minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/2.4_bwa_bwt2sa.log <==
+253.36user 1.02system 4:17.69elapsed 98%CPU (0avgtext+0avgdata 6282272maxresident)k
+40inputs+1045704outputs (0major+29663minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/2.5_klcp.log <==
+537.09user 1.83system 9:02.63elapsed 99%CPU (0avgtext+0avgdata 15152720maxresident)k
+32inputs+1045704outputs (0major+243180minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.1a_matching_rolling.log <==
+114.85user 12.73system 2:17.31elapsed 92%CPU (0avgtext+0avgdata 10778240maxresident)k
+5210456inputs+965328outputs (0major+10161875minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.1b_matching_rolling.log <==
+bwt_loading	2.73s
+sa_loading	1.53s
+bns_loading	7.26s
+klcp_loading	1.54s
+matching_time	114.29s
+reads	1000000
+kmers	76000000
+rpm	524961
+kpm	39897071
+
+==> 02_1from10_bin_k25/3.1_matching_rolling.log <==
+111.48user 10.11system 2:10.36elapsed 93%CPU (0avgtext+0avgdata 10778176maxresident)k
+5219552inputs+965320outputs (0major+3382877minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.2a_matching_restarted.log <==
+147.93user 8.74system 2:37.63elapsed 99%CPU (0avgtext+0avgdata 8687360maxresident)k
+0inputs+965328outputs (0major+7720807minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.2b_matching_restarted.log <==
+bwt_loading	1.89s
+sa_loading	1.08s
+bns_loading	6.96s
+matching_time	146.54s
+reads	1000000
+kmers	76000000
+rpm	409436
+kpm	31117105
+
+==> 02_1from10_bin_k25/3.2_matching_restarted.log <==
+149.40user 6.69system 2:37.05elapsed 99%CPU (0avgtext+0avgdata 8687296maxresident)k
+0inputs+965320outputs (0major+3791377minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.3a_matching_rolling_skipping.log <==
+105.87user 7.84system 1:54.79elapsed 99%CPU (0avgtext+0avgdata 10778688maxresident)k
+0inputs+963536outputs (0major+3455871minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.3b_matching_rolling_skipping.log <==
+bwt_loading	1.80s
+sa_loading	1.08s
+bns_loading	6.98s
+klcp_loading	1.06s
+matching_time	102.57s
+reads	1000000
+kmers	76000000
+rpm	584951
+kpm	44456283
+
+==> 02_1from10_bin_k25/3.3_matching_rolling_skipping.log <==
+99.84user 4.24system 1:45.03elapsed 99%CPU (0avgtext+0avgdata 10778192maxresident)k
+0inputs+963528outputs (0major+1550433minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.4a_matching_restarted_skipping.log <==
+148.62user 7.92system 2:37.77elapsed 99%CPU (0avgtext+0avgdata 8686800maxresident)k
+0inputs+963536outputs (0major+5843937minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/3.4b_matching_restarted_skipping.log <==
+bwt_loading	1.88s
+sa_loading	1.07s
+bns_loading	6.95s
+matching_time	146.45s
+reads	1000000
+kmers	76000000
+rpm	409693
+kpm	31136687
+
+==> 02_1from10_bin_k25/3.4_matching_restarted_skipping.log <==
+146.86user 6.88system 2:34.77elapsed 99%CPU (0avgtext+0avgdata 8686560maxresident)k
+0inputs+963528outputs (0major+3771359minor)pagefaults 0swaps
+
+==> 02_1from10_bin_k25/4.1_contigs_stats.log <==
+Number of contigs: 11066263
+Total length: 1070798058
+Average length: 96.76239015826752
+   ..st. dev: 1048.3276572473394
+Median length: 28
+Number of k-mer occurencies: 805207746
+
+==> 02_1from10_bin_k25/4.2_index_size.log <==
+511M	index.fa.25.bit.klcp
+507M	index.fa.ann
+1022M	index.fa.bwt
+511M	index.fa.pac
+511M	index.fa.sa
+
+==> 03_fullBacteria_orig_k31/1.1_kmer_propagation.log <==
+17130.76user 479.91system 17:13.18elapsed 1704%CPU (0avgtext+0avgdata 39049456maxresident)k
+19583480inputs+34175048outputs (10major+245765150minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/1.2_merging_fasta.log <==
+587.32user 22.51system 12:03.13elapsed 84%CPU (0avgtext+0avgdata 35200maxresident)k
+16324488inputs+24270136outputs (23major+11009minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/2.1_bwa_fa2pac.log <==
+131.49user 33.86system 3:49.59elapsed 72%CPU (0avgtext+0avgdata 59045728maxresident)k
+1311144inputs+18388752outputs (4major+8261878minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/2.2_bwa_pac2bwt.log <==
+22883.32user 1817.14system 6:52:45elapsed 99%CPU (0avgtext+0avgdata 148618704maxresident)k
+9969024inputs+9968312outputs (0major+2338121734minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/2.3_bwa_bwtupdate.log <==
+41.98user 15.79system 2:18.33elapsed 41%CPU (0avgtext+0avgdata 59816272maxresident)k
+736inputs+19936624outputs (2major+16190minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/2.4_bwa_bwt2sa.log <==
+2585.68user 13.02system 43:57.17elapsed 98%CPU (0avgtext+0avgdata 59817504maxresident)k
+304inputs+9968312outputs (0major+393132minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/2.5_klcp.log <==
+6776.21user 149.10system 1:56:24elapsed 99%CPU (0avgtext+0avgdata 137322720maxresident)k
+18391320inputs+9968312outputs (16major+151808760minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.1a_matching_rolling.log <==
+252.57user 107.42system 7:03.29elapsed 85%CPU (0avgtext+0avgdata 95776688maxresident)k
+37619072inputs+3943496outputs (0major+73457915minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.1b_matching_rolling.log <==
+bwt_loading	27.87s
+sa_loading	17.69s
+bns_loading	63.03s
+klcp_loading	11.78s
+matching_time	237.66s
+reads	1000000
+kmers	70000000
+rpm	252461
+kpm	17672262
+
+==> 03_fullBacteria_orig_k31/3.1_matching_rolling.log <==
+252.75user 114.16system 7:29.43elapsed 81%CPU (0avgtext+0avgdata 95776416maxresident)k
+48293688inputs+3943488outputs (0major+73028843minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.2a_matching_restarted.log <==
+594.81user 105.30system 12:40.99elapsed 92%CPU (0avgtext+0avgdata 75839376maxresident)k
+36211768inputs+3943496outputs (0major+87952060minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.2b_matching_restarted.log <==
+bwt_loading	28.31s
+sa_loading	17.55s
+bns_loading	62.75s
+matching_time	589.75s
+reads	1000000
+kmers	70000000
+rpm	101739
+kpm	7121717
+
+==> 03_fullBacteria_orig_k31/3.2_matching_restarted.log <==
+612.95user 100.83system 12:55.85elapsed 92%CPU (0avgtext+0avgdata 75839312maxresident)k
+38313256inputs+3943488outputs (2major+81628525minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.3a_matching_rolling_skipping.log <==
+258.28user 104.46system 6:52.86elapsed 87%CPU (0avgtext+0avgdata 95775760maxresident)k
+23621632inputs+3942912outputs (4major+77250693minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.3b_matching_rolling_skipping.log <==
+bwt_loading	31.76s
+sa_loading	11.56s
+bns_loading	60.60s
+klcp_loading	10.46s
+matching_time	246.19s
+reads	1000000
+kmers	70000000
+rpm	243710
+kpm	17059718
+
+==> 03_fullBacteria_orig_k31/3.3_matching_rolling_skipping.log <==
+251.84user 96.91system 6:51.30elapsed 84%CPU (0avgtext+0avgdata 95776544maxresident)k
+34000248inputs+3942904outputs (6major+54694452minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.4a_matching_restarted_skipping.log <==
+596.16user 91.18system 11:52.07elapsed 96%CPU (0avgtext+0avgdata 75839968maxresident)k
+8920744inputs+3942912outputs (2major+86289509minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/3.4b_matching_restarted_skipping.log <==
+bwt_loading	23.23s
+sa_loading	11.41s
+bns_loading	59.84s
+matching_time	591.11s
+reads	1000000
+kmers	70000000
+rpm	101503
+kpm	7105221
+
+==> 03_fullBacteria_orig_k31/3.4_matching_restarted_skipping.log <==
+608.90user 112.51system 12:55.44elapsed 93%CPU (0avgtext+0avgdata 75839024maxresident)k
+28856936inputs+3942904outputs (5major+107318097minor)pagefaults 0swaps
+
+==> 03_fullBacteria_orig_k31/4.1_contigs_stats.log <==
+Number of contigs: 96088810
+Total length: 10207548814
+Average length: 106.23035933112294
+   ..st. dev: 1535.2989315163854
+Median length: 34.0
+Number of k-mer occurencies: 7324884514
+
+==> 03_fullBacteria_orig_k31/4.2_index_size.log <==
+4.8G	index.fa.31.bit.klcp
+4.1G	index.fa.ann
+9.6G	index.fa.bwt
+4.8G	index.fa.pac
+4.8G	index.fa.sa
+
+==> 04_fullBacteria_bin_k31/1.1_kmer_propagation.log <==
+22162.05user 593.17system 21:09.85elapsed 1791%CPU (0avgtext+0avgdata 7757008maxresident)k
+17757768inputs+38721120outputs (29major+341200480minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/1.2_merging_fasta.log <==
+565.96user 20.11system 10:05.90elapsed 96%CPU (0avgtext+0avgdata 36624maxresident)k
+16inputs+24184152outputs (1major+15758minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/2.1_bwa_fa2pac.log <==
+129.12user 44.03system 4:09.37elapsed 69%CPU (0avgtext+0avgdata 60767664maxresident)k
+6428320inputs+18973616outputs (0major+9246105minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/2.2_bwa_pac2bwt.log <==
+819.20user 88.46system 15:41.87elapsed 96%CPU (0avgtext+0avgdata 106999280maxresident)k
+201296inputs+9385680outputs (2major+60551661minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/2.3_bwa_bwtupdate.log <==
+40.26user 30.86system 2:27.95elapsed 48%CPU (0avgtext+0avgdata 56321488maxresident)k
+608inputs+18771360outputs (1major+6767565minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/2.4_bwa_bwt2sa.log <==
+3379.03user 127.97system 59:02.21elapsed 99%CPU (0avgtext+0avgdata 56322048maxresident)k
+304inputs+9385680outputs (0major+179809956minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/2.5_klcp.log <==
+3974.59user 189.35system 1:10:22elapsed 98%CPU (0avgtext+0avgdata 135849312maxresident)k
+10740272inputs+9385680outputs (11major+250341694minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.1a_matching_rolling.log <==
+178.90user 75.77system 5:34.60elapsed 76%CPU (0avgtext+0avgdata 91369632maxresident)k
+46340408inputs+609400outputs (0major+15902396minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.1b_matching_rolling.log <==
+bwt_loading	26.23s
+sa_loading	16.82s
+bns_loading	64.40s
+klcp_loading	16.10s
+matching_time	129.24s
+reads	1000000
+kmers	70000000
+rpm	464267
+kpm	32498721
+
+==> 04_fullBacteria_bin_k31/3.1_matching_rolling.log <==
+183.72user 81.69system 5:46.79elapsed 76%CPU (0avgtext+0avgdata 91369888maxresident)k
+47257600inputs+609392outputs (4major+24776854minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.2a_matching_restarted.log <==
+187.87user 61.20system 5:14.79elapsed 79%CPU (0avgtext+0avgdata 72598032maxresident)k
+36954712inputs+609400outputs (2major+28091071minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.2b_matching_restarted.log <==
+bwt_loading	25.21s
+sa_loading	13.57s
+bns_loading	63.42s
+matching_time	145.04s
+reads	1000000
+kmers	70000000
+rpm	413679
+kpm	28957515
+
+==> 04_fullBacteria_bin_k31/3.2_matching_restarted.log <==
+188.80user 68.82system 5:22.14elapsed 79%CPU (0avgtext+0avgdata 72598512maxresident)k
+37820352inputs+609392outputs (4major+29430934minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.3a_matching_rolling_skipping.log <==
+182.40user 74.69system 5:27.27elapsed 78%CPU (0avgtext+0avgdata 91369408maxresident)k
+31597856inputs+609400outputs (2major+19892800minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.3b_matching_rolling_skipping.log <==
+bwt_loading	25.80s
+sa_loading	13.17s
+bns_loading	63.20s
+klcp_loading	16.54s
+matching_time	136.32s
+reads	1000000
+kmers	70000000
+rpm	440130
+kpm	30809120
+
+==> 04_fullBacteria_bin_k31/3.3_matching_rolling_skipping.log <==
+185.80user 83.97system 5:51.54elapsed 76%CPU (0avgtext+0avgdata 91369024maxresident)k
+45447424inputs+609392outputs (5major+33463851minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.4a_matching_restarted_skipping.log <==
+189.19user 57.80system 4:35.25elapsed 89%CPU (0avgtext+0avgdata 72598464maxresident)k
+12628312inputs+609400outputs (2major+22519876minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/3.4b_matching_restarted_skipping.log <==
+bwt_loading	27.43s
+sa_loading	10.31s
+bns_loading	62.38s
+matching_time	145.02s
+reads	1000000
+kmers	70000000
+rpm	413745
+kpm	28962116
+
+==> 04_fullBacteria_bin_k31/3.4_matching_restarted_skipping.log <==
+186.91user 60.15system 4:46.73elapsed 86%CPU (0avgtext+0avgdata 72597920maxresident)k
+25917736inputs+609392outputs (6major+27656876minor)pagefaults 0swaps
+
+==> 04_fullBacteria_bin_k31/4.1_contigs_stats.log <==
+Number of contigs: 97676559
+Total length: 9610935189
+Average length: 98.39551359502744
+   ..st. dev: 1263.593738721155
+Median length: 34
+Number of k-mer occurencies: 6680638419
+
+==> 04_fullBacteria_bin_k31/4.2_index_size.log <==
+4.5G	index.fa.31.bit.klcp
+4.6G	index.fa.ann
+9.0G	index.fa.bwt
+4.5G	index.fa.pac
+4.5G	index.fa.sa
+
+==> 05_fullBacteria_orig_k25/1.1_kmer_propagation.log <==
+16721.39user 504.61system 17:19.76elapsed 1656%CPU (0avgtext+0avgdata 39006752maxresident)k
+20007616inputs+34802888outputs (76major+251572187minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/1.2_merging_fasta.log <==
+661.43user 23.28system 12:40.27elapsed 90%CPU (0avgtext+0avgdata 35088maxresident)k
+8130888inputs+25055304outputs (1major+29649minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/2.1_bwa_fa2pac.log <==
+145.42user 34.35system 4:19.35elapsed 69%CPU (0avgtext+0avgdata 68469856maxresident)k
+3103792inputs+20364120outputs (3major+10480601minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/2.2_bwa_pac2bwt.log <==
+22537.63user 1890.37system 6:48:21elapsed 99%CPU (0avgtext+0avgdata 150997936maxresident)k
+9852968inputs+9851904outputs (3major+2546509543minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/2.3_bwa_bwtupdate.log <==
+41.67user 14.17system 2:16.98elapsed 40%CPU (0avgtext+0avgdata 59118816maxresident)k
+504inputs+19703808outputs (0major+15014minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/2.4_bwa_bwt2sa.log <==
+2548.81user 9.98system 43:19.36elapsed 98%CPU (0avgtext+0avgdata 59118928maxresident)k
+296inputs+9851904outputs (0major+395687minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/2.5_klcp.log <==
+5062.43user 170.48system 1:28:06elapsed 98%CPU (0avgtext+0avgdata 147281936maxresident)k
+14685080inputs+9851904outputs (4major+120254150minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.1a_matching_rolling.log <==
+322.75user 125.05system 9:05.59elapsed 82%CPU (0avgtext+0avgdata 98648160maxresident)k
+49919864inputs+4553360outputs (0major+85296414minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.1b_matching_rolling.log <==
+bwt_loading	27.71s
+sa_loading	18.00s
+bns_loading	77.65s
+klcp_loading	18.09s
+matching_time	303.97s
+reads	1000000
+kmers	76000000
+rpm	197389
+kpm	15001571
+
+==> 05_fullBacteria_orig_k25/3.1_matching_rolling.log <==
+323.97user 119.23system 9:01.51elapsed 81%CPU (0avgtext+0avgdata 98647648maxresident)k
+49920024inputs+4553352outputs (1major+82691994minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.2a_matching_restarted.log <==
+680.63user 113.09system 14:25.67elapsed 91%CPU (0avgtext+0avgdata 78944608maxresident)k
+38584728inputs+4553360outputs (1major+97702575minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.2b_matching_restarted.log <==
+bwt_loading	28.14s
+sa_loading	17.38s
+bns_loading	77.90s
+matching_time	668.17s
+reads	1000000
+kmers	76000000
+rpm	89797
+kpm	6824567
+
+==> 05_fullBacteria_orig_k25/3.2_matching_restarted.log <==
+696.69user 122.00system 14:55.33elapsed 91%CPU (0avgtext+0avgdata 78943776maxresident)k
+40051064inputs+4553352outputs (0major+115692896minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.3a_matching_rolling_skipping.log <==
+334.86user 122.53system 9:08.55elapsed 83%CPU (0avgtext+0avgdata 98647632maxresident)k
+46810576inputs+4552640outputs (1major+84702474minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.3b_matching_rolling_skipping.log <==
+bwt_loading	25.40s
+sa_loading	16.47s
+bns_loading	77.82s
+klcp_loading	17.39s
+matching_time	317.95s
+reads	1000000
+kmers	76000000
+rpm	188708
+kpm	14341793
+
+==> 05_fullBacteria_orig_k25/3.3_matching_rolling_skipping.log <==
+323.38user 115.10system 8:57.43elapsed 81%CPU (0avgtext+0avgdata 98647792maxresident)k
+49885144inputs+4552632outputs (0major+75218305minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.4a_matching_restarted_skipping.log <==
+766.27user 124.55system 15:46.76elapsed 94%CPU (0avgtext+0avgdata 78944272maxresident)k
+21784808inputs+4552640outputs (1major+100601429minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/3.4b_matching_restarted_skipping.log <==
+bwt_loading	23.43s
+sa_loading	11.21s
+bns_loading	76.59s
+matching_time	777.24s
+reads	1000000
+kmers	76000000
+rpm	77196
+kpm	5866887
+
+==> 05_fullBacteria_orig_k25/3.4_matching_restarted_skipping.log <==
+694.77user 118.93system 14:44.82elapsed 91%CPU (0avgtext+0avgdata 78943840maxresident)k
+38725656inputs+4552632outputs (0major+111701946minor)pagefaults 0swaps
+
+==> 05_fullBacteria_orig_k25/4.1_contigs_stats.log <==
+Number of contigs: 119833825
+Total length: 10088349135
+Average length: 84.18615641284921
+   ..st. dev: 1067.0252894416092
+Median length: 28
+Number of k-mer occurencies: 7212337335
+
+==> 05_fullBacteria_orig_k25/4.2_index_size.log <==
+4.7G	index.fa.25.bit.klcp
+5.1G	index.fa.ann
+9.4G	index.fa.bwt
+4.7G	index.fa.pac
+4.7G	index.fa.sa
