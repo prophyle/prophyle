@@ -8,6 +8,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "bwautils.h"
 #include "bwtexk.h"
 #include "bwtaln.h"
 #include "bwtgap.h"
@@ -224,7 +225,7 @@ void exk_index_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt)
 	// initialization
 	{ // load BWT
 		//fprintf(stderr, "%s\n", prefix);
-		if ((bwt = bwa_idx_load_bwt(prefix)) == 0) {
+		if ((bwt = bwa_idx_load_bwt_without_sa(prefix)) == 0) {
 			fprintf(stderr, "Couldn't load idx from %s\n", prefix);
 			return;
 		}
@@ -242,7 +243,7 @@ void exk_index_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt)
 	klcp_dump(fn, klcp);
   fprintf(stdout, "klcp dumped\n");
 	// destroy
-	bwt_destroy(bwt);
+	bwt_destroy_without_sa(bwt);
 }
 
 // void construct_klcp_direct(const bwt_t* bwt, int kmer_length, klcp_t* klcp) {
