@@ -5,6 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdint.h>
+#include <inttypes.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -386,10 +387,10 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	fprintf(stderr, "match time: %.2f sec\n", total_time);
 	if (opt->need_log) {
 		fprintf(log_file, "matching_time\t%.2fs\n", total_time);
-		fprintf(log_file, "reads\t%llu\n", total_seqs);
-		fprintf(log_file, "kmers\t%llu\n", total_seqs * (seq_len - opt->kmer_length + 1));
-		fprintf(log_file, "rpm\t%.2lf\n", total_seqs * 60.0 / total_time);
-		fprintf(log_file, "kmers\t%.2lf\n", total_seqs * (seq_len - opt->kmer_length + 1) * 60.0 / total_time);
+		fprintf(log_file, "reads\t%" PRId64 "\n", total_seqs);
+		fprintf(log_file, "kmers\t%" PRId64 "\n", total_seqs * (seq_len - opt->kmer_length + 1));
+		fprintf(log_file, "rpm\t%" PRId64 "\n", (int64_t)(round(total_seqs * 60.0 / total_time)));
+		fprintf(log_file, "kpm\t%" PRId64 "\n", (int64_t)(round(total_seqs * (seq_len - opt->kmer_length + 1) * 60.0 / total_time)));
 	}
 	//fprintf(stderr, "tot_seqs = %d\n", tot_seqs);
 	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
