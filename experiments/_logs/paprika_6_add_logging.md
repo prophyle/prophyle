@@ -11,16 +11,12 @@ Table of Contents
   * [01_1from10_bin_k31/2.5_klcp.log](#01_1from10_bin_k3125_klcplog)
   * [01_1from10_bin_k31/3.1a_matching_rolling.log](#01_1from10_bin_k3131a_matching_rollinglog)
   * [01_1from10_bin_k31/3.1b_matching_rolling.log](#01_1from10_bin_k3131b_matching_rollinglog)
-  * [01_1from10_bin_k31/3.1_matching_rolling.log](#01_1from10_bin_k3131_matching_rollinglog)
   * [01_1from10_bin_k31/3.2a_matching_restarted.log](#01_1from10_bin_k3132a_matching_restartedlog)
   * [01_1from10_bin_k31/3.2b_matching_restarted.log](#01_1from10_bin_k3132b_matching_restartedlog)
-  * [01_1from10_bin_k31/3.2_matching_restarted.log](#01_1from10_bin_k3132_matching_restartedlog)
   * [01_1from10_bin_k31/3.3a_matching_rolling_skipping.log](#01_1from10_bin_k3133a_matching_rolling_skippinglog)
   * [01_1from10_bin_k31/3.3b_matching_rolling_skipping.log](#01_1from10_bin_k3133b_matching_rolling_skippinglog)
-  * [01_1from10_bin_k31/3.3_matching_rolling_skipping.log](#01_1from10_bin_k3133_matching_rolling_skippinglog)
   * [01_1from10_bin_k31/3.4a_matching_restarted_skipping.log](#01_1from10_bin_k3134a_matching_restarted_skippinglog)
   * [01_1from10_bin_k31/3.4b_matching_restarted_skipping.log](#01_1from10_bin_k3134b_matching_restarted_skippinglog)
-  * [01_1from10_bin_k31/3.4_matching_restarted_skipping.log](#01_1from10_bin_k3134_matching_restarted_skippinglog)
   * [01_1from10_bin_k31/4.1_contigs_stats.log](#01_1from10_bin_k3141_contigs_statslog)
   * [01_1from10_bin_k31/4.2_index_size.log](#01_1from10_bin_k3142_index_sizelog)
 * [02_1from10_bin_k25](#02_1from10_bin_k25)
@@ -33,16 +29,12 @@ Table of Contents
   * [02_1from10_bin_k25/2.5_klcp.log](#02_1from10_bin_k2525_klcplog)
   * [02_1from10_bin_k25/3.1a_matching_rolling.log](#02_1from10_bin_k2531a_matching_rollinglog)
   * [02_1from10_bin_k25/3.1b_matching_rolling.log](#02_1from10_bin_k2531b_matching_rollinglog)
-  * [02_1from10_bin_k25/3.1_matching_rolling.log](#02_1from10_bin_k2531_matching_rollinglog)
   * [02_1from10_bin_k25/3.2a_matching_restarted.log](#02_1from10_bin_k2532a_matching_restartedlog)
   * [02_1from10_bin_k25/3.2b_matching_restarted.log](#02_1from10_bin_k2532b_matching_restartedlog)
-  * [02_1from10_bin_k25/3.2_matching_restarted.log](#02_1from10_bin_k2532_matching_restartedlog)
   * [02_1from10_bin_k25/3.3a_matching_rolling_skipping.log](#02_1from10_bin_k2533a_matching_rolling_skippinglog)
   * [02_1from10_bin_k25/3.3b_matching_rolling_skipping.log](#02_1from10_bin_k2533b_matching_rolling_skippinglog)
-  * [02_1from10_bin_k25/3.3_matching_rolling_skipping.log](#02_1from10_bin_k2533_matching_rolling_skippinglog)
   * [02_1from10_bin_k25/3.4a_matching_restarted_skipping.log](#02_1from10_bin_k2534a_matching_restarted_skippinglog)
   * [02_1from10_bin_k25/3.4b_matching_restarted_skipping.log](#02_1from10_bin_k2534b_matching_restarted_skippinglog)
-  * [02_1from10_bin_k25/3.4_matching_restarted_skipping.log](#02_1from10_bin_k2534_matching_restarted_skippinglog)
   * [02_1from10_bin_k25/4.1_contigs_stats.log](#02_1from10_bin_k2541_contigs_statslog)
   * [02_1from10_bin_k25/4.2_index_size.log](#02_1from10_bin_k2542_index_sizelog)
 * [03_fullBacteria_orig_k31](#03_fullBacteria_orig_k31)
@@ -55,16 +47,12 @@ Table of Contents
   * [03_fullBacteria_orig_k31/2.5_klcp.log](#03_fullbacteria_orig_k3125_klcplog)
   * [03_fullBacteria_orig_k31/3.1a_matching_rolling.log](#03_fullbacteria_orig_k3131a_matching_rollinglog)
   * [03_fullBacteria_orig_k31/3.1b_matching_rolling.log](#03_fullbacteria_orig_k3131b_matching_rollinglog)
-  * [03_fullBacteria_orig_k31/3.1_matching_rolling.log](#03_fullbacteria_orig_k3131_matching_rollinglog)
   * [03_fullBacteria_orig_k31/3.2a_matching_restarted.log](#03_fullbacteria_orig_k3132a_matching_restartedlog)
   * [03_fullBacteria_orig_k31/3.2b_matching_restarted.log](#03_fullbacteria_orig_k3132b_matching_restartedlog)
-  * [03_fullBacteria_orig_k31/3.2_matching_restarted.log](#03_fullbacteria_orig_k3132_matching_restartedlog)
   * [03_fullBacteria_orig_k31/3.3a_matching_rolling_skipping.log](#03_fullbacteria_orig_k3133a_matching_rolling_skippinglog)
   * [03_fullBacteria_orig_k31/3.3b_matching_rolling_skipping.log](#03_fullbacteria_orig_k3133b_matching_rolling_skippinglog)
-  * [03_fullBacteria_orig_k31/3.3_matching_rolling_skipping.log](#03_fullbacteria_orig_k3133_matching_rolling_skippinglog)
   * [03_fullBacteria_orig_k31/3.4a_matching_restarted_skipping.log](#03_fullbacteria_orig_k3134a_matching_restarted_skippinglog)
   * [03_fullBacteria_orig_k31/3.4b_matching_restarted_skipping.log](#03_fullbacteria_orig_k3134b_matching_restarted_skippinglog)
-  * [03_fullBacteria_orig_k31/3.4_matching_restarted_skipping.log](#03_fullbacteria_orig_k3134_matching_restarted_skippinglog)
   * [03_fullBacteria_orig_k31/4.1_contigs_stats.log](#03_fullbacteria_orig_k3141_contigs_statslog)
   * [03_fullBacteria_orig_k31/4.2_index_size.log](#03_fullbacteria_orig_k3142_index_sizelog)
 * [04_fullBacteria_bin_k31](#04_fullBacteria_bin_k31)
@@ -77,16 +65,12 @@ Table of Contents
   * [04_fullBacteria_bin_k31/2.5_klcp.log](#04_fullbacteria_bin_k3125_klcplog)
   * [04_fullBacteria_bin_k31/3.1a_matching_rolling.log](#04_fullbacteria_bin_k3131a_matching_rollinglog)
   * [04_fullBacteria_bin_k31/3.1b_matching_rolling.log](#04_fullbacteria_bin_k3131b_matching_rollinglog)
-  * [04_fullBacteria_bin_k31/3.1_matching_rolling.log](#04_fullbacteria_bin_k3131_matching_rollinglog)
   * [04_fullBacteria_bin_k31/3.2a_matching_restarted.log](#04_fullbacteria_bin_k3132a_matching_restartedlog)
   * [04_fullBacteria_bin_k31/3.2b_matching_restarted.log](#04_fullbacteria_bin_k3132b_matching_restartedlog)
-  * [04_fullBacteria_bin_k31/3.2_matching_restarted.log](#04_fullbacteria_bin_k3132_matching_restartedlog)
   * [04_fullBacteria_bin_k31/3.3a_matching_rolling_skipping.log](#04_fullbacteria_bin_k3133a_matching_rolling_skippinglog)
   * [04_fullBacteria_bin_k31/3.3b_matching_rolling_skipping.log](#04_fullbacteria_bin_k3133b_matching_rolling_skippinglog)
-  * [04_fullBacteria_bin_k31/3.3_matching_rolling_skipping.log](#04_fullbacteria_bin_k3133_matching_rolling_skippinglog)
   * [04_fullBacteria_bin_k31/3.4a_matching_restarted_skipping.log](#04_fullbacteria_bin_k3134a_matching_restarted_skippinglog)
   * [04_fullBacteria_bin_k31/3.4b_matching_restarted_skipping.log](#04_fullbacteria_bin_k3134b_matching_restarted_skippinglog)
-  * [04_fullBacteria_bin_k31/3.4_matching_restarted_skipping.log](#04_fullbacteria_bin_k3134_matching_restarted_skippinglog)
   * [04_fullBacteria_bin_k31/4.1_contigs_stats.log](#04_fullbacteria_bin_k3141_contigs_statslog)
   * [04_fullBacteria_bin_k31/4.2_index_size.log](#04_fullbacteria_bin_k3142_index_sizelog)
 * [05_fullBacteria_orig_k25](#05_fullBacteria_orig_k25)
@@ -99,16 +83,12 @@ Table of Contents
   * [05_fullBacteria_orig_k25/2.5_klcp.log](#05_fullbacteria_orig_k2525_klcplog)
   * [05_fullBacteria_orig_k25/3.1a_matching_rolling.log](#05_fullbacteria_orig_k2531a_matching_rollinglog)
   * [05_fullBacteria_orig_k25/3.1b_matching_rolling.log](#05_fullbacteria_orig_k2531b_matching_rollinglog)
-  * [05_fullBacteria_orig_k25/3.1_matching_rolling.log](#05_fullbacteria_orig_k2531_matching_rollinglog)
   * [05_fullBacteria_orig_k25/3.2a_matching_restarted.log](#05_fullbacteria_orig_k2532a_matching_restartedlog)
   * [05_fullBacteria_orig_k25/3.2b_matching_restarted.log](#05_fullbacteria_orig_k2532b_matching_restartedlog)
-  * [05_fullBacteria_orig_k25/3.2_matching_restarted.log](#05_fullbacteria_orig_k2532_matching_restartedlog)
   * [05_fullBacteria_orig_k25/3.3a_matching_rolling_skipping.log](#05_fullbacteria_orig_k2533a_matching_rolling_skippinglog)
   * [05_fullBacteria_orig_k25/3.3b_matching_rolling_skipping.log](#05_fullbacteria_orig_k2533b_matching_rolling_skippinglog)
-  * [05_fullBacteria_orig_k25/3.3_matching_rolling_skipping.log](#05_fullbacteria_orig_k2533_matching_rolling_skippinglog)
   * [05_fullBacteria_orig_k25/3.4a_matching_restarted_skipping.log](#05_fullbacteria_orig_k2534a_matching_restarted_skippinglog)
   * [05_fullBacteria_orig_k25/3.4b_matching_restarted_skipping.log](#05_fullbacteria_orig_k2534b_matching_restarted_skippinglog)
-  * [05_fullBacteria_orig_k25/3.4_matching_restarted_skipping.log](#05_fullbacteria_orig_k2534_matching_restarted_skippinglog)
   * [05_fullBacteria_orig_k25/4.1_contigs_stats.log](#05_fullbacteria_orig_k2541_contigs_statslog)
   * [05_fullBacteria_orig_k25/4.2_index_size.log](#05_fullbacteria_orig_k2542_index_sizelog)
 
@@ -240,20 +220,6 @@ Memory peak:      2.47 GB
 * kpm	48034063
 
 
-### 01_1from10_bin_k31/3.1_matching_rolling.log
-
-```
-User time:     0:01:43
-System time:   0:00:12
-Elapsed time:  0:02:05
-CPU usage:          93%
-
-Memory peak:      2.47 GB
-```
-
-* 5503352inputs+873448outputs (0major+7234177minor)pagefaults 0swaps
-
-
 ### 01_1from10_bin_k31/3.2a_matching_restarted.log
 
 ```
@@ -277,20 +243,6 @@ Memory peak:      1.97 GB
 * kmers	70000000
 * rpm	472621
 * kpm	33083481
-
-
-### 01_1from10_bin_k31/3.2_matching_restarted.log
-
-```
-User time:     0:02:14
-System time:   0:00:07
-Elapsed time:  0:02:23
-CPU usage:         100%
-
-Memory peak:      1.97 GB
-```
-
-* 80inputs+873448outputs (1major+6125099minor)pagefaults 0swaps
 
 
 ### 01_1from10_bin_k31/3.3a_matching_rolling_skipping.log
@@ -319,20 +271,6 @@ Memory peak:      2.47 GB
 * kpm	49037043
 
 
-### 01_1from10_bin_k31/3.3_matching_rolling_skipping.log
-
-```
-User time:     0:01:37
-System time:   0:00:09
-Elapsed time:  0:01:48
-CPU usage:          99%
-
-Memory peak:      2.47 GB
-```
-
-* 0inputs+872576outputs (0major+8101941minor)pagefaults 0swaps
-
-
 ### 01_1from10_bin_k31/3.4a_matching_restarted_skipping.log
 
 ```
@@ -356,20 +294,6 @@ Memory peak:      1.97 GB
 * kmers	70000000
 * rpm	484652
 * kpm	33925613
-
-
-### 01_1from10_bin_k31/3.4_matching_restarted_skipping.log
-
-```
-User time:     0:02:09
-System time:   0:00:02
-Elapsed time:  0:02:12
-CPU usage:          99%
-
-Memory peak:      1.97 GB
-```
-
-* 0inputs+872576outputs (0major+352140minor)pagefaults 0swaps
 
 
 ### 01_1from10_bin_k31/4.1_contigs_stats.log
@@ -515,20 +439,6 @@ Memory peak:      2.57 GB
 * kpm	39897071
 
 
-### 02_1from10_bin_k25/3.1_matching_rolling.log
-
-```
-User time:     0:01:51
-System time:   0:00:10
-Elapsed time:  0:02:10
-CPU usage:          93%
-
-Memory peak:      2.57 GB
-```
-
-* 5219552inputs+965320outputs (0major+3382877minor)pagefaults 0swaps
-
-
 ### 02_1from10_bin_k25/3.2a_matching_restarted.log
 
 ```
@@ -552,20 +462,6 @@ Memory peak:      2.07 GB
 * kmers	76000000
 * rpm	409436
 * kpm	31117105
-
-
-### 02_1from10_bin_k25/3.2_matching_restarted.log
-
-```
-User time:     0:02:29
-System time:   0:00:06
-Elapsed time:  0:02:37
-CPU usage:          99%
-
-Memory peak:      2.07 GB
-```
-
-* 0inputs+965320outputs (0major+3791377minor)pagefaults 0swaps
 
 
 ### 02_1from10_bin_k25/3.3a_matching_rolling_skipping.log
@@ -594,20 +490,6 @@ Memory peak:      2.57 GB
 * kpm	44456283
 
 
-### 02_1from10_bin_k25/3.3_matching_rolling_skipping.log
-
-```
-User time:     0:01:39
-System time:   0:00:04
-Elapsed time:  0:01:45
-CPU usage:          99%
-
-Memory peak:      2.57 GB
-```
-
-* 0inputs+963528outputs (0major+1550433minor)pagefaults 0swaps
-
-
 ### 02_1from10_bin_k25/3.4a_matching_restarted_skipping.log
 
 ```
@@ -631,20 +513,6 @@ Memory peak:      2.07 GB
 * kmers	76000000
 * rpm	409693
 * kpm	31136687
-
-
-### 02_1from10_bin_k25/3.4_matching_restarted_skipping.log
-
-```
-User time:     0:02:26
-System time:   0:00:06
-Elapsed time:  0:02:34
-CPU usage:          99%
-
-Memory peak:      2.07 GB
-```
-
-* 0inputs+963528outputs (0major+3771359minor)pagefaults 0swaps
 
 
 ### 02_1from10_bin_k25/4.1_contigs_stats.log
@@ -790,20 +658,6 @@ Memory peak:     22.83 GB
 * kpm	17672262
 
 
-### 03_fullBacteria_orig_k31/3.1_matching_rolling.log
-
-```
-User time:     0:04:12
-System time:   0:01:54
-Elapsed time:  0:07:29
-CPU usage:          82%
-
-Memory peak:     22.83 GB
-```
-
-* 48293688inputs+3943488outputs (0major+73028843minor)pagefaults 0swaps
-
-
 ### 03_fullBacteria_orig_k31/3.2a_matching_restarted.log
 
 ```
@@ -827,20 +681,6 @@ Memory peak:     18.08 GB
 * kmers	70000000
 * rpm	101739
 * kpm	7121717
-
-
-### 03_fullBacteria_orig_k31/3.2_matching_restarted.log
-
-```
-User time:     0:10:12
-System time:   0:01:40
-Elapsed time:  0:12:55
-CPU usage:          92%
-
-Memory peak:     18.08 GB
-```
-
-* 38313256inputs+3943488outputs (2major+81628525minor)pagefaults 0swaps
 
 
 ### 03_fullBacteria_orig_k31/3.3a_matching_rolling_skipping.log
@@ -869,20 +709,6 @@ Memory peak:     22.83 GB
 * kpm	17059718
 
 
-### 03_fullBacteria_orig_k31/3.3_matching_rolling_skipping.log
-
-```
-User time:     0:04:11
-System time:   0:01:36
-Elapsed time:  0:06:51
-CPU usage:          85%
-
-Memory peak:     22.83 GB
-```
-
-* 34000248inputs+3942904outputs (6major+54694452minor)pagefaults 0swaps
-
-
 ### 03_fullBacteria_orig_k31/3.4a_matching_restarted_skipping.log
 
 ```
@@ -906,20 +732,6 @@ Memory peak:     18.08 GB
 * kmers	70000000
 * rpm	101503
 * kpm	7105221
-
-
-### 03_fullBacteria_orig_k31/3.4_matching_restarted_skipping.log
-
-```
-User time:     0:10:08
-System time:   0:01:52
-Elapsed time:  0:12:55
-CPU usage:          93%
-
-Memory peak:     18.08 GB
-```
-
-* 28856936inputs+3942904outputs (5major+107318097minor)pagefaults 0swaps
 
 
 ### 03_fullBacteria_orig_k31/4.1_contigs_stats.log
@@ -1065,20 +877,6 @@ Memory peak:     21.78 GB
 * kpm	32498721
 
 
-### 04_fullBacteria_bin_k31/3.1_matching_rolling.log
-
-```
-User time:     0:03:03
-System time:   0:01:21
-Elapsed time:  0:05:46
-CPU usage:          77%
-
-Memory peak:     21.78 GB
-```
-
-* 47257600inputs+609392outputs (4major+24776854minor)pagefaults 0swaps
-
-
 ### 04_fullBacteria_bin_k31/3.2a_matching_restarted.log
 
 ```
@@ -1102,20 +900,6 @@ Memory peak:     17.31 GB
 * kmers	70000000
 * rpm	413679
 * kpm	28957515
-
-
-### 04_fullBacteria_bin_k31/3.2_matching_restarted.log
-
-```
-User time:     0:03:08
-System time:   0:01:08
-Elapsed time:  0:05:22
-CPU usage:          80%
-
-Memory peak:     17.31 GB
-```
-
-* 37820352inputs+609392outputs (4major+29430934minor)pagefaults 0swaps
 
 
 ### 04_fullBacteria_bin_k31/3.3a_matching_rolling_skipping.log
@@ -1144,20 +928,6 @@ Memory peak:     21.78 GB
 * kpm	30809120
 
 
-### 04_fullBacteria_bin_k31/3.3_matching_rolling_skipping.log
-
-```
-User time:     0:03:05
-System time:   0:01:23
-Elapsed time:  0:05:51
-CPU usage:          77%
-
-Memory peak:     21.78 GB
-```
-
-* 45447424inputs+609392outputs (5major+33463851minor)pagefaults 0swaps
-
-
 ### 04_fullBacteria_bin_k31/3.4a_matching_restarted_skipping.log
 
 ```
@@ -1181,20 +951,6 @@ Memory peak:     17.31 GB
 * kmers	70000000
 * rpm	413745
 * kpm	28962116
-
-
-### 04_fullBacteria_bin_k31/3.4_matching_restarted_skipping.log
-
-```
-User time:     0:03:06
-System time:   0:01:00
-Elapsed time:  0:04:46
-CPU usage:          86%
-
-Memory peak:     17.31 GB
-```
-
-* 25917736inputs+609392outputs (6major+27656876minor)pagefaults 0swaps
 
 
 ### 04_fullBacteria_bin_k31/4.1_contigs_stats.log
@@ -1340,20 +1096,6 @@ Memory peak:     23.52 GB
 * kpm	15001571
 
 
-### 05_fullBacteria_orig_k25/3.1_matching_rolling.log
-
-```
-User time:     0:05:23
-System time:   0:01:59
-Elapsed time:  0:09:01
-CPU usage:          82%
-
-Memory peak:     23.52 GB
-```
-
-* 49920024inputs+4553352outputs (1major+82691994minor)pagefaults 0swaps
-
-
 ### 05_fullBacteria_orig_k25/3.2a_matching_restarted.log
 
 ```
@@ -1377,20 +1119,6 @@ Memory peak:     18.82 GB
 * kmers	76000000
 * rpm	89797
 * kpm	6824567
-
-
-### 05_fullBacteria_orig_k25/3.2_matching_restarted.log
-
-```
-User time:     0:11:36
-System time:   0:02:02
-Elapsed time:  0:14:55
-CPU usage:          91%
-
-Memory peak:     18.82 GB
-```
-
-* 40051064inputs+4553352outputs (0major+115692896minor)pagefaults 0swaps
 
 
 ### 05_fullBacteria_orig_k25/3.3a_matching_rolling_skipping.log
@@ -1419,20 +1147,6 @@ Memory peak:     23.52 GB
 * kpm	14341793
 
 
-### 05_fullBacteria_orig_k25/3.3_matching_rolling_skipping.log
-
-```
-User time:     0:05:23
-System time:   0:01:55
-Elapsed time:  0:08:57
-CPU usage:          82%
-
-Memory peak:     23.52 GB
-```
-
-* 49885144inputs+4552632outputs (0major+75218305minor)pagefaults 0swaps
-
-
 ### 05_fullBacteria_orig_k25/3.4a_matching_restarted_skipping.log
 
 ```
@@ -1456,20 +1170,6 @@ Memory peak:     18.82 GB
 * kmers	76000000
 * rpm	77196
 * kpm	5866887
-
-
-### 05_fullBacteria_orig_k25/3.4_matching_restarted_skipping.log
-
-```
-User time:     0:11:34
-System time:   0:01:58
-Elapsed time:  0:14:44
-CPU usage:          92%
-
-Memory peak:     18.82 GB
-```
-
-* 38725656inputs+4552632outputs (0major+111701946minor)pagefaults 0swaps
 
 
 ### 05_fullBacteria_orig_k25/4.1_contigs_stats.log
