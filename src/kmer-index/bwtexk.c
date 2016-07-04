@@ -41,6 +41,8 @@ exk_opt_t *exk_init_opt()
 	o->use_klcp = 0;
 	o->output_rids = 0;
 	o->skip_positions_on_border = 1;
+	o->need_log = 0;
+	o->log_file_name = NULL;
 	return o;
 }
 
@@ -333,21 +335,29 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 }
 
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
-	int n_seqs, tot_seqs = 0;
+	int n_seqs;
 	bwa_seq_t *seqs;
 	bwa_seqio_t *ks;
-	clock_t t;
 	bwaidx_t* idx;
 
-	if ((idx = bwa_idx_load_partial(prefix, BWA_IDX_ALL)) == 0) {
+	FILE* log_file;
+	if (opt->need_log) {
+		log_file = fopen(opt->log_file_name, "w");
+	} else {
+		log_file = stderr;
+	}
+
+	if ((idx = bwa_idx_load_partial(prefix, BWA_IDX_ALL, opt->need_log, log_file)) == 0) {
 		fprintf(stderr, "Couldn't load idx from %s\n", prefix);
 		return;
 	}
 	fprintf(stderr, "BWA loaded\n");
 	bwa_destroy_unused_fields(idx);
 
+	clock_t t = clock();
 	klcp_t* klcp = malloc(sizeof(klcp_t));
 	klcp->klcp = malloc(sizeof(bitarray_t));
+
 	if (opt->use_klcp) {
 		char* fn = malloc((strlen(prefix) + 10) * sizeof(char));
 	  strcpy(fn, prefix);
@@ -358,21 +368,36 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	  strcat(fn, ".bit.klcp");
 		klcp_restore(fn, klcp);
 		free(fn);
+		fprintf(log_file, "klcp_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
 	}
-
 	ks = bwa_open_reads_new(opt->mode, fn_fa);
 	float total_time = 0;
+	int64_t total_seqs = 0;
+	t = clock();
+	int seq_len = 0;
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
-		tot_seqs += n_seqs;
-		t = clock();
+		total_seqs += n_seqs;
+		seq_len = seqs[0].len;
 		bwa_cal_sa(0, idx, n_seqs, seqs, opt, klcp);
-		total_time += (float)(clock() - t) / CLOCKS_PER_SEC;
+		total_seqs += n_seqs;
 		bwa_free_read_seq(n_seqs, seqs);
 	}
+	total_time += (float)(clock() - t) / CLOCKS_PER_SEC;
 	fprintf(stderr, "match time: %.2f sec\n", total_time);
+	if (opt->need_log) {
+		fprintf(log_file, "matching_time\t%.2fs\n", total_time);
+		fprintf(log_file, "reads\t%llu\n", total_seqs);
+		fprintf(log_file, "kmers\t%llu\n", total_seqs * (seq_len - opt->kmer_length + 1));
+		fprintf(log_file, "rpm\t%.2lf\n", total_seqs * 60.0 / total_time);
+		fprintf(log_file, "kmers\t%.2lf\n", total_seqs * (seq_len - opt->kmer_length + 1) * 60.0 / total_time);
+	}
 	//fprintf(stderr, "tot_seqs = %d\n", tot_seqs);
 	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
 	//fprintf(stderr, "increase per k-mer = %lf\n", 1.0 * overall_increase / (tot_seqs * (seq_len - opt->kmer_length + 1)));
+
+	if (opt->need_log) {
+		fclose(log_file);
+	}
 	// destroy
 	if (opt->use_klcp) {
 		destroy_klcp(klcp);
@@ -391,13 +416,14 @@ int exk_match(int argc, char *argv[])
 	char *prefix;
 
 	opt = exk_init_opt();
-	while ((c = getopt(argc, argv, "psuvk:n:o:e:i:d:l:LR:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	while ((c = getopt(argc, argv, "l:psuvk:n:o:e:i:d:LR:t:NM:O:E:q:f:b012IYB:")) >= 0) {
 		switch (c) {
 		case 'v': opt->output_rids = 1; break;
 		case 'u': opt->use_klcp = 1; break;
 		case 'k': opt->kmer_length = atoi(optarg); break;
 		case 's': opt->skip_after_fail = 1; break;
 		case 'p': opt->skip_positions_on_border = 0; break;
+		case 'l': { opt->need_log = 1; opt->log_file_name = optarg; break; }
 		case 'e': opte = atoi(optarg); break;
 		case 't': opt->n_threads = atoi(optarg); break;
 		case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
@@ -426,6 +452,7 @@ int exk_match(int argc, char *argv[])
 		fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
 		fprintf(stderr, "         -s        skip k-1 k-mers after failing matching k-mer\n");
 		fprintf(stderr, "         -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output\n");
+		fprintf(stderr, "         -l char*  log file name to output statistics\n");
 		// fprintf(stderr, "         -t INT    number of threads [%d]\n", opt->n_threads);
 		// fprintf(stderr, "         -B INT    length of barcode\n");
 		// fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
