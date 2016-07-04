@@ -10,10 +10,11 @@ from tree_formatter import *
 
 import logging
 
+DEFAULT_FORMAT = 1
 
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,format=10):
+	def __init__(self,tree_newick_fn,format=DEFAULT_FORMAT):
 		self.tree_newick_fn=tree_newick_fn
 		self.tree=read_newick(tree_newick_fn,format=format)
 

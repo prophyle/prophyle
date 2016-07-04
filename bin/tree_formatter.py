@@ -43,6 +43,8 @@ import re
 import os
 #from string import strip
 
+DEFAULT_FORMAT = 1
+
 __all__ = ["read_newick", "write_newick", "print_supported_formats"]
 
 ITERABLE_TYPES = set([list, set, tuple, frozenset])
@@ -200,7 +202,7 @@ class NewickError(Exception):
         #print >>sys.stderr, 'error: ' + str(value)
         Exception.__init__(self, value)
         
-def read_newick(newick, root_node=None, format=10):
+def read_newick(newick, root_node=None, format=DEFAULT_FORMAT):
     """ Reads a newick tree from either a string or a file, and returns
     an ETE tree structure.
 
@@ -405,7 +407,7 @@ def _read_node_data(subnw, current_node, node_type, format):
 #         newick += ";"
 #     return newick
 
-def write_newick(rootnode, features=None, format=10, format_root_node=True,
+def write_newick(rootnode, features=None, format=DEFAULT_FORMAT, format_root_node=True,
                  is_leaf_fn=None, dist_formatter=None, support_formatter=None, 
                  name_formatter=None):
     """ Iteratively export a tree structure and returns its NHX
