@@ -377,7 +377,6 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	t = clock();
 	int seq_len = 0;
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
-		total_seqs += n_seqs;
 		seq_len = seqs[0].len;
 		bwa_cal_sa(0, idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
