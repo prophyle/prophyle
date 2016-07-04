@@ -17,6 +17,7 @@ import logging
 #logger.addHandler(handler)
 #logger.setLevel(logging.INFO)
 
+DEFAULT_FORMAT = 1
 
 def size_in_mb(file_fn):
 	return os.path.getsize(file_fn)/(1024**2)
@@ -83,7 +84,7 @@ def copy():
 
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,index_dir,library_dir,format=0):
+	def __init__(self,tree_newick_fn,index_dir,library_dir,format=DEFAULT_FORMAT):
 		self.tree_newick_fn=tree_newick_fn
 		self.tree=read_newick(tree_newick_fn,format=format)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
