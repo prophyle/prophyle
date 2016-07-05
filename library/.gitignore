@@ -3,7 +3,7 @@
 *.fna
 *.fa
 *.fai
-.complete
+.complete*
 *.fq
 *.sam
 
