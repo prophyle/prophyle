@@ -6,11 +6,7 @@ COMPLETES := Bacteria/.complete Plasmids/.complete Viruses/.complete HMP/.comple
 .PHONY: clean all #$(SUBDIRS)
 .DEFAULT_GOAL := all
 
-all: $(COMPLETES) .complete
-
-.complete: $(COMPLETES)
-	bash -c "find . -name '*.fna' -o -name '*.ffn' | parallel --no-notice --verbose samtools faidx {}"
-	touch .complete
+all: $(COMPLETES)
 
 Bacteria/.complete:
 	$(MAKE) -C Bacteria
@@ -29,4 +25,4 @@ clean:
 		if [ -d $$a ]; then \
 			$(MAKE) -C $$a clean; \
 		fi; \
-	done;	
+	done;

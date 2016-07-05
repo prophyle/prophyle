@@ -5,7 +5,21 @@ include ../conf.mk
 
 all: .complete
 
-.complete:
+.complete.download:
 	curl $(HMP_SERVER)/HMREFG/all_seqs.fa.bz2 | bzip2 -d > all_seqs.fa
-	curl $(FTP_SERVER)/pub/taxonomy/gi_taxid_nucl.dmp.gz | gzip -d > gi_taxid_nucl.dmp
-	touch .complete
+	touch $@
+
+.complete.split: .complete.download
+	mkdir ../HMPsplit
+	../../bin/split_allseq.py all_seqs.fa ../HMPsplit
+	#rm all_seqs.fa
+	touch $@
+
+.complete.faidx: .complete.split
+	cd ../HMPsplit
+	bash -c $(FAIDX)
+	cd ../HMP
+	touch $@
+
+.complete: .complete.faidx
+	touch $@
