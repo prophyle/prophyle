@@ -10,7 +10,7 @@ all: .complete
 	touch $@
 
 .complete.split: .complete.download
-	mkdir ../HMPsplit
+	mkdir -p ../HMPsplit
 	../../bin/split_allseq.py all_seqs.fa ../HMPsplit
 	#rm all_seqs.fa
 	touch $@
