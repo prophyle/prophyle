@@ -13,6 +13,9 @@ typedef struct {
 	int output_rids;
 	int skip_after_fail;
 	int skip_positions_on_border;
+
+	int need_log;
+	char* log_file_name;
 } exk_opt_t;
 
 #endif //
