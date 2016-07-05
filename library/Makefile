@@ -1,6 +1,6 @@
 SUBDIRS := $(wildcard */.)
 #SUBDIRS_C := "Bacteria/.complete"
-COMPLETES := Plasmids/.complete Viruses/.complete Bacteria/.complete HMP/.complete
+COMPLETES := Plasmids/.complete Viruses/.complete Bacteria/.complete
 
 .PHONY: clean all #$(SUBDIRS)
 .DEFAULT_GOAL := all
@@ -19,9 +19,6 @@ Viruses/.complete:
 
 Plasmids/.complete:
 	$(MAKE) -C Plasmids
-
-HMP/.complete:
-	$(MAKE) -C HMP
 
 clean:
 	@for a in $$(ls); do \
