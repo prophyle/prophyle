@@ -186,7 +186,33 @@ bntseq_t *bns_restore_partial(const char *prefix)
 	return bns;
 }
 
-bwaidx_t *bwa_idx_load_partial(const char *hint, int which)
+bwt_t *bwa_idx_load_bwt_with_time(const char *hint, int need_log, FILE* log_file)
+{
+	char *tmp, *prefix;
+	bwt_t *bwt;
+	prefix = bwa_idx_infer_prefix(hint);
+	if (prefix == 0) {
+		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		return 0;
+	}
+	clock_t t = clock();
+	tmp = calloc(strlen(prefix) + 5, 1);
+	strcat(strcpy(tmp, prefix), ".bwt"); // FM-index
+	bwt = bwt_restore_bwt(tmp);
+	if (need_log) {
+		fprintf(log_file, "bwt_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
+	}
+	t = clock();
+	strcat(strcpy(tmp, prefix), ".sa");  // partial suffix array (SA)
+	bwt_restore_sa(tmp, bwt);
+	if (need_log) {
+		fprintf(log_file, "sa_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
+	}
+	free(tmp); free(prefix);
+	return bwt;
+}
+
+bwaidx_t *bwa_idx_load_partial(const char *hint, int which, int need_log, FILE* log_file)
 {
 	fprintf(stderr, "Own bwa idx loading..\n");
 	bwaidx_t *idx;
@@ -197,12 +223,16 @@ bwaidx_t *bwa_idx_load_partial(const char *hint, int which)
 		return 0;
 	}
 	idx = calloc(1, sizeof(bwaidx_t));
-	if (which & BWA_IDX_BWT) idx->bwt = bwa_idx_load_bwt(hint);
+	if (which & BWA_IDX_BWT) idx->bwt = bwa_idx_load_bwt_with_time(hint, need_log, log_file);
 	if (which & BWA_IDX_BNS) {
 		int i, c;
+		clock_t t = clock();
 		idx->bns = bns_restore_partial(prefix);
 		for (i = c = 0; i < idx->bns->n_seqs; ++i)
 			if (idx->bns->anns[i].is_alt) ++c;
+		if (need_log) {
+			fprintf(log_file, "bns_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
+		}
 		//if (bwa_verbose >= 3)
 			//fprintf(stderr, "[M::%s] read %d ALT contigs\n", __func__, c);
 
