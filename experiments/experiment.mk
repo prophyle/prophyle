@@ -21,7 +21,8 @@ KLCP=index.fa.$(K).bit.klcp
 #endif
 #TTIME:=$(TIME) -v
 #TTIME:=$(TIME)
-TTIME:=time
+TIME=../../bin/time
+TTIME:=$(TIME)
 
 all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md
 
@@ -66,7 +67,7 @@ $(KLCP): index.fa index.fa.bwt index.fa.sa
 %.fai: %
 	$(SAMTOOLS) faidx $<
 
-kmers_rolling.txt: $(READS) index.fa.sa $(KLCP) 
+kmers_rolling.txt: index.fa.sa $(KLCP) 
 	$(TTIME) -o 3.1a_matching_rolling.log \
 	$(EXK) match -l 3.1b_matching_rolling.log  \
 		-k $(K) -u -v index.fa $(READS) > $@
