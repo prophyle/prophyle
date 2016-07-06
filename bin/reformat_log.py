@@ -53,7 +53,7 @@ for line in sys.stdin:
 		print("User time:     {}".format(rm_ms(user_time)))
 		print("System time:   {}".format(rm_ms(system_time)))
 		print("Elapsed time:  {}".format(rm_ms(elapsed_time)))
-		print("CPU usage:     {:7}%".format(round(100*(user_time.total_seconds() + system_time.total_seconds()) / elapsed_time.total_seconds())))
+		print("CPU usage:     {:7}%".format(round(100*(user_time.total_seconds() + system_time.total_seconds()) / (elapsed_time.total_seconds()+0.00001)   )))
 		print()
 		print("Memory peak:   {:7.2f} GB".format(round(memory_gb,2)))
 		print("```")
