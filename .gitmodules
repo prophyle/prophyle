@@ -1,3 +1,9 @@
 [submodule "src/kmer-index/bwa"]
-	path = src/kmer-index/bwa
+	path = ext/bwa
 	url = http://github.com/lh3/bwa
+	ignore = dirty
+[submodule "ext/time"]
+	path = ext/time
+	url = http://git.savannah.gnu.org/cgit/time.git
+	ignore = dirty
+
