@@ -21,7 +21,22 @@ KLCP=index.fa.$(K).bit.klcp
 #endif
 #TTIME:=$(TIME) -v
 #TTIME:=$(TIME)
-TTIME:=time
+
+MAKE_PID := $(shell echo $$PPID)
+JOB_FLAG := $(filter -j%, $(subst -j ,-j,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
+JOBS     := $(subst -j,,$(JOB_FLAG))
+ifeq ($(JOBS),)
+	JOB_FLAG := $(filter --jobs%, $(subst --jobs ,--jobs,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
+	JOBS     := $(subst --jobs,,$(JOB_FLAG))
+endif
+ifeq ($(JOBS),)
+	JOBS := 1
+endif
+
+TIME=../../bin/time
+TTIME:=DATE=`datetime` $(TIME) -f "$$(DATE)\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
+
+
 
 all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md
 
@@ -66,7 +81,7 @@ $(KLCP): index.fa index.fa.bwt index.fa.sa
 %.fai: %
 	$(SAMTOOLS) faidx $<
 
-kmers_rolling.txt: $(READS) index.fa.sa $(KLCP) 
+kmers_rolling.txt: index.fa.sa $(KLCP) 
 	$(TTIME) -o 3.1a_matching_rolling.log \
 	$(EXK) match -l 3.1b_matching_rolling.log  \
 		-k $(K) -u -v index.fa $(READS) > $@
