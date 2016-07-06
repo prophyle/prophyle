@@ -22,7 +22,7 @@ KLCP=index.fa.$(K).bit.klcp
 #TTIME:=$(TIME) -v
 #TTIME:=$(TIME)
 TIME=../../bin/time
-TTIME:=$(TIME)
+TTIME:=$(TIME) -f "%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
 
 all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md
 
