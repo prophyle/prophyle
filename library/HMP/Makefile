@@ -16,9 +16,7 @@ all: .complete
 	touch $@
 
 .complete.faidx: .complete.split
-	cd ../HMPsplit
-	bash -c $(FAIDX)
-	cd ../HMP
+	cd ../HMPsplit && bash -c $(FAIDX)
 	touch $@
 
 .complete: .complete.faidx
