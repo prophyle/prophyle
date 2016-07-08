@@ -8,6 +8,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "bwautils.h"
 #include "bwtexk.h"
 #include "bwtaln.h"
 #include "bwtgap.h"
@@ -221,18 +222,16 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 
 void exk_index_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	bwt_t *bwt;
-	bwaidx_t* idx;
 	// initialization
 	{ // load BWT
 		//fprintf(stderr, "%s\n", prefix);
-		if ((idx = bwa_idx_load(prefix, BWA_IDX_ALL)) == 0) {
+		if ((bwt = bwa_idx_load_bwt_without_sa(prefix)) == 0) {
 			fprintf(stderr, "Couldn't load idx from %s\n", prefix);
 			return;
 		}
-		bwt = idx->bwt;
 	}
 
-	klcp_t* klcp = construct_klcp(idx->bwt, opt->kmer_length);
+	klcp_t* klcp = construct_klcp(bwt, opt->kmer_length);
   fprintf(stdout, "klcp constructed\n");
   char* fn = malloc((strlen(prefix) + 10) * sizeof(char));
   strcpy(fn, prefix);
@@ -244,7 +243,7 @@ void exk_index_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt)
 	klcp_dump(fn, klcp);
   fprintf(stdout, "klcp dumped\n");
 	// destroy
-	bwt_destroy(bwt);
+	bwt_destroy_without_sa(bwt);
 }
 
 // void construct_klcp_direct(const bwt_t* bwt, int kmer_length, klcp_t* klcp) {

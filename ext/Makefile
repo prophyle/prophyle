@@ -1,4 +1,6 @@
-all: time/time
+.PHONY: all clean
+
+all: time/time bwa/bwa
 
 time/time: time/Makefile
 	$(MAKE) -C time
@@ -6,3 +8,9 @@ time/time: time/Makefile
 time/Makefile:
 	(cd time && autoreconf -f -i && ./configure)
 
+bwa/bwa:
+	$(MAKE) -C bwa
+
+clean:
+	make -C time clean
+	make -C bwa clean
