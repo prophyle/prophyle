@@ -1,5 +1,8 @@
 .PHONY: all renderfasta
 
+V=1
+SHELL:=/bin/bash
+
 include *.mk
 
 #ASSEMBLER=../../bin/assembler
@@ -34,7 +37,7 @@ ifeq ($(JOBS),)
 endif
 
 TIME=../../bin/time
-TTIME:=DATE=`date` $(TIME) -f "$$(DATE)\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
+TTIME:=DATETIME=`date` && $(TIME) -f "$${DATETIME}\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
 
 
 
