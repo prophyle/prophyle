@@ -1,2 +1,4 @@
-database.idx
+*.idx
+*.kdb
 *.out
+*.txt
