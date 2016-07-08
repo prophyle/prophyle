@@ -34,7 +34,7 @@ ifeq ($(JOBS),)
 endif
 
 TIME=../../bin/time
-TTIME:=DATE=`datetime` $(TIME) -f "$$(DATE)\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
+TTIME:=DATE=`date` $(TIME) -f "$$(DATE)\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
 
 
 
@@ -65,7 +65,7 @@ index.fa.pac: index.fa
 
 index.fa.bwt: index.fa.pac 
 	$(TTIME) -o 2.2_bwa_pac2bwtgen.log \
-	$(BWA) pac2bwtgen -d index.fa.pac index.fa.bwt
+	$(BWA) pac2bwtgen index.fa.pac index.fa.bwt
 
 	$(TTIME) -o 2.3_bwa_bwtupdate.log \
 	$(BWA) bwtupdate index.fa.bwt
