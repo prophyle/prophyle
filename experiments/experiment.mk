@@ -1,5 +1,8 @@
 .PHONY: all renderfasta
 
+V=1
+SHELL:=/bin/bash
+
 include *.mk
 
 #ASSEMBLER=../../bin/assembler
@@ -34,7 +37,7 @@ ifeq ($(JOBS),)
 endif
 
 TIME=../../bin/time
-TTIME:=DATE=`datetime` $(TIME) -f "$$(DATE)\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
+TTIME:=DATETIME=`date` && $(TIME) -f "$${DATETIME}\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
 
 
 
@@ -64,8 +67,8 @@ index.fa.pac: index.fa
 	$(BWA) fa2pac index.fa index.fa
 
 index.fa.bwt: index.fa.pac 
-	$(TTIME) -o 2.2_bwa_pac2bwt.log \
-	$(BWA) pac2bwt -d index.fa.pac index.fa.bwt
+	$(TTIME) -o 2.2_bwa_pac2bwtgen.log \
+	$(BWA) pac2bwtgen index.fa.pac index.fa.bwt
 
 	$(TTIME) -o 2.3_bwa_bwtupdate.log \
 	$(BWA) bwtupdate index.fa.bwt
