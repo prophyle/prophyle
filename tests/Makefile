@@ -1,4 +1,5 @@
 SUBDIRS := $(wildcard test*/.)
+V=1
 
 .PHONY : all clean $(SUBDIRS)
 

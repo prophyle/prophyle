@@ -13,7 +13,13 @@ def cmd(command,stdout=sys.stderr,stderr=sys.stderr):
 	print(file=sys.stderr)
 	print("[exk_match_1step.py]",command,file=sys.stderr)
 	#print(file=sys.stderr)
-	subprocess.Popen(command, shell=True, universal_newlines=True, stdout=stdout, stderr=stderr).wait()
+	child=subprocess.Popen(command, shell=True, universal_newlines=True, stdout=stdout, stderr=stderr)
+	child.communicate()
+	child.wait()
+	rc=child.returncode
+	if rc != 0:
+		print("Error in command {}".format(command),file=sys.stderr)
+		sys.exit(rc)
 	#print(file=sys.stderr)
 	#print(file=sys.stderr)
 
