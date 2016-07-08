@@ -103,8 +103,9 @@ int main() {
 
 	uint64_t kmer_id = 1;
 	
-	for(uint64_t* temp_offsets = offsets+1;
-			temp_offsets < n_bins; temp_offsets++)
+	for(uint64_t* temp_offsets = offsets + 1;
+			temp_offsets < offsets + n_bins;
+			temp_offsets++)
 	{
 		
 		temp_kmers = kmers;
