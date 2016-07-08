@@ -22,6 +22,7 @@ static const char * DB = "database.kdb";
 static const uint64_t NT_MASK = uint64_t(3) << 62;
 
 char* kmerInterpreter(uint64_t kmer, uint8_t k) {
+	// to be freed!!!
 	char* res = new char[k];
 	kmer <<= (sizeof(kmer) * 8) - (k * 2);
 	for(int i=0; i<k; i++) {
