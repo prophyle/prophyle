@@ -64,8 +64,8 @@ index.fa.pac: index.fa
 	$(BWA) fa2pac index.fa index.fa
 
 index.fa.bwt: index.fa.pac 
-	$(TTIME) -o 2.2_bwa_pac2bwt.log \
-	$(BWA) pac2bwt -d index.fa.pac index.fa.bwt
+	$(TTIME) -o 2.2_bwa_pac2bwtgen.log \
+	$(BWA) pac2bwtgen -d index.fa.pac index.fa.bwt
 
 	$(TTIME) -o 2.3_bwa_bwtupdate.log \
 	$(BWA) bwtupdate index.fa.bwt
