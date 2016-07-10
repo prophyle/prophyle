@@ -83,7 +83,7 @@ def copy():
 
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,index_dir,library_dir,format=10):
+	def __init__(self,tree_newick_fn,index_dir,library_dir,format=1):
 		self.tree_newick_fn=tree_newick_fn
 		self.tree=read_newick(tree_newick_fn,format=format)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
