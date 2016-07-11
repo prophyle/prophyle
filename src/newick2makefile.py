@@ -153,11 +153,13 @@ class TreeIndex:
 				assembly(input_files,output_files,intersection_file)
 		
 
-	def build_index(self,k):
+	def build_index(self,k,mask_repeats):
 		print()
 		print("ASSEMBLER=../../bin/assembler")
 		print("DUSTMASKER=dustmasker")
 		print("K={}".format(k))
+		if mask_repeats:
+			print("MASK_REPEATS=1")
 		print()
 		print("ifdef MASK_REPEATS")
 		print("   MASKING=$(DUSTMASKER) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'")
@@ -207,6 +209,12 @@ if __name__ == "__main__":
 			required=True,
 			help='Directory with the library.',
 		)
+	parser.add_argument(
+			'-r','--mask-repeats',
+			action='store_true',
+			dest='r',
+			help='Mask repeats.',
+		)
 
 	args = parser.parse_args()
 
@@ -215,6 +223,7 @@ if __name__ == "__main__":
 	newick_fn=args.newick_fn
 	output_dir_fn=args.output_dir_fn
 	library_dir_fn=args.library_dir_fn
+	r=args.r
 
 	#logger.info("Starting index construction")
 	#logger.info("       newick : {}".format(newick_fn))
@@ -227,5 +236,6 @@ if __name__ == "__main__":
 			index_dir=output_dir_fn,
 		)
 	ti.build_index(
-			k=k
+			k=k,
+			mask_repeats=r,
 		)
