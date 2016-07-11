@@ -21,45 +21,51 @@ import logging
 def size_in_mb(file_fn):
 	return os.path.getsize(file_fn)/(1024**2)
 
-def merge_fasta_files(input_files,output_file):
+def merge_fasta_files(input_files,output_file,is_leaf):
 	"""Merge files, remove empty lines.
 	"""
 
-	if len(input_files)==1:
-
-		ln_name=os.path.basename(output_file)
-		ln_dir=os.path.dirname(output_file)
-		rel_path=os.path.relpath(input_files[0],ln_dir)
-
+#	if len(input_files)==1:
+#
+#		ln_name=os.path.basename(output_file)
+#		ln_dir=os.path.dirname(output_file)
+#		rel_path=os.path.relpath(input_files[0],ln_dir)
+#
+#		cmd =  (
+#				"{o}: {i}\n" +
+#				#"{o}:\n" +
+#				"\t(cd {d} && ln -sf {i2} {o2})\n" +
+#				#"\ttouch {o}\n"
+#				"\n"
+#			).format(
+#				o=output_file,
+#				i=input_files[0],
+#				d=ln_dir,
+#				i2=rel_path,
+#				o2=ln_name,
+#			)
+#
+#
+#	else:
+	if is_leaf:
 		cmd =  (
 				"{o}: {i}\n" +
-				#"{o}:\n" +
-				"\t(cd {d} && ln -sf {i2} {o2})\n" +
-				#"\ttouch {o}\n"
-				"\n"
-			).format(
-				o=output_file,
-				i=input_files[0],
-				d=ln_dir,
-				i2=rel_path,
-				o2=ln_name,
-			)
-
-
-	else:
-
-		cmd =  (
-				"{o}: {i}\n" +
-				"\t@cat \\\n" +
-				"\t\t{i} \\\n" +
-				"\t\t > {o}\n\n"
+				"\tcat $^ | $(MASKING) > $@\n\n"
 			).format(
 				i=' \\\n\t\t'.join(input_files),
 				o=output_file,
 			)
+	else:
+		cmd =  (
+					"{o}: {i}\n" +
+					"\tcat $^ > $@\n\n"
+				).format(
+					i=' \\\n\t\t'.join(input_files),
+					o=output_file,
+				)
 	print(cmd)
 
-def assembly(input_files, output_files, intersection_file, k):
+def assembly(input_files, output_files, intersection_file):
 	assert(len(input_files)==len(output_files))
 	#logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
 	cmd =  (
@@ -67,7 +73,7 @@ def assembly(input_files, output_files, intersection_file, k):
 			"\t$(ASSEMBLER) -k $(K) \\\n"
 			"\t\t-i {ii}\\\n"
 			"\t\t-o {oo}\\\n"
-			"\t\t-x {x}\n\n"
+			"\t\t-x $@\n\n"
 		).format(
 			i=' '.join(input_files),
 			o=' '.join(output_files),
@@ -76,9 +82,6 @@ def assembly(input_files, output_files, intersection_file, k):
 			x=intersection_file,
 		)
 	print(cmd)
-
-def copy():
-	pass
 
 
 class TreeIndex:
@@ -106,7 +109,7 @@ class TreeIndex:
 	def reduced_fasta_fn(self,node):
 		return os.path.join(self.index_dir,node.name+".reduced.fa")
 
-	def process_node(self,node,k):
+	def process_node(self,node):
 
 		if node.is_leaf():
 
@@ -114,7 +117,7 @@ class TreeIndex:
 				fastas_fn=node.fastapath.split("@")
 				for i in range(len(fastas_fn)):
 					fastas_fn[i]=os.path.join(self.library_dir,fastas_fn[i])
-				merge_fasta_files(fastas_fn,self.nonreduced_fasta_fn(node))
+				merge_fasta_files(fastas_fn,self.nonreduced_fasta_fn(node),is_leaf=True)
 
 		else:
 			#logger.info('BEGIN process non-leaf node "{}"'.format(self._node_debug(node)))
@@ -122,7 +125,7 @@ class TreeIndex:
 
 			# 1) process children
 			for child in children:
-				self.process_node(child,k=k)
+				self.process_node(child)
 
 			# 2) k-mer propagation & assembly
 			input_files=[self.nonreduced_fasta_fn(x) for x in children]
@@ -132,7 +135,7 @@ class TreeIndex:
 			# 2a) 1 child
 			if len(input_files)==1:
 				
-				merge_fasta_files(input_files,intersection_file)
+				merge_fasta_files(input_files,intersection_file,is_leaf=False)
 				#print("ahoj")
 				#print(
 				#	(
@@ -147,18 +150,26 @@ class TreeIndex:
 
 			# 2b) several children
 			else:
-				assembly(input_files,output_files,intersection_file,k)
+				assembly(input_files,output_files,intersection_file)
 		
 
 	def build_index(self,k):
 		print()
-		print("K={}".format(k))
 		print("ASSEMBLER=../../bin/assembler")
+		print("DUSTMASKER=dustmasker")
+		print("K={}".format(k))
 		print()
+		print("ifdef MASK_REPEATS")
+		print("   MASKING=$(DUSTMASKER) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'")
+		print("else")
+		print("   MASKING=tee")
+		print("endif")
+		print("")
+		print("")
 		print("all: {}".format(self.nonreduced_fasta_fn(self.tree.get_tree_root())))
 		print()
 		#logger.info('Going to build index for k={}'.format(k))
-		self.process_node(self.tree.get_tree_root(),k=k)
+		self.process_node(self.tree.get_tree_root())
 
 
 if __name__ == "__main__":
@@ -215,4 +226,6 @@ if __name__ == "__main__":
 			library_dir=library_dir_fn,
 			index_dir=output_dir_fn,
 		)
-	ti.build_index(k=k)
+	ti.build_index(
+			k=k
+		)
