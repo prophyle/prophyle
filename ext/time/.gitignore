@@ -3,6 +3,7 @@ autom4te.*
 config.status
 stamp-v
 time
+config.*
 
 # Prerequisites
 *.d
