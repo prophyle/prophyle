@@ -68,7 +68,7 @@ index.fa.pac: index.fa
 
 index.fa.bwt: index.fa.pac 
 	$(TTIME) -o 2.2_bwa_pac2bwtgen.log \
-	$(BWA) pac2bwtgen index.fa.pac index.fa.bwt
+	$(BWA) pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
 
 	$(TTIME) -o 2.3_bwa_bwtupdate.log \
 	$(BWA) bwtupdate index.fa.bwt
