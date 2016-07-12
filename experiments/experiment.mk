@@ -39,6 +39,12 @@ endif
 TIME=../../bin/time
 TTIME:=DATETIME=`date` && $(TIME) -f "$${DATETIME}\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
 
+ifdef MASK_REPEATS
+	REP_PARAM=-r
+else
+	REP_PARAM=
+endif
+
 
 
 all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md
@@ -46,11 +52,13 @@ all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md
 index/.complete: $(TREE)
 	mkdir -p index
 
+
 	$(NEWICK2MAKEFILE) \
 	-n $(TREE) \
 	-o ./index \
 	-l ../../ \
 	-k $(K) \
+	$(REP_PARAM) \
 	> Makefile.generated
 
 	$(TTIME) -o 1.1_kmer_propagation.log \
@@ -68,7 +76,7 @@ index.fa.pac: index.fa
 
 index.fa.bwt: index.fa.pac 
 	$(TTIME) -o 2.2_bwa_pac2bwtgen.log \
-	$(BWA) pac2bwtgen index.fa.pac index.fa.bwt
+	$(BWA) pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
 
 	$(TTIME) -o 2.3_bwa_bwtupdate.log \
 	$(BWA) bwtupdate index.fa.bwt
