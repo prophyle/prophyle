@@ -154,10 +154,7 @@ size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 			positions[i].rid = rid;
 			positions[i].node = node;
 		}
-		int seen = 0;
-		if (rid != -1) {
-			seen = (*seen_nodes_marks)[rid];
-		}
+		int seen = (*seen_nodes_marks)[rid];
 		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
 		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
 		if (!seen && rid != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
@@ -211,7 +208,6 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 {
 	bwase_initialize();
 	int i, j;
-
 	bwt_t* bwt = idx->bwt;
 
 	int8_t* seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
