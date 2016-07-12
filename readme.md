@@ -12,7 +12,6 @@
 * ZLib
 * Python 3 with ete3 library
 * SamTools
-* GNU time (on OS X using ``brew install gnu-time``)
 
 #### Recommended way of installation using [Anaconda](https://www.continuum.io/downloads)
 
@@ -42,13 +41,6 @@ Environment activation:
   make -C library
 ```
 
-Approx. time:
-```
-real    14m31.329s
-user    3m20.748s
-sys     1m40.644s
-```
-
 ### Download simulated reads
 ```bash
   make -C reads
@@ -69,28 +61,3 @@ sys     1m40.644s
 ```bash
   make -C experiments/01* -j 10
 ```
-
-Approx. time:
-```bash
-real    21m4.152s
-user    48m2.228s
-sys     1m27.988s
-```
-
-#### Redefinition of ``time``
-
-Useful when the default ``time`` installed in the system does not support verbose mode ``-v``.
-
-Example:
-
-```bash
-make -j 7 TIME=~/.linuxbrew/bin/time -C experiments/
-```
-
-#### Run all experiments in serial setting
-
-Example: run experiments 1 by 1, each with 10 Make threads:
-```
-	cd experiments && ./run_serial.sh -j 10
-```
-
