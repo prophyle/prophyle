@@ -34,6 +34,7 @@
 static bwt_position_t positions[10000];
 static int seen_rids[10000];
 
+
 exk_opt_t *exk_init_opt()
 {
 	exk_opt_t *o;
