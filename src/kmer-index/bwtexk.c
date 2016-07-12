@@ -127,22 +127,6 @@ size_t get_positions(const bwaidx_t* idx, const int query_length,
 	return l - k + 1;
 }
 
-// bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
-// 														const uint64_t sa_position) {
-// 	int strand;
-// 	uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, sa_position,
-// 														query_length, &strand);
-// 	bwt_position_t position;
-// 	position.position = pos;
-// 	position.strand = strand;
-// 	if (pos == (uint64_t)-1) {
-// 		return position;
-// 	}
-// 	int rid = bns_pos2rid(idx->bns, pos);
-// 	position.rid = rid;
-// 	return position;
-// }
-
 int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_length) {
 	//fprintf(stdout, "%llu %d %llu\n", position->position, query_length, idx->bns->l_pac);
 	//fprintf(stdout, "%d %d\n", position->rid, idx->bns->n_seqs);
