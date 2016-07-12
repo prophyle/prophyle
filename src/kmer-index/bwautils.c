@@ -17,6 +17,7 @@
 #include "kstring.h"
 #include "bwautils.h"
 #include "khash.h"
+#include "contig_node_translator.h"
 
 KHASH_MAP_INIT_STR(str, int)
 
@@ -93,6 +94,10 @@ bntseq_t *bns_restore_core_partial(const char *ann_filename, const char* amb_fil
 			scanres = fscanf(fp, "%u%s", &p->gi, str);
 			if (scanres != 2) goto badread;
 
+			fprintf(stderr, "%s\n", str);
+			add_contig(str, i);
+			int cc;
+			scanf("%d", &cc);
 			// fill name
 			//p->name = strdup(str);
 
