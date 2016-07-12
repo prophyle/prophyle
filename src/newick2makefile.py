@@ -6,9 +6,11 @@ import datetime
 import sys
 import argparse
 
-from tree_formatter import *
+from ete3 import Tree
 
 import logging
+
+DEFAULT_FORMAT = 1
 
 #logger = logging.getLogger()
 #handler = logging.StreamHandler()
@@ -16,8 +18,6 @@ import logging
 #handler.setFormatter(formatter)
 #logger.addHandler(handler)
 #logger.setLevel(logging.INFO)
-
-DEFAULT_FORMAT = 1
 
 def size_in_mb(file_fn):
 	return os.path.getsize(file_fn)/(1024**2)
@@ -86,7 +86,7 @@ class TreeIndex:
 
 	def __init__(self,tree_newick_fn,index_dir,library_dir,format=DEFAULT_FORMAT):
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=read_newick(tree_newick_fn,format=format)
+		self.tree=Tree(tree_newick_fn,format=format)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
 		self.index_dir=index_dir
 		self.library_dir=library_dir

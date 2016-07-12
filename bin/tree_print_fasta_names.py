@@ -6,7 +6,7 @@ import datetime
 import sys
 import argparse
 
-from tree_formatter import *
+from ete3 import Tree
 
 import logging
 
