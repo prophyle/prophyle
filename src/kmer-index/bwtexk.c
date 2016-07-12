@@ -18,6 +18,7 @@
 #include "kstring.h"
 #include "klcp.h"
 #include "bwautils.h"
+#include "contig_node_translator.h"
 
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "0.0.1"
@@ -135,9 +136,9 @@ int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_
 		|| position->position < idx->bns->anns[position->rid].offset);
 }
 
-size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
+size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
-																int8_t** seen_rids_marks, int skip_positions_on_border) {
+																int8_t** seen_nodes_marks, int skip_positions_on_border) {
 	size_t rids_cnt = 0;
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
@@ -149,26 +150,26 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 		int rid = positions[i].rid;
 		if (rid == -1 || position_on_border(idx, &(positions[i]), query_length)) {
 			rid = bns_pos2rid(idx->bns, pos);
+			int node = get_node_from_contig(rid);
+			positions[i].rid = rid;
+			positions[i].node = node;
 		}
 		int seen = 0;
 		if (rid != -1) {
-			seen = (*seen_rids_marks)[rid];
-			positions[i].rid = rid;
-		} else {
-			fprintf(stderr, "ERROR, rid = -1\n");
+			seen = (*seen_nodes_marks)[rid];
 		}
 		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
 		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
 		if (!seen && rid != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
 			seen_rids[rids_cnt] = rid;
 			++rids_cnt;
-			(*seen_rids_marks)[rid] = 1;
+			(*seen_nodes_marks)[rid] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
 		}
 	}
 	int r;
 	for(r = 0; r < rids_cnt; ++r) {
-		(*seen_rids_marks)[seen_rids[r]] = 0;
+		(*seen_nodes_marks)[seen_rids[r]] = 0;
 	}
 	return rids_cnt;
 }
@@ -213,10 +214,10 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 
 	bwt_t* bwt = idx->bwt;
 
-	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
+	int8_t* seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
 	uint64_t index;
 	for(index = 0; index < idx->bns->n_seqs; ++index) {
-		seen_rids_marks[index] = 0;
+		seen_nodes_marks[index] = 0;
 	}
 	fprintf(stdout, "\n");
 	int rids_computations = 0;
@@ -275,8 +276,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 						get_positions(idx, opt->kmer_length,
 							k, l);
 					}
-					int rids_cnt = get_contigs_from_positions(idx, opt->kmer_length,
-						positions_cnt, &seen_rids_marks, opt->skip_positions_on_border);
+					int rids_cnt = get_nodes_from_positions(idx, opt->kmer_length,
+						positions_cnt, &seen_nodes_marks, opt->skip_positions_on_border);
 					output_chromosomes(seen_rids, rids_cnt);
 				}
 				else {
@@ -314,7 +315,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	}
 	fprintf(stderr, "rids computed: %d\n", rids_computations);
 	fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
-	free(seen_rids_marks);
+	free(seen_nodes_marks);
 }
 
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
