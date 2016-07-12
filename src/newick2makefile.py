@@ -87,11 +87,7 @@ def assembly(input_files, output_files, intersection_file):
 
 class TreeIndex:
 
-<<<<<<< HEAD
-	def __init__(self,tree_newick_fn,index_dir,library_dir,format=1):
-=======
 	def __init__(self,tree_newick_fn,index_dir,library_dir,format=DEFAULT_FORMAT):
->>>>>>> 09f55ae9e298c875addf2a27dee8e85a33e8da6b
 		self.tree_newick_fn=tree_newick_fn
 		self.tree=Tree(tree_newick_fn,format=format)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
