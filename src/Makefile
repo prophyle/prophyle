@@ -1,6 +1,6 @@
-.PHONY: all clean compile_assembler compile_index compile_kraken
+.PHONY: all clean compile_assembler compile_index compile_ext compile_kraken
 
-all: compile_assembler compile_index compile_kraken
+all: compile_assembler compile_index compile_ext compile_kraken
 
 clean:
 	$(MAKE) -C assembler clean
@@ -13,6 +13,9 @@ compile_assembler:
 
 compile_index:
 	$(MAKE) -C kmer-index
+
+compile_ext:
+	$(MAKE) -C ../ext
 
 compile_kraken:
 	$(MAKE) -C kraken-db

@@ -1,3 +1,4 @@
-[submodule "src/kmer-index/bwa"]
-	path = src/kmer-index/bwa
-	url = http://github.com/lh3/bwa
+[submodule "ext/bwa"]
+	path = ext/bwa
+	url = http://github.com/karel-brinda/bwa
+	ignore = dirty

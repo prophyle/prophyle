@@ -246,3 +246,50 @@ bwaidx_t *bwa_idx_load_partial(const char *hint, int which, int need_log, FILE* 
 	free(prefix);
 	return idx;
 }
+
+void bwt_restore_sa_partial(const char *fn, bwt_t *bwt)
+{
+	char skipped[256];
+	FILE *fp;
+	bwtint_t primary;
+
+	fp = xopen(fn, "rb");
+	err_fread_noeof(&primary, sizeof(bwtint_t), 1, fp);
+	xassert(primary == bwt->primary, "SA-BWT inconsistency: primary is not the same.");
+	err_fread_noeof(skipped, sizeof(bwtint_t), 4, fp); // skip
+	err_fread_noeof(&bwt->sa_intv, sizeof(bwtint_t), 1, fp);
+	err_fread_noeof(&primary, sizeof(bwtint_t), 1, fp);
+	xassert(primary == bwt->seq_len, "SA-BWT inconsistency: seq_len is not the same.");
+
+	bwt->n_sa = (bwt->seq_len + bwt->sa_intv) / bwt->sa_intv;
+	// bwt->sa = (bwtint_t*)calloc(bwt->n_sa, sizeof(bwtint_t));
+	// bwt->sa[0] = -1;
+	//
+	// fread_fix(fp, sizeof(bwtint_t) * (bwt->n_sa - 1), bwt->sa + 1);
+	err_fclose(fp);
+}
+
+bwt_t *bwa_idx_load_bwt_without_sa(const char *hint)
+{
+	char *tmp, *prefix;
+	bwt_t *bwt;
+	prefix = bwa_idx_infer_prefix(hint);
+	if (prefix == 0) {
+		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		return 0;
+	}
+	tmp = calloc(strlen(prefix) + 5, 1);
+	strcat(strcpy(tmp, prefix), ".bwt"); // FM-index
+	bwt = bwt_restore_bwt(tmp);
+	strcat(strcpy(tmp, prefix), ".sa");  // partial suffix array (SA)
+	bwt_restore_sa_partial(tmp, bwt);
+	free(tmp); free(prefix);
+	return bwt;
+}
+
+void bwt_destroy_without_sa(bwt_t *bwt)
+{
+	if (bwt == 0) return;
+	free(bwt->bwt);
+	free(bwt);
+}
