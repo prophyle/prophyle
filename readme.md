@@ -22,7 +22,7 @@ Environment installation:
 	conda create -y --name metang \
 		-c etetoolkit -c bioconda \
 		python==3.4 ete3 ete3_external_apps \
-		cmake parallel
+		cmake parallel blast
 ```
 
 Environment activation:
