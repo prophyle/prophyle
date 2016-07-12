@@ -162,7 +162,10 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 		if (pos == (uint64_t)-1) {
 			continue;
 		}
-		int rid = bns_pos2rid(idx->bns, pos);
+		int rid = positions[i].rid;
+		if (rid == -1 || position_on_border(idx, &(positions[i]), query_length)) {
+			rid = bns_pos2rid(idx->bns, pos);
+		}
 		int seen = 0;
 		if (rid != -1) {
 			seen = (*seen_rids_marks)[rid];
