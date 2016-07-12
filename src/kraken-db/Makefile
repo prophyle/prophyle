@@ -1,15 +1,15 @@
 CXX=	g++
 RM=		rm -f
 
-SRCS=	fast_converter.cpp krakendb.cpp quickfile.cpp
-OBJS=	$(subst .cc,.o,$(SRCS))
+SRCS=	krakendb_taxid_sorter.cpp krakendb.cpp quickfile.cpp
+OBJS=	$(subst .cpp,.o,$(SRCS))
 
-all: converter
+all: krakendb_taxid_sorter
 
-converter: $(OBJS)
+krakendb_taxid_sorter: $(OBJS)
 	$(CXX) -o $@ $(OBJS)
 
-converter.o: fast_converter.cpp krakendb.hpp quickfile.hpp kraken_headers.hpp
+krakendb_taxid_sorter.o: krakendb_taxid_sorter.cpp krakendb.hpp quickfile.hpp kraken_headers.hpp
 
 krakendb.o: krakendb.hpp quickfile.hpp kraken_headers.hpp
 
