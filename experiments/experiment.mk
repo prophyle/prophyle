@@ -1,5 +1,8 @@
 .PHONY: all renderfasta
 
+V=1
+SHELL:=/bin/bash
+
 include *.mk
 
 #ASSEMBLER=../../bin/assembler
@@ -21,18 +24,41 @@ KLCP=index.fa.$(K).bit.klcp
 #endif
 #TTIME:=$(TIME) -v
 #TTIME:=$(TIME)
-TTIME:=time
+
+MAKE_PID := $(shell echo $$PPID)
+JOB_FLAG := $(filter -j%, $(subst -j ,-j,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
+JOBS     := $(subst -j,,$(JOB_FLAG))
+ifeq ($(JOBS),)
+	JOB_FLAG := $(filter --jobs%, $(subst --jobs ,--jobs,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
+	JOBS     := $(subst --jobs,,$(JOB_FLAG))
+endif
+ifeq ($(JOBS),)
+	JOBS := 1
+endif
+
+TIME=../../bin/time
+TTIME:=DATETIME=`date` && $(TIME) -f "$${DATETIME}\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
+
+ifdef MASK_REPEATS
+	REP_PARAM=-r
+else
+	REP_PARAM=
+endif
+
+
 
 all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md
 
 index/.complete: $(TREE)
 	mkdir -p index
 
+
 	$(NEWICK2MAKEFILE) \
 	-n $(TREE) \
 	-o ./index \
 	-l ../../ \
 	-k $(K) \
+	$(REP_PARAM) \
 	> Makefile.generated
 
 	$(TTIME) -o 1.1_kmer_propagation.log \
@@ -49,8 +75,8 @@ index.fa.pac: index.fa
 	$(BWA) fa2pac index.fa index.fa
 
 index.fa.bwt: index.fa.pac 
-	$(TTIME) -o 2.2_bwa_pac2bwt.log \
-	$(BWA) pac2bwt -d index.fa.pac index.fa.bwt
+	$(TTIME) -o 2.2_bwa_pac2bwtgen.log \
+	$(BWA) pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
 
 	$(TTIME) -o 2.3_bwa_bwtupdate.log \
 	$(BWA) bwtupdate index.fa.bwt
@@ -66,7 +92,7 @@ $(KLCP): index.fa index.fa.bwt index.fa.sa
 %.fai: %
 	$(SAMTOOLS) faidx $<
 
-kmers_rolling.txt: $(READS) index.fa.sa $(KLCP) 
+kmers_rolling.txt: index.fa.sa $(KLCP) 
 	$(TTIME) -o 3.1a_matching_rolling.log \
 	$(EXK) match -l 3.1b_matching_rolling.log  \
 		-k $(K) -u -v index.fa $(READS) > $@

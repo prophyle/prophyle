@@ -23,7 +23,7 @@ matrix:
         - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         - sudo add-apt-repository ppa:duggan/bats -y
         - sudo apt-get update
-        - sudo apt-get install g++-4.8 cmake python3  python3-setuptools
+        - sudo apt-get install g++-4.8 cmake python3  python3-setuptools texinfo
         - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
         - sudo apt-get install zlib1g-dev git-svn bats
@@ -41,8 +41,8 @@ matrix:
         - sudo pip install --upgrade jinja2 nose
 
 script:
-  - make -C src
-  - make -C tests
+  - make -C src VERBOSE=1
+  - make -C tests VERBOSE=1
   
 
 cache:
