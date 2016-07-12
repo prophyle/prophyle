@@ -31,6 +31,10 @@
 #  include "malloc_wrap.h"
 #endif
 
+static bwt_position_t positions[10000];
+static int seen_rids[10000];
+
+
 exk_opt_t *exk_init_opt()
 {
 	exk_opt_t *o;
@@ -110,36 +114,18 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 }
 
 size_t get_positions(const bwaidx_t* idx, const int query_length,
-										 const uint64_t k, const uint64_t l,
-										 bwt_position_t** positions) {
-	free(*positions);
-	*positions = malloc((l - k + 1) * sizeof(bwt_position_t));
+										 const uint64_t k, const uint64_t l) {
 	uint64_t t;
 	for(t = k; t <= l; ++t) {
 		int strand;
 		uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, t, query_length, &strand);//bwt_sa(bwt, t);
-		(*positions)[t - k].position = pos;
-		(*positions)[t - k].strand = strand;
+		positions[t - k].position = pos;
+		positions[t - k].strand = strand;
+		positions[t - k].rid = -1;
 		//fprintf(stdout, "%llu(%d) ", (*positions)[t - k], strand);
 	}
 	//fprintf(stdout, "\n");
 	return l - k + 1;
-}
-
-bwt_position_t get_position(const bwaidx_t* idx, const int query_length,
-														const uint64_t sa_position) {
-	int strand;
-	uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, sa_position,
-														query_length, &strand);
-	bwt_position_t position;
-	position.position = pos;
-	position.strand = strand;
-	if (pos == (uint64_t)-1) {
-		return position;
-	}
-	int rid = bns_pos2rid(idx->bns, pos);
-	position.rid = rid;
-	return position;
 }
 
 int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_length) {
@@ -152,29 +138,30 @@ int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_
 
 size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
-																bwt_position_t** positions, int** seen_rids,
 																int8_t** seen_rids_marks, int skip_positions_on_border) {
-	*seen_rids = malloc(positions_cnt * sizeof(int));
 	size_t rids_cnt = 0;
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
-		uint64_t pos = (*positions)[i].position;
+		uint64_t pos = positions[i].position;
 		//fprintf(stdout, "%llu\n", pos);
 		if (pos == (uint64_t)-1) {
 			continue;
 		}
-		int rid = bns_pos2rid(idx->bns, pos);
+		int rid = positions[i].rid;
+		if (rid == -1 || position_on_border(idx, &(positions[i]), query_length)) {
+			rid = bns_pos2rid(idx->bns, pos);
+		}
 		int seen = 0;
 		if (rid != -1) {
 			seen = (*seen_rids_marks)[rid];
-			(*positions + i)->rid = rid;
+			positions[i].rid = rid;
 		} else {
 			fprintf(stderr, "ERROR, rid = -1\n");
 		}
 		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
 		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
-		if (!seen && rid != -1 && (!skip_positions_on_border || !position_on_border(idx, *positions + i, query_length))) {
-			(*seen_rids)[rids_cnt] = rid;
+		if (!seen && rid != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
+			seen_rids[rids_cnt] = rid;
 			++rids_cnt;
 			(*seen_rids_marks)[rid] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
@@ -182,7 +169,7 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 	}
 	int r;
 	for(r = 0; r < rids_cnt; ++r) {
-		(*seen_rids_marks)[(*seen_rids)[r]] = 0;
+		(*seen_rids_marks)[seen_rids[r]] = 0;
 	}
 	return rids_cnt;
 }
@@ -194,29 +181,27 @@ void output_chromosomes(int* seen_rids, const int rids_cnt) {
 		fprintf(stdout, "%d ", seen_rids[r]);
 	}
 	fprintf(stdout, "\n");
-	free(seen_rids);
 }
 
-void shift_positions_by_one(bwaidx_t* idx, int positions_cnt, bwt_position_t** positions,
+void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
 														const int query_length, const uint64_t k, const uint64_t l) {
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
-		bwt_position_t* position = *positions + i;
-		if (position->position == (uint64_t)-1) {
+		if (positions[i].position == (uint64_t)-1) {
 			continue;
 		}
 		//if (position.position < bns->l_pac && bns->l_pac < position.position + ref_len)
-		if (position->strand == 0) {
-			position->position++;
+		if (positions[i].strand == 0) {
+			positions[i].position++;
 		} else {
-			if (position->position == 0) {
-				bwt_position_t new_position = get_position(idx, query_length, k + i);
-				position->position = new_position.position;
-				position->strand = new_position.strand;
-				position->rid = new_position.rid;
-			} else {
-				position->position--;
-			}
+			// if (positions[i].position == 0) {
+			// 	bwt_position_t new_position = get_position(idx, query_length, k + i);
+			// 	position->position = new_position.position;
+			// 	position->strand = new_position.strand;
+			// 	position->rid = new_position.rid;
+			// } else {
+				positions[i].position--;
+			//}
 		}
 	}
 }
@@ -230,8 +215,6 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	bwt_t* bwt = idx->bwt;
 
 	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
-	int* seen_rids = NULL;
-	bwt_position_t* positions = NULL;
 	uint64_t index;
 	for(index = 0; index < idx->bns->n_seqs; ++index) {
 		seen_rids_marks[index] = 0;
@@ -287,14 +270,14 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					if (prev_l - prev_k == l - k
 							&& increased_l - decreased_k == l - k) {
 						using_prev_rids++;
-						shift_positions_by_one(idx, positions_cnt, &positions, opt->kmer_length, k, l);
+						shift_positions_by_one(idx, positions_cnt, opt->kmer_length, k, l);
 					} else {
 						rids_computations++;
 						get_positions(idx, opt->kmer_length,
-							k, l, &positions);
+							k, l);
 					}
 					int rids_cnt = get_contigs_from_positions(idx, opt->kmer_length,
-						positions_cnt, &positions, &seen_rids, &seen_rids_marks, opt->skip_positions_on_border);
+						positions_cnt, &seen_rids_marks, opt->skip_positions_on_border);
 					output_chromosomes(seen_rids, rids_cnt);
 				}
 				else {
