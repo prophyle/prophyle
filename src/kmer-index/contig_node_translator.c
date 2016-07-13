@@ -18,11 +18,15 @@ int get_node_from_contig(int contig) {
 void add_contig(const char* contig, int contig_number) {
   contigs_count++;
   char* ch = strchr(contig, '_');
-  int index = ch - contig;
+  int index = 0;
+  if (ch == NULL) {
+    index = strlen(contig);
+  } else {
+    index = ch - contig;
+  }
   char* node_name = malloc((index + 1) * sizeof(char));
   memcpy(node_name, contig, index);
   node_name[index] = '\0';
-  // fprintf(stderr, "node_name = %s\n", node_name);
   // if (nodes_count > 0) {
   //   fprintf(stderr, "prev node_name = %s\n", node_names[nodes_count - 1]);
   //   fprintf(stderr, "equal = %d\n", strcmp(node_name, node_names[nodes_count - 1]));
