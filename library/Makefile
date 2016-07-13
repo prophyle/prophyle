@@ -1,7 +1,6 @@
 SUBDIRS := $(wildcard */.)
 #SUBDIRS_C := "Bacteria/.complete"
-COMPLETES := Bacteria/.complete Plasmids/.complete Viruses/.complete
-
+COMPLETES := Plasmids/.complete Viruses/.complete Bacteria/.complete
 
 .PHONY: clean all #$(SUBDIRS)
 .DEFAULT_GOAL := all
@@ -26,4 +25,4 @@ clean:
 		if [ -d $$a ]; then \
 			$(MAKE) -C $$a clean; \
 		fi; \
-	done;	
+	done;

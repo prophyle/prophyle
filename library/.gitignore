@@ -1,8 +1,9 @@
+*.dmp
 *.ffn
 *.fna
 *.fa
 *.fai
-.complete
+.complete*
 *.fq
 *.sam
 
