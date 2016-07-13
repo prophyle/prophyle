@@ -19,6 +19,7 @@ typedef struct {
 	uint64_t position;
 	int strand;
 	int rid;
+	int node;
 } bwt_position_t;
 
 	exk_opt_t *exk_init_opt();
