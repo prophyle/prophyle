@@ -1,15 +1,12 @@
 SUBDIRS := $(wildcard */.)
 #SUBDIRS_C := "Bacteria/.complete"
-COMPLETES := Plasmids/.complete Viruses/.complete Bacteria/.complete
+COMPLETES := Bacteria/.complete Plasmids/.complete Viruses/.complete HMP/.complete
+
 
 .PHONY: clean all #$(SUBDIRS)
 .DEFAULT_GOAL := all
 
-all: $(COMPLETES) .complete
-
-.complete: $(COMPLETES)
-	bash -c "find . -name '*.fna' -o -name '*.ffn' | parallel --no-notice --verbose samtools faidx {}"
-	touch .complete
+all: $(COMPLETES)
 
 Bacteria/.complete:
 	$(MAKE) -C Bacteria
@@ -19,6 +16,9 @@ Viruses/.complete:
 
 Plasmids/.complete:
 	$(MAKE) -C Plasmids
+
+HMP/.complete:
+	$(MAKE) -C HMP
 
 clean:
 	@for a in $$(ls); do \
