@@ -33,7 +33,10 @@
 #endif
 
 static bwt_position_t positions[10000];
-static int seen_rids[10000];
+int* seen_rids;
+int rids_count;
+int* prev_seen_rids;
+int prev_rids_count;
 
 exk_opt_t *exk_init_opt()
 {
@@ -136,6 +139,19 @@ int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_
 		|| position->position < idx->bns->anns[position->rid].offset);
 }
 
+void sort(int count, int** array) {
+	int i;
+	for(i = 1; i < count; ++i) {
+		int x = (*array)[i];
+		int j = i - 1;
+		while (j >= 0 && (*array)[j] > x) {
+			(*array)[j + 1] = (*array)[j];
+			j--;
+		}
+		(*array)[j + 1] = x;
+	}
+}
+
 size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
 																int8_t** seen_nodes_marks, int skip_positions_on_border) {
@@ -168,6 +184,7 @@ size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 	for(r = 0; r < rids_cnt; ++r) {
 		(*seen_nodes_marks)[seen_rids[r]] = 0;
 	}
+	sort(rids_cnt, &seen_rids);
 	return rids_cnt;
 }
 
@@ -178,6 +195,19 @@ void output_chromosomes(int* seen_rids, const int rids_cnt) {
 		fprintf(stdout, "%d ", seen_rids[r]);
 	}
 	fprintf(stdout, "\n");
+}
+
+void output_chromosomes_new(int* seen_rids, const int rids_cnt, int streak_length) {
+	if (rids_cnt > 0) {
+		int r;
+		for(r = 0; r < rids_cnt - 1; ++r) {
+			fprintf(stdout, "%d, ", seen_rids[r]);
+		}
+		fprintf(stdout, "%d: ", seen_rids[rids_cnt - 1]);
+	} else {
+		fprintf(stdout, "0: ");
+	}
+	fprintf(stdout, "%d ", streak_length);
 }
 
 void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
@@ -203,10 +233,25 @@ void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
 	}
 }
 
+int equal(int a_cnt, int* a, int b_cnt, int* b) {
+	if (a_cnt != b_cnt) {
+		return 0;
+	}
+	int i;
+	for(i = 0; i < a_cnt; ++i) {
+		if (a[i] != b[i]) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
 void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp)
 {
 	bwase_initialize();
+	seen_rids = malloc(10000 * sizeof(int));
+	prev_seen_rids = malloc(10000 * sizeof(int));
 	int i, j;
 	bwt_t* bwt = idx->bwt;
 
@@ -238,6 +283,9 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			fprintf(stdout, "\n");
 		}
 		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
+		int current_streak_length = 0;
+		rids_count = 0;
+		prev_rids_count = 0;
 		int start_pos = 0;
 		int zero_streak = 0;
 		int was_one = 0;
@@ -260,6 +308,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		  //fprintf(stderr, "start_pos = %d\n", start_pos);
 			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
+			int rids_cnt = 0;
 			if (opt->output_rids) {
 				if (k <= l) {
 					size_t positions_cnt = l - k + 1;
@@ -272,46 +321,62 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 						get_positions(idx, opt->kmer_length,
 							k, l);
 					}
-					int rids_cnt = get_nodes_from_positions(idx, opt->kmer_length,
+					rids_cnt = get_nodes_from_positions(idx, opt->kmer_length,
 						positions_cnt, &seen_nodes_marks, opt->skip_positions_on_border);
-					output_chromosomes(seen_rids, rids_cnt);
+					//output_chromosomes(seen_rids, rids_cnt);
 				}
 				else {
-					fprintf(stdout, "0 \n");
+					//fprintf(stdout, "0 \n");
+					rids_cnt = 0;
 				}
 			}
+			if (start_pos == 0 || (equal(rids_cnt, seen_rids, prev_rids_count, prev_seen_rids))) {
+				current_streak_length++;
+			} else {
+				output_chromosomes_new(prev_seen_rids, prev_rids_count, current_streak_length);
+				current_streak_length = 1;
+			}
+			int* tmp = seen_rids;
+			seen_rids = prev_seen_rids;
+			prev_seen_rids = tmp;
+			prev_rids_count = rids_cnt;
 			prev_k = k;
 			prev_l = l;
-			if (opt->skip_after_fail) {
-				if (k <= l) {
-					was_one = 1;
-					zero_streak = 0;
-				} else {
-					if (was_one) {
-						if (zero_streak == 0) {
-							zero_streak += opt->kmer_length - 2;
-							if (opt->output_rids) {
-								int ind;
-								for(ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
-									fprintf(stdout, "0 \n");
-								}
-							}
-							start_pos += opt->kmer_length - 2;
-						} else {
-							zero_streak++;
-						}
-					}
-				}
-			}
+			// if (opt->skip_after_fail) {
+			// 	if (k <= l) {
+			// 		was_one = 1;
+			// 		zero_streak = 0;
+			// 	} else {
+			// 		if (was_one) {
+			// 			if (zero_streak == 0) {
+			// 				zero_streak += opt->kmer_length - 2;
+			// 				if (opt->output_rids) {
+			// 					int ind;
+			// 					for(ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
+			// 						fprintf(stdout, "0 \n");
+			// 					}
+			// 				}
+			// 				start_pos += opt->kmer_length - 2;
+			// 			} else {
+			// 				zero_streak++;
+			// 			}
+			// 		}
+			// 	}
+			// }
 			start_pos++;
 		}
-		//fprintf(stdout, "#\n");
+		if (current_streak_length > 0) {
+			output_chromosomes_new(prev_seen_rids, prev_rids_count, current_streak_length);
+		}
+		fprintf(stdout, "\n");
 		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
 		p->name = 0; p->seq = p->rseq = p->qual = 0;
 	}
 	fprintf(stderr, "rids computed: %d\n", rids_computations);
 	fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
 	free(seen_nodes_marks);
+	free(seen_rids);
+	free(prev_seen_rids);
 }
 
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
