@@ -5,8 +5,14 @@ include ../conf.mk
 
 all: .complete
 
-.complete:
+.complete.download:
 	curl $(FTP_SERVER)/genomes/Viruses/all.fna.tar.gz | tar xvz
 	curl $(FTP_SERVER)/genomes/Viruses/all.ffn.tar.gz | tar xvz
+	touch $@
 
-	touch .complete
+.complete.faidx: .complete.download
+	bash -c $(FAIDX)
+	touch $@
+
+.complete: .complete.faidx
+	touch $@
