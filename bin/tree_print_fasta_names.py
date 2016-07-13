@@ -6,14 +6,15 @@ import datetime
 import sys
 import argparse
 
-from tree_formatter import *
+from ete3 import Tree
 
 import logging
 
+DEFAULT_FORMAT = 1
 
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,format=10):
+	def __init__(self,tree_newick_fn,format=DEFAULT_FORMAT):
 		self.tree_newick_fn=tree_newick_fn
 		self.tree=read_newick(tree_newick_fn,format=format)
 
