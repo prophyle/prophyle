@@ -10,7 +10,8 @@ typedef struct {
 
 	int use_klcp;
 	int kmer_length;
-	int output_rids;
+	int output;
+	int output_old;
 	int skip_after_fail;
 	int skip_positions_on_border;
 
