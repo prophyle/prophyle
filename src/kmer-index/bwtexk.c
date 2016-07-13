@@ -33,10 +33,10 @@
 #endif
 
 static bwt_position_t positions[10000];
-int* seen_rids;
-int rids_count;
-int* prev_seen_rids;
-int prev_rids_count;
+int* seen_nodes;
+int nodes_count;
+int* prev_seen_nodes;
+int prev_nodes_count;
 
 exk_opt_t *exk_init_opt()
 {
@@ -156,7 +156,7 @@ void sort(int count, int** array) {
 size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
 																int8_t** seen_nodes_marks, int skip_positions_on_border) {
-	size_t rids_cnt = 0;
+	size_t nodes_cnt = 0;
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
 		uint64_t pos = positions[i].position;
@@ -167,44 +167,44 @@ size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 		int rid = positions[i].rid;
 		if (rid == -1 || position_on_border(idx, &(positions[i]), query_length)) {
 			rid = bns_pos2rid(idx->bns, pos);
-			int node = get_node_from_contig(rid);
 			positions[i].rid = rid;
-			positions[i].node = node;
 		}
-		int seen = (*seen_nodes_marks)[rid];
+		int node = get_node_from_contig(rid);
+		positions[i].node = node;
+		int seen = (*seen_nodes_marks)[node];
 		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
 		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
-		if (!seen && rid != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
-			seen_rids[rids_cnt] = rid;
-			++rids_cnt;
-			(*seen_nodes_marks)[rid] = 1;
+		if (!seen && node != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
+			seen_nodes[nodes_cnt] = node;
+			++nodes_cnt;
+			(*seen_nodes_marks)[node] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
 		}
 	}
 	int r;
-	for(r = 0; r < rids_cnt; ++r) {
-		(*seen_nodes_marks)[seen_rids[r]] = 0;
+	for(r = 0; r < nodes_cnt; ++r) {
+		(*seen_nodes_marks)[seen_nodes[r]] = 0;
 	}
-	sort(rids_cnt, &seen_rids);
-	return rids_cnt;
+	sort(nodes_cnt, &seen_nodes);
+	return nodes_cnt;
 }
 
-void output_old(int* seen_rids, const int rids_cnt) {
-	fprintf(stdout, "%d ", rids_cnt);
+void output_old(int* seen_nodes, const int nodes_cnt) {
+	fprintf(stdout, "%d ", nodes_cnt);
 	int r;
-	for(r = 0; r < rids_cnt; ++r) {
-		fprintf(stdout, "%d ", seen_rids[r]);
+	for(r = 0; r < nodes_cnt; ++r) {
+		fprintf(stdout, "%d ", seen_nodes[r]);
 	}
 	fprintf(stdout, "\n");
 }
 
-void output(int* seen_rids, const int rids_cnt, int streak_length) {
-	if (rids_cnt > 0) {
+void output(int* seen_nodes, const int nodes_cnt, int streak_length) {
+	if (nodes_cnt > 0) {
 		int r;
-		for(r = 0; r < rids_cnt - 1; ++r) {
-			fprintf(stdout, "%d, ", seen_rids[r]);
+		for(r = 0; r < nodes_cnt - 1; ++r) {
+			fprintf(stdout, "%d, ", seen_nodes[r]);
 		}
-		fprintf(stdout, "%d: ", seen_rids[rids_cnt - 1]);
+		fprintf(stdout, "%d: ", seen_nodes[nodes_cnt - 1]);
 	} else {
 		fprintf(stdout, "0: ");
 	}
@@ -251,8 +251,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp)
 {
 	bwase_initialize();
-	seen_rids = malloc(10000 * sizeof(int));
-	prev_seen_rids = malloc(10000 * sizeof(int));
+	seen_nodes = malloc(10000 * sizeof(int));
+	prev_seen_nodes = malloc(10000 * sizeof(int));
 	int i, j;
 	bwt_t* bwt = idx->bwt;
 
@@ -284,8 +284,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 
 		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
 		int current_streak_length = 0;
-		rids_count = 0;
-		prev_rids_count = 0;
+		nodes_count = 0;
+		prev_nodes_count = 0;
 		int start_pos = 0;
 		//int zero_streak = 0;
 		//int was_one = 0;
@@ -308,7 +308,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		  //fprintf(stderr, "start_pos = %d\n", start_pos);
 			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
-			int rids_cnt = 0;
+			int nodes_cnt = 0;
 			if (k <= l) {
 				size_t positions_cnt = l - k + 1;
 				if (prev_l - prev_k == l - k
@@ -320,23 +320,23 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					get_positions(idx, opt->kmer_length,
 						k, l);
 				}
-				rids_cnt = get_nodes_from_positions(idx, opt->kmer_length,
+				nodes_cnt = get_nodes_from_positions(idx, opt->kmer_length,
 					positions_cnt, &seen_nodes_marks, opt->skip_positions_on_border);
 			}
 			if (opt->output_old) {
-				output_old(seen_rids, rids_cnt);
+				output_old(seen_nodes, nodes_cnt);
 			} else if (opt->output) {
-				if (start_pos == 0 || (equal(rids_cnt, seen_rids, prev_rids_count, prev_seen_rids))) {
+				if (start_pos == 0 || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
 					current_streak_length++;
 				} else {
-					output(prev_seen_rids, prev_rids_count, current_streak_length);
+					output(prev_seen_nodes, prev_nodes_count, current_streak_length);
 					current_streak_length = 1;
 				}
 			}
-			int* tmp = seen_rids;
-			seen_rids = prev_seen_rids;
-			prev_seen_rids = tmp;
-			prev_rids_count = rids_cnt;
+			int* tmp = seen_nodes;
+			seen_nodes = prev_seen_nodes;
+			prev_seen_nodes = tmp;
+			prev_nodes_count = nodes_cnt;
 			prev_k = k;
 			prev_l = l;
 			// if (opt->skip_after_fail) {
@@ -363,7 +363,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			start_pos++;
 		}
 		if (current_streak_length > 0) {
-			output(prev_seen_rids, prev_rids_count, current_streak_length);
+			output(prev_seen_nodes, prev_nodes_count, current_streak_length);
 		}
 		if (opt->output) {
 			fprintf(stdout, "\n");
@@ -374,8 +374,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	fprintf(stderr, "rids computed: %d\n", rids_computations);
 	fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
 	free(seen_nodes_marks);
-	free(seen_rids);
-	free(prev_seen_rids);
+	free(seen_nodes);
+	free(prev_seen_nodes);
 }
 
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
