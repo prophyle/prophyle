@@ -18,6 +18,7 @@
 #include "kstring.h"
 #include "klcp.h"
 #include "bwautils.h"
+#include "contig_node_translator.h"
 
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "0.0.1"
@@ -32,8 +33,10 @@
 #endif
 
 static bwt_position_t positions[10000];
-static int seen_rids[10000];
-
+int* seen_nodes;
+int nodes_count;
+int* prev_seen_nodes;
+int prev_nodes_count;
 
 exk_opt_t *exk_init_opt()
 {
@@ -44,7 +47,8 @@ exk_opt_t *exk_init_opt()
 	o->trim_qual = 0;
 	o->kmer_length = 14;
 	o->use_klcp = 0;
-	o->output_rids = 0;
+	o->output = 1;
+	o->output_old = 0;
 	o->skip_positions_on_border = 1;
 	o->need_log = 0;
 	o->log_file_name = NULL;
@@ -136,10 +140,23 @@ int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_
 		|| position->position < idx->bns->anns[position->rid].offset);
 }
 
-size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
+void sort(int count, int** array) {
+	int i;
+	for(i = 1; i < count; ++i) {
+		int x = (*array)[i];
+		int j = i - 1;
+		while (j >= 0 && (*array)[j] > x) {
+			(*array)[j + 1] = (*array)[j];
+			j--;
+		}
+		(*array)[j + 1] = x;
+	}
+}
+
+size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 																const int positions_cnt,
-																int8_t** seen_rids_marks, int skip_positions_on_border) {
-	size_t rids_cnt = 0;
+																int8_t** seen_nodes_marks, int skip_positions_on_border) {
+	size_t nodes_cnt = 0;
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
 		uint64_t pos = positions[i].position;
@@ -150,37 +167,48 @@ size_t get_contigs_from_positions(const bwaidx_t* idx, const int query_length,
 		int rid = positions[i].rid;
 		if (rid == -1 || position_on_border(idx, &(positions[i]), query_length)) {
 			rid = bns_pos2rid(idx->bns, pos);
-		}
-		int seen = 0;
-		if (rid != -1) {
-			seen = (*seen_rids_marks)[rid];
 			positions[i].rid = rid;
-		} else {
-			fprintf(stderr, "ERROR, rid = -1\n");
 		}
+		int node = get_node_from_contig(rid);
+		positions[i].node = node;
+		int seen = (*seen_nodes_marks)[node];
 		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
 		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
-		if (!seen && rid != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
-			seen_rids[rids_cnt] = rid;
-			++rids_cnt;
-			(*seen_rids_marks)[rid] = 1;
+		if (!seen && node != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
+			seen_nodes[nodes_cnt] = node;
+			++nodes_cnt;
+			(*seen_nodes_marks)[node] = 1;
 			//fprintf(stderr, "t = %d, pos = %d, rid = %d\n", t, pos, rid);
 		}
 	}
 	int r;
-	for(r = 0; r < rids_cnt; ++r) {
-		(*seen_rids_marks)[seen_rids[r]] = 0;
+	for(r = 0; r < nodes_cnt; ++r) {
+		(*seen_nodes_marks)[seen_nodes[r]] = 0;
 	}
-	return rids_cnt;
+	sort(nodes_cnt, &seen_nodes);
+	return nodes_cnt;
 }
 
-void output_chromosomes(int* seen_rids, const int rids_cnt) {
-	fprintf(stdout, "%d ", rids_cnt);
+void output_old(int* seen_nodes, const int nodes_cnt) {
+	fprintf(stdout, "%d ", nodes_cnt);
 	int r;
-	for(r = 0; r < rids_cnt; ++r) {
-		fprintf(stdout, "%d ", seen_rids[r]);
+	for(r = 0; r < nodes_cnt; ++r) {
+		fprintf(stdout, "%d ", seen_nodes[r]);
 	}
 	fprintf(stdout, "\n");
+}
+
+void output(int* seen_nodes, const int nodes_cnt, int streak_length) {
+	if (nodes_cnt > 0) {
+		int r;
+		for(r = 0; r < nodes_cnt - 1; ++r) {
+			fprintf(stdout, "%d, ", seen_nodes[r]);
+		}
+		fprintf(stdout, "%d: ", seen_nodes[nodes_cnt - 1]);
+	} else {
+		fprintf(stdout, "0: ");
+	}
+	fprintf(stdout, "%d ", streak_length);
 }
 
 void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
@@ -206,20 +234,33 @@ void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
 	}
 }
 
+int equal(int a_cnt, int* a, int b_cnt, int* b) {
+	if (a_cnt != b_cnt) {
+		return 0;
+	}
+	int i;
+	for(i = 0; i < a_cnt; ++i) {
+		if (a[i] != b[i]) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
 void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp)
 {
 	bwase_initialize();
+	seen_nodes = malloc(10000 * sizeof(int));
+	prev_seen_nodes = malloc(10000 * sizeof(int));
 	int i, j;
-
 	bwt_t* bwt = idx->bwt;
 
-	int8_t* seen_rids_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
+	int8_t* seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
 	uint64_t index;
 	for(index = 0; index < idx->bns->n_seqs; ++index) {
-		seen_rids_marks[index] = 0;
+		seen_nodes_marks[index] = 0;
 	}
-	fprintf(stdout, "\n");
 	int rids_computations = 0;
 	int using_prev_rids = 0;
 	for (i = 0; i != n_seqs; ++i) {
@@ -234,17 +275,19 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		// for (j = 0; j < p->len; ++j) // we need to complement
 		// 	p->seq[j] = p->seq[j] > 3? 4 : 3 - p->seq[j];
 
-		if (opt->output_rids) {
-			fprintf(stdout, "#");
-			for(j = (int)p->len - 1; j>= 0; j--) {
-				fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
-			}
-			fprintf(stdout, "\n");
+		fprintf(stdout, "#");
+		for(j = (int)p->len - 1; j>= 0; j--) {
+			fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
 		}
+		fprintf(stdout, "\n");
+
 		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
+		int current_streak_length = 0;
+		nodes_count = 0;
+		prev_nodes_count = 0;
 		int start_pos = 0;
-		int zero_streak = 0;
-		int was_one = 0;
+		//int zero_streak = 0;
+		//int was_one = 0;
 		uint64_t decreased_k = 1;
 		uint64_t increased_l = 0;
 		while (start_pos <= p->len - opt->kmer_length) {
@@ -264,58 +307,74 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		  //fprintf(stderr, "start_pos = %d\n", start_pos);
 			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
 			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
-			if (opt->output_rids) {
-				if (k <= l) {
-					size_t positions_cnt = l - k + 1;
-					if (prev_l - prev_k == l - k
-							&& increased_l - decreased_k == l - k) {
-						using_prev_rids++;
-						shift_positions_by_one(idx, positions_cnt, opt->kmer_length, k, l);
-					} else {
-						rids_computations++;
-						get_positions(idx, opt->kmer_length,
-							k, l);
-					}
-					int rids_cnt = get_contigs_from_positions(idx, opt->kmer_length,
-						positions_cnt, &seen_rids_marks, opt->skip_positions_on_border);
-					output_chromosomes(seen_rids, rids_cnt);
+			int nodes_cnt = 0;
+			if (k <= l) {
+				size_t positions_cnt = l - k + 1;
+				if (prev_l - prev_k == l - k
+						&& increased_l - decreased_k == l - k) {
+					using_prev_rids++;
+					shift_positions_by_one(idx, positions_cnt, opt->kmer_length, k, l);
+				} else {
+					rids_computations++;
+					get_positions(idx, opt->kmer_length,
+						k, l);
 				}
-				else {
-					fprintf(stdout, "0 \n");
+				nodes_cnt = get_nodes_from_positions(idx, opt->kmer_length,
+					positions_cnt, &seen_nodes_marks, opt->skip_positions_on_border);
+			}
+			if (opt->output_old) {
+				output_old(seen_nodes, nodes_cnt);
+			} else if (opt->output) {
+				if (start_pos == 0 || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
+					current_streak_length++;
+				} else {
+					output(prev_seen_nodes, prev_nodes_count, current_streak_length);
+					current_streak_length = 1;
 				}
 			}
+			int* tmp = seen_nodes;
+			seen_nodes = prev_seen_nodes;
+			prev_seen_nodes = tmp;
+			prev_nodes_count = nodes_cnt;
 			prev_k = k;
 			prev_l = l;
-			if (opt->skip_after_fail) {
-				if (k <= l) {
-					was_one = 1;
-					zero_streak = 0;
-				} else {
-					if (was_one) {
-						if (zero_streak == 0) {
-							zero_streak += opt->kmer_length - 2;
-							if (opt->output_rids) {
-								int ind;
-								for(ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
-									fprintf(stdout, "0 \n");
-								}
-							}
-							start_pos += opt->kmer_length - 2;
-						} else {
-							zero_streak++;
-						}
-					}
-				}
-			}
+			// if (opt->skip_after_fail) {
+			// 	if (k <= l) {
+			// 		was_one = 1;
+			// 		zero_streak = 0;
+			// 	} else {
+			// 		if (was_one) {
+			// 			if (zero_streak == 0) {
+			// 				zero_streak += opt->kmer_length - 2;
+			// 				if (opt->output_rids) {
+			// 					int ind;
+			// 					for(ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
+			// 						fprintf(stdout, "0 \n");
+			// 					}
+			// 				}
+			// 				start_pos += opt->kmer_length - 2;
+			// 			} else {
+			// 				zero_streak++;
+			// 			}
+			// 		}
+			// 	}
+			// }
 			start_pos++;
 		}
-		//fprintf(stdout, "#\n");
+		if (current_streak_length > 0) {
+			output(prev_seen_nodes, prev_nodes_count, current_streak_length);
+		}
+		if (opt->output) {
+			fprintf(stdout, "\n");
+		}
 		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
 		p->name = 0; p->seq = p->rseq = p->qual = 0;
 	}
 	fprintf(stderr, "rids computed: %d\n", rids_computations);
 	fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
-	free(seen_rids_marks);
+	free(seen_nodes_marks);
+	free(seen_nodes);
+	free(prev_seen_nodes);
 }
 
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
@@ -401,7 +460,7 @@ int exk_match(int argc, char *argv[])
 	opt = exk_init_opt();
 	while ((c = getopt(argc, argv, "l:psuvk:n:o:e:i:d:LR:t:NM:O:E:q:f:b012IYB:")) >= 0) {
 		switch (c) {
-		case 'v': opt->output_rids = 1; break;
+		case 'v': { opt->output_old = 1; opt->output = 0; } break;
 		case 'u': opt->use_klcp = 1; break;
 		case 'k': opt->kmer_length = atoi(optarg); break;
 		case 's': opt->skip_after_fail = 1; break;
