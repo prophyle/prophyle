@@ -261,7 +261,6 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	for(index = 0; index < idx->bns->n_seqs; ++index) {
 		seen_nodes_marks[index] = 0;
 	}
-	fprintf(stdout, "\n");
 	int rids_computations = 0;
 	int using_prev_rids = 0;
 	for (i = 0; i != n_seqs; ++i) {
