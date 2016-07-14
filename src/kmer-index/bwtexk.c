@@ -208,11 +208,11 @@ void output(int* seen_nodes, const int nodes_cnt, int streak_length) {
 	if (nodes_cnt > 0) {
 		int r;
 		for(r = 0; r < nodes_cnt - 1; ++r) {
-			fprintf(stdout, "%d, ", seen_nodes[r]);
+			fprintf(stdout, "%d,", seen_nodes[r]);
 		}
-		fprintf(stdout, "%d: ", seen_nodes[nodes_cnt - 1]);
+		fprintf(stdout, "%d:", seen_nodes[nodes_cnt - 1]);
 	} else {
-		fprintf(stdout, "0: ");
+		fprintf(stdout, "0:");
 	}
 	fprintf(stdout, "%d ", streak_length);
 }
@@ -281,12 +281,16 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		// for (j = 0; j < p->len; ++j) // we need to complement
 		// 	p->seq[j] = p->seq[j] > 3? 4 : 3 - p->seq[j];
 
-		fprintf(stdout, "#");
-		for(j = (int)p->len - 1; j>= 0; j--) {
-			fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
+		if (opt->output_old) {
+			fprintf(stdout, "#");
+			for(j = (int)p->len - 1; j>= 0; j--) {
+				fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
+			}
+			fprintf(stdout, "\n");
 		}
-		fprintf(stdout, "\n");
-
+		if (opt->output) {
+			fprintf(stdout, "U %s 0 %d ", p->name, p->len);
+		}
 		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
 		int current_streak_length = 0;
 		nodes_count = 0;
