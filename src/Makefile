@@ -1,6 +1,6 @@
 .PHONY: all clean compile_assembler compile_index compile_ext
 
-all: compile_assembler compile_index compile_ext
+all: compile_assembler compile_index #compile_ext
 
 clean:
 	$(MAKE) -C assembler clean
@@ -13,5 +13,5 @@ compile_assembler:
 compile_index:
 	$(MAKE) -C kmer-index
 
-compile_ext:
-	$(MAKE) -C ../ext
+#compile_ext:
+#	$(MAKE) -C ../ext

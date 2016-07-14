@@ -25,16 +25,7 @@ KLCP=index.fa.$(K).bit.klcp
 #TTIME:=$(TIME) -v
 #TTIME:=$(TIME)
 
-MAKE_PID := $(shell echo $$PPID)
-JOB_FLAG := $(filter -j%, $(subst -j ,-j,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
-JOBS     := $(subst -j,,$(JOB_FLAG))
-ifeq ($(JOBS),)
-	JOB_FLAG := $(filter --jobs%, $(subst --jobs ,--jobs,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
-	JOBS     := $(subst --jobs,,$(JOB_FLAG))
-endif
-ifeq ($(JOBS),)
-	JOBS := 1
-endif
+include ../../src/get_nb_jobs.mk
 
 TIME=../../bin/time
 TTIME:=DATETIME=`date` && $(TIME) -f "$${DATETIME}\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
