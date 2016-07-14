@@ -214,7 +214,7 @@ void output(int* seen_nodes, const int nodes_cnt, int streak_length) {
 	} else {
 		fprintf(stdout, "0:");
 	}
-	fprintf(stdout, "%d ", streak_length);
+	fprintf(stdout, "%d\t", streak_length);
 }
 
 void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
@@ -289,7 +289,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			fprintf(stdout, "\n");
 		}
 		if (opt->output) {
-			fprintf(stdout, "U %s 0 %d ", p->name, p->len);
+			fprintf(stdout, "U\t%s\t0\t%d\t", p->name, p->len);
 		}
 		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
 		int current_streak_length = 0;
