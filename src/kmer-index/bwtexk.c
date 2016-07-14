@@ -32,7 +32,9 @@
 #  include "malloc_wrap.h"
 #endif
 
-static bwt_position_t positions[1000000];
+#define MAX_POSSIBLE_SA_POSITIONS 1000000
+
+bwt_position_t positions[MAX_POSSIBLE_SA_POSITIONS];
 int* seen_nodes;
 int nodes_count;
 int* prev_seen_nodes;
@@ -121,6 +123,10 @@ size_t get_positions(const bwaidx_t* idx, const int query_length,
 										 const uint64_t k, const uint64_t l) {
 	uint64_t t;
 	for(t = k; t <= l; ++t) {
+		if (t - k >= MAX_POSSIBLE_SA_POSITIONS) {
+			fprintf(stderr, "translation from SA-pos to seq-pos is truncated, too many (%llu) positions\n", l - k + 1);
+			break;
+		}
 		int strand;
 		uint64_t pos = bwa_sa2pos(idx->bns, idx->bwt, t, query_length, &strand);//bwt_sa(bwt, t);
 		positions[t - k].position = pos;
@@ -129,7 +135,7 @@ size_t get_positions(const bwaidx_t* idx, const int query_length,
 		//fprintf(stdout, "%llu(%d) ", (*positions)[t - k], strand);
 	}
 	//fprintf(stdout, "\n");
-	return l - k + 1;
+	return (l - k + 1 < MAX_POSSIBLE_SA_POSITIONS ? l - k + 1 : MAX_POSSIBLE_SA_POSITIONS);
 }
 
 int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_length) {
@@ -251,8 +257,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp)
 {
 	bwase_initialize();
-	seen_nodes = malloc(1000000 * sizeof(int));
-	prev_seen_nodes = malloc(1000000 * sizeof(int));
+	seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int));
+	prev_seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int));
 	int i, j;
 	bwt_t* bwt = idx->bwt;
 
@@ -286,6 +292,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		nodes_count = 0;
 		prev_nodes_count = 0;
 		int start_pos = 0;
+		size_t positions_cnt = 0;
 		//int zero_streak = 0;
 		//int was_one = 0;
 		uint64_t decreased_k = 1;
@@ -309,14 +316,13 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
 			int nodes_cnt = 0;
 			if (k <= l) {
-				size_t positions_cnt = l - k + 1;
 				if (prev_l - prev_k == l - k
 						&& increased_l - decreased_k == l - k) {
 					using_prev_rids++;
 					shift_positions_by_one(idx, positions_cnt, opt->kmer_length, k, l);
 				} else {
 					rids_computations++;
-					get_positions(idx, opt->kmer_length,
+					positions_cnt = get_positions(idx, opt->kmer_length,
 						k, l);
 				}
 				nodes_cnt = get_nodes_from_positions(idx, opt->kmer_length,
