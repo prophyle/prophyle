@@ -204,7 +204,11 @@ void output_old(int* seen_nodes, const int nodes_cnt) {
 	fprintf(stdout, "\n");
 }
 
-void output(int* seen_nodes, const int nodes_cnt, int streak_length) {
+void output(int* seen_nodes, const int nodes_cnt, int streak_length, int is_first_streak) {
+	if (!is_first_streak){
+		fprintf(stdout, " ");
+	}
+
 	if (nodes_cnt > 0) {
 		int r;
 		for(r = 0; r < nodes_cnt - 1; ++r) {
@@ -214,7 +218,7 @@ void output(int* seen_nodes, const int nodes_cnt, int streak_length) {
 	} else {
 		fprintf(stdout, "0:");
 	}
-	fprintf(stdout, "%d\t", streak_length);
+	fprintf(stdout, "%d", streak_length);
 }
 
 void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
@@ -301,6 +305,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		//int was_one = 0;
 		uint64_t decreased_k = 1;
 		uint64_t increased_l = 0;
+		int is_first_streak=1;
 		while (start_pos <= p->len - opt->kmer_length) {
 			if (start_pos == 0) {
 				k = 0;
@@ -338,7 +343,10 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 				if (start_pos == 0 || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
 					current_streak_length++;
 				} else {
-					output(prev_seen_nodes, prev_nodes_count, current_streak_length);
+					output(prev_seen_nodes, prev_nodes_count, current_streak_length,is_first_streak);
+					if(is_first_streak){
+						is_first_streak=0;
+					}
 					current_streak_length = 1;
 				}
 			}
@@ -372,7 +380,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			start_pos++;
 		}
 		if (current_streak_length > 0) {
-			output(prev_seen_nodes, prev_nodes_count, current_streak_length);
+			output(prev_seen_nodes, prev_nodes_count, current_streak_length, is_first_streak);
 		}
 		if (opt->output) {
 			fprintf(stdout, "\n");
