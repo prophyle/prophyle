@@ -41,9 +41,7 @@ matrix:
         - sudo pip install --upgrade jinja2 nose
 
 script:
-  - make -C src VERBOSE=1
-  - make -C tests VERBOSE=1
-  
+  - make test
 
 cache:
   directories:
