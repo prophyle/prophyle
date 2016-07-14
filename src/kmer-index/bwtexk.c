@@ -32,7 +32,7 @@
 #  include "malloc_wrap.h"
 #endif
 
-static bwt_position_t positions[10000];
+static bwt_position_t positions[1000000];
 int* seen_nodes;
 int nodes_count;
 int* prev_seen_nodes;
