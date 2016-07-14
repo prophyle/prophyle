@@ -8,7 +8,7 @@ import argparse
 
 from ete3 import Tree
 
-import logging
+#import logging
 
 DEFAULT_FORMAT = 1
 
