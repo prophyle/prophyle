@@ -251,8 +251,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp)
 {
 	bwase_initialize();
-	seen_nodes = malloc(10000 * sizeof(int));
-	prev_seen_nodes = malloc(10000 * sizeof(int));
+	seen_nodes = malloc(1000000 * sizeof(int));
+	prev_seen_nodes = malloc(1000000 * sizeof(int));
 	int i, j;
 	bwt_t* bwt = idx->bwt;
 
