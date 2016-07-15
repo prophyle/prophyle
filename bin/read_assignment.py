@@ -25,7 +25,7 @@ class TreeIndex:
 		for node in self.tree.traverse("postorder"):
 			self.name_dict[node.name]=node
 
-		print (self.name_dict)
+		#print (self.name_dict)
 
 
 	def assdict_to_weightdic(self,ass_dict):
@@ -77,10 +77,11 @@ if __name__ == "__main__":
 			tree_newick_fn=newick_fn,
 		)
 
-	print("lets go")
+	#print("lets go")
 
 	#ti.process_node(ti.tree.get_tree_root())
 	for x in inp_fo:
+		x=x.strip()
 		stat,rname,ass_node,rlen,ass_kmers=x.split("\t")
 
 		ass_dict={}
@@ -107,6 +108,7 @@ if __name__ == "__main__":
 			#FIX: when 2 arg max exist
 			ass_node=max(weight_dict.items(), key=operator.itemgetter(1))[0]
 
-		print(ass_dict, weight_dict)
+			#print(ass_dict)
+			#print(weight_dict)
 
 		print("\t".join([stat,rname,ass_node,rlen,ass_kmers]))
