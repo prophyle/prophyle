@@ -72,6 +72,71 @@ class TreeIndex:
 					w[noden]+=d[node.name]
 		return w
 
+	def print_sam_header(self,file=sys.stdout):
+		# @HD VN:1.5 SO:coordinate
+		# @SQ SN:ref LN:45
+		print("@HD VN:1.5 SO:coordinate",file=file)
+		for node in self.tree.traverse("postorder"):
+			self.name_dict[node.name]=node
+
+			try:
+				ur="\tUR:{}".format(node.fastapath)
+			except:
+				ur=""
+
+			try:
+				sp="\tSP:{}".format(node.sci_name)
+			except:
+				sp=""
+
+			try:
+				as_="\tAS:{}".format(node.gi)
+			except:
+				as_=""
+
+			if node.name!='':
+				print("@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
+						rname=node.name,
+						rlen=1,
+						as_=as_,
+						ur=ur,
+						sp=sp,
+					),file=file)
+
+	def print_sam_line(self,qname,qlen,rname,krakenmers,file=sys.stdout):
+		flag=0
+		pos="1"
+		rname2=rname
+		cigar="{}I".format(qlen)
+		mapq="1"
+
+		if rname is False:
+			flag+=4
+			rname2="*"
+			pos="0"
+			cigar="*"
+			mapq="0"
+
+		"r001 99 ref 7 30 8M2I4M1D3M = 37 39 TTAGATAAAGGATACTG *"
+		print("\t".join(
+				[
+					qname,str(flag),rname2,
+					pos,mapq,cigar,
+					"*","0", "0","*","*"
+					#krakenmers
+				]
+			),file=file)
+
+	def print_kraken_line(self,qname,qlen,rname,krakenmers,file=sys.stdout):
+		if rname is False:
+			stat="U"
+		else:
+			stat="C"
+
+		rname2="0" if rname is False else rname
+
+		print("\t".join([stat,qname,rname2,qlen,krakenmers]),file=file)
+
 
 if __name__ == "__main__":
 
@@ -81,7 +146,7 @@ if __name__ == "__main__":
 			type=argparse.FileType('r'),
 			required=True,
 			dest='input_file',
-			help = 'input file'
+			help='input file',
 		)
 
 	parser.add_argument('-n', '--newick-tree',
@@ -89,19 +154,26 @@ if __name__ == "__main__":
 			metavar='str',
 			required=True,
 			dest='newick_fn',
-			help = 'newick tree',
+			help='newick tree',
+		)
+
+	parser.add_argument('-f', '--oformat',
+			choices=['kraken','sam'],
+			default='kraken',
+			dest='format',
+			help='format of output',
 		)
 
 	parser.add_argument('-l', '--sim-lca',
 			action='store_true',
 			dest='lca',
-			help = 'simulate LCA',
+			help='simulate LCA',
 		)
 
 	parser.add_argument('-g', '--use-gi',
 			action='store_true',
 			dest='gi',
-			help = 'output GIs',
+			help='output GIs',
 		)
 
 
@@ -111,22 +183,33 @@ if __name__ == "__main__":
 	inp_fo=args.input_file
 	lca=args.lca
 	gi=args.gi
+	form=args.format
 
 
 	ti=TreeIndex(
 			tree_newick_fn=newick_fn,
 		)
 
+	if form=='sam':
+		ti.print_sam_header()
+
 	#print("lets go")
+
+
+	if form=='kraken':
+		printf=ti.print_kraken_line
+	elif form=='sam':
+		printf=ti.print_sam_line
+
 
 	#ti.process_node(ti.tree.get_tree_root())
 	for x in inp_fo:
 		x=x.strip()
-		stat,rname,ass_node,rlen,a_kmers=x.split("\t")
+		stat,qname,_,qlen,krakenmers=x.split("\t")
 
 		l=[]
 
-		blocks=a_kmers.split(" ")
+		blocks=krakenmers.split(" ")
 		for b in blocks:
 			(ids,count)=b.split(":")
 
@@ -157,6 +240,11 @@ if __name__ == "__main__":
 			if gi:
 				assigned_node=ti.name2gi(assigned_node)
 		else:
-			assigned_node=0
+			assigned_node=False
 
-		print("\t".join([stat,rname,str(assigned_node),rlen,a_kmers]))
+		printf(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers)
+		#if form=='kraken':
+		#	ti.print_kraken_line(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers)
+		#elif form=='sam':
+		#	ti.print_sam_line(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers)
+		#print("\t".join([stat,rname,str(assigned_node),rlen,a_kmers]))
