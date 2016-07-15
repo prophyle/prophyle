@@ -199,7 +199,7 @@ void output_old(int* seen_nodes, const int nodes_cnt) {
 	fprintf(stdout, "%d ", nodes_cnt);
 	int r;
 	for(r = 0; r < nodes_cnt; ++r) {
-		fprintf(stdout, "%d ", seen_nodes[r]);
+		fprintf(stdout, "%s ", get_node_name(seen_nodes[r]));
 	}
 	fprintf(stdout, "\n");
 }
@@ -208,13 +208,12 @@ void output(int* seen_nodes, const int nodes_cnt, int streak_length, int is_firs
 	if (!is_first_streak){
 		fprintf(stdout, " ");
 	}
-
 	if (nodes_cnt > 0) {
 		int r;
 		for(r = 0; r < nodes_cnt - 1; ++r) {
-			fprintf(stdout, "%d,", seen_nodes[r]);
+			fprintf(stdout, "%s,", get_node_name(seen_nodes[r]));
 		}
-		fprintf(stdout, "%d:", seen_nodes[nodes_cnt - 1]);
+		fprintf(stdout, "%s:", get_node_name(seen_nodes[nodes_cnt - 1]));
 	} else {
 		fprintf(stdout, "0:");
 	}
