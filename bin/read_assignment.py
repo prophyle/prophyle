@@ -42,9 +42,9 @@ class TreeIndex:
 		for (noden_l, count) in kmers_assigned_l:
 			noden=self.lca(noden_l)
 			try:
-				d[lca.name]+=count
+				d[noden]+=count
 			except KeyError:
-				d[lca.name]=count
+				d[noden]=count
 		return d
 
 	def lca(self,noden_l):
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 			for noden in a:
 				if a[noden]==max_hit:
 					noden_m_l.append(noden)
-				elif a[noden]>max_hit
+				elif a[noden]>max_hit:
 					noden_m_l=[noden]
 					max_hit=a[noden]
 
