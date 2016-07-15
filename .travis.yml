@@ -1,7 +1,8 @@
 language: cpp
 
-cache: brew
-  apt: true
+cache: 
+  - brew
+  - apt: true
 
 env:
   global:
