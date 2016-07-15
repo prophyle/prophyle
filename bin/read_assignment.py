@@ -57,7 +57,7 @@ class TreeIndex:
 		if simulate_lca:
 			d=self.dict_from_list_lca(kmers_assigned_l)
 		else:
-			d=self.dict_from_list(kmers_assigned_l)			
+			d=self.dict_from_list(kmers_assigned_l)
 		w=d.copy()
 
 		for noden in d:
