@@ -2,6 +2,7 @@ language: cpp
 
 cache: 
   - brew
+  - pip
   - apt: true
 
 env:
