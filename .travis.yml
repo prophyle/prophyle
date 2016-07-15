@@ -1,6 +1,6 @@
 language: cpp
 
-cache:
+cache: brew
   apt: true
 
 env:
