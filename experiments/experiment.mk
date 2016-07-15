@@ -45,7 +45,6 @@ all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md \
 index/.complete: $(TREE)
 	mkdir -p index
 
-
 	$(NEWICK2MAKEFILE) \
 	-n $(TREE) \
 	-o ./index \
