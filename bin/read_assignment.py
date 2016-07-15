@@ -49,9 +49,7 @@ class TreeIndex:
 
 	def lca(self,noden_l):
 		nodes_l=list(map(lambda x:self.name_dict[x],noden_l))
-		lca=nodes_l[0]
-		for node in nodes_l:
-			lca=lca.get_common_ancestor(node)
+		lca=nodes_l[0].get_common_ancestor(nodes_l)
 		return lca.name
 
 	def assign(self,kmers_assigned_l,simulate_lca=False):
