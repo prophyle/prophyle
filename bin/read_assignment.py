@@ -139,4 +139,11 @@ if __name__ == "__main__":
 					noden_m_l=[noden]
 					max_hit=a[noden]
 
-		print("\t".join([stat,rname,ass_node,rlen,a_kmers]))
+			if len(noden_m_l)==1:
+				assigned_node=noden_m_l[0]
+			else:
+				assigned_node=ti.lca(noden_m_l)
+		else:
+			assigned_node=0
+
+		print("\t".join([stat,rname,assigned_node,rlen,a_kmers]))
