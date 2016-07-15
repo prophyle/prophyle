@@ -27,24 +27,46 @@ class TreeIndex:
 
 		#print (self.name_dict)
 
+	def dict_from_list(self,kmers_assigned_l):
+		d={}
+		for (noden_l, count) in kmers_assigned_l:
+			for noden in noden_l:
+				try:
+					d[noden]+=count
+				except KeyError:
+					d[noden]=count
+		return d
 
-	def assdict_to_weightdic(self,ass_dict):
+	def dict_from_list_lca(self,kmers_assigned_l):
+		d={}
+		for (noden_l, count) in kmers_assigned_l:
+			nodes_l=list(map(lambda x:self.name_dict[x],noden_l))
+			lca=nodes_l[0]
+			for node in nodes_l:
+				lca=lca.get_common_ancestor(node)
+			try:
+				d[lca.name]+=count
+			except KeyError:
+				d[lca.name]=count
+		return d
+
+
+	def assign(self,kmers_assigned_l,simulate_lca=False):
 		all_nodes_hit=set()
 
-		w=ass_dict.copy()
+		if simulate_lca:
+			d=self.dict_from_list_lca(kmers_assigned_l)
+		else:
+			d=self.dict_from_list(kmers_assigned_l)			
+		w=d.copy()
 
-		for node_name in ass_dict:
-
-			node=self.name_dict[node_name]
-
+		for noden in d:
+			node=self.name_dict[noden]
 			while node.up:
 				node=node.up
-
-				if node.name in ass_dict:
-					w[node_name]+=ass_dict[node.name]
-
+				if node.name in d:
+					w[noden]+=d[node.name]
 		return w
-
 
 
 if __name__ == "__main__":
@@ -66,11 +88,18 @@ if __name__ == "__main__":
 			help = 'newick tree',
 		)
 
+	parser.add_argument('-l', '--sim-lca',
+			action='store_true',
+			dest='lca',
+			help = 'simulate LCA',
+		)
+
 
 	args = parser.parse_args()
 
 	newick_fn=args.newick_fn
 	inp_fo=args.input_file
+	lca=args.lca
 
 
 	ti=TreeIndex(
@@ -82,33 +111,36 @@ if __name__ == "__main__":
 	#ti.process_node(ti.tree.get_tree_root())
 	for x in inp_fo:
 		x=x.strip()
-		stat,rname,ass_node,rlen,ass_kmers=x.split("\t")
+		stat,rname,ass_node,rlen,a_kmers=x.split("\t")
 
-		ass_dict={}
+		l=[]
 
-		ass_blocks=ass_kmers.split(" ")
-		for b in ass_blocks:
+		blocks=a_kmers.split(" ")
+		for b in blocks:
 			(ids,count)=b.split(":")
-			ids=ids.split(",")
 
-			for iid in ids:
-				if iid !="0":
-					try:
-						ass_dict[iid]+=int(count)
-					except KeyError:
-						ass_dict[iid]=int(count)
+			if ids=="A" or ids=="0":
+				continue
 
-		if ass_dict!={}:
+			l.append((ids.split(","),int(count)))
 
-			weight_dict=ti.assdict_to_weightdic(ass_dict)
+			#for iid in ids:
+			#	if iid!="0" and iid!="A":
+			#		try:
+			#			ass_dict[iid]+=int(count)
+			#		except KeyError:
+			#			ass_dict[iid]=int(count)
+
+		if l!=[]:
+
+			a=ti.assign(l,simulate_lca=lca)
 			stat="C"
-
 
 			#arg max
 			#FIX: when 2 arg max exist
-			ass_node=max(weight_dict.items(), key=operator.itemgetter(1))[0]
+			ass_node=max(a.items(), key=operator.itemgetter(1))[0]
 
 			#print(ass_dict)
 			#print(weight_dict)
 
-		print("\t".join([stat,rname,ass_node,rlen,ass_kmers]))
+		print("\t".join([stat,rname,ass_node,rlen,a_kmers]))

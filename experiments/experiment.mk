@@ -39,7 +39,8 @@ endif
 
 
 
-all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md assigned_reads.txt
+all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md \
+	assigned_reads.txt assigned_reads_simlca.txt
 
 index/.complete: $(TREE)
 	mkdir -p index
@@ -111,11 +112,16 @@ assigned_reads.txt: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 3.5_read_assignment.log \
 	$(ASSIGNMENT) -i $< -n $(TREE) > $@
 
+assigned_reads_simlca.txt: kmers_rolling.txt $(TREE)
+	$(TTIME) -o 3.6_read_assignment_simlca.log \
+	$(ASSIGNMENT) -l -i $< -n $(TREE) > $@
+
 4.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > 4.1_contigs_stats.log
 
 _main_log.log: index.fa.$(K).bit.klcp 4.1_contigs_stats.log \
-	kmers_rolling.txt kmers_restarted.txt kmers_rolling_skipping.txt kmers_restarted_skipping.txt assigned_reads.txt
+	kmers_rolling.txt kmers_restarted.txt kmers_rolling_skipping.txt kmers_restarted_skipping.txt \
+	assigned_reads.txt assigned_reads_simlca.txt
 	du -sh *.fa.* | grep -v "fa.amb" | grep -v "fa.fai" > 4.2_index_size.log
 	echo > _main_log.log
 	date >> _main_log.log
