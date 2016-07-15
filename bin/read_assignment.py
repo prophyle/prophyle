@@ -40,16 +40,19 @@ class TreeIndex:
 	def dict_from_list_lca(self,kmers_assigned_l):
 		d={}
 		for (noden_l, count) in kmers_assigned_l:
-			nodes_l=list(map(lambda x:self.name_dict[x],noden_l))
-			lca=nodes_l[0]
-			for node in nodes_l:
-				lca=lca.get_common_ancestor(node)
+			noden=self.lca(noden_l)
 			try:
 				d[lca.name]+=count
 			except KeyError:
 				d[lca.name]=count
 		return d
 
+	def lca(self,noden_l):
+		nodes_l=list(map(lambda x:self.name_dict[x],noden_l))
+		lca=nodes_l[0]
+		for node in nodes_l:
+			lca=lca.get_common_ancestor(node)
+		return lca.name
 
 	def assign(self,kmers_assigned_l,simulate_lca=False):
 		all_nodes_hit=set()
@@ -124,23 +127,18 @@ if __name__ == "__main__":
 
 			l.append((ids.split(","),int(count)))
 
-			#for iid in ids:
-			#	if iid!="0" and iid!="A":
-			#		try:
-			#			ass_dict[iid]+=int(count)
-			#		except KeyError:
-			#			ass_dict[iid]=int(count)
-
 		if l!=[]:
 
 			a=ti.assign(l,simulate_lca=lca)
 			stat="C"
 
-			#arg max
-			#FIX: when 2 arg max exist
-			ass_node=max(a.items(), key=operator.itemgetter(1))[0]
-
-			#print(ass_dict)
-			#print(weight_dict)
+			max_hit=-1
+			noden_m_l=[]
+			for noden in a:
+				if a[noden]==max_hit:
+					noden_m_l.append(noden)
+				elif a[noden]>max_hit
+					noden_m_l=[noden]
+					max_hit=a[noden]
 
 		print("\t".join([stat,rname,ass_node,rlen,a_kmers]))
