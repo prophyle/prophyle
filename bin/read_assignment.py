@@ -146,4 +146,4 @@ if __name__ == "__main__":
 		else:
 			assigned_node=0
 
-		print("\t".join([stat,rname,assigned_node,rlen,a_kmers]))
+		print("\t".join([stat,rname,str(assigned_node),rlen,a_kmers]))
