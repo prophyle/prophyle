@@ -52,6 +52,9 @@ class TreeIndex:
 		lca=nodes_l[0].get_common_ancestor(nodes_l)
 		return lca.name
 
+	def name2gi(self,name):
+		return self.name_dict(name).gi
+
 	def assign(self,kmers_assigned_l,simulate_lca=False):
 		all_nodes_hit=set()
 
@@ -95,12 +98,19 @@ if __name__ == "__main__":
 			help = 'simulate LCA',
 		)
 
+	parser.add_argument('-g', '--use-gi',
+			action='store_true',
+			dest='gi',
+			help = 'output GIs',
+		)
+
 
 	args = parser.parse_args()
 
 	newick_fn=args.newick_fn
 	inp_fo=args.input_file
 	lca=args.lca
+	gi=args.gi
 
 
 	ti=TreeIndex(
@@ -143,6 +153,9 @@ if __name__ == "__main__":
 				assigned_node=noden_m_l[0]
 			else:
 				assigned_node=ti.lca(noden_m_l)
+
+			if gi:
+				assigned_node=ti.name2gi(assigned_node)
 		else:
 			assigned_node=0
 
