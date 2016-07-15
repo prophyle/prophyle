@@ -11,6 +11,7 @@ BUILD_FA=../../src/build_index.py
 BWA=../../bin/bwa
 SAMTOOLS?=samtools
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
+ASSIGNMENT=../../bin/read_assignment.py
 FINAL_FA=../../bin/create_final_fasta.py
 
 READS?=../../reads/simulation_bacteria.1000000.fq
@@ -38,7 +39,7 @@ endif
 
 
 
-all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md
+all: index.fa.sa index.fa.$(K).bit.klcp _main_log.log _main_log.md assigned_reads.txt
 
 index/.complete: $(TREE)
 	mkdir -p index
@@ -106,11 +107,15 @@ kmers_restarted_skipping.txt: $(READS) index.fa.sa kmers_rolling.txt \
 	$(EXK) match -l 3.4b_matching_restarted_skipping.log \
 		-k $(K) -s index.fa $(READS) > $@
 
+assigned_reads.txt: kmers_rolling.txt $(TREE)
+	$(TTIME) -o 3.5_read_assignment.log \
+	$(ASSIGNMENT) -i $< -n $(TREE) > $@
+
 4.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > 4.1_contigs_stats.log
 
 _main_log.log: index.fa.$(K).bit.klcp 4.1_contigs_stats.log \
-	kmers_rolling.txt kmers_restarted.txt kmers_rolling_skipping.txt kmers_restarted_skipping.txt
+	kmers_rolling.txt kmers_restarted.txt kmers_rolling_skipping.txt kmers_restarted_skipping.txt assigned_reads.txt
 	du -sh *.fa.* | grep -v "fa.amb" | grep -v "fa.fai" > 4.2_index_size.log
 	echo > _main_log.log
 	date >> _main_log.log
