@@ -53,7 +53,7 @@ class TreeIndex:
 		return lca.name
 
 	def name2gi(self,name):
-		return self.name_dict(name).gi
+		return self.name_dict[name].gi
 
 	def assign(self,kmers_assigned_l,simulate_lca=False):
 		all_nodes_hit=set()
@@ -73,9 +73,7 @@ class TreeIndex:
 		return w
 
 	def print_sam_header(self,file=sys.stdout):
-		# @HD VN:1.5 SO:coordinate
-		# @SQ SN:ref LN:45
-		print("@HD VN:1.5 SO:coordinate",file=file)
+		print("@HD VN:1.5 SO:unsorted",file=file)
 		for node in self.tree.traverse("postorder"):
 			self.name_dict[node.name]=node
 
@@ -103,12 +101,12 @@ class TreeIndex:
 						sp=sp,
 					),file=file)
 
-	def print_sam_line(self,qname,qlen,rname,krakenmers,file=sys.stdout):
+	def print_sam_line(self,qname,qlen,rname,krakenmers,score=None,gi=None,file=sys.stdout):
 		flag=0
 		pos="1"
 		rname2=rname
 		cigar="{}I".format(qlen)
-		mapq="1"
+		mapq="60"
 
 		if rname is False:
 			flag+=4
@@ -117,17 +115,24 @@ class TreeIndex:
 			cigar="*"
 			mapq="0"
 
-		"r001 99 ref 7 30 8M2I4M1D3M = 37 39 TTAGATAAAGGATACTG *"
+		tags=[]
+		if score is not None:
+			tags.append("AS:i:{}".format(score))
+
+		if gi is not None:
+			tags.append("GI:Z:{}".format(gi))
+
 		print("\t".join(
 				[
 					qname,str(flag),rname2,
 					pos,mapq,cigar,
-					"*","0", "0","*","*"
+					"*","0", "0","*","*",
+					"\t".join(tags)
 					#krakenmers
 				]
 			),file=file)
 
-	def print_kraken_line(self,qname,qlen,rname,krakenmers,file=sys.stdout):
+	def print_kraken_line(self,qname,qlen,rname,krakenmers,score=None,gi=None,file=sys.stdout):
 		if rname is False:
 			stat="U"
 		else:
@@ -170,19 +175,11 @@ if __name__ == "__main__":
 			help='simulate LCA',
 		)
 
-	parser.add_argument('-g', '--use-gi',
-			action='store_true',
-			dest='gi',
-			help='output GIs',
-		)
-
-
 	args = parser.parse_args()
 
 	newick_fn=args.newick_fn
 	inp_fo=args.input_file
 	lca=args.lca
-	gi=args.gi
 	form=args.format
 
 
@@ -197,9 +194,9 @@ if __name__ == "__main__":
 
 
 	if form=='kraken':
-		printf=ti.print_kraken_line
+		print_line=ti.print_kraken_line
 	elif form=='sam':
-		printf=ti.print_sam_line
+		print_line=ti.print_sam_line
 
 
 	#ti.process_node(ti.tree.get_tree_root())
@@ -208,6 +205,9 @@ if __name__ == "__main__":
 		stat,qname,_,qlen,krakenmers=x.split("\t")
 
 		l=[]
+
+		max_hit=None
+		gi=None
 
 		blocks=krakenmers.split(" ")
 		for b in blocks:
@@ -236,15 +236,11 @@ if __name__ == "__main__":
 				assigned_node=noden_m_l[0]
 			else:
 				assigned_node=ti.lca(noden_m_l)
-
-			if gi:
-				assigned_node=ti.name2gi(assigned_node)
+			try:
+				gi=ti.name2gi(assigned_node)
+			except AttributeError:
+				pass
 		else:
 			assigned_node=False
 
-		printf(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers)
-		#if form=='kraken':
-		#	ti.print_kraken_line(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers)
-		#elif form=='sam':
-		#	ti.print_sam_line(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers)
-		#print("\t".join([stat,rname,str(assigned_node),rlen,a_kmers]))
+		print_line(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers,score=max_hit,gi=gi)
