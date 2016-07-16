@@ -11,7 +11,9 @@ if len(sys.argv)!=2:
 dir_fn=sys.argv[1]
 
 os.chdir(dir_fn)
-for fn in glob.glob("*.reduced.fa"):
+fa_fns=glob.glob("*.reduced.fa")
+fa_fns.sort()
+for fn in fa_fns:
     print("Processing '{}'".format(fn), file=sys.stderr)
 
     parts=fn.split(".")
