@@ -206,11 +206,11 @@ void output_old(int* seen_nodes, const int nodes_cnt) {
 }
 
 void output(int* seen_nodes, const int nodes_cnt, int streak_length,
-	int is_ambiguos_streak, int is_first_streak) {
+	int is_ambiguous_streak, int is_first_streak) {
 	if (!is_first_streak){
 		fprintf(stdout, " ");
 	}
-	if (is_ambiguos_streak) {
+	if (is_ambiguous_streak) {
 		fprintf(stdout, "A:");
 	} else if (nodes_cnt > 0) {
 		int r;
@@ -309,9 +309,9 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		uint64_t decreased_k = 1;
 		uint64_t increased_l = 0;
 		int is_first_streak = 1;
-		int last_ambiguos_index = 0 - opt->kmer_length;
-		int is_ambiguos_streak = 0;
-		int ambiguos_streak_just_ended = 0;
+		int last_ambiguous_index = 0 - opt->kmer_length;
+		int is_ambiguous_streak = 0;
+		int ambiguous_streak_just_ended = 0;
 		while (start_pos <= p->len - opt->kmer_length) {
 			int end_pos = start_pos + opt->kmer_length - 1;
 			if (opt->output) {
@@ -319,22 +319,22 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					int index = 0;
 					for(index = 0; index < opt->kmer_length; ++index) {
 						if (p->seq[index] > 3) {
-							last_ambiguos_index = index;
+							last_ambiguous_index = index;
 						}
 					}
 				} else {
 					if (p->seq[end_pos] > 3) {
-						last_ambiguos_index = end_pos;
+						last_ambiguous_index = end_pos;
 					}
 				}
-				if (end_pos - last_ambiguos_index < opt->kmer_length) {
-					if (!is_ambiguos_streak) {
+				if (end_pos - last_ambiguous_index < opt->kmer_length) {
+					if (!is_ambiguous_streak) {
 						output(prev_seen_nodes, prev_nodes_count, current_streak_length,
-							is_ambiguos_streak, is_first_streak);
+							is_ambiguous_streak, is_first_streak);
 						if (is_first_streak) {
 							is_first_streak = 0;
 						}
-						is_ambiguos_streak = 1;
+						is_ambiguous_streak = 1;
 						current_streak_length = 1;
 					} else {
 						current_streak_length++;
@@ -342,20 +342,20 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					start_pos++;
 					continue;
 				} else {
-					if (is_ambiguos_streak && current_streak_length > 0) {
+					if (is_ambiguous_streak && current_streak_length > 0) {
 						output(prev_seen_nodes, prev_nodes_count, current_streak_length,
-							is_ambiguos_streak, is_first_streak);
+							is_ambiguous_streak, is_first_streak);
 						if (is_first_streak) {
 							is_first_streak = 0;
 						}
-						is_ambiguos_streak = 0;
+						is_ambiguous_streak = 0;
 						current_streak_length = 0;
 					}
 				}
-				if (end_pos - last_ambiguos_index == opt->kmer_length) {
-					ambiguos_streak_just_ended = 1;
+				if (end_pos - last_ambiguous_index == opt->kmer_length) {
+					ambiguous_streak_just_ended = 1;
 				} else {
-					ambiguos_streak_just_ended = 0;
+					ambiguous_streak_just_ended = 0;
 				}
 			}
 			if (start_pos == 0) {
@@ -391,11 +391,11 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			if (opt->output_old) {
 				output_old(seen_nodes, nodes_cnt);
 			} else if (opt->output) {
-				if (start_pos == 0 || ambiguos_streak_just_ended || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
+				if (start_pos == 0 || ambiguous_streak_just_ended || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
 					current_streak_length++;
 				} else {
 					output(prev_seen_nodes, prev_nodes_count, current_streak_length,
-						is_ambiguos_streak, is_first_streak);
+						is_ambiguous_streak, is_first_streak);
 					if (is_first_streak) {
 						is_first_streak = 0;
 					}
@@ -433,7 +433,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		}
 		if (current_streak_length > 0) {
 			output(prev_seen_nodes, prev_nodes_count, current_streak_length,
-				is_ambiguos_streak, is_first_streak);
+				is_ambiguous_streak, is_first_streak);
 		}
 		if (opt->output) {
 			fprintf(stdout, "\n");
