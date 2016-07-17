@@ -133,5 +133,5 @@ _main_log.md: _main_log.log
 	cat _main_log.log | ../../bin/reformat_log.py > _main_log.md
 
 clean:
-	rm -f index.fa index.fa.* Makefile.generated *.log
+	rm -f index.fa index.fa.* Makefile.generated *.log *.bam
 	rm -fr index/
