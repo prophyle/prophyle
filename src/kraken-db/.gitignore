@@ -3,6 +3,7 @@
 *.txt
 *.dmp
 *.o
+test/
 get_kmers_by_taxid
 taxid_sorter
 fast_converter

@@ -10,7 +10,7 @@
 using namespace std;
 using namespace kraken;
 
-string Input_DB_filename, Index_filename, Taxa_Map_filename, Output_filename;
+string Input_DB_filename, Index_filename, Taxa_Map_filename;
 uint64_t Taxid = 0;
 static const uint64_t NT_MASK = uint64_t(3) << 62;
 
@@ -65,7 +65,6 @@ void convert_bin(KrakenDB db, KrakenDBIndex idx, uint64_t bin_idx) {
 	uint32_t temp_taxid;
 	uint64_t kmer_id = 0;
 	char* trans_kmer = (char*) malloc(key_bits/2);
-	FILE* output_file = fopen(Output_filename.c_str(), "w");
 	
 	for(char* next_pair = bin;
 		next_pair < bin + (len*pair_size);
@@ -75,13 +74,12 @@ void convert_bin(KrakenDB db, KrakenDBIndex idx, uint64_t bin_idx) {
 		memcpy(&temp_taxid, next_pair+key_len, val_len);
 		temp_kmer &= k_mask;
 		kmer_interpreter(temp_kmer, key_bits, trans_kmer);
-		fprintf(output_file, ">kmer|%lu|taxid|%u\n%s\n\n",
+		printf(">kmer|%lu|taxid|%u\n%s\n",
 			++kmer_id, temp_taxid, trans_kmer);
 	}
 
 	free(bin);
 	free(trans_kmer);
-	fclose(output_file);
 }
 
 uint64_t find_index(uint64_t* taxa_map, uint64_t taxa_count) {
@@ -124,7 +122,7 @@ void parse_command_line(int argc, char **argv) {
 	
 	if (argc > 1 && strcmp(argv[1], "-h") == 0)
 		usage(0);
-	while ((opt = getopt(argc, argv, "t:d:i:m:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "t:d:i:m:")) != -1) {
 		switch (opt) {
 			case 't':
 				sscanf(optarg, "%lu", &Taxid);
@@ -138,9 +136,6 @@ void parse_command_line(int argc, char **argv) {
 			case 'm':
 				Taxa_Map_filename = optarg;
 				break;
-			case 'o':
-				Output_filename = optarg;
-				break;
 			default:
 				usage();
 				break;
@@ -152,6 +147,6 @@ void parse_command_line(int argc, char **argv) {
 }
 
 void usage(int exit_code) {
-	cerr << "Usage: get_kmers_by_taxid -t taxid -d input-db -i input-idx -m taxa-map -o output-file\n";
+	cerr << "Usage: get_kmers_by_taxid -t taxid -d input-db -i input-idx -m taxa-map\n";
 	exit(exit_code);
 }
