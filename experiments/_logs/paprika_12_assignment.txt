@@ -1,0 +1,449 @@
+==> 01_1from10_bin_k31/1.1_kmer_propagation.log <==
+Sun Jul 17 13:37:52 CEST 2016
+jobs: 24
+make -f Makefile.generated
+2248.74user 57.16system 2:37.74elapsed 1461%CPU (0avgtext+0avgdata 4706768maxresident)k
+1885520inputs+5007784outputs (6major+35175744minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/1.2_merging_fasta.log <==
+Sun Jul 17 13:40:30 CEST 2016
+jobs: 24
+../../bin/create_final_fasta.py index
+55.95user 2.15system 0:59.89elapsed 97%CPU (0avgtext+0avgdata 33408maxresident)k
+8inputs+2539240outputs (0major+4544minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.1_bwa_fa2pac.log <==
+Sun Jul 17 13:41:30 CEST 2016
+jobs: 24
+../../bin/bwa fa2pac index.fa index.fa
+12.16user 1.59system 0:22.77elapsed 60%CPU (0avgtext+0avgdata 5702000maxresident)k
+872inputs+1837448outputs (3major+404863minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.2_bwa_pac2bwtgen.log <==
+Sun Jul 17 13:41:53 CEST 2016
+jobs: 24
+../../bin/bwa pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
+781.50user 1.23system 13:02.76elapsed 99%CPU (0avgtext+0avgdata 3297200maxresident)k
+0inputs+1042696outputs (0major+22240minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.3_bwa_bwtupdate.log <==
+Sun Jul 17 13:54:55 CEST 2016
+jobs: 24
+../../bin/bwa bwtupdate index.fa.bwt
+4.33user 1.38system 0:16.59elapsed 34%CPU (0avgtext+0avgdata 6264080maxresident)k
+72inputs+2085384outputs (0major+2552minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.4_bwa_bwt2sa.log <==
+Sun Jul 17 13:55:12 CEST 2016
+jobs: 24
+../../bin/bwa bwt2sa index.fa.bwt index.fa.sa
+251.58user 1.01system 4:18.06elapsed 97%CPU (0avgtext+0avgdata 6263904maxresident)k
+32inputs+1042696outputs (0major+28803minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/2.5_klcp.log <==
+Sun Jul 17 13:59:30 CEST 2016
+jobs: 24
+../../bin/exk index -k 31 index.fa
+686.51user 1.09system 11:32.96elapsed 99%CPU (0avgtext+0avgdata 6262832maxresident)k
+32inputs+1042696outputs (0major+34924minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.1a_matching_rolling.log <==
+Sun Jul 17 14:11:03 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
+83.41user 1.85system 1:25.93elapsed 99%CPU (0avgtext+0avgdata 11667664maxresident)k
+176648inputs+196072outputs (0major+379284minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.1b_matching_rolling.log <==
+bwt_loading	0.44s
+sa_loading	0.21s
+bns_loading	5.15s
+klcp_loading	0.26s
+matching_time	79.12s
+reads	1000000
+kmers	70000000
+rpm	758382
+kpm	53086706
+
+==> 01_1from10_bin_k31/3.2a_matching_restarted.log <==
+Sun Jul 17 14:12:29 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
+120.53user 1.36system 2:02.18elapsed 99%CPU (0avgtext+0avgdata 9582864maxresident)k
+0inputs+196072outputs (0major+411626minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.2b_matching_restarted.log <==
+bwt_loading	0.38s
+sa_loading	0.19s
+bns_loading	5.09s
+matching_time	116.16s
+reads	1000000
+kmers	70000000
+rpm	516536
+kpm	36157499
+
+==> 01_1from10_bin_k31/3.3a_matching_rolling_skipping.log <==
+Sun Jul 17 14:14:31 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.3b_matching_rolling_skipping.log -k 31 -u -s index.fa ../../reads/simulation_bacteria.1000000.fq
+83.38user 1.87system 1:25.73elapsed 99%CPU (0avgtext+0avgdata 11667648maxresident)k
+0inputs+196072outputs (0major+396936minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.3b_matching_rolling_skipping.log <==
+bwt_loading	0.49s
+sa_loading	0.25s
+bns_loading	5.24s
+klcp_loading	0.20s
+matching_time	78.96s
+reads	1000000
+kmers	70000000
+rpm	759843
+kpm	53189023
+
+==> 01_1from10_bin_k31/3.4a_matching_restarted_skipping.log <==
+Sun Jul 17 14:15:57 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.4b_matching_restarted_skipping.log -k 31 -s index.fa ../../reads/simulation_bacteria.1000000.fq
+120.70user 1.60system 2:02.49elapsed 99%CPU (0avgtext+0avgdata 9582224maxresident)k
+0inputs+196072outputs (0major+390249minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/3.4b_matching_restarted_skipping.log <==
+bwt_loading	0.49s
+sa_loading	0.24s
+bns_loading	5.23s
+matching_time	116.26s
+reads	1000000
+kmers	70000000
+rpm	516103
+kpm	36127228
+
+==> 01_1from10_bin_k31/4.1_read_assignment.log <==
+Command exited with non-zero status 1
+Sun Jul 17 14:12:29 CEST 2016
+jobs: 24
+../../bin/read_assignment.py -i kmers_rolling.txt -n ../../trees/1from10.bin.newick -f sam
+0.34user 0.01system 0:00.37elapsed 98%CPU (0avgtext+0avgdata 227488maxresident)k
+0inputs+0outputs (0major+9003minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/4.2_read_assignment_simlca.log <==
+Command exited with non-zero status 1
+Sun Jul 17 14:12:29 CEST 2016
+jobs: 24
+../../bin/read_assignment.py -l -i kmers_rolling.txt -n ../../trees/1from10.bin.newick -f sam
+0.34user 0.03system 0:00.38elapsed 98%CPU (0avgtext+0avgdata 226976maxresident)k
+0inputs+0outputs (0major+9002minor)pagefaults 0swaps
+
+==> 01_1from10_bin_k31/5.1_contigs_stats.log <==
+Number of contigs: 8495372
+Total length: 1067712578
+Average length: 125.68167444580413
+   ..st. dev: 1581.592628853994
+Median length: 34.0
+Number of k-mer occurencies: 812851418
+
+==> 01_1from10_bin_k31/5.2_index_size.log <==
+510M	index.fa.31.bit.klcp
+389M	index.fa.ann
+1019M	index.fa.bwt
+510M	index.fa.pac
+510M	index.fa.sa
+
+==> 02_fullBacteria_orig_k31/1.1_kmer_propagation.log <==
+Sun Jul 17 14:18:00 CEST 2016
+jobs: 24
+make -f Makefile.generated
+17586.20user 486.81system 18:09.63elapsed 1658%CPU (0avgtext+0avgdata 39049584maxresident)k
+20823992inputs+44018032outputs (6major+246419805minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/1.2_merging_fasta.log <==
+Sun Jul 17 14:36:10 CEST 2016
+jobs: 24
+../../bin/create_final_fasta.py index
+603.40user 22.87system 12:19.02elapsed 84%CPU (0avgtext+0avgdata 35008maxresident)k
+10671448inputs+24270184outputs (22major+54631minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/2.1_bwa_fa2pac.log <==
+Sun Jul 17 14:48:29 CEST 2016
+jobs: 24
+../../bin/bwa fa2pac index.fa index.fa
+124.96user 23.48system 3:57.28elapsed 62%CPU (0avgtext+0avgdata 59045984maxresident)k
+1104inputs+18390200outputs (3major+6198364minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/2.2_bwa_pac2bwtgen.log <==
+Sun Jul 17 14:52:27 CEST 2016
+jobs: 24
+../../bin/bwa pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
+9016.24user 9.35system 2:30:25elapsed 99%CPU (0avgtext+0avgdata 23417072maxresident)k
+8inputs+9968312outputs (0major+403796minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/2.3_bwa_bwtupdate.log <==
+Sun Jul 17 17:22:52 CEST 2016
+jobs: 24
+../../bin/bwa bwtupdate index.fa.bwt
+42.10user 39.11system 2:37.48elapsed 51%CPU (0avgtext+0avgdata 59816784maxresident)k
+464inputs+19936624outputs (0major+5506006minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/2.4_bwa_bwt2sa.log <==
+Sun Jul 17 17:25:30 CEST 2016
+jobs: 24
+../../bin/bwa bwt2sa index.fa.bwt index.fa.sa
+2758.83user 113.47system 48:35.49elapsed 98%CPU (0avgtext+0avgdata 59817808maxresident)k
+272inputs+9968312outputs (0major+82704617minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/2.5_klcp.log <==
+Sun Jul 17 18:14:05 CEST 2016
+jobs: 24
+../../bin/exk index -k 31 index.fa
+7782.19user 308.70system 2:15:30elapsed 99%CPU (0avgtext+0avgdata 59817296maxresident)k
+960inputs+9968312outputs (2major+313561734minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/3.1a_matching_rolling.log <==
+Sun Jul 17 20:29:36 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
+200.06user 68.38system 4:55.09elapsed 90%CPU (0avgtext+0avgdata 109319504maxresident)k
+23242064inputs+369312outputs (2major+34301928minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/3.1b_matching_rolling.log <==
+bwt_loading	12.15s
+sa_loading	12.54s
+bns_loading	65.80s
+klcp_loading	15.67s
+matching_time	159.94s
+reads	1000000
+kmers	70000000
+rpm	375139
+kpm	26259722
+
+==> 02_fullBacteria_orig_k31/3.2a_matching_restarted.log <==
+Sun Jul 17 20:34:31 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
+550.02user 24.67system 10:07.22elapsed 94%CPU (0avgtext+0avgdata 89383616maxresident)k
+18142048inputs+369312outputs (3major+8538865minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/3.2b_matching_restarted.log <==
+bwt_loading	9.45s
+sa_loading	2.86s
+bns_loading	62.36s
+matching_time	498.77s
+reads	1000000
+kmers	70000000
+rpm	120295
+kpm	8420679
+
+==> 02_fullBacteria_orig_k31/3.3a_matching_rolling_skipping.log <==
+Sun Jul 17 20:44:39 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.3b_matching_rolling_skipping.log -k 31 -u -s index.fa ../../reads/simulation_bacteria.1000000.fq
+201.11user 133.65system 6:11.95elapsed 90%CPU (0avgtext+0avgdata 109321872maxresident)k
+16830680inputs+369312outputs (0major+4205943minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/3.3b_matching_rolling_skipping.log <==
+bwt_loading	8.48s
+sa_loading	2.04s
+bns_loading	58.92s
+klcp_loading	106.93s
+matching_time	157.36s
+reads	1000000
+kmers	70000000
+rpm	381292
+kpm	26690451
+
+==> 02_fullBacteria_orig_k31/3.4a_matching_restarted_skipping.log <==
+Sun Jul 17 20:50:51 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.4b_matching_restarted_skipping.log -k 31 -s index.fa ../../reads/simulation_bacteria.1000000.fq
+547.83user 49.89system 10:22.43elapsed 96%CPU (0avgtext+0avgdata 89384176maxresident)k
+10483824inputs+369312outputs (0major+26364594minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/3.4b_matching_restarted_skipping.log <==
+bwt_loading	10.17s
+sa_loading	14.39s
+bns_loading	65.71s
+matching_time	505.69s
+reads	1000000
+kmers	70000000
+rpm	118651
+kpm	8305560
+
+==> 02_fullBacteria_orig_k31/4.1_read_assignment.log <==
+Command exited with non-zero status 1
+Sun Jul 17 20:34:31 CEST 2016
+jobs: 24
+../../bin/read_assignment.py -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -f sam
+0.87user 0.09system 0:08.45elapsed 11%CPU (0avgtext+0avgdata 278800maxresident)k
+43368inputs+0outputs (159major+12728minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/4.2_read_assignment_simlca.log <==
+Command exited with non-zero status 1
+Sun Jul 17 20:34:31 CEST 2016
+jobs: 24
+../../bin/read_assignment.py -l -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -f sam
+0.83user 0.06system 0:08.41elapsed 10%CPU (0avgtext+0avgdata 279200maxresident)k
+46560inputs+0outputs (180major+12726minor)pagefaults 0swaps
+
+==> 02_fullBacteria_orig_k31/5.1_contigs_stats.log <==
+Number of contigs: 96088810
+Total length: 10207548814
+Average length: 106.23035933112294
+   ..st. dev: 1535.2989315163854
+Median length: 34.0
+Number of k-mer occurencies: 7324884514
+
+==> 02_fullBacteria_orig_k31/5.2_index_size.log <==
+4.8G	index.fa.31.bit.klcp
+4.1G	index.fa.ann
+9.6G	index.fa.bwt
+4.8G	index.fa.pac
+4.8G	index.fa.sa
+
+==> 03_fullHMP_k31/1.1_kmer_propagation.log <==
+Sun Jul 17 21:01:17 CEST 2016
+jobs: 24
+make -f Makefile.generated
+10243.36user 256.26system 11:42.75elapsed 1494%CPU (0avgtext+0avgdata 22141856maxresident)k
+11579600inputs+25577768outputs (50major+142524433minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/1.2_merging_fasta.log <==
+Sun Jul 17 21:12:59 CEST 2016
+jobs: 24
+../../bin/create_final_fasta.py index
+272.43user 11.50system 4:53.37elapsed 96%CPU (0avgtext+0avgdata 36096maxresident)k
+88inputs+13586248outputs (0major+35456minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/2.1_bwa_fa2pac.log <==
+Sun Jul 17 21:17:53 CEST 2016
+jobs: 24
+../../bin/bwa fa2pac index.fa index.fa
+60.21user 9.44system 1:48.27elapsed 64%CPU (0avgtext+0avgdata 25793712maxresident)k
+1128inputs+8864984outputs (3major+1639189minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/2.2_bwa_pac2bwtgen.log <==
+Sun Jul 17 21:19:41 CEST 2016
+jobs: 24
+../../bin/bwa pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
+5451.85user 6.83system 1:30:58elapsed 99%CPU (0avgtext+0avgdata 14608016maxresident)k
+0inputs+6060464outputs (0major+4485128minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/2.3_bwa_bwtupdate.log <==
+Sun Jul 17 22:50:40 CEST 2016
+jobs: 24
+../../bin/bwa bwtupdate index.fa.bwt
+25.36user 17.21system 1:35.03elapsed 44%CPU (0avgtext+0avgdata 36370432maxresident)k
+352inputs+12120928outputs (0major+1912955minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/2.4_bwa_bwt2sa.log <==
+Sun Jul 17 22:52:15 CEST 2016
+jobs: 24
+../../bin/bwa bwt2sa index.fa.bwt index.fa.sa
+1744.08user 46.19system 30:13.40elapsed 98%CPU (0avgtext+0avgdata 36370304maxresident)k
+184inputs+6060464outputs (0major+43424920minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/2.5_klcp.log <==
+Sun Jul 17 23:22:28 CEST 2016
+jobs: 24
+../../bin/exk index -k 31 index.fa
+4399.86user 90.76system 1:15:14elapsed 99%CPU (0avgtext+0avgdata 36371056maxresident)k
+240inputs+6060464outputs (1major+121126613minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/3.1a_matching_rolling.log <==
+Mon Jul 18 00:37:43 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
+132.82user 40.64system 3:09.37elapsed 91%CPU (0avgtext+0avgdata 59269056maxresident)k
+12939760inputs+230792outputs (3major+17521515minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/3.1b_matching_rolling.log <==
+bwt_loading	6.95s
+sa_loading	9.75s
+bns_loading	23.62s
+klcp_loading	10.98s
+matching_time	121.14s
+reads	1000000
+kmers	70000000
+rpm	495279
+kpm	34669507
+
+==> 03_fullHMP_k31/3.2a_matching_restarted.log <==
+Mon Jul 18 00:40:52 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
+314.50user 19.37system 5:34.17elapsed 99%CPU (0avgtext+0avgdata 47147920maxresident)k
+0inputs+230792outputs (0major+10101619minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/3.2b_matching_restarted.log <==
+bwt_loading	4.37s
+sa_loading	4.96s
+bns_loading	22.54s
+matching_time	301.27s
+reads	1000000
+kmers	70000000
+rpm	199159
+kpm	13941114
+
+==> 03_fullHMP_k31/3.3a_matching_rolling_skipping.log <==
+Mon Jul 18 00:46:26 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.3b_matching_rolling_skipping.log -k 31 -u -s index.fa ../../reads/simulation_bacteria.1000000.fq
+137.18user 38.50system 2:56.34elapsed 99%CPU (0avgtext+0avgdata 59268912maxresident)k
+0inputs+230792outputs (0major+20675045minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/3.3b_matching_rolling_skipping.log <==
+bwt_loading	8.27s
+sa_loading	6.81s
+bns_loading	24.85s
+klcp_loading	6.63s
+matching_time	128.19s
+reads	1000000
+kmers	70000000
+rpm	468038
+kpm	32762649
+
+==> 03_fullHMP_k31/3.4a_matching_restarted_skipping.log <==
+Mon Jul 18 00:49:23 CEST 2016
+jobs: 24
+../../bin/exk match -l 3.4b_matching_restarted_skipping.log -k 31 -s index.fa ../../reads/simulation_bacteria.1000000.fq
+303.00user 8.18system 5:12.31elapsed 99%CPU (0avgtext+0avgdata 47156608maxresident)k
+112inputs+230792outputs (1major+1245568minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/3.4b_matching_restarted_skipping.log <==
+bwt_loading	3.33s
+sa_loading	2.12s
+bns_loading	20.21s
+matching_time	285.16s
+reads	1000000
+kmers	70000000
+rpm	210410
+kpm	14728690
+
+==> 03_fullHMP_k31/4.1_read_assignment.log <==
+Command exited with non-zero status 1
+Mon Jul 18 00:40:52 CEST 2016
+jobs: 24
+../../bin/read_assignment.py -i kmers_rolling.txt -n ../../trees/hmp.newick -f sam
+1.08user 0.07system 0:11.08elapsed 10%CPU (0avgtext+0avgdata 366000maxresident)k
+48208inputs+0outputs (183major+16929minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/4.2_read_assignment_simlca.log <==
+Command exited with non-zero status 1
+Mon Jul 18 00:40:52 CEST 2016
+jobs: 24
+../../bin/read_assignment.py -l -i kmers_rolling.txt -n ../../trees/hmp.newick -f sam
+1.14user 0.06system 0:11.14elapsed 10%CPU (0avgtext+0avgdata 364832maxresident)k
+45496inputs+0outputs (188major+16930minor)pagefaults 0swaps
+
+==> 03_fullHMP_k31/5.1_contigs_stats.log <==
+Number of contigs: 33613728
+Total length: 6205913878
+Average length: 184.6243855486663
+   ..st. dev: 2345.8555319156553
+Median length: 34.0
+Number of k-mer occurencies: 5197502038
+
+==> 03_fullHMP_k31/5.2_index_size.log <==
+2.9G	index.fa.31.bit.klcp
+1.4G	index.fa.ann
+5.8G	index.fa.bwt
+2.9G	index.fa.pac
+2.9G	index.fa.sa
