@@ -94,7 +94,7 @@ class TreeIndex:
 		return w
 
 	def print_sam_header(self,file=sys.stdout):
-		print("@HD VN:1.5 SO:unsorted",file=file)
+		print("@HD\tVN:1.5\tSO:unsorted",file=file)
 		for node in self.tree.traverse("postorder"):
 			self.name_dict[node.name]=node
 
