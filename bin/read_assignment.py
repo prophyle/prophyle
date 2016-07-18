@@ -5,8 +5,6 @@ import shutil
 import datetime
 import sys
 import argparse
-import operator
-
 
 from ete3 import Tree
 
@@ -27,49 +25,72 @@ class TreeIndex:
 
 		#print (self.name_dict)
 
-	def dict_from_list(self,kmers_assigned_l):
-		d={}
-		for (noden_l, count) in kmers_assigned_l:
-			for noden in noden_l:
-				try:
-					d[noden]+=count
-				except KeyError:
-					d[noden]=count
-		return d
+	"""
+		kmers_assigned_l:
+			list of (list_of_nodes, count)
 
-	def dict_from_list_lca(self,kmers_assigned_l):
+		dict:
+			node => hit_vector
+	"""
+
+	def dict_from_list(self,kmers_assigned_l,lca=False):
 		d={}
-		for (noden_l, count) in kmers_assigned_l:
-			noden=self.lca(noden_l)
-			try:
-				d[noden]+=count
-			except KeyError:
-				d[noden]=count
+
+		hit_vector=[]
+
+		npos=sum([x[1] for x in kmers_assigned_l])
+
+		pos=0
+		for (noden_l, count) in kmers_assigned_l:			
+			if noden_l!=["0"]:
+				if lca:
+					noden_l=[self.lca(noden_l)]
+
+				v=pos*[False] + count*[True] + (npos-pos-count)*[False]
+
+				for noden in noden_l:
+					try:
+						assert len(d[noden])==len(v)
+						d[noden]=d[noden] or v
+					except KeyError:
+						d[noden]=v
+
+			pos+=count
 		return d
 
 	def lca(self,noden_l):
+		"""Return LCA for a given list of nodes.
+		"""
+		assert len(noden_l)>0, noden_l
+		if len(noden_l)==1:
+			return noden_l[0]
 		nodes_l=list(map(lambda x:self.name_dict[x],noden_l))
 		lca=nodes_l[0].get_common_ancestor(nodes_l)
 		return lca.name
 
 	def name2gi(self,name):
-		return self.name_dict[name].gi
+		#print("err",name,file=sys.stderr)
+		try:
+			gi=self.name_dict[name].gi
+		except AttributeError:
+			return None
+		return gi
 
+	# scores from kmers hits
 	def assign(self,kmers_assigned_l,simulate_lca=False):
 		all_nodes_hit=set()
 
-		if simulate_lca:
-			d=self.dict_from_list_lca(kmers_assigned_l)
-		else:
-			d=self.dict_from_list(kmers_assigned_l)
+		d=self.dict_from_list(kmers_assigned_l,lca=simulate_lca)
 		w=d.copy()
 
 		for noden in d:
+			if noden=="0":
+				continue
 			node=self.name_dict[noden]
 			while node.up:
 				node=node.up
 				if node.name in d:
-					w[noden]+=d[node.name]
+					w[noden]=w[noden] or d[node.name]
 		return w
 
 	def print_sam_header(self,file=sys.stdout):
@@ -212,35 +233,36 @@ if __name__ == "__main__":
 		blocks=krakenmers.split(" ")
 		for b in blocks:
 			(ids,count)=b.split(":")
-
-			if ids=="A" or ids=="0":
-				continue
-
 			l.append((ids.split(","),int(count)))
 
-		if l!=[]:
+		a=ti.assign(l,simulate_lca=lca)
+		#print(file=sys.stderr)
+		#print(a,file=sys.stderr)
+		#print(file=sys.stderr)
 
-			a=ti.assign(l,simulate_lca=lca)
-			stat="C"
-
+		#unclassification criterion
+		if a=={}:
+			assigned_node=False
+		else:
+			try:
+				del a["0"]
+			except KeyError:
+				pass
 			max_hit=-1
 			noden_m_l=[]
 			for noden in a:
-				if a[noden]==max_hit:
+				hit=sum(a[noden])
+				if hit==max_hit:
 					noden_m_l.append(noden)
-				elif a[noden]>max_hit:
+				elif hit>max_hit:
 					noden_m_l=[noden]
-					max_hit=a[noden]
+					max_hit=hit
 
 			if len(noden_m_l)==1:
 				assigned_node=noden_m_l[0]
 			else:
+				#print(noden_m_l,file=sys.stderr)
 				assigned_node=ti.lca(noden_m_l)
-			try:
-				gi=ti.name2gi(assigned_node)
-			except AttributeError:
-				pass
-		else:
-			assigned_node=False
+			gi=ti.name2gi(assigned_node)
 
 		print_line(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers,score=max_hit,gi=gi)
