@@ -41,6 +41,12 @@ parser.add_argument('-b', '--build-tree',
 					default = None,
 					dest='assignments_file',
 					help = 'build the tree from the given file (previous output of --assign-only)')
+parser.add_argument('-r', '--reduction-factor',
+					type=int,
+					metavar='R',
+					default = None,
+					dest='reduction_factor',
+					help = 'build the tree taking into account one every R sequences')
 
 args = parser.parse_args()
 library_dir = args.library_dir
@@ -51,6 +57,7 @@ output_file = args.output_file
 error_file = args.error_file
 dmp_file = args.dmp_file
 assignments_file = args.assignments_file
+reduction_factor = args.reduction_factor
 
 error = open(error_file, 'w')
 ass_seqs = []
@@ -129,6 +136,11 @@ else:
 		error.close()
 		sys.exit(0)
 
+if reduction_factor is not None:
+	print("Building tree for 1 sequence every " + str(reduction_factor))
+	temp = str(len(ass_seqs))
+	ass_seqs = ass_seqs[0::reduction_factor]
+	print("List reduced from " + temp + " to " + str(len(ass_seqs)) + " entries")
 ass_seqs = sorted(ass_seqs, key = lambda x:x[5])
 taxids = [-1]
 prec = 0
