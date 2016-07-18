@@ -73,7 +73,6 @@ static map<uint64_t, uint64_t> map_taxa_fn(char* data) {
 		if (ret.second == true)
 			count++;
 	}
-	count--;
 	FILE* taxa_map_file = fopen(Taxa_Map_filename.c_str(), "wb");
 	fwrite(&count, sizeof(uint64_t), 1, taxa_map_file);
 	for(map<uint64_t, uint64_t>::iterator it = taxa_map.begin();
