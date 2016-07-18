@@ -2,7 +2,9 @@
 *.kdb
 *.txt
 *.dmp
+*.o
 get_kmers_by_taxid
 taxid_sorter
 fast_converter
 build_test_db
+taxa_list

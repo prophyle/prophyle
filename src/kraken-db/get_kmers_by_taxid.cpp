@@ -146,7 +146,8 @@ void parse_command_line(int argc, char **argv) {
 				break;
 		}
 	}
-	if (Taxid == 0 || Input_DB_filename.empty() || Index_filename.empty())
+	if (Taxid == 0 || Input_DB_filename.empty() || Index_filename.empty()
+			|| Taxa_Map_filename.empty() || Output_filename.empty())
 		usage();
 }
 
