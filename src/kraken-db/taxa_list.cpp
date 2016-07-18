@@ -19,7 +19,6 @@ int main(int argc, char **argv) {
 	fclose(taxa_map_file);
 
 	FILE* output_file = fopen(Output_filename.c_str(), "w");
-	fprintf(output_file, "%lu\n", taxa_count);
 	for (uint64_t* next_entry = taxa_map;
 			next_entry < taxa_map + 2*taxa_count;
 			next_entry += 2)
