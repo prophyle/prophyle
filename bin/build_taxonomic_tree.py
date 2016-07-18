@@ -68,10 +68,10 @@ else:
 			fn = os.path.join(dirpath, filename)
 			with open(fn, 'r') as faidx:
 				for seq in faidx:
-					values = seq.split("\t")
-					seqname, seqlenght, offset, _, _ = values
-					split_seqname = seqname.split("|")
 					try:
+						values = seq.split("\t")
+						seqname, seqlenght, offset, _, _ = values
+						split_seqname = seqname.split("|")
 						gi = split_seqname[split_seqname.index('gi')+1]
 						seqs.append([fn[fn.find("library"):-4],
 									str(seqname), str(seqlenght),
@@ -141,10 +141,11 @@ del taxids[0]
 
 ncbi = NCBITaxa()
 topo = ncbi.get_topology(taxids)
+digits = len(str(len(taxids)))
 new_id = 1
 count = 0
 for node in topo.traverse("postorder"):
-	node.name = new_id
+	node.name = ("n" + ("0"*(digits-len(str(new_id)))) + str(new_id))
 	new_id += 1
 	i = index_of(node.taxid, ass_seqs)
 	if i != -1:
