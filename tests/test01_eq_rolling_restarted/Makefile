@@ -5,7 +5,7 @@ SHELL=/bin/bash -o pipefail
 
 .SECONDARY:
 
-M=../../bin/1step_exk_match.py
+M=../../bin/exk_match_1step.py
 
 FA=index.fa
 FQ=simulation_bacteria.1000.fq
