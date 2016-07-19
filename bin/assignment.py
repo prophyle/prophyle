@@ -166,27 +166,27 @@ class TreeIndex:
 					),file=file)
 
 	def print_sam_line(self,qname,qlen,rname,krakenmers,hit_list,gi=None,file=sys.stdout):
-		flag=0
-		pos="1"
-		rname2=rname
-		#cigar="{}I".format(qlen)
-		mapq="60"
-
-		k=qlen-len(hit_list)+1
 
 		if rname is False:
-			flag+=4
+			flag=4
 			rname2="*"
 			pos="0"
 			cigar="*"
 			mapq="0"
+			score=None
 		else:
+			flag=0
+			rname2=rname
+			mapq="60"
+			pos="1"
+			k=qlen-len(hit_list)+1
 			cigar=coverage_cigar(hit_list,k)
+			score=sum(hit_list)
 
 		tags=[]
 
-		score=sum(hit_list)
-		tags.append("AS:i:{}".format(score))
+		if score is not None:
+			tags.append("AS:i:{}".format(score))
 
 		if gi is not None:
 			tags.append("GI:Z:{}".format(gi))
@@ -292,6 +292,7 @@ if __name__ == "__main__":
 		#unclassification criterion
 		if hit_dict=={}:
 			assigned_node=False
+			hit_list=None
 		else:
 			try:
 				del hit_dict["0"]
@@ -318,7 +319,9 @@ if __name__ == "__main__":
 				#print("lca",assigned_node,file=sys.stderr)
 				#print(hit_dict.keys(),file=sys.stderr)
 			gi=ti.name2gi(assigned_node)
+			hit_list=hit_dict[assigned_node]
 
 		#print(hit_dict,file=sys.stderr)
 		#print(assigned_node,file=sys.stderr)
-		print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_dict[assigned_node],krakenmers=krakenmers,gi=gi)
+
+		print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=,krakenmers=krakenmers,gi=gi)
