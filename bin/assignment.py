@@ -13,12 +13,16 @@ import logging
 DEFAULT_FORMAT = 1
 
 class Read:
-	def __init__(self, tree, krakline):
+	def __init__(self, tree):
 		self.tree=tree
+
+	def process_krakline(self,krakline):
 		self.load_krakline(krakline)
 		self.find_assignments(simulate_lca=False)
 		self.annotate_assignments()
+		self.filter_assignments()
 		self.print_assignments()
+
 
 	def load_krakline(self,krakline):
 		_,self.qname,_,qlen,self.krakmers=krakline.strip().split("\t")
@@ -26,6 +30,9 @@ class Read:
 		self.seq=None
 		self.qual=None
 		self.k=self.qlen+1
+
+		self.hitmasks=None
+		self.asgs={}
 
 		# list of (count,list of nodes)
 		self.kmer_blocks=[]
@@ -40,7 +47,6 @@ class Read:
 		# hits before top-down propagation
 		self.hitmasks=self.tree.hitmasks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca)
 		# hits after top-down propagation
-		self.asgs={}
 
 		for rname in self.hitmasks:
 			if rname=="0":
@@ -108,33 +114,12 @@ class Read:
 
 
 	def filter_assignments(self):
-		pass
+		self.max_hit=max([self.asgs[x]['h1'] for x in self.asgs])
 
 	def print_assignments(self):
 		for rname in self.asgs:
-			self.print_sam_line(rname)
-
-			noden_m_l=[]
-#			for noden in hit_dict:
-#				hit=sum(hit_dict[noden])
-#				if hit==max_hit:
-#					noden_m_l.append(noden)
-#				elif hit>max_hit:
-#					noden_m_l=[noden]
-#					max_hit=hit
-#
-#			#print("final_noden_m_l",noden_m_l,file=sys.stderr)
-#
-##			if len(noden_m_l)==1:
-##				#print("non lca",file=sys.stderr)
-##				assigned_node=noden_m_l[0]
-##			else:
-##				#print(noden_m_l,file=sys.stderr)
-##				assigned_node=ti.lca(noden_m_l)
-##
-#			for x in noden_m_l:
-#				hit_list=hit_dict[x]
-#				print_line(qname=qname,qlen=qlen,rname=x,hit_list=hit_list,krakmers=krakmers,)
+			if self.asgs[rname]['h1']==self.max_hit:
+				self.print_sam_line(rname)
 
 	def print_sam_line(self,rname,file=sys.stdout):
 		tags=[]
@@ -201,8 +186,44 @@ class Read:
 
 		return tags
 
+	def print_sam_header(self,file=sys.stdout):
+		print("@HD\tVN:1.5\tSO:unsorted",file=file)
+		for node in self.tree.tree.traverse("postorder"):
+			self.tree.name_dict[node.name]=node
+
+			try:
+				ur="\tUR:{}".format(node.fastapath)
+			except:
+				ur=""
+
+			try:
+				sp="\tSP:{}".format(node.sci_name)
+			except:
+				sp=""
+
+			try:
+				as_="\tAS:{}".format(node.gi)
+			except:
+				as_=""
+
+			if node.name!='':
+				print("@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
+						rname=node.name,
+						rlen=4242,
+						as_=as_,
+						ur=ur,
+						sp=sp,
+					),file=file)
 
 
+	def print_kraken_line(self,ann_asg,file=sys.stdout):
+		if ann_asg['rname']==False:
+			stat="U"
+			rname="0"
+		else:
+			stat="C"
+		columns=[stat,self.qname,rname,self.qlen,self.krakmers]
+		print("\t".join(columns),file=file)
 
 class TreeIndex:
 
@@ -249,148 +270,6 @@ class TreeIndex:
 			pos+=count
 		return d
 
-#	def load_assignments(self, krakline):
-#		x=krakline.strip()
-#
-#		_,qname,_,qlen,krakenmers=x.split("\t")
-#		qlen=int(qlen)
-#		l=[]
-#
-#		max_hit=None
-#
-#		blocks=krakmers.split(" ")
-#		for b in blocks:
-#			(ids,count)=b.split(":")
-#			l.append((ids.split(","),int(count)))
-#
-#		hit_dict=ti.assign(l,simulate_lca=lca)
-#		#print(file=sys.stderr)
-#		#print(a,file=sys.stderr)
-#		#print(file=sys.stderr)
-#
-#		#unclassification criterion
-#		if hit_dict=={}:
-#			assigned_node=False
-#			hit_list=None
-#			print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakmers=krakmers)
-#		else:
-#			try:
-#				del hit_dict["0"]
-#			except KeyError:
-#				pass
-#			max_hit=-1
-#			noden_m_l=[]
-#			for noden in hit_dict:
-#				hit=sum(hit_dict[noden])
-#				if hit==max_hit:
-#					noden_m_l.append(noden)
-#				elif hit>max_hit:
-#					noden_m_l=[noden]
-#					max_hit=hit
-#
-#			#print("final_noden_m_l",noden_m_l,file=sys.stderr)
-#
-##			if len(noden_m_l)==1:
-##				#print("non lca",file=sys.stderr)
-##				assigned_node=noden_m_l[0]
-##			else:
-##				#print(noden_m_l,file=sys.stderr)
-##				assigned_node=ti.lca(noden_m_l)
-##
-##				#print("lca",assigned_node,file=sys.stderr)
-##				#print(hit_dict.keys(),file=sys.stderr)
-#			for x in noden_m_l:
-#				hit_list=hit_dict[x]
-#				print_line(qname=qname,qlen=qlen,rname=x,hit_list=hit_list,krakmers=krakmers,)
-#
-#		#print(hit_dict,file=sys.stderr)
-#	def propagate_assignments(self, asgs):
-#		pass
-#
-
-#	def krakline2asgs(self, krakline):
-#		krakline=krakline.strip()
-#
-#		b={}
-#		_,b['qname'],_,b['qlen'],b['krakmers']=x.split("\t")
-#		asg['qlen']=int(asg['qlen'])
-#
-#		l=[]
-#
-#		max_hit=None
-#
-#		blocks=krakmers.split(" ")
-#		for b in blocks:
-#			(ids,count)=b.split(":")
-#			l.append((ids.split(","),int(count)))
-#
-#		hit_dict=ti.assign(l,simulate_lca=lca)
-#		#print(file=sys.stderr)
-#		#print(a,file=sys.stderr)
-#		#print(file=sys.stderr)
-#
-#		#unclassification criterion
-#		if hit_dict=={}:
-#			assigned_node=False
-#			hit_list=None
-#			print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakmers=krakmers)
-#		else:
-#			try:
-#				del hit_dict["0"]
-#			except KeyError:
-#				pass
-#			max_hit=-1
-#			noden_m_l=[]
-#			for noden in hit_dict:
-#				hit=sum(hit_dict[noden])
-#				if hit==max_hit:
-#					noden_m_l.append(noden)
-#				elif hit>max_hit:
-#					noden_m_l=[noden]
-#					max_hit=hit
-#
-#
-#	@staticmethod
-#	def ann2tags(ann_asg):
-#		tags=[]
-#
-#		try:
-#			gi=ann_asg['gi']
-#			tags.append("gi:Z:{}".format(gi))
-#		except KeyError:
-#			pass
-#
-#		try:
-#			taxid=ann_asg['ti']
-#			tags.append("ti:Z:{}".format(taxid))
-#		except KeyError:
-#			pass
-#
-#		try:
-#			h1=ann_asg['h1']
-#			tags.append("h1:i:{}".format(h1))
-#		except KeyError:
-#			pass
-#
-#		try:
-#			h2=ann_asg['h2']
-#			tags.append("h2:f:{}".format(h2))
-#		except KeyError:
-#			pass
-#
-#		try:
-#			c1=ann_asg['c1']
-#			tags.append("c1:i:{}".format(c1))
-#		except KeyError:
-#			pass
-#
-#		try:
-#			c2=ann_asg['c2']
-#			tags.append("c2:f:{}".format(c2))
-#		except KeyError:
-#			pass
-#
-#		return tags
 
 	def lca(self,noden_l):
 		"""Return LCA for a given list of nodes.
@@ -406,81 +285,6 @@ class TreeIndex:
 
 		return lca.name
 
-
-#	"""
-#		hit1_dict: dict of hit lists - without propagation
-#		hit2_dict: dict of hit lists - with propagation
-#	"""
-#	def assign(self,kmers_assigned_l,simulate_lca=False):
-#		all_nodes_hit=set()
-#
-#		hit1_dict=self.dict_from_list(kmers_assigned_l,lca=simulate_lca)
-#		hit2_dict=hit1_dict.copy()
-#
-#		for noden in hit1_dict:
-#			if noden=="0":
-#				continue
-#
-#			hit2_dict[noden]=hit1_dict[noden]
-#
-#			node=self.name_dict[noden]
-#			while node.up:
-#				node=node.up
-#				#print("node up",node.name,file=sys.stderr)
-#				try:
-#					hit2_dict[noden]=hit2_dict[noden] or hit1_list[node.name]
-#				except KeyError:
-#					pass
-#
-#		return hit2_dict
-
-
-	def print_sam_header(self,file=sys.stdout):
-		print("@HD\tVN:1.5\tSO:unsorted",file=file)
-		for node in self.tree.traverse("postorder"):
-			self.name_dict[node.name]=node
-
-			try:
-				ur="\tUR:{}".format(node.fastapath)
-			except:
-				ur=""
-
-			try:
-				sp="\tSP:{}".format(node.sci_name)
-			except:
-				sp=""
-
-			try:
-				as_="\tAS:{}".format(node.gi)
-			except:
-				as_=""
-
-			if node.name!='':
-				print("@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
-						rname=node.name,
-						rlen=4242,
-						as_=as_,
-						ur=ur,
-						sp=sp,
-					),file=file)
-
-
-	def print_kraken_line(self,ann_asg,file=sys.stdout):
-		qname=ann_asg['qname']
-		qlen=ann_asg['qlen']
-
-		if ann_asg['rname']==False:
-			stat="U"
-			rname="0"
-		else:
-			stat="C"
-			rname=ann_asg['rname']
-
-		krakmers=ann_asg['krakmers']
-
-		columns=[stat,qname,rname2,qlen,krakmers]
-
-		print("\t".join(columns),file=file)
 
 
 if __name__ == "__main__":
@@ -527,78 +331,8 @@ if __name__ == "__main__":
 			tree_newick_fn=newick_fn,
 		)
 
-#	if form=='sam':
-#		ti.print_sam_header()
-#
-#
-#	if form=='kraken':
-#		print_line=ti.print_kraken_line
-#	elif form=='sam':
-#		print_line=ti.print_sam_line
-#
-#
-
-	ti.print_sam_header()
-
+	read=Read(tree=ti)
+	read.print_sam_header()
 	for x in inp_fo:
-#		x=x.strip()
-#
-		read=Read(tree=ti,krakline=x)
+		read.process_krakline(x)
 
-#		asg={}
-#		_,asg['qname'],_,asg['qlen'],asg['krakmers']=x.split("\t")
-#		asg['qlen']=int(asg['qlen'])
-#
-#		l=[]
-#
-#		max_hit=None
-#
-#		blocks=krakmers.split(" ")
-#		for b in blocks:
-#			(ids,count)=b.split(":")
-#			l.append((ids.split(","),int(count)))
-#
-#		hit_dict=ti.assign(l,simulate_lca=lca)
-#		#print(file=sys.stderr)
-#		#print(a,file=sys.stderr)
-#		#print(file=sys.stderr)
-#
-#		#unclassification criterion
-#		if hit_dict=={}:
-#			assigned_node=False
-#			hit_list=None
-#			print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakmers=krakmers)
-#		else:
-#			try:
-#				del hit_dict["0"]
-#			except KeyError:
-#				pass
-#			max_hit=-1
-#			noden_m_l=[]
-#			for noden in hit_dict:
-#				hit=sum(hit_dict[noden])
-#				if hit==max_hit:
-#					noden_m_l.append(noden)
-#				elif hit>max_hit:
-#					noden_m_l=[noden]
-#					max_hit=hit
-#
-#			#print("final_noden_m_l",noden_m_l,file=sys.stderr)
-#
-##			if len(noden_m_l)==1:
-##				#print("non lca",file=sys.stderr)
-##				assigned_node=noden_m_l[0]
-##			else:
-##				#print(noden_m_l,file=sys.stderr)
-##				assigned_node=ti.lca(noden_m_l)
-##
-##				#print("lca",assigned_node,file=sys.stderr)
-##				#print(hit_dict.keys(),file=sys.stderr)
-#			for x in noden_m_l:
-#				hit_list=hit_dict[x]
-#				print_line(qname=qname,qlen=qlen,rname=x,hit_list=hit_list,krakmers=krakmers,)
-#
-#		#print(hit_dict,file=sys.stderr)
-#		#print(assigned_node,file=sys.stderr)
-#
-#		#print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
