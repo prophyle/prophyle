@@ -57,6 +57,8 @@ class Read:
 					self.asgs[rname]['hitmask']=self.asgs[rname]['hitmask'] or self.hitmasks[node.name]
 				except KeyError:
 					pass
+			self.asgs[rname]['hitmask']="".join(map(str,self.asgs[rname]['hitmask']))
+
 
 
 	def annotate_assignments(self):
@@ -72,7 +74,7 @@ class Read:
 			"""
 			1. hit count
 			"""
-			self.asgs[rname]['h1']=sum(hitmask)
+			self.asgs[rname]['h1']=hitmask.count("1")
 
 			"""
 			2. coverage + cigar
@@ -108,9 +110,9 @@ class Read:
 	def filter_assignments(self):
 		pass
 
-	def print_assignments(self,):
+	def print_assignments(self):
 		for rname in self.asgs:
-			self.print_sam_line(self,rname)
+			self.print_sam_line(rname)
 
 
 		#print(file=sys.stderr)
@@ -155,7 +157,7 @@ class Read:
 	def print_sam_line(self,rname,file=sys.stdout):
 		tags=[]
 		qname=self.qname
-		if rname==False:
+		if rname is None:
 			flag=4
 			rname="*"
 			pos="0"
@@ -171,8 +173,8 @@ class Read:
 				qname,str(flag),rname,
 				pos,mapq,cigar,
 				"*","0", "0","*","*",
-			].extend(self.sam_tags(rname))
-
+			]
+		columns.extend(self.sam_tags(rname))
 		print("\t".join(columns),file=file)
 
 
