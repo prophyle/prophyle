@@ -11,7 +11,7 @@ BUILD_FA=../../src/build_index.py
 BWA=../../bin/bwa
 SAMTOOLS?=samtools
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
-ASSIGNMENT=../../bin/read_assignment.py
+ASSIGNMENT=../../bin/assignment.py
 FINAL_FA=../../bin/create_final_fasta.py
 
 READS?=../../reads/simulation_bacteria.1000000.fq
