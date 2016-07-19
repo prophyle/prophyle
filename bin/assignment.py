@@ -5,8 +5,11 @@ import shutil
 import datetime
 import sys
 import argparse
+import numpy as np
 
 from ete3 import Tree
+
+
 
 import logging
 
@@ -19,6 +22,7 @@ class Read:
 	def process_krakline(self,krakline):
 		self.load_krakline(krakline)
 		self.find_assignments(simulate_lca=False)
+		#print(self.asgs)
 		self.annotate_assignments()
 		self.filter_assignments()
 		self.print_assignments()
@@ -53,7 +57,7 @@ class Read:
 				continue
 
 			self.asgs[rname]={
-					'hitmask' : self.hitmasks[rname]
+					'hitmask' : self.hitmasks[rname].copy()
 				}
 
 			node=self.tree.name_dict[rname]
@@ -61,11 +65,9 @@ class Read:
 				node=node.up
 				#print("node up",node.name,file=sys.stderr)
 				try:
-					self.asgs[rname]['hitmask']=self.asgs[rname]['hitmask'] or self.hitmasks[node.name]
+					self.asgs[rname]['hitmask']+=self.hitmasks[node.name]
 				except KeyError:
 					pass
-			self.asgs[rname]['hitmask']="".join(map(str,self.asgs[rname]['hitmask']))
-
 
 	def annotate_assignments(self):
 		"""
@@ -75,29 +77,27 @@ class Read:
 		"""
 
 		for rname in self.asgs:
-			hitmask=self.asgs[rname]['hitmask']
-
 			"""
 			1. hit count
 			"""
-			self.asgs[rname]['h1']=hitmask.count("1")
+			self.asgs[rname]['h1']=sum(self.asgs[rname]['hitmask'])
 
 			"""
 			2. coverage + cigar
 			"""
-			covlist=self.qlen*[0]
-			for i in range(len(hitmask)):
-				if hitmask[i]=='1':
-					for j in range(self.k):
-						covlist[i+j]=1
-			self.asgs[rname]['covmask']="".join(map(str,covlist))
-			self.asgs[rname]['c1']=covlist.count(1)
+			kmask=np.array(self.k*[True])
+			self.asgs[rname]['covmask']=np.convolve(self.asgs[rname]['hitmask'],kmask)
+			#print(self.asgs[rname]['hitmask'])
+			#print(kmask)
+			#print(self.asgs[rname]['covmask'])
+			self.asgs[rname]['c1']=sum(self.asgs[rname]['covmask'])
 
-			x=self.asgs[rname]['covmask'].replace("01","0\t1").replace("10","1\t0")
-			y=[]
-			for b in x.split():
-				y.extend([str(len(b)),"=" if b[0]=="1" else "X"])
-			self.asgs[rname]['cigar']="".join(y)
+			#x=self.asgs[rname]['covmask'].replace("01","0\t1").replace("10","1\t0")
+			#y=[]
+			#for b in x.split():
+			#	y.extend([str(len(b)),"=" if b[0]=="1" else "X"])
+			#self.asgs[rname]['cigar']="".join(y)
+			self.asgs[rname]['cigar']="X"
 
 			"""
 			3. assign taxid & gi
@@ -267,14 +267,14 @@ class TreeIndex:
 				if lca:
 					noden_l=[self.lca(noden_l)]
 
-				v=pos*[0] + count*[1] + (npos-pos-count)*[0]
+				v=np.array(pos*[False] + count*[True] + (npos-pos-count)*[False])
 
 				for noden in noden_l:
 					try:
 						assert len(d[noden])==len(v)
-						d[noden]=d[noden] or v
+						d[noden]+=v
 					except KeyError:
-						d[noden]=v
+						d[noden]=v.copy()
 
 			pos+=count
 		return d
