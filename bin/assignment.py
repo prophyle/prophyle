@@ -324,4 +324,4 @@ if __name__ == "__main__":
 		#print(hit_dict,file=sys.stderr)
 		#print(assigned_node,file=sys.stderr)
 
-		print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=,krakenmers=krakenmers,gi=gi)
+		print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
