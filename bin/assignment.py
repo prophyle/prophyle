@@ -80,7 +80,7 @@ class Read:
 			"""
 			1. hit count
 			"""
-			self.asgs[rname]['h1']=sum(list(self.asgs[rname]['hitmask'])
+			self.asgs[rname]['h1']=sum(list(self.asgs[rname]['hitmask']))
 
 			"""
 			2. coverage + cigar
