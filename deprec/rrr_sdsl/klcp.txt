@@ -1,0 +1,53 @@
+seq_len 20415097628 (= number of bits)
+capacity 2551887204 (= number of bytes)
+
+ones count: 4460037689
+(22% load)
+
+10M random index access
+
+usual vector
+sum indexes counting time 0.004918 sec
+one element access time in usual vector 4.918e-10
+
+sum b = 2408441
+sum b counting time 0.497075 sec
+one element access time in bitvector 4.97075e-08
+size of b in MB: 2433.67
+
+block size 7
+sum rrrb = 2408441
+sum rrrb counting time 3.11384 sec
+one element access time in rrrvector 3.11384e-07
+size of rrrb in MB: 2521.71
+
+block size 15
+sum rrrb = 2408441
+sum rrrb counting time 1.738 sec
+one element access time in rrrvector 1.738e-07
+size of rrrb in MB: 2028.15
+
+block size 31
+sum rrrb = 2408441
+sum rrrb counting time 4.21351 sec
+one element access time in rrrvector 4.21351e-07
+size of rrrb in MB: 1874.11
+
+
+block size 63
+sum rrrb = 2408441
+sum rrrb counting time 5.04809 sec
+one element access time in rrrvector 5.04809e-07
+size of rrrb in MB: 1826.86
+
+block size 127
+sum rrrb = 2408441
+sum rrrb counting time 7.21965 sec
+one element access time in rrrvector 7.21965e-07
+size of rrrb in MB: 1814.86
+
+block size 255
+sum rrrb = 2388561
+sum rrrb counting time 14.1038 sec
+one element access time in rrrvector 1.41038e-06
+size of rrrb in MB: 1813.65
