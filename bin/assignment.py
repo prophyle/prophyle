@@ -23,7 +23,6 @@ class Read:
 		self.load_krakline(krakline)
 		self.find_assignments(simulate_lca=False)
 		#print(self.asgs)
-		self.annotate_assignments()
 		self.filter_assignments()
 		self.print_assignments()
 
@@ -73,28 +72,44 @@ class Read:
 				except KeyError:
 					pass
 
-	def annotate_assignments(self):
+	def filter_assignments(self):
 		"""
-		Annotate assignment to a node.
+		Annotate & filter assignment to a node.
 
 		rname=None => unassigned
 		"""
 
-		kmask=np.array(self.k*[True])
+		self.max_hit=0
+		self.max_cov=0
+
+		self.max_hit_rnames=[]
+		self.max_cov_rnames=[]
+
 		for rname in self.asgs:
 			"""
 			1. hit count
 			"""
-			self.asgs[rname]['h1']=np.count_nonzero(self.asgs[rname]['hitmask'])
+			hit=np.count_nonzero(self.asgs[rname]['hitmask'])
+			self.asgs[rname]['h1']=hit
+
+			if hit>self.max_hit:
+				self.max_hit=hit
+				self.max_hit_rnames=[rname]
+			elif hit==self.max_hit:
+				self.max_hit_rnames.append(rname)
 
 			"""
 			2. coverage
 			"""
-			#self.asgs[rname]['covmask']=np.convolve(self.asgs[rname]['hitmask'],kmask)
-			#print(self.asgs[rname]['hitmask'])
-			#print(kmask)
-			#print(self.asgs[rname]['covmask'])
-			self.asgs[rname]['c1']=np.count_nonzero(self.asgs[rname]['covmask'])
+			cov=np.count_nonzero(self.asgs[rname]['covmask'])
+			self.asgs[rname]['c1']=cov
+
+			if cov>self.max_cov:
+				self.max_cov=cov
+				self.max_cov_rnames=[rname]
+			elif cov==self.max_cov:
+				self.max_cov_rnames.append(rname)
+
 
 			#x=self.asgs[rname]['covmask'].replace("01","0\t1").replace("10","1\t0")
 			#y=[]
@@ -103,33 +118,24 @@ class Read:
 			#self.asgs[rname]['cigar']="".join(y)
 			self.asgs[rname]['cigar']="X"
 
-			"""
-			3. assign taxid & gi
-			"""
-			try:
-				self.asgs[rname]['gi']=self.name_dict[rname].gi
-			except AttributeError:
-				pass
 
-			try:
-				self.asgs[rname]['ti']=self.name_dict[rname].taxid
-			except AttributeError:
-				pass
+	def annotate_assignment(self, rname):
+		try:
+			self.asgs[rname]['gi']=self.name_dict[rname].gi
+		except AttributeError:
+			pass
 
-
-	def filter_assignments(self):
-		hit_counts=[self.asgs[x]['h1'] for x in self.asgs]
-		if len(hit_counts)>0:
-			self.max_hit=max(hit_counts)
-		else:
-			self.max_hit=None
+		try:
+			self.asgs[rname]['ti']=self.name_dict[rname].taxid
+		except AttributeError:
+			pass
 
 
 	def print_assignments(self):
-		if self.max_hit is not None:			
-			for rname in self.asgs:
-				if self.asgs[rname]['h1']==self.max_hit:
-					self.print_sam_line(rname)
+		if len(self.max_hit_rnames)>0:
+			for rname in self.max_hit_rnames:
+				self.annotate_assignment(rname)
+				self.print_sam_line(rname)
 		else:
 			self.print_sam_line(None)
 
