@@ -121,12 +121,12 @@ class Read:
 
 	def annotate_assignment(self, rname):
 		try:
-			self.asgs[rname]['gi']=self.name_dict[rname].gi
+			self.asgs[rname]['gi']=self.tree.name_dict[rname].gi
 		except AttributeError:
 			pass
 
 		try:
-			self.asgs[rname]['ti']=self.name_dict[rname].taxid
+			self.asgs[rname]['ti']=self.tree.name_dict[rname].taxid
 		except AttributeError:
 			pass
 
