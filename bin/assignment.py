@@ -12,6 +12,31 @@ import logging
 
 DEFAULT_FORMAT = 1
 
+def coverage_cigar(hit_list, k):
+	qlen=len(hit_list)+k-1
+
+	cov_list=qlen*["X"]
+	for i in range(len(hit_list)):
+		if hit_list[i]==True:
+			for j in range(k):
+				cov_list[i+j]="="
+	full_cigar="".join(cov_list)
+	assert len(full_cigar)==qlen, (qlen, full_cigar)
+	x=full_cigar.replace("X=","X\t=").replace("=X","=\tX")
+	#print(x,file=sys.stderr)
+	parts=x.split()
+	y=[]
+	l=0
+	for z in parts:
+		ll=len(z)
+		l+=ll
+		y.append(str(ll))
+		y.append(z[0])
+	cigar="".join(y)
+	#print(cigar,file=sys.stderr)
+	assert l==qlen, (l, qlen, hit_list)
+	return cigar
+
 class TreeIndex:
 
 	def __init__(self,tree_newick_fn,format=DEFAULT_FORMAT):
@@ -66,6 +91,12 @@ class TreeIndex:
 			return noden_l[0]
 		nodes_l=list(map(lambda x:self.name_dict[x],noden_l))
 		lca=nodes_l[0].get_common_ancestor(nodes_l)
+		#print("lca=",lca,file=sys.stderr)
+		#print(lca.is_root(),lca.children,file=sys.stderr)
+
+		if lca.is_root() and len(lca.children)==1:
+			lca=lca.children[0]
+
 		return lca.name
 
 	def name2gi(self,name):
@@ -77,21 +108,33 @@ class TreeIndex:
 		return gi
 
 	# scores from kmers hits
+
+	"""
+		hit1_dict: dict of hit lists - without propagation
+		hit2_dict: dict of hit lists - with propagation
+	"""
 	def assign(self,kmers_assigned_l,simulate_lca=False):
 		all_nodes_hit=set()
 
-		d=self.dict_from_list(kmers_assigned_l,lca=simulate_lca)
-		w=d.copy()
+		hit1_dict=self.dict_from_list(kmers_assigned_l,lca=simulate_lca)
+		hit2_dict=hit1_dict.copy()
 
-		for noden in d:
+		for noden in hit1_dict:
 			if noden=="0":
 				continue
+
+			hit_list=hit1_dict[noden]
+
 			node=self.name_dict[noden]
 			while node.up:
 				node=node.up
-				if node.name in d:
-					w[noden]=w[noden] or d[node.name]
-		return w
+				#print("node up",node.name,file=sys.stderr)
+				try:
+					hit2_dict[node.name]=hit2_dict[node.name] or hit_list
+				except KeyError:
+					hit2_dict[node.name]=hit_list
+
+		return hit2_dict
 
 	def print_sam_header(self,file=sys.stdout):
 		print("@HD\tVN:1.5\tSO:unsorted",file=file)
@@ -116,18 +159,20 @@ class TreeIndex:
 			if node.name!='':
 				print("@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
 						rname=node.name,
-						rlen=1,
+						rlen=4242,
 						as_=as_,
 						ur=ur,
 						sp=sp,
 					),file=file)
 
-	def print_sam_line(self,qname,qlen,rname,krakenmers,score=None,gi=None,file=sys.stdout):
+	def print_sam_line(self,qname,qlen,rname,krakenmers,hit_list,gi=None,file=sys.stdout):
 		flag=0
 		pos="1"
 		rname2=rname
-		cigar="{}I".format(qlen)
+		#cigar="{}I".format(qlen)
 		mapq="60"
+
+		k=qlen-len(hit_list)+1
 
 		if rname is False:
 			flag+=4
@@ -135,10 +180,13 @@ class TreeIndex:
 			pos="0"
 			cigar="*"
 			mapq="0"
+		else:
+			cigar=coverage_cigar(hit_list,k)
 
 		tags=[]
-		if score is not None:
-			tags.append("AS:i:{}".format(score))
+
+		score=sum(hit_list)
+		tags.append("AS:i:{}".format(score))
 
 		if gi is not None:
 			tags.append("GI:Z:{}".format(gi))
@@ -153,7 +201,7 @@ class TreeIndex:
 				]
 			),file=file)
 
-	def print_kraken_line(self,qname,qlen,rname,krakenmers,score=None,gi=None,file=sys.stdout):
+	def print_kraken_line(self,qname,qlen,rname,krakenmers,hit_list,gi=None,file=sys.stdout):
 		if rname is False:
 			stat="U"
 		else:
@@ -224,6 +272,7 @@ if __name__ == "__main__":
 	for x in inp_fo:
 		x=x.strip()
 		stat,qname,_,qlen,krakenmers=x.split("\t")
+		qlen=int(qlen)
 
 		l=[]
 
@@ -235,34 +284,41 @@ if __name__ == "__main__":
 			(ids,count)=b.split(":")
 			l.append((ids.split(","),int(count)))
 
-		a=ti.assign(l,simulate_lca=lca)
+		hit_dict=ti.assign(l,simulate_lca=lca)
 		#print(file=sys.stderr)
 		#print(a,file=sys.stderr)
 		#print(file=sys.stderr)
 
 		#unclassification criterion
-		if a=={}:
+		if hit_dict=={}:
 			assigned_node=False
 		else:
 			try:
-				del a["0"]
+				del hit_dict["0"]
 			except KeyError:
 				pass
 			max_hit=-1
 			noden_m_l=[]
-			for noden in a:
-				hit=sum(a[noden])
+			for noden in hit_dict:
+				hit=sum(hit_dict[noden])
 				if hit==max_hit:
 					noden_m_l.append(noden)
 				elif hit>max_hit:
 					noden_m_l=[noden]
 					max_hit=hit
 
+			#print("final_noden_m_l",noden_m_l,file=sys.stderr)
+
 			if len(noden_m_l)==1:
+				#print("non lca",file=sys.stderr)
 				assigned_node=noden_m_l[0]
 			else:
 				#print(noden_m_l,file=sys.stderr)
 				assigned_node=ti.lca(noden_m_l)
+				#print("lca",assigned_node,file=sys.stderr)
+				#print(hit_dict.keys(),file=sys.stderr)
 			gi=ti.name2gi(assigned_node)
 
-		print_line(qname=qname,qlen=qlen,rname=assigned_node,krakenmers=krakenmers,score=max_hit,gi=gi)
+		#print(hit_dict,file=sys.stderr)
+		#print(assigned_node,file=sys.stderr)
+		print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_dict[assigned_node],krakenmers=krakenmers,gi=gi)
