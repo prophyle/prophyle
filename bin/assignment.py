@@ -114,12 +114,21 @@ class Read:
 
 
 	def filter_assignments(self):
-		self.max_hit=max([self.asgs[x]['h1'] for x in self.asgs])
+		hit_counts=[self.asgs[x]['h1'] for x in self.asgs]
+		if len(hit_counts)>0:
+			self.max_hit=max(hit_counts)
+		else:
+			self.max_hit=None
+
 
 	def print_assignments(self):
-		for rname in self.asgs:
-			if self.asgs[rname]['h1']==self.max_hit:
-				self.print_sam_line(rname)
+		if self.max_hit is not None:			
+			for rname in self.asgs:
+				if self.asgs[rname]['h1']==self.max_hit:
+					self.print_sam_line(rname)
+		else:
+			self.print_sam_line(None)
+
 
 	def print_sam_line(self,rname,file=sys.stdout):
 		tags=[]
@@ -217,7 +226,7 @@ class Read:
 
 
 	def print_kraken_line(self,ann_asg,file=sys.stdout):
-		if ann_asg['rname']==False:
+		if rname is None:
 			stat="U"
 			rname="0"
 		else:
