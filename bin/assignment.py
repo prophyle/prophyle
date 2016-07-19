@@ -80,7 +80,7 @@ class Read:
 			"""
 			1. hit count
 			"""
-			self.asgs[rname]['h1']=sum(list(self.asgs[rname]['hitmask']))
+			self.asgs[rname]['h1']=np.count_nonzero(self.asgs[rname]['hitmask'])
 
 			"""
 			2. coverage + cigar
@@ -90,7 +90,7 @@ class Read:
 			#print(self.asgs[rname]['hitmask'])
 			#print(kmask)
 			#print(self.asgs[rname]['covmask'])
-			self.asgs[rname]['c1']=sum(list(self.asgs[rname]['covmask']))
+			self.asgs[rname]['c1']=np.count_nonzero(self.asgs[rname]['covmask'])
 
 			#x=self.asgs[rname]['covmask'].replace("01","0\t1").replace("10","1\t0")
 			#y=[]
