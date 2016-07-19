@@ -5,7 +5,7 @@ SHELL=/bin/bash -o pipefail
 
 .SECONDARY:
 
-M=../../bin/exk_match_1step.py
+M=../../bin/1step_exk_match.py
 AK=../../bin/_all_kmers.py
 FK=../../bin/_fa_to_kmers.py
 
@@ -27,7 +27,7 @@ kmers_all.%.txt:
 	$(AK) -k $* -f txt > $@
 
 exk_output.%.txt: kmers_all.%.fq
-	$(M) -k $* $(FA) $< > $@
+	$(M) -v -k $* $(FA) $< > $@
 
 kmers_matched.%.txt: exk_output.%.txt
 	cat $< | (grep -B 1 '^[1-9]' || true) | (grep "#" || true) | sed 's/\#//' | sort > $@
