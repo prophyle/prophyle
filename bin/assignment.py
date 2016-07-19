@@ -35,7 +35,7 @@ class Read:
 		self.qual=None
 		self.k=self.qlen+1
 
-		self.hitmasks=None
+		#self.hitmasks=None
 		self.asgs={}
 
 		# list of (count,list of nodes)
@@ -49,15 +49,18 @@ class Read:
 
 	def find_assignments(self,simulate_lca):
 		# hits before top-down propagation
-		self.hitmasks=self.tree.hitmasks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca)
+		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca,k=self.k)
 		# hits after top-down propagation
 
-		for rname in self.hitmasks:
+		for rname in hitmasks:
 			if rname=="0":
 				continue
 
+			#(hm,cm)=self.hitmasks[rname].copy()
+
 			self.asgs[rname]={
-					'hitmask' : self.hitmasks[rname].copy()
+					'hitmask' : hitmasks[rname].copy(),
+					'covmask' : covmasks[rname].copy(),
 				}
 
 			node=self.tree.name_dict[rname]
@@ -65,7 +68,8 @@ class Read:
 				node=node.up
 				#print("node up",node.name,file=sys.stderr)
 				try:
-					self.asgs[rname]['hitmask']+=self.hitmasks[node.name]
+					self.asgs[rname]['hitmask']+=hitmasks[node.name]
+					self.asgs[rname]['covmask']+=covmasks[node.name]
 				except KeyError:
 					pass
 
@@ -76,6 +80,7 @@ class Read:
 		rname=None => unassigned
 		"""
 
+		kmask=np.array(self.k*[True])
 		for rname in self.asgs:
 			"""
 			1. hit count
@@ -83,10 +88,9 @@ class Read:
 			self.asgs[rname]['h1']=np.count_nonzero(self.asgs[rname]['hitmask'])
 
 			"""
-			2. coverage + cigar
+			2. coverage
 			"""
-			kmask=np.array(self.k*[True])
-			self.asgs[rname]['covmask']=np.convolve(self.asgs[rname]['hitmask'],kmask)
+			#self.asgs[rname]['covmask']=np.convolve(self.asgs[rname]['hitmask'],kmask)
 			#print(self.asgs[rname]['hitmask'])
 			#print(kmask)
 			#print(self.asgs[rname]['covmask'])
@@ -252,12 +256,14 @@ class TreeIndex:
 			list of (list_of_nodes, count)
 
 		dict:
-			node => hit_vector
+			[
+				node => hit_vector,
+				node => cov_vector
+			]
 	"""
-	def hitmasks_from_kmer_blocks(self,kmers_assigned_l,lca=False):
-		d={}
-
-		hit_vector=[]
+	def masks_from_kmer_blocks(self,kmers_assigned_l,k,lca=False):
+		d_h={}
+		d_c={}
 
 		npos=sum([x[1] for x in kmers_assigned_l])
 
@@ -267,17 +273,20 @@ class TreeIndex:
 				if lca:
 					noden_l=[self.lca(noden_l)]
 
-				v=np.array(pos*[False] + count*[True] + (npos-pos-count)*[False])
+				v_h=np.array(pos*[False] + count*[True] + (npos-pos-count)*[False])
+				v_c=np.array(pos*[False] + (count+k-1)*[True] + (npos-pos-count)*[False])
 
 				for noden in noden_l:
 					try:
-						assert len(d[noden])==len(v)
-						d[noden]+=v
+						assert len(d_h[noden])==len(v_h)
+						d_h[noden]+=v_h
+						d_c[noden]+=v_c
 					except KeyError:
-						d[noden]=v.copy()
+						d_h[noden]=v_h.copy()
+						d_c[noden]=v_c.copy()
 
 			pos+=count
-		return d
+		return (d_h, d_c)
 
 
 	def lca(self,noden_l):
