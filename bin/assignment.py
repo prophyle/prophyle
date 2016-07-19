@@ -35,6 +35,7 @@ class Read:
 			self.k-=count
 			self.kmer_blocks.append((ids.split(","),count))
 
+
 	def find_assignments(self,simulate_lca):
 		# hits before top-down propagation
 		self.hitmasks=self.tree.hitmasks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca)
@@ -60,7 +61,6 @@ class Read:
 			self.asgs[rname]['hitmask']="".join(map(str,self.asgs[rname]['hitmask']))
 
 
-
 	def annotate_assignments(self):
 		"""
 		Annotate assignment to a node.
@@ -81,11 +81,11 @@ class Read:
 			"""
 			covlist=self.qlen*[0]
 			for i in range(len(hitmask)):
-				if hitmask[i]==0:
+				if hitmask[i]=='1':
 					for j in range(self.k):
 						covlist[i+j]=1
 			self.asgs[rname]['covmask']="".join(map(str,covlist))
-			self.asgs[rname]['c1']=covlist.count("1")
+			self.asgs[rname]['c1']=covlist.count(1)
 
 			x=self.asgs[rname]['covmask'].replace("01","0\t1").replace("10","1\t0")
 			y=[]
@@ -114,23 +114,7 @@ class Read:
 		for rname in self.asgs:
 			self.print_sam_line(rname)
 
-
-		#print(file=sys.stderr)
-		#print(a,file=sys.stderr)
-		#print(file=sys.stderr)
-
-#		#unclassification criterion
-#		if hit_dict=={}:
-#			assigned_node=False
-#			hit_list=None
-#			print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakmers=krakmers)
-#		else:
-#			try:
-#				del hit_dict["0"]
-#			except KeyError:
-#				pass
-#			max_hit=-1
-#			noden_m_l=[]
+			noden_m_l=[]
 #			for noden in hit_dict:
 #				hit=sum(hit_dict[noden])
 #				if hit==max_hit:
@@ -148,8 +132,6 @@ class Read:
 ##				#print(noden_m_l,file=sys.stderr)
 ##				assigned_node=ti.lca(noden_m_l)
 ##
-##				#print("lca",assigned_node,file=sys.stderr)
-##				#print(hit_dict.keys(),file=sys.stderr)
 #			for x in noden_m_l:
 #				hit_list=hit_dict[x]
 #				print_line(qname=qname,qlen=qlen,rname=x,hit_list=hit_list,krakmers=krakmers,)
