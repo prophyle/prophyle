@@ -123,16 +123,16 @@ class TreeIndex:
 			if noden=="0":
 				continue
 
-			hit_list=hit1_dict[noden]
+			hit2_dict[noden]=hit1_dict[noden]
 
 			node=self.name_dict[noden]
 			while node.up:
 				node=node.up
 				#print("node up",node.name,file=sys.stderr)
 				try:
-					hit2_dict[node.name]=hit2_dict[node.name] or hit_list
+					hit2_dict[noden]=hit2_dict[noden] or hit1_list[node.name]
 				except KeyError:
-					hit2_dict[node.name]=hit_list
+					pass
 
 		return hit2_dict
 
@@ -293,6 +293,7 @@ if __name__ == "__main__":
 		if hit_dict=={}:
 			assigned_node=False
 			hit_list=None
+			print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
 		else:
 			try:
 				del hit_dict["0"]
@@ -310,18 +311,21 @@ if __name__ == "__main__":
 
 			#print("final_noden_m_l",noden_m_l,file=sys.stderr)
 
-			if len(noden_m_l)==1:
-				#print("non lca",file=sys.stderr)
-				assigned_node=noden_m_l[0]
-			else:
-				#print(noden_m_l,file=sys.stderr)
-				assigned_node=ti.lca(noden_m_l)
-				#print("lca",assigned_node,file=sys.stderr)
-				#print(hit_dict.keys(),file=sys.stderr)
-			gi=ti.name2gi(assigned_node)
-			hit_list=hit_dict[assigned_node]
+#			if len(noden_m_l)==1:
+#				#print("non lca",file=sys.stderr)
+#				assigned_node=noden_m_l[0]
+#			else:
+#				#print(noden_m_l,file=sys.stderr)
+#				assigned_node=ti.lca(noden_m_l)
+#
+#				#print("lca",assigned_node,file=sys.stderr)
+#				#print(hit_dict.keys(),file=sys.stderr)
+			for x in noden_m_l:
+				gi=ti.name2gi(x)
+				hit_list=hit_dict[x]
+				print_line(qname=qname,qlen=qlen,rname=x,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
 
 		#print(hit_dict,file=sys.stderr)
 		#print(assigned_node,file=sys.stderr)
 
-		print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
+		#print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
