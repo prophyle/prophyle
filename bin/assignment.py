@@ -35,7 +35,7 @@ def coverage_cigar(hit_list, k):
 	cigar="".join(y)
 	#print(cigar,file=sys.stderr)
 	assert l==qlen, (l, qlen, hit_list)
-	return cigar
+	return (full_cigar.count("="),cigar)
 
 class TreeIndex:
 
@@ -98,14 +98,6 @@ class TreeIndex:
 			lca=lca.children[0]
 
 		return lca.name
-
-	def name2gi(self,name):
-		#print("err",name,file=sys.stderr)
-		try:
-			gi=self.name_dict[name].gi
-		except AttributeError:
-			return None
-		return gi
 
 	# scores from kmers hits
 
@@ -172,6 +164,7 @@ class TreeIndex:
 			rname2="*"
 			pos="0"
 			cigar="*"
+			coverage=None
 			mapq="0"
 			score=None
 		else:
@@ -180,16 +173,28 @@ class TreeIndex:
 			mapq="60"
 			pos="1"
 			k=qlen-len(hit_list)+1
-			cigar=coverage_cigar(hit_list,k)
+			(coverage,cigar)=coverage_cigar(hit_list,k)
 			score=sum(hit_list)
 
 		tags=[]
 
+		try:
+			gi=self.name_dict[rname].gi
+			tags.append("GI:Z:{}".format(gi))
+		except AttributeError:
+			pass
+
+		try:
+			taxid=self.name_dict[rname].taxid
+			tags.append("TI:Z:{}".format(taxid))
+		except AttributeError:
+			pass
+
 		if score is not None:
 			tags.append("AS:i:{}".format(score))
 
-		if gi is not None:
-			tags.append("GI:Z:{}".format(gi))
+		if coverage is not None:
+			tags.append("CO:i:{}".format(coverage))
 
 		print("\t".join(
 				[
@@ -277,7 +282,6 @@ if __name__ == "__main__":
 		l=[]
 
 		max_hit=None
-		gi=None
 
 		blocks=krakenmers.split(" ")
 		for b in blocks:
@@ -293,7 +297,7 @@ if __name__ == "__main__":
 		if hit_dict=={}:
 			assigned_node=False
 			hit_list=None
-			print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
+			print_line(qname=qname,qlen=qlen,rname=assigned_node,hit_list=hit_list,krakenmers=krakenmers)
 		else:
 			try:
 				del hit_dict["0"]
@@ -321,9 +325,8 @@ if __name__ == "__main__":
 #				#print("lca",assigned_node,file=sys.stderr)
 #				#print(hit_dict.keys(),file=sys.stderr)
 			for x in noden_m_l:
-				gi=ti.name2gi(x)
 				hit_list=hit_dict[x]
-				print_line(qname=qname,qlen=qlen,rname=x,hit_list=hit_list,krakenmers=krakenmers,gi=gi)
+				print_line(qname=qname,qlen=qlen,rname=x,hit_list=hit_list,krakenmers=krakenmers,)
 
 		#print(hit_dict,file=sys.stderr)
 		#print(assigned_node,file=sys.stderr)
