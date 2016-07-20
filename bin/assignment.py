@@ -40,18 +40,22 @@ class Read:
 
 		# list of (count,list of nodes)
 		self.kmer_blocks=[]
+
+		b_sum=0
 		for b in self.krakmers.split(" "):
 			(ids,count)=b.split(":")
 			count=int(count)
 			self.k-=count
+			b_sum+=count
 			self.kmer_blocks.append((ids.split(","),count))
+		assert self.qlen==b_sum, krakline
 
 
 	def find_assignments(self,simulate_lca):
 		# hits before top-down propagation
 		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca,k=self.k)
+		
 		# hits after top-down propagation
-
 		for rname in hitmasks:
 			if rname=="0" or rname=="A":
 				continue
@@ -279,20 +283,31 @@ class TreeIndex:
 		d_h={}
 		d_c={}
 
+		assert k>1
+
 		npos=sum([x[1] for x in kmers_assigned_l])
 
+		h_len=npos
+		c_len=npos+k-1
+
 		pos=0
-		for (noden_l, count) in kmers_assigned_l:			
-			if noden_l!=["0"]:
+		for (noden_l, count) in kmers_assigned_l:
+			print("block",noden_l,count)
+			if noden_l!=["0"] and noden_l!=["A"]:
 				if lca:
 					noden_l=[self.lca(noden_l)]
 
 				v_h=bitarray.bitarray(pos*[False] + count*[True] + (npos-pos-count)*[False])
 				v_c=bitarray.bitarray(pos*[False] + (count+k-1)*[True] + (npos-pos-count)*[False])
 
+				assert len(v_h)==h_len
+				print(k,(count+k-1))
+				assert len(v_c)==c_len, v_c
+
 				for noden in noden_l:
 					try:
-						assert len(d_h[noden])==len(v_h), (len(d_h[noden]), len(v_h), v_h)
+						assert len(d_h[noden])==h_len
+						assert len(d_c[noden])==c_len
 						d_h[noden]|=v_h
 						d_c[noden]|=v_c
 					except KeyError:
