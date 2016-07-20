@@ -133,24 +133,31 @@ class Read:
 
 
 	def annotate_assignment(self, rname, full_annotation=False):
+		asg=self.asgs[rname]
+
 		if full_annotation:
 			try:
-				self.asgs[rname]['gi']=self.tree.name_dict[rname].gi
+				asg['gi']=self.tree.name_dict[rname].gi
 			except AttributeError:
 				pass
 
 			try:
-				self.asgs[rname]['ti']=self.tree.name_dict[rname].taxid
+				asg['ti']=self.tree.name_dict[rname].taxid
 			except AttributeError:
 				pass
 
 			try:
-				self.asgs[rname]['sn']=self.tree.name_dict[rname].sci_name
+				asg['sn']=self.tree.name_dict[rname].sci_name
+			except AttributeError:
+				pass
+
+			try:
+				asg['ra']=self.tree.name_dict[rname].rank
 			except AttributeError:
 				pass
 
 		c=[]
-		runs=itertools.groupby(self.asgs[rname]['covmask'])
+		runs=itertools.groupby(asg['covmask'])
 		for run in runs:
 			c.append(str(len(list(run[1]))))
 			c.append('=' if run[0] else 'X')
@@ -200,39 +207,18 @@ class Read:
 	def sam_tags(self,rname):
 		tags=[]
 
-		if self.annotate:
-
-			try:
-				gi=self.asgs[rname]['gi']
-				tags.append("gi:Z:{}".format(gi))
-			except KeyError:
-				pass
-
-			try:
-				taxid=self.asgs[rname]['ti']
-				tags.append("ti:Z:{}".format(taxid))
-			except KeyError:
-				pass
-
-			try:
-				sn=self.asgs[rname]['sn']
-				tags.append("sn:Z:{}".format(sn))
-			except KeyError:
-				pass
-
 		if rname!="*":
+			asg=self.asgs[rname]
+			if self.annotate:
+				for tag in ['gi','ti','sn','ra']:
+					try:
+						tags.append("".join( [tag,":Z:",asg[tag]] ))
+					except KeyError:
+						pass
 
-			h1=self.asgs[rname]['h1']
-			tags.append("h1:i:{}".format(h1))
 
-			#h2=self.asgs[rname]['h2']
-			#tags.append("h2:f:{}".format(h2))
-
-			c1=self.asgs[rname]['c1']
-			tags.append("c1:i:{}".format(c1))
-
-			#c2=self.asgs[rname]['c2']
-			#tags.append("c2:f:{}".format(c2))
+			for tag in ['h1','c1']:
+				tags.append("".join( [tag,":i:",str(asg[tag])] ))
 
 		return tags
 
