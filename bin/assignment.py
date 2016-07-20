@@ -55,8 +55,10 @@ class Read:
 		# hits before top-down propagation
 		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,simulate_lca=self.simulate_lca)
 		
+		rnames=hitmasks.keys()
+
 		# hits after top-down propagation
-		for rname in hitmasks:
+		for rname in rnames:
 			if rname=="0" or rname=="A":
 				continue
 
@@ -68,14 +70,19 @@ class Read:
 				}
 
 			node=self.tree.name_dict[rname]
-			while node.up:
-				node=node.up
-				#print("node up",node.name,file=sys.stderr)
-				try:
-					self.asgs[rname]['hitmask']|=hitmasks[node.name]
-					self.asgs[rname]['covmask']|=covmasks[node.name]
-				except KeyError:
-					pass
+			for p_rname in self.tree.upnodes_dict[rname] & rnames:
+				self.asgs[rname]['hitmask']|=hitmasks[p_rname]
+				self.asgs[rname]['covmask']|=covmasks[p_rname]
+
+
+			#while node.up:
+			#	node=node.up
+			#	#print("node up",node.name,file=sys.stderr)
+			#	try:
+			#		self.asgs[rname]['hitmask']|=hitmasks[node.name]
+			#		self.asgs[rname]['covmask']|=covmasks[node.name]
+			#	except KeyError:
+			#		pass
 
 	def filter_assignments(self):
 		"""
@@ -272,9 +279,16 @@ class TreeIndex:
 		self.k=k
 
 		self.name_dict={}
+		self.upnodes_dict={}
 
 		for node in self.tree.traverse("postorder"):
-			self.name_dict[node.name]=node
+			rname=node.name
+			self.name_dict[rname]=node
+			self.upnodes_dict[rname]=set()
+			while node.up:
+				node=node.up
+				self.upnodes_dict[rname].add(node.name)
+
 
 		#print (self.name_dict)
 
