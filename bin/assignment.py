@@ -16,6 +16,16 @@ import logging
 
 DEFAULT_FORMAT = 1
 
+
+def cigar_from_mask(mask):
+	c=[]
+	runs=itertools.groupby(mask)
+	for run in runs:
+		c.append(str(len(list(run[1]))))
+		c.append('=' if run[0] else 'X')
+	return "".join(c)
+
+
 class Read:
 	def __init__(self, tree, simulate_lca=False, annotate=False):
 		self.tree=tree
@@ -123,13 +133,8 @@ class Read:
 				asg=self.asgs[rname]
 				if form=="sam":
 					# compute cigar
-					c=[]
-					runs=itertools.groupby(asg['covmask'])
-					for run in runs:
-						c.append(str(len(list(run[1]))))
-						c.append('=' if run[0] else 'X')
-					asg['cigar']="".join(c)
-
+					asg['covcigar']=cigar_from_mask(asg['covmask'])
+					asg['hitcigar']=cigar_from_mask(asg['hitmask'])
 					self.print_sam_line(rname,self.tree.sam_annotations_dict[rname] if self.annotate else "")
 				elif form=="kraken":
 					self.print_kraken_line(rname)
@@ -154,7 +159,7 @@ class Read:
 			flag=0
 			mapq="60"
 			pos="1"
-			cigar=self.asgs[rname]['cigar']
+			cigar=self.asgs[rname]['covcigar']
 
 		columns=[
 				qname,str(flag),rname,
@@ -166,6 +171,7 @@ class Read:
 			asg=self.asgs[rname]
 			for tag in ['h1','c1']:
 				columns.append("".join( [tag,":i:",str(asg[tag])] ))
+			columns.append("hc:Z:{}".format(asg['hitcigar']))
 
 		print("\t".join(columns),suffix,file=file,sep="")
 
