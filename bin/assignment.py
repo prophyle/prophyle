@@ -142,6 +142,11 @@ class Read:
 		except AttributeError:
 			pass
 
+		try:
+			self.asgs[rname]['sn']=self.tree.name_dict[rname].sci_name
+		except AttributeError:
+			pass
+
 		c=[]
 		runs=itertools.groupby(self.asgs[rname]['covmask'])
 		for run in runs:
@@ -226,6 +231,12 @@ class Read:
 		try:
 			c2=self.asgs[rname]['c2']
 			tags.append("c2:f:{}".format(c2))
+		except KeyError:
+			pass
+
+		try:
+			sn=self.asgs[rname]['sn']
+			tags.append("sn:Z:{}".format(sn))
 		except KeyError:
 			pass
 
