@@ -17,10 +17,11 @@ import logging
 DEFAULT_FORMAT = 1
 
 class Read:
-	def __init__(self, tree, simulate_lca=False):
+	def __init__(self, tree, simulate_lca=False, annotate=False):
 		self.tree=tree
 		self.k=tree.k
 		self.simulate_lca=simulate_lca
+		self.annotate=annotate
 
 	def process_krakline(self,krakline,form):
 		self.load_krakline(krakline)
@@ -131,21 +132,22 @@ class Read:
 			#self.asgs[rname]['cigar']="X"
 
 
-	def annotate_assignment(self, rname):
-		try:
-			self.asgs[rname]['gi']=self.tree.name_dict[rname].gi
-		except AttributeError:
-			pass
+	def annotate_assignment(self, rname, full_annotation=False):
+		if full_annotation:
+			try:
+				self.asgs[rname]['gi']=self.tree.name_dict[rname].gi
+			except AttributeError:
+				pass
 
-		try:
-			self.asgs[rname]['ti']=self.tree.name_dict[rname].taxid
-		except AttributeError:
-			pass
+			try:
+				self.asgs[rname]['ti']=self.tree.name_dict[rname].taxid
+			except AttributeError:
+				pass
 
-		try:
-			self.asgs[rname]['sn']=self.tree.name_dict[rname].sci_name
-		except AttributeError:
-			pass
+			try:
+				self.asgs[rname]['sn']=self.tree.name_dict[rname].sci_name
+			except AttributeError:
+				pass
 
 		c=[]
 		runs=itertools.groupby(self.asgs[rname]['covmask'])
@@ -159,7 +161,7 @@ class Read:
 		if len(self.max_hit_rnames)>0:
 			for rname in self.max_hit_rnames:
 				if form=="sam":
-					self.annotate_assignment(rname)
+					self.annotate_assignment(rname,full_annotation=self.annotate)
 					self.print_sam_line(rname)
 				elif form=="kraken":
 					self.print_kraken_line(rname)
@@ -198,47 +200,39 @@ class Read:
 	def sam_tags(self,rname):
 		tags=[]
 
-		try:
-			gi=self.asgs[rname]['gi']
-			tags.append("gi:Z:{}".format(gi))
-		except KeyError:
-			pass
+		if self.annotate:
 
-		try:
-			taxid=self.asgs[rname]['ti']
-			tags.append("ti:Z:{}".format(taxid))
-		except KeyError:
-			pass
+			try:
+				gi=self.asgs[rname]['gi']
+				tags.append("gi:Z:{}".format(gi))
+			except KeyError:
+				pass
 
-		try:
+			try:
+				taxid=self.asgs[rname]['ti']
+				tags.append("ti:Z:{}".format(taxid))
+			except KeyError:
+				pass
+
+			try:
+				sn=self.asgs[rname]['sn']
+				tags.append("sn:Z:{}".format(sn))
+			except KeyError:
+				pass
+
+		if rname!="*":
+
 			h1=self.asgs[rname]['h1']
 			tags.append("h1:i:{}".format(h1))
-		except KeyError:
-			pass
 
-		try:
-			h2=self.asgs[rname]['h2']
-			tags.append("h2:f:{}".format(h2))
-		except KeyError:
-			pass
+			#h2=self.asgs[rname]['h2']
+			#tags.append("h2:f:{}".format(h2))
 
-		try:
 			c1=self.asgs[rname]['c1']
 			tags.append("c1:i:{}".format(c1))
-		except KeyError:
-			pass
 
-		try:
-			c2=self.asgs[rname]['c2']
-			tags.append("c2:f:{}".format(c2))
-		except KeyError:
-			pass
-
-		try:
-			sn=self.asgs[rname]['sn']
-			tags.append("sn:Z:{}".format(sn))
-		except KeyError:
-			pass
+			#c2=self.asgs[rname]['c2']
+			#tags.append("c2:f:{}".format(c2))
 
 		return tags
 
@@ -403,6 +397,12 @@ if __name__ == "__main__":
 			help='simulate LCA',
 		)
 
+	parser.add_argument('-a', '--annotate',
+			action='store_true',
+			dest='annotate',
+			help='annotate assignments',
+		)
+
 	args = parser.parse_args()
 
 	newick_fn=args.newick_fn
@@ -410,6 +410,7 @@ if __name__ == "__main__":
 	lca=args.lca
 	form=args.format
 	k=args.k
+	annotate=args.annotate
 
 
 	ti=TreeIndex(
@@ -420,6 +421,7 @@ if __name__ == "__main__":
 	read=Read(
 			tree=ti,
 			simulate_lca=lca,
+			annotate=annotate
 		)
 	if form=="sam":
 		read.print_sam_header()
