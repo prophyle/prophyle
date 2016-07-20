@@ -53,7 +53,7 @@ class Read:
 		# hits after top-down propagation
 
 		for rname in hitmasks:
-			if rname=="0":
+			if rname=="0" or rname=="A":
 				continue
 
 			#(hm,cm)=self.hitmasks[rname].copy()
