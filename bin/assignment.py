@@ -76,15 +76,6 @@ class Read:
 				self.asgs[rname]['covmask']|=covmasks[p_rname]
 
 
-			#while node.up:
-			#	node=node.up
-			#	#print("node up",node.name,file=sys.stderr)
-			#	try:
-			#		self.asgs[rname]['hitmask']|=hitmasks[node.name]
-			#		self.asgs[rname]['covmask']|=covmasks[node.name]
-			#	except KeyError:
-			#		pass
-
 	def filter_assignments(self):
 		"""
 		Annotate & filter assignment to a node.
@@ -99,11 +90,13 @@ class Read:
 		self.max_cov_rnames=[]
 
 		for rname in self.asgs:
+			asg=self.asgs[rname]
+
 			"""
 			1. hit count
 			"""
-			hit=self.asgs[rname]['hitmask'].count()
-			self.asgs[rname]['h1']=hit
+			hit=asg['hitmask'].count()
+			asg['h1']=hit
 
 			if hit>self.max_hit:
 				self.max_hit=hit
@@ -114,8 +107,8 @@ class Read:
 			"""
 			2. coverage
 			"""
-			cov=self.asgs[rname]['covmask'].count()
-			self.asgs[rname]['c1']=cov
+			cov=asg['covmask'].count()
+			asg['c1']=cov
 
 			if cov>self.max_cov:
 				self.max_cov=cov
@@ -124,52 +117,20 @@ class Read:
 				self.max_cov_rnames.append(rname)
 
 
-			#x=self.asgs[rname]['covmask'].replace("01","0\t1").replace("10","1\t0")
-			#y=[]
-			#for b in x.split():
-			#	y.extend([str(len(b)),"=" if b[0]=="1" else "X"])
-			#self.asgs[rname]['cigar']="".join(y)
-			#self.asgs[rname]['cigar']="X"
-
-
-	def annotate_assignment(self, rname, full_annotation=False):
-		asg=self.asgs[rname]
-
-		if full_annotation:
-			try:
-				asg['gi']=self.tree.name_dict[rname].gi
-			except AttributeError:
-				pass
-
-			try:
-				asg['ti']=self.tree.name_dict[rname].taxid
-			except AttributeError:
-				pass
-
-			try:
-				asg['sn']=self.tree.name_dict[rname].sci_name
-			except AttributeError:
-				pass
-
-			try:
-				asg['ra']=self.tree.name_dict[rname].rank
-			except AttributeError:
-				pass
-
-		c=[]
-		runs=itertools.groupby(asg['covmask'])
-		for run in runs:
-			c.append(str(len(list(run[1]))))
-			c.append('=' if run[0] else 'X')
-		self.asgs[rname]['cigar']="".join(c)
-
-
 	def print_assignments(self, form):
 		if len(self.max_hit_rnames)>0:
 			for rname in self.max_hit_rnames:
+				asg=self.asgs[rname]
 				if form=="sam":
-					self.annotate_assignment(rname,full_annotation=self.annotate)
-					self.print_sam_line(rname)
+					# compute cigar
+					c=[]
+					runs=itertools.groupby(asg['covmask'])
+					for run in runs:
+						c.append(str(len(list(run[1]))))
+						c.append('=' if run[0] else 'X')
+					asg['cigar']="".join(c)
+
+					self.print_sam_line(rname,self.tree.sam_annotations_dict[rname] if self.annotate else "")
 				elif form=="kraken":
 					self.print_kraken_line(rname)
 
@@ -180,7 +141,7 @@ class Read:
 				self.print_kraken_line(None)
 
 
-	def print_sam_line(self,rname,file=sys.stdout):
+	def print_sam_line(self,rname,suffix="",file=sys.stdout):
 		tags=[]
 		qname=self.qname
 		if rname is None:
@@ -200,27 +161,14 @@ class Read:
 				pos,mapq,cigar,
 				"*","0", "0","*","*",
 			]
-		columns.extend(self.sam_tags(rname))
-		print("\t".join(columns),file=file)
-
-
-	def sam_tags(self,rname):
-		tags=[]
 
 		if rname!="*":
 			asg=self.asgs[rname]
-			if self.annotate:
-				for tag in ['gi','ti','sn','ra']:
-					try:
-						tags.append("".join( [tag,":Z:",asg[tag]] ))
-					except KeyError:
-						pass
-
-
 			for tag in ['h1','c1']:
-				tags.append("".join( [tag,":i:",str(asg[tag])] ))
+				columns.append("".join( [tag,":i:",str(asg[tag])] ))
 
-		return tags
+		print("\t".join(columns),suffix,file=file,sep="")
+
 
 	def print_sam_header(self,file=sys.stdout):
 		print("@HD\tVN:1.5\tSO:unsorted",file=file)
@@ -261,6 +209,7 @@ class Read:
 		columns=[stat,self.qname,rname,str(self.qlen),self.krakmers]
 		print("\t".join(columns),file=file)
 
+
 class TreeIndex:
 
 	def __init__(self,tree_newick_fn,k,format=DEFAULT_FORMAT):
@@ -270,18 +219,43 @@ class TreeIndex:
 		self.k=k
 
 		self.name_dict={}
+		self.sam_annotations_dict={}
 		self.upnodes_dict={}
 
 		for node in self.tree.traverse("postorder"):
 			rname=node.name
 			self.name_dict[rname]=node
+
+			# annotations
+			tags_parts=[]
+			try:
+				tags_parts.extend(["\tgi:Z:",node.gi])
+			except AttributeError:
+				pass
+
+			try:
+				tags_parts.extend(["\tti:Z:",node.taxid])
+			except AttributeError:
+				pass
+
+			try:
+				tags_parts.extend(["\tsn:Z:",node.sci_name])
+			except AttributeError:
+				pass
+
+			try:
+				tags_parts.extend(["\tra:Z:",node.rank])
+			except AttributeError:
+				pass
+
+			self.sam_annotations_dict[rname]="".join(tags_parts)
+
+			# set of upper nodes
 			self.upnodes_dict[rname]=set()
 			while node.up:
 				node=node.up
 				self.upnodes_dict[rname].add(node.name)
 
-
-		#print (self.name_dict)
 
 	"""
 		kmers_assigned_l:
