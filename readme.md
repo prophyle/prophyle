@@ -20,7 +20,7 @@ Environment installation:
 ```bash
 	conda create -y --name metang \
 		-c etetoolkit -c bioconda \
-		python==3.4 ete3 ete3_external_apps \
+		python==3.4 ete3 ete3_external_apps bitarray \
 		cmake parallel blast
 ```
 
