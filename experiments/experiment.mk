@@ -109,11 +109,11 @@ kmers_restarted_skipping.txt: $(READS) index.fa.sa kmers_rolling.txt \
 
 assigned_reads.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.1_read_assignment.log \
-	$(ASSIGNMENT) -i $< -n $(TREE) -f sam | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -i $< -n $(TREE) -k $(K) -f sam | $(SAMTOOLS) view -b > $@
 
 assigned_reads_simlca.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
-	$(ASSIGNMENT) -l -i $< -n $(TREE) -f sam | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -l -i $< -n $(TREE) -k $(K) -f sam | $(SAMTOOLS) view -b > $@
 
 5.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@
