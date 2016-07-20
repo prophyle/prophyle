@@ -1,0 +1,48 @@
+#! /usr/bin/env python3
+
+import sys
+from ete3 import Tree
+
+t = Tree(sys.argv[1], format=1)
+
+count = 0
+for node in t.traverse("postorder"):
+	if hasattr(node, "taxid"):
+		count += 1
+
+digits = len(str(count+1))
+root = t.children[0]
+root.name = "n"+("0"*(digits-len(str(count+1))))+str(count+1)
+root.add_features(taxid = "0")
+
+new_id = 1
+for node in root.traverse("postorder"):
+	if hasattr(node, "taxid"):
+		node.name = "n"+("0"*(digits-len(str(new_id))))+str(new_id)
+		new_id += 1
+
+for node in root.traverse("postorder"):
+	if not hasattr(node,"taxid"):
+		fake_depth = 1
+		temp = node.up
+		while not hasattr(temp,"taxid"):
+			temp = temp.up
+			fake_depth += 1
+		while temp.search_nodes(name=temp.name+"."+str(fake_depth)):
+			fake_depth += 1
+		node.name = temp.name+"."+str(fake_depth)
+		node.add_features(taxid = temp.taxid)
+		if hasattr(temp,"lineage"):
+			node.add_features(lineage = temp.lineage, named_lineage = temp.named_lineage,
+					rank = temp.rank, sci_name = temp.sci_name)
+
+for node in t.traverse("postorder"):
+	if len(t.search_nodes(name=node.name)) > 1:
+		print("DUPLICATE: " + node.name)
+
+t.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
+					"support", "taxid", "rank", "base_len", "fastapath",
+					"sci_name", "infasta_offset", "gi"],
+			format = 1,
+			outfile = sys.argv[2])
+t.show()
