@@ -23,12 +23,12 @@ class Read:
 		self.simulate_lca=simulate_lca
 		self.annotate=annotate
 
-	def process_krakline(self,krakline,form):
+	def process_krakline(self,krakline,form,crit):
 		self.load_krakline(krakline)
 		self.find_assignments()
 		#print(self.asgs)
 		self.filter_assignments()
-		self.print_assignments(form)
+		self.print_assignments(form,crit)
 
 
 	def load_krakline(self,krakline):
@@ -60,11 +60,6 @@ class Read:
 
 		# hits after top-down propagation
 		for rname in rnames:
-			if rname=="0" or rname=="A":
-				continue
-
-			#(hm,cm)=self.hitmasks[rname].copy()
-
 			self.asgs[rname]={
 					'hitmask' : hitmasks[rname].copy(),
 					'covmask' : covmasks[rname].copy(),
@@ -117,9 +112,14 @@ class Read:
 				self.max_cov_rnames.append(rname)
 
 
-	def print_assignments(self, form):
+	def print_assignments(self, form, crit):
+		if crit=="h1":
+			winners=self.max_cov_rnames
+		elif crit=="c1":
+			winners=self.max_hit_rnames
+
 		if len(self.max_hit_rnames)>0:
-			for rname in self.max_hit_rnames:
+			for rname in winners:
 				asg=self.asgs[rname]
 				if form=="sam":
 					# compute cigar
@@ -273,50 +273,25 @@ class TreeIndex:
 
 		npos=sum([x[1] for x in kmers_assigned_l])
 
-		# 1) find hit nodes, if simulate_lca then replace blocks by lca
-		rnames=set()
-
-		kmers_assigned_l_lca=[]
-
-		for (rname_l, count) in kmers_assigned_l:
-			if lca:
-				if len(rname_l)>1:
-					x=self.lca(rname_l)
-				else:
-					x=rname_l[0]
-				rnames.add(x)
-				kmers_assigned_l_lca.append(([x],count))
-			else:
-				rnames|=set(rname_l)
-
-		rnames-=set(["A","0"])
-
-		if lca:
-			kmers_assigned_l=kmers_assigned_l_lca
-
 		h_len=npos
 		c_len=npos+self.k-1
 
-		# 2) create empty vectors for hit nodes
-		for rname in rnames:
-			d_h[rname]=bitarray.bitarray(h_len)
-			d_c[rname]=bitarray.bitarray(c_len)
-
-
-		# 3) filling vectors
 		pos=0
 		for (rname_l, count) in kmers_assigned_l:
 			if rname_l!=["0"] and rname_l!=["A"]:
+				if simulate_lca:
+					rname_l=[self.lca(rname_l)]
+
 				v_h=bitarray.bitarray(pos*[False] + count*[True] + (npos-pos-count)*[False])
 				v_c=bitarray.bitarray(pos*[False] + (count+self.k-1)*[True] + (npos-pos-count)*[False])
 
-				#assert len(v_h)==h_len, v_h
-				#assert len(v_c)==c_len, v_c
-
 				for rname in rname_l:
-					print(rname)
-					d_h[rname]|=v_h
-					d_c[rname]|=v_c
+					try:
+						d_h[rname]|=v_h
+						d_c[rname]|=v_c
+					except KeyError:
+						d_h[rname]=v_h.copy()
+						d_c[rname]=v_c.copy()
 
 			pos+=count
 		return (d_h, d_c)
@@ -371,6 +346,13 @@ if __name__ == "__main__":
 			help='format of output',
 		)
 
+	parser.add_argument('-m', '--measure',
+			choices=['h1','c1'],
+			default='h1',
+			dest='crit',
+			help='measure: h1=hitnumber, c1=coverage',
+		)
+
 	parser.add_argument('-l', '--sim-lca',
 			action='store_true',
 			dest='lca',
@@ -390,6 +372,7 @@ if __name__ == "__main__":
 	lca=args.lca
 	form=args.format
 	k=args.k
+	crit=args.crit
 	annotate=args.annotate
 
 
@@ -406,5 +389,5 @@ if __name__ == "__main__":
 	if form=="sam":
 		read.print_sam_header()
 	for x in inp_fo:
-		read.process_krakline(x,form=form)
+		read.process_krakline(x,form=form,crit=crit)
 
