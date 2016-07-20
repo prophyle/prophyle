@@ -22,12 +22,12 @@ class Read:
 		self.k=tree.k
 		self.simulate_lca=simulate_lca
 
-	def process_krakline(self,krakline):
+	def process_krakline(self,krakline,form):
 		self.load_krakline(krakline)
 		self.find_assignments()
 		#print(self.asgs)
 		self.filter_assignments()
-		self.print_assignments()
+		self.print_assignments(form)
 
 
 	def load_krakline(self,krakline):
@@ -143,13 +143,20 @@ class Read:
 		self.asgs[rname]['cigar']="".join(c)
 
 
-	def print_assignments(self):
+	def print_assignments(self, form):
 		if len(self.max_hit_rnames)>0:
 			for rname in self.max_hit_rnames:
-				self.annotate_assignment(rname)
-				self.print_sam_line(rname)
+				if form=="sam":
+					self.annotate_assignment(rname)
+					self.print_sam_line(rname)
+				elif form=="kraken":
+					self.print_kraken_line(rname)
+
 		else:
-			self.print_sam_line(None)
+			if form=="sam":
+				self.print_sam_line(None)
+			elif form=="kraken":
+				self.print_kraken_line(None)
 
 
 	def print_sam_line(self,rname,file=sys.stdout):
@@ -247,13 +254,13 @@ class Read:
 					),file=file)
 
 
-	def print_kraken_line(self,ann_asg,file=sys.stdout):
+	def print_kraken_line(self,rname,file=sys.stdout):
 		if rname is None:
 			stat="U"
 			rname="0"
 		else:
 			stat="C"
-		columns=[stat,self.qname,rname,self.qlen,self.krakmers]
+		columns=[stat,self.qname,rname,str(self.qlen),self.krakmers]
 		print("\t".join(columns),file=file)
 
 class TreeIndex:
@@ -389,7 +396,8 @@ if __name__ == "__main__":
 			tree=ti,
 			simulate_lca=lca,
 		)
-	read.print_sam_header()
+	if form=="sam":
+		read.print_sam_header()
 	for x in inp_fo:
-		read.process_krakline(x)
+		read.process_krakline(x,form=form)
 
