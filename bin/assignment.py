@@ -27,11 +27,12 @@ def cigar_from_mask(mask):
 
 
 class Read:
-	def __init__(self, tree, simulate_lca=False, annotate=False):
+	def __init__(self, tree, simulate_lca=False, annotate=False,tie_lca=False):
 		self.tree=tree
 		self.k=tree.k
 		self.simulate_lca=simulate_lca
 		self.annotate=annotate
+		self.tie_lca=tie_lca
 
 	def process_krakline(self,krakline,form,crit):
 		self.load_krakline(krakline)
@@ -128,13 +129,31 @@ class Read:
 		elif crit=="c1":
 			winners=self.max_hit_rnames
 
+		tie_solved=False
+
+		if self.tie_lca and len(winners)>1:
+			tie_solved=True
+			lca=self.tree.lca(winners)
+			winners=[lca]
+			# fix what if this node exists!
+			asg=self.asgs[lca]={}
+			asg['covcigar']="{}I".format(self.qlen)
+			asg['hitcigar']="{}I".format(self.qlen)
+			if crit=="h1":
+				asg['c1']=-1
+				asg['h1']=self.max_hit
+			elif crit=="c1":
+				asg['c1']=self.max_cov
+				asg['h1']=-1
+
 		if len(self.max_hit_rnames)>0:
 			for rname in winners:
 				asg=self.asgs[rname]
 				if form=="sam":
 					# compute cigar
-					asg['covcigar']=cigar_from_mask(asg['covmask'])
-					asg['hitcigar']=cigar_from_mask(asg['hitmask'])
+					if not tie_solved:
+						asg['covcigar']=cigar_from_mask(asg['covmask'])
+						asg['hitcigar']=cigar_from_mask(asg['hitmask'])
 					self.print_sam_line(rname,self.tree.sam_annotations_dict[rname] if self.annotate else "")
 				elif form=="kraken":
 					self.print_kraken_line(rname)
@@ -371,6 +390,12 @@ if __name__ == "__main__":
 			help='annotate assignments',
 		)
 
+	parser.add_argument('-t', '--tie-lca',
+			action='store_true',
+			dest='tie',
+			help='use LCA when tie (more hits with the same score)',
+		)
+
 	args = parser.parse_args()
 
 	newick_fn=args.newick_fn
@@ -380,6 +405,7 @@ if __name__ == "__main__":
 	k=args.k
 	crit=args.crit
 	annotate=args.annotate
+	tie=args.tie
 
 
 	ti=TreeIndex(
@@ -390,7 +416,8 @@ if __name__ == "__main__":
 	read=Read(
 			tree=ti,
 			simulate_lca=lca,
-			annotate=annotate
+			annotate=annotate,
+			tie_lca=tie,
 		)
 	if form=="sam":
 		read.print_sam_header()
