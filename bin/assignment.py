@@ -273,30 +273,50 @@ class TreeIndex:
 
 		npos=sum([x[1] for x in kmers_assigned_l])
 
-		h_len=npos
-		c_len=npos+k-1
+		# 1) find hit nodes, if simulate_lca then replace blocks by lca
+		rnames=set()
 
+		kmers_assigned_l_lca=[]
+
+		for (rname_l, count) in kmers_assigned_l:
+			if lca:
+				if len(rname_l)>1:
+					x=self.lca(rname_l)
+				else:
+					x=rname_l[0]
+				rnames.add(x)
+				kmers_assigned_l_lca.append(([x],count))
+			else:
+				rnames|=set(rname_l)
+
+		rnames-=set(["A","0"])
+
+		if lca:
+			kmers_assigned_l=kmers_assigned_l_lca
+
+		h_len=npos
+		c_len=npos+self.k-1
+
+		# 2) create empty vectors for hit nodes
+		for rname in rnames:
+			d_h[rname]=bitarray.bitarray(h_len)
+			d_c[rname]=bitarray.bitarray(c_len)
+
+
+		# 3) filling vectors
 		pos=0
 		for (rname_l, count) in kmers_assigned_l:
 			if rname_l!=["0"] and rname_l!=["A"]:
-				if lca:
-					rname_l=[self.lca(rname_l)]
-
 				v_h=bitarray.bitarray(pos*[False] + count*[True] + (npos-pos-count)*[False])
-				v_c=bitarray.bitarray(pos*[False] + (count+k-1)*[True] + (npos-pos-count)*[False])
+				v_c=bitarray.bitarray(pos*[False] + (count+self.k-1)*[True] + (npos-pos-count)*[False])
 
 				#assert len(v_h)==h_len, v_h
 				#assert len(v_c)==c_len, v_c
 
 				for rname in rname_l:
-					try:
-						#assert len(d_h[noden])==h_len
-						#assert len(d_c[noden])==c_len
-						d_h[rname]|=v_h
-						d_c[rname]|=v_c
-					except KeyError:
-						d_h[rname]=v_h.copy()
-						d_c[rname]=v_c.copy()
+					print(rname)
+					d_h[rname]|=v_h
+					d_c[rname]|=v_c
 
 			pos+=count
 		return (d_h, d_c)
