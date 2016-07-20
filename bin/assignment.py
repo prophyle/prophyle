@@ -17,13 +17,14 @@ import logging
 DEFAULT_FORMAT = 1
 
 class Read:
-	def __init__(self, tree):
+	def __init__(self, tree, simulate_lca=False):
 		self.tree=tree
 		self.k=tree.k
+		self.simulate_lca=simulate_lca
 
 	def process_krakline(self,krakline):
 		self.load_krakline(krakline)
-		self.find_assignments(simulate_lca=False)
+		self.find_assignments()
 		#print(self.asgs)
 		self.filter_assignments()
 		self.print_assignments()
@@ -50,9 +51,9 @@ class Read:
 		assert self.qlen==b_sum+self.k-1, krakline
 
 
-	def find_assignments(self,simulate_lca):
+	def find_assignments(self):
 		# hits before top-down propagation
-		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca)
+		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,simulate_lca=self.simulate_lca)
 		
 		# hits after top-down propagation
 		for rname in hitmasks:
@@ -280,7 +281,7 @@ class TreeIndex:
 				node => cov_vector
 			]
 	"""
-	def masks_from_kmer_blocks(self,kmers_assigned_l,lca=False):
+	def masks_from_kmer_blocks(self,kmers_assigned_l,simulate_lca=False):
 		d_h={}
 		d_c={}
 
@@ -384,7 +385,10 @@ if __name__ == "__main__":
 			k=k,
 		)
 
-	read=Read(tree=ti)
+	read=Read(
+			tree=ti,
+			simulate_lca=lca,
+		)
 	read.print_sam_header()
 	for x in inp_fo:
 		read.process_krakline(x)
