@@ -323,26 +323,26 @@ class TreeIndex:
 		c_len=npos+k-1
 
 		pos=0
-		for (noden_l, count) in kmers_assigned_l:
-			if noden_l!=["0"] and noden_l!=["A"]:
+		for (rname_l, count) in kmers_assigned_l:
+			if rname_l!=["0"] and rname_l!=["A"]:
 				if lca:
-					noden_l=[self.lca(noden_l)]
+					rname_l=[self.lca(rname_l)]
 
 				v_h=bitarray.bitarray(pos*[False] + count*[True] + (npos-pos-count)*[False])
 				v_c=bitarray.bitarray(pos*[False] + (count+k-1)*[True] + (npos-pos-count)*[False])
 
-				assert len(v_h)==h_len, v_h
-				assert len(v_c)==c_len, v_c
+				#assert len(v_h)==h_len, v_h
+				#assert len(v_c)==c_len, v_c
 
-				for noden in noden_l:
+				for rname in rname_l:
 					try:
-						assert len(d_h[noden])==h_len
-						assert len(d_c[noden])==c_len
-						d_h[noden]|=v_h
-						d_c[noden]|=v_c
+						#assert len(d_h[noden])==h_len
+						#assert len(d_c[noden])==c_len
+						d_h[rname]|=v_h
+						d_c[rname]|=v_c
 					except KeyError:
-						d_h[noden]=v_h.copy()
-						d_c[noden]=v_c.copy()
+						d_h[rname]=v_h.copy()
+						d_c[rname]=v_c.copy()
 
 			pos+=count
 		return (d_h, d_c)
