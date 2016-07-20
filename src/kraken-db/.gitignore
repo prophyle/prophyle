@@ -2,8 +2,8 @@
 *.kdb
 *.txt
 *.dmp
+*.fa
 *.o
-test/
 get_kmers_by_taxid
 taxid_sorter
 fast_converter
