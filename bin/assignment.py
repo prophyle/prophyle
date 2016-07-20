@@ -19,6 +19,7 @@ DEFAULT_FORMAT = 1
 class Read:
 	def __init__(self, tree):
 		self.tree=tree
+		self.k=tree.k
 
 	def process_krakline(self,krakline):
 		self.load_krakline(krakline)
@@ -33,7 +34,6 @@ class Read:
 		self.qlen=int(qlen)
 		self.seq=None
 		self.qual=None
-		self.k=self.qlen+1
 
 		#self.hitmasks=None
 		self.asgs={}
@@ -45,15 +45,14 @@ class Read:
 		for b in self.krakmers.split(" "):
 			(ids,count)=b.split(":")
 			count=int(count)
-			self.k-=count
 			b_sum+=count
 			self.kmer_blocks.append((ids.split(","),count))
-		assert self.qlen==b_sum, krakline
+		assert self.qlen==b_sum+self.k-1, krakline
 
 
 	def find_assignments(self,simulate_lca):
 		# hits before top-down propagation
-		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca,k=self.k)
+		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,lca=simulate_lca)
 		
 		# hits after top-down propagation
 		for rname in hitmasks:
@@ -258,9 +257,11 @@ class Read:
 
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,format=DEFAULT_FORMAT):
+	def __init__(self,tree_newick_fn,k,format=DEFAULT_FORMAT):
 		self.tree_newick_fn=tree_newick_fn
 		self.tree=Tree(tree_newick_fn,format=1)
+
+		self.k=k
 
 		self.name_dict={}
 
@@ -279,11 +280,9 @@ class TreeIndex:
 				node => cov_vector
 			]
 	"""
-	def masks_from_kmer_blocks(self,kmers_assigned_l,k,lca=False):
+	def masks_from_kmer_blocks(self,kmers_assigned_l,lca=False):
 		d_h={}
 		d_c={}
-
-		assert k>1
 
 		npos=sum([x[1] for x in kmers_assigned_l])
 
@@ -292,7 +291,6 @@ class TreeIndex:
 
 		pos=0
 		for (noden_l, count) in kmers_assigned_l:
-			print("block",noden_l,count)
 			if noden_l!=["0"] and noden_l!=["A"]:
 				if lca:
 					noden_l=[self.lca(noden_l)]
@@ -300,8 +298,7 @@ class TreeIndex:
 				v_h=bitarray.bitarray(pos*[False] + count*[True] + (npos-pos-count)*[False])
 				v_c=bitarray.bitarray(pos*[False] + (count+k-1)*[True] + (npos-pos-count)*[False])
 
-				assert len(v_h)==h_len
-				print(k,(count+k-1))
+				assert len(v_h)==h_len, v_h
 				assert len(v_c)==c_len, v_c
 
 				for noden in noden_l:
@@ -345,6 +342,13 @@ if __name__ == "__main__":
 			help='input file',
 		)
 
+	parser.add_argument('-k', '--kmer-size',
+			type=int,
+			required=True,
+			dest='k',
+			help='k-mer size',
+		)
+
 	parser.add_argument('-n', '--newick-tree',
 			type=str,
 			metavar='str',
@@ -372,10 +376,12 @@ if __name__ == "__main__":
 	inp_fo=args.input_file
 	lca=args.lca
 	form=args.format
+	k=args.k
 
 
 	ti=TreeIndex(
 			tree_newick_fn=newick_fn,
+			k=k,
 		)
 
 	read=Read(tree=ti)
