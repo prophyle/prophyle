@@ -5,7 +5,8 @@ import shutil
 import datetime
 import sys
 import argparse
-import numpy as np
+import bitarray
+import itertools
 
 from ete3 import Tree
 
@@ -67,8 +68,8 @@ class Read:
 				node=node.up
 				#print("node up",node.name,file=sys.stderr)
 				try:
-					self.asgs[rname]['hitmask']+=hitmasks[node.name]
-					self.asgs[rname]['covmask']+=covmasks[node.name]
+					self.asgs[rname]['hitmask']|=hitmasks[node.name]
+					self.asgs[rname]['covmask']|=covmasks[node.name]
 				except KeyError:
 					pass
 
@@ -89,7 +90,7 @@ class Read:
 			"""
 			1. hit count
 			"""
-			hit=np.count_nonzero(self.asgs[rname]['hitmask'])
+			hit=self.asgs[rname]['hitmask'].count()
 			self.asgs[rname]['h1']=hit
 
 			if hit>self.max_hit:
@@ -101,7 +102,7 @@ class Read:
 			"""
 			2. coverage
 			"""
-			cov=np.count_nonzero(self.asgs[rname]['covmask'])
+			cov=self.asgs[rname]['covmask'].count()
 			self.asgs[rname]['c1']=cov
 
 			if cov>self.max_cov:
@@ -116,7 +117,7 @@ class Read:
 			#for b in x.split():
 			#	y.extend([str(len(b)),"=" if b[0]=="1" else "X"])
 			#self.asgs[rname]['cigar']="".join(y)
-			self.asgs[rname]['cigar']="X"
+			#self.asgs[rname]['cigar']="X"
 
 
 	def annotate_assignment(self, rname):
@@ -129,6 +130,13 @@ class Read:
 			self.asgs[rname]['ti']=self.tree.name_dict[rname].taxid
 		except AttributeError:
 			pass
+
+		c=[]
+		runs=itertools.groupby(self.asgs[rname]['covmask'])
+		for run in runs:
+			c.append(str(len(list(run[1]))))
+			c.append('=' if run[0] else 'X')
+		self.asgs[rname]['cigar']="".join(c)
 
 
 	def print_assignments(self):
@@ -279,14 +287,14 @@ class TreeIndex:
 				if lca:
 					noden_l=[self.lca(noden_l)]
 
-				v_h=np.array(pos*[False] + count*[True] + (npos-pos-count)*[False])
-				v_c=np.array(pos*[False] + (count+k-1)*[True] + (npos-pos-count)*[False])
+				v_h=bitarray.bitarray(pos*[False] + count*[True] + (npos-pos-count)*[False])
+				v_c=bitarray.bitarray(pos*[False] + (count+k-1)*[True] + (npos-pos-count)*[False])
 
 				for noden in noden_l:
 					try:
-						assert len(d_h[noden])==len(v_h)
-						d_h[noden]+=v_h
-						d_c[noden]+=v_c
+						assert len(d_h[noden])==len(v_h), (len(d_h[noden]), len(v_h), v_h)
+						d_h[noden]|=v_h
+						d_c[noden]|=v_c
 					except KeyError:
 						d_h[noden]=v_h.copy()
 						d_c[noden]=v_c.copy()
