@@ -10,7 +10,7 @@
 using namespace std;
 using namespace kraken;
 
-string Input_DB_filename, Output_DB_filename, Index_filename, Taxa_Map_filename;
+string Input_DB_filename, Output_DB_filename, Index_filename, Taxa_Map_filename, Taxa_List_filename;
 uint64_t Key_len = 8;
 uint64_t Val_len = 4;
 uint64_t Pair_size = 12;
@@ -64,15 +64,19 @@ static map<uint64_t, uint64_t> map_taxa_fn(char* data) {
 	uint32_t taxid;
 	uint64_t count = 0;
 	pair<map<uint64_t, uint64_t>::iterator,bool> ret;
+	FILE* taxa_list_file = fopen(Taxa_List_filename.c_str(), "w");
 	for(char* next_pair = data;
 			next_pair < data + (Key_ct * Pair_size);
 			next_pair += Pair_size)
 	{
 		memcpy(&taxid, next_pair+Key_len, Val_len);
 		ret = taxa_map.insert(pair<uint64_t, uint64_t>((uint64_t)taxid,count));
-		if (ret.second == true)
+		if (ret.second == true) {
+			fprintf(taxa_list_file, "%u\n", taxid);
 			count++;
+		}
 	}
+	fclose(taxa_list_file);
 	FILE* taxa_map_file = fopen(Taxa_Map_filename.c_str(), "wb");
 	fwrite(&count, sizeof(uint64_t), 1, taxa_map_file);
 	for(map<uint64_t, uint64_t>::iterator it = taxa_map.begin();
@@ -119,7 +123,7 @@ void parse_command_line(int argc, char **argv) {
 
 	if (argc > 1 && strcmp(argv[1], "-h") == 0)
 		usage(0);
-	while ((opt = getopt(argc, argv, "d:o:i:m:")) != -1) {
+	while ((opt = getopt(argc, argv, "d:o:i:m:l:")) != -1) {
 		switch (opt) {
 			case 'd' :
 				Input_DB_filename = optarg;
@@ -133,6 +137,9 @@ void parse_command_line(int argc, char **argv) {
 			case 'm':
 				Taxa_Map_filename = optarg;
 				break;
+			case 'l':
+				Taxa_List_filename = optarg;
+				break;
 			default:
 				usage();
 				break;
@@ -140,11 +147,12 @@ void parse_command_line(int argc, char **argv) {
 	}
 
 	if (Input_DB_filename.empty() || Output_DB_filename.empty()
-				|| Index_filename.empty() || Taxa_Map_filename.empty())
+				|| Index_filename.empty() || Taxa_Map_filename.empty()
+				|| Taxa_List_filename.empty())
 		usage();
 }
 
 void usage(int exit_code) {
-	cerr << "Usage: taxid_sorter -d input-db -o output-db -i output-idx -m taxa-map\n";
+	cerr << "Usage: taxid_sorter -d input-db -o output-db -i output-idx -m taxa-map -l taxa-list\n";
 	exit(exit_code);
 }
