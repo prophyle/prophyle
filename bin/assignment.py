@@ -252,7 +252,13 @@ class Read:
 					len(list(run[1]))
 				))
 			pseudokrakenmers=" ".join(c)
-			columns=[stat,self.qname,rname,str(self.qlen),pseudokrakenmers]
+
+			if stat=="C":
+				taxid=str(self.tree.taxid_dict[rname])
+			else:
+				taxid="0"
+
+			columns=[stat,self.qname,taxid,str(self.qlen),pseudokrakenmers]
 			#columns=[stat,self.qname,rname,str(self.qlen)," ".join([ "{}:{}".format(",".join(x[0]),x[1]) for x in self.kmer_blocks])]
 		else:
 			columns=[stat,self.qname,rname,str(self.qlen),self.krakmers]
