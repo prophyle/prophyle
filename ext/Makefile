@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: time/time bwa/bwa
+all: time/time bwa/bwa kraken-db
 
 time/time: time/Makefile
 	$(MAKE) -C time
@@ -12,6 +12,10 @@ time/Makefile:
 bwa/bwa:
 	$(MAKE) -C bwa
 
+kraken-db:
+	$(MAKE) -C $@
+
 clean:
 	make -C time clean
 	make -C bwa clean
+	make -C kraken-db clean
