@@ -1,4 +1,4 @@
-#include "kraken_headers.hpp"
+#include "../kraken_headers.hpp"
 
 using namespace std;
 

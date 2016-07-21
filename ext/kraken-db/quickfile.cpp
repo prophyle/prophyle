@@ -74,34 +74,17 @@ void QuickFile::open_file(string filename_str, string mode, size_t size) {
 void QuickFile::load_file() {
   int thread_ct = 1;
   int thread = 0;
-  #ifdef _OPENMP
-  int old_thread_ct = omp_get_max_threads();
-  if (old_thread_ct > 4)
-    omp_set_num_threads(4);
-  thread_ct = omp_get_max_threads();
-  #endif
-
+  
   size_t page_size = getpagesize();
   char buf[thread_ct][page_size];
 
-  #pragma omp parallel
-  {
-    #ifdef _OPENMP
-    thread = omp_get_thread_num();
-    #endif
-
-    #pragma omp for schedule(dynamic)
-    for (size_t pos = 0; pos < filesize; pos += page_size) {
+  for (size_t pos = 0; pos < filesize; pos += page_size) {
       size_t this_page_size = filesize - pos;
       if (this_page_size > page_size)
         this_page_size = page_size;
       memcpy(buf[thread], fptr + pos, this_page_size);
-    }
   }
 
-  #ifdef _OPENMP
-  omp_set_num_threads(old_thread_ct);
-  #endif
 }
 
 char * QuickFile::ptr() {
