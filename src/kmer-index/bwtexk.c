@@ -204,7 +204,7 @@ void output_old(int* seen_nodes, const int nodes_cnt) {
 	fprintf(stdout, "\n");
 }
 
-const size_t MAX_STREAKS_LENGTH = 100000;
+const size_t MAX_STREAKS_LENGTH = 10000000;
 char* all_streaks;
 char* current_streak;
 
