@@ -1,14 +1,17 @@
 #!/bin/bash
 
 usage() {
-	echo "Usage: $0 -t taxa-map-file -d sorted-db -i sorted-idx -f indexing-dir -k kmer-len"
+	echo "Usage: $0 -l taxa-list -m taxa-map -d sorted-db -i sorted-idx -f indexing-dir -k kmer-len"
 	exit 1
 }
 
 
-while getopts "t:d:i:f:k:" opt; do
+while getopts "l:m:d:i:f:k:" opt; do
 	case $opt in
-		t)
+		l)
+			TAXA_LIST=${OPTARG}
+			;;
+		m)
 			TAXA_MAP=${OPTARG}
 			;;
 		d)
@@ -29,7 +32,7 @@ while getopts "t:d:i:f:k:" opt; do
 	esac
 done
 
-if [ -z "${TAXA_MAP}" ] || [ -z "${DB}" ] || \
+if [ -z "${TAXA_LIST}" ] || [ -z "${TAXA_MAP}" ] || [ -z "${DB}" ] || \
 	[ -z "${IDX}" ] || [ -z "${INDEXING_DIR}" ] || [ -z "${K}" ]
 then
 	usage
@@ -43,4 +46,4 @@ while read taxid; do
 		-i <(${DIR}/kraken/get_kmers_by_taxid -t ${taxid} \
 		-d ${DB} -i ${IDX} -m ${TAXA_MAP}) \
 		-o /dev/null -x ${INDEXING_DIR}/${taxid}.fa -k ${K}
-done < <(${DIR}/kraken/taxa_list ${TAXA_MAP})
+done < ${TAXA_LIST}
