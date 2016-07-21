@@ -1,10 +1,11 @@
-.PHONY: all clean compile_assembler compile_index compile_ext
+.PHONY: all clean compile_assembler compile_index #compile_ext
 
 all: compile_assembler compile_index #compile_ext
 
 clean:
 	$(MAKE) -C assembler clean
 	$(MAKE) -C kmer-index clean
+	$(MAKE) -C kraken-db clean
 
 compile_assembler:
 	@cd assembler && cmake .
