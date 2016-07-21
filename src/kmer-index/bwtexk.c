@@ -335,7 +335,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		int ambiguous_streak_just_ended = 0;
 		if (start_pos + opt->kmer_length > p->len) {
 			if (opt->output) {
-				fprintf("0:0\n");
+				fprintf(stdout, "0:0\n");
 			}
 		} else {
 			while (start_pos + opt->kmer_length <= p->len) {
