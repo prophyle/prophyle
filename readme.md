@@ -34,6 +34,7 @@ Environment activation:
 
 ```bash
   make -C src
+  make -C ext
 ```
 
 ### Download genomic libraries and simulate reads
