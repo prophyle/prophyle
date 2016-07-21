@@ -77,7 +77,6 @@ namespace kraken {
     uint64_t canonical_representation(uint64_t kmer);
 
     void make_index(std::string index_filename, uint8_t nt);
-    void make_lca_index(std::string index_filename, std::map<uint64_t, uint64_t> taxa_map);
 
     void set_index(KrakenDBIndex *i_ptr);
 
