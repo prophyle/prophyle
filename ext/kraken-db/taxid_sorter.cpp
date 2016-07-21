@@ -10,6 +10,8 @@
 using namespace std;
 using namespace kraken;
 
+static const char * KRAKEN_INDEX2_STRING = "KRAKIX2";
+
 string Input_DB_filename, Output_DB_filename, Index_filename, Taxa_Map_filename, Taxa_List_filename;
 uint64_t Key_len = 8;
 uint64_t Val_len = 4;
@@ -19,6 +21,7 @@ uint64_t Taxa_count;
 
 static map<uint64_t, uint64_t> map_taxa_fn(char* data);
 static char* bin_and_sort_data(char* data, map<uint64_t, uint64_t> taxa_map, KrakenDBIndex idx);
+static void make_lca_index(char* data, string index_filename, map<uint64_t, uint64_t> taxa_map);
 static void parse_command_line(int argc, char **argv);
 static void usage(int exit_code=EX_USAGE);
 
@@ -43,7 +46,7 @@ int main(int argc, char **argv) {
 	memcpy(data, pairs, Key_ct * Pair_size);
 	map<uint64_t, uint64_t> taxa_map = map_taxa_fn(data);
 	Taxa_count = taxa_map.size();
-	input_db.make_lca_index(Index_filename, taxa_map);
+	make_lca_index(data, Index_filename, taxa_map);
 	QuickFile index_file(Index_filename);
 	KrakenDBIndex db_index(index_file.ptr());
 
@@ -116,6 +119,36 @@ static char* bin_and_sort_data(char* data, map<uint64_t, uint64_t> taxa_map, Kra
 	free(pair);
 	
 	return sort_data;
+}
+
+void make_lca_index(char* data, string index_filename, map<uint64_t, uint64_t> taxa_map) {
+	uint64_t entries = taxa_map.size();
+	uint64_t *bin_counts = new uint64_t[entries];
+	uint8_t nt = 0;
+	uint64_t taxid = 0;
+	uint64_t tax_idx = 0;
+	for (char* next_pair = data + Key_len;
+			next_pair < data + (Key_ct*Pair_size);
+			next_pair += Pair_size)
+	{
+		taxid = 0;
+		tax_idx = 0;
+		memcpy(&taxid, next_pair, Val_len);
+		tax_idx = taxa_map.find(taxid)->second;
+		bin_counts[tax_idx]++;
+	}
+	uint64_t *bin_offsets = new uint64_t[ entries + 1 ];
+	bin_offsets[0] = 0;
+	for (uint64_t i = 1; i <= entries; i++)
+		bin_offsets[i] = bin_offsets[i-1] + bin_counts[i-1];
+
+	QuickFile idx_file(index_filename, "w",
+	strlen(KRAKEN_INDEX2_STRING) + 1 + sizeof(*bin_offsets) * (entries + 1));
+	char *idx_ptr = idx_file.ptr();
+	memcpy(idx_ptr, KRAKEN_INDEX2_STRING, strlen(KRAKEN_INDEX2_STRING));
+	idx_ptr += strlen(KRAKEN_INDEX2_STRING);
+	memcpy(idx_ptr++, &nt, 1);
+	memcpy(idx_ptr, bin_offsets, sizeof(*bin_offsets) * (entries + 1));
 }
 
 void parse_command_line(int argc, char **argv) {
