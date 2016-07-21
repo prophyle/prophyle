@@ -153,7 +153,7 @@ del taxids[0]
 
 ncbi = NCBITaxa()
 topo = ncbi.get_topology(taxids)
-digits = len(str(len(taxids)))
+digits = len(str(len(taxids)+1))
 new_id = 1
 count = 0
 for node in topo.traverse("postorder"):
@@ -182,6 +182,8 @@ for node in topo.traverse("postorder"):
 			count += 1
 		node.add_features(fastapath = fastapath, seqname = seqname, base_len = base_len,
 							infasta_offset = infasta_offset, gi = gi)
+topo.name = ("n" + ("0"*(digits-len(str(new_id)))) + str(new_id))
+topo.add_features(taxid = "0")
 
 print("Built taxonomic tree for " + str(count) + " sequences")
 
