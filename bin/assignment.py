@@ -239,8 +239,8 @@ class Read:
 			lca_rnames=[]
 			for [rnames, count] in self.kmer_blocks:
 				assert len(rnames)==1
-				if rnames[0]=="A":
-					taxid="A"
+				if rnames[0]=="A" or rnames[0]=="0":
+					taxid=rnames[0]
 				else:
 					taxid=int(self.tree.taxid_dict[rnames[0]])
 				lca_rnames.extend(count*[taxid])
