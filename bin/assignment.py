@@ -59,7 +59,10 @@ class Read:
 			(ids,count)=b.split(":")
 			count=int(count)
 			b_sum+=count
-			self.kmer_blocks.append((ids.split(","),count))
+			rnames=ids.split(",")
+			if self.simulate_lca:
+				rnames=[self.tree.lca(rnames)]
+			self.kmer_blocks.append((rnames,count))
 		assert self.qlen==b_sum+self.k-1, krakline
 
 
@@ -225,13 +228,35 @@ class Read:
 					),file=file)
 
 
-	def print_kraken_line(self,rname,file=sys.stdout):
+	def print_kraken_line(self,rname,simulate_kraken=True,file=sys.stdout):
 		if rname is None:
 			stat="U"
 			rname="0"
 		else:
 			stat="C"
-		columns=[stat,self.qname,rname,str(self.qlen),self.krakmers]
+
+		if simulate_kraken and self.simulate_lca:
+			lca_rnames=[]
+			for [rnames, count] in self.kmer_blocks:
+				assert len(rnames)==1
+				if rnames[0]=="A":
+					taxid="A"
+				else:
+					taxid=int(self.tree.taxid_dict[rnames[0]])
+				lca_rnames.extend(count*[taxid])
+			c=[]
+			runs=itertools.groupby(lca_rnames)
+			for run in runs:
+				c.append("{}:{}".format(
+					str(run[0]),
+					len(list(run[1]))
+				))
+			pseudokrakenmers=" ".join(c)
+			columns=[stat,self.qname,rname,str(self.qlen),pseudokrakenmers]
+			#columns=[stat,self.qname,rname,str(self.qlen)," ".join([ "{}:{}".format(",".join(x[0]),x[1]) for x in self.kmer_blocks])]
+		else:
+			columns=[stat,self.qname,rname,str(self.qlen),self.krakmers]
+
 		print("\t".join(columns),file=file)
 
 
@@ -244,6 +269,8 @@ class TreeIndex:
 		self.k=k
 
 		self.name_dict={}
+
+		self.taxid_dict={}
 		self.sam_annotations_dict={}
 		self.upnodes_dict={}
 
@@ -260,6 +287,7 @@ class TreeIndex:
 
 			try:
 				tags_parts.extend(["\tti:Z:",node.taxid])
+				self.taxid_dict[rname]=node.taxid
 			except AttributeError:
 				pass
 
@@ -304,9 +332,6 @@ class TreeIndex:
 		pos=0
 		for (rname_l, count) in kmers_assigned_l:
 			if rname_l!=["0"] and rname_l!=["A"]:
-				if simulate_lca:
-					rname_l=[self.lca(rname_l)]
-
 				v_h=bitarray.bitarray(pos*[False] + count*[True] + (npos-pos-count)*[False])
 				v_c=bitarray.bitarray(pos*[False] + (count+self.k-1)*[True] + (npos-pos-count)*[False])
 
