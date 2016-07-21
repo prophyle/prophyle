@@ -74,12 +74,10 @@ void KrakenDB::make_index(string index_filename, uint8_t nt) {
   uint64_t entries = 1ull << (nt * 2);
   vector<uint64_t> bin_counts(entries);
   char *ptr = get_pair_ptr();
-  #pragma omp parallel for schedule(dynamic,400)
   for (uint64_t i = 0; i < key_ct; i++) {
     uint64_t kmer = 0;
     memcpy(&kmer, ptr + i * pair_size(), key_len);
     uint64_t b_key = bin_key(kmer, nt);
-    #pragma omp atomic
     bin_counts[b_key]++;
   }
 
