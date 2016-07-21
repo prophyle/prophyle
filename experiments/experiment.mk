@@ -11,7 +11,7 @@ BUILD_FA=../../src/build_index.py
 BWA=../../bin/bwa
 SAMTOOLS?=samtools
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
-ASSIGNMENT=../../bin/read_assignment.py
+ASSIGNMENT=../../bin/assignment.py
 FINAL_FA=../../bin/create_final_fasta.py
 
 READS?=../../reads/simulation_bacteria.1000000.fq
@@ -109,11 +109,11 @@ kmers_restarted_skipping.txt: $(READS) index.fa.sa kmers_rolling.txt \
 
 assigned_reads.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.1_read_assignment.log \
-	$(ASSIGNMENT) -i $< -n $(TREE) -f sam | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -i $< -n $(TREE) -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
 
 assigned_reads_simlca.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
-	$(ASSIGNMENT) -l -i $< -n $(TREE) -f sam | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -l -i $< -n $(TREE) -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
 
 5.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@
