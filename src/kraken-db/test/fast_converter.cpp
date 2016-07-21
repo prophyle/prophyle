@@ -1,6 +1,6 @@
-#include "kraken_headers.hpp"
-#include "krakendb.hpp"
-#include "quickfile.hpp"
+#include "../kraken_headers.hpp"
+#include "../krakendb.hpp"
+#include "../quickfile.hpp"
 
 #include <sys/stat.h>
 #include <sys/mman.h> 

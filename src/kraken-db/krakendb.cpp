@@ -21,7 +21,8 @@
 #include "krakendb.hpp"
 #include "quickfile.hpp"
 
-using namespace std;
+using std::string;
+using std::vector;
 
 namespace kraken {
 
@@ -94,36 +95,6 @@ void KrakenDB::make_index(string index_filename, uint8_t nt) {
   idx_ptr += strlen(KRAKEN_INDEX2_STRING);
   memcpy(idx_ptr++, &nt, 1);
   memcpy(idx_ptr, bin_offsets, sizeof(*bin_offsets) * (entries + 1));
-}
-
-void KrakenDB::make_lca_index(string index_filename, map<uint64_t, uint64_t> taxa_map) {
-	uint64_t entries = taxa_map.size();
-  uint64_t *bin_counts = new uint64_t[entries];
-	char *ptr = get_pair_ptr();
-  uint8_t nt = 0;
-  uint64_t taxid = 0;
-  uint64_t tax_idx = 0;
-  #pragma omp parallel for schedule(dynamic,400)
-  for (uint64_t i = 0; i < key_ct; i++) {
-		taxid = 0;
-    tax_idx = 0;
-    memcpy(&taxid, ptr + i * pair_size() + key_len, val_len);
-    tax_idx = taxa_map.find(taxid)->second;
-    #pragma omp atomic
-		bin_counts[tax_idx]++;
-	}
-  uint64_t *bin_offsets = new uint64_t[ entries + 1 ];
-	bin_offsets[0] = 0;
-	for (uint64_t i = 1; i <= entries; i++)
-    bin_offsets[i] = bin_offsets[i-1] + bin_counts[i-1];
-
-	QuickFile idx_file(index_filename, "w",
-		strlen(KRAKEN_INDEX2_STRING) + 1 + sizeof(*bin_offsets) * (entries + 1));
-	char *idx_ptr = idx_file.ptr();
-	memcpy(idx_ptr, KRAKEN_INDEX2_STRING, strlen(KRAKEN_INDEX2_STRING));
-	idx_ptr += strlen(KRAKEN_INDEX2_STRING);
-	memcpy(idx_ptr++, &nt, 1);
-	memcpy(idx_ptr, bin_offsets, sizeof(*bin_offsets) * (entries + 1));
 }
 
 // Simple accessor
