@@ -186,9 +186,13 @@ for node in topo.traverse("postorder"):
 topo.name = ("n" + ("0"*(digits-len(str(new_id-1)))) + str(new_id-1))
 topo.add_features(taxid = "0")
 
-for node in topo.traverse("postorder"):
-	assert node.name.startswith('n')
-assert topo.name.startswith('n')
+# for node in topo.traverse("postorder"):
+# 	assert node.name.startswith('n')
+# assert topo.name.startswith('n')
+
+# for node in topo.traverse("postorder"):
+# 	if len(topo.search_nodes(name=node.name)) > 1:
+# 		print("DUPLICATE: " + node.name)
 
 print("Built taxonomic tree for " + str(count) + " sequences")
 
