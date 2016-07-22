@@ -1,12 +1,8 @@
 #! /usr/bin/env python3
 
 import os
-import shutil
-import datetime
 import sys
 import argparse
-import bitarray
-import itertools
 
 from ete3 import Tree
 
