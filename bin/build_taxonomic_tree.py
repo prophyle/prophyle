@@ -196,6 +196,7 @@ topo.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
 					"support", "taxid", "rank", "base_len", "fastapath",
 					"sci_name", "infasta_offset", "gi"],
 			format = 1,
+			format_root_node = True,
 			outfile = output_file)
 
 error.close()
