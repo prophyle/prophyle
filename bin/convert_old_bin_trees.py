@@ -5,13 +5,12 @@ from ete3 import Tree
 
 t = Tree(sys.argv[1], format=1)
 
+root = t.children[0]
 count = 0
-for node in t.traverse("postorder"):
+for node in root.traverse("postorder"):
 	if hasattr(node, "taxid"):
 		count += 1
-
 digits = len(str(count+1))
-root = t.children[0]
 root.name = "n"+("0"*(digits-len(str(count+1))))+str(count+1)
 root.add_features(taxid = "0")
 
@@ -36,13 +35,17 @@ for node in root.traverse("postorder"):
 			node.add_features(lineage = temp.lineage, named_lineage = temp.named_lineage,
 					rank = temp.rank, sci_name = temp.sci_name)
 
-for node in t.traverse("postorder"):
-	if len(t.search_nodes(name=node.name)) > 1:
-		print("DUPLICATE: " + node.name)
+# for node in root.traverse("postorder"):
+# 	assert node.name.startswith('n')
+# assert root.name.startswith('n')
 
-t.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
+# for node in root.traverse("postorder"):
+# 	if len(root.search_nodes(name=node.name)) > 1:
+# 		print("DUPLICATE: " + node.name)
+
+root.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
 					"support", "taxid", "rank", "base_len", "fastapath",
 					"sci_name", "infasta_offset", "gi"],
 			format = 1,
+			format_root_node = True,
 			outfile = sys.argv[2])
-t.show()
