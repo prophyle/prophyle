@@ -1,7 +1,7 @@
 .PHONY: all renderfasta
 
 V=1
-SHELL:=/bin/bash
+SHELL:=/bin/bash -o pipefail
 
 include *.mk
 
