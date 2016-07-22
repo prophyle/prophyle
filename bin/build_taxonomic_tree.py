@@ -2,7 +2,7 @@
 
 import sys, os, argparse, re
 from collections import deque
-from ete3 import PhyloTree, NCBITaxa
+from ete3 import Tree, PhyloTree, NCBITaxa
 
 def index_of(taxid, taxa_list):
 	for i, seq in enumerate(taxa_list):
@@ -153,7 +153,7 @@ del taxids[0]
 
 ncbi = NCBITaxa()
 topo = ncbi.get_topology(taxids)
-digits = len(str(len(taxids)))
+digits = len(str(len(taxids)+1))
 new_id = 1
 count = 0
 for node in topo.traverse("postorder"):
@@ -183,12 +183,24 @@ for node in topo.traverse("postorder"):
 		node.add_features(fastapath = fastapath, seqname = seqname, base_len = base_len,
 							infasta_offset = infasta_offset, gi = gi)
 
+topo.name = ("n" + ("0"*(digits-len(str(new_id-1)))) + str(new_id-1))
+topo.add_features(taxid = "0")
+
+# for node in topo.traverse("postorder"):
+# 	assert node.name.startswith('n')
+# assert topo.name.startswith('n')
+
+# for node in topo.traverse("postorder"):
+# 	if len(topo.search_nodes(name=node.name)) > 1:
+# 		print("DUPLICATE: " + node.name)
+
 print("Built taxonomic tree for " + str(count) + " sequences")
 
 topo.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
 					"support", "taxid", "rank", "base_len", "fastapath",
 					"sci_name", "infasta_offset", "gi"],
 			format = 1,
+			format_root_node = True,
 			outfile = output_file)
 
 error.close()
