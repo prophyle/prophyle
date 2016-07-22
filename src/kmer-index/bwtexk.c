@@ -208,6 +208,14 @@ const size_t MAX_STREAKS_LENGTH = 10000000;
 char* all_streaks;
 char* current_streak;
 
+void strcat_with_check(char* str, char* str_to_append, int length_limit) {
+	if (strlen(str) + strlen(str_to_append) >= length_limit) {
+		fprintf(stderr, "too long output string, more than %d symbols\n", length_limit);
+	} else {
+		strcat(str, str_to_append);
+	}
+}
+
 void construct_streaks(int* seen_nodes, const int nodes_cnt, int streak_length,
 	int is_ambiguous_streak, int is_first_streak) {
 	if (is_first_streak) {
@@ -215,24 +223,24 @@ void construct_streaks(int* seen_nodes, const int nodes_cnt, int streak_length,
 	}
 	current_streak[0] = '\0';
 	if (is_ambiguous_streak) {
-		strcat(current_streak, "A:");
+		strcat_with_check(current_streak, "A:", MAX_STREAKS_LENGTH);
 	} else if (nodes_cnt > 0) {
 		int r;
 		for(r = 0; r < nodes_cnt - 1; ++r) {
-			strcat(current_streak, get_node_name(seen_nodes[r]));
-			strcat(current_streak, ",");
+			strcat_with_check(current_streak, get_node_name(seen_nodes[r]), MAX_STREAKS_LENGTH);
+			strcat_with_check(current_streak, ",", MAX_STREAKS_LENGTH);
 		}
-		strcat(current_streak, get_node_name(seen_nodes[nodes_cnt - 1]));
-		strcat(current_streak, ":");
+		strcat_with_check(current_streak, get_node_name(seen_nodes[nodes_cnt - 1]), MAX_STREAKS_LENGTH);
+		strcat_with_check(current_streak, ":", MAX_STREAKS_LENGTH);
 	} else {
-		strcat(current_streak, "0:");
+		strcat_with_check(current_streak, "0:", MAX_STREAKS_LENGTH);
 	}
-	sprintf(current_streak + strlen(current_streak), "%d", streak_length);
+	snprintf(current_streak + strlen(current_streak), MAX_STREAKS_LENGTH, "%d", streak_length);
 	if (is_first_streak) {
 		strcpy(all_streaks, current_streak);
 	} else {
-		strcat(current_streak, " ");
-		strcat(current_streak, all_streaks);
+		strcat_with_check(current_streak, " ", MAX_STREAKS_LENGTH);
+		strcat_with_check(current_streak, all_streaks, MAX_STREAKS_LENGTH);
 		char* tmp = all_streaks;
 		all_streaks = current_streak;
 		current_streak = tmp;
