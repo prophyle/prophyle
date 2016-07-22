@@ -63,7 +63,7 @@ class Read:
 			if self.simulate_lca:
 				rnames=[self.tree.lca(rnames)]
 			self.kmer_blocks.append((rnames,count))
-		assert self.qlen==b_sum+self.k-1, krakline
+		assert self.qlen==b_sum+self.k-1 or self.qlen<self.k, krakline
 
 
 	def find_assignments(self):
