@@ -364,7 +364,7 @@ class TreeIndex:
 
 		if lca.is_root() and len(lca.children)==1:
 			lca=lca.children[0]
-
+		assert lca.name!="",[x.name for x in lca.children]
 		return lca.name
 
 
