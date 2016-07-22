@@ -113,7 +113,7 @@ assigned_reads.bam: kmers_rolling.txt $(TREE)
 
 assigned_reads_simlca.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
-	$(ASSIGNMENT) -l -i $< -n $(TREE) -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -l -i $< -n $(TREE) -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
 
 5.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@
