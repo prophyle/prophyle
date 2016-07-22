@@ -5,9 +5,8 @@ TREES := $(shell cd trees && find . -name "*.newick" -type f)
 .PHONY: all $(TREES)
 
 all: $(TREES)
-	echo $(TREES)
 
 $(TREES):
-	echo ahoj
-	echo $@
+	@echo
+	@echo $@
 	$(TEST_NEWICK) -n ./trees/$@
