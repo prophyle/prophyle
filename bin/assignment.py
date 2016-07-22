@@ -27,12 +27,13 @@ def cigar_from_mask(mask):
 
 
 class Read:
-	def __init__(self, tree, simulate_lca=False, annotate=False,tie_lca=False):
+	def __init__(self, tree, simulate_lca=False, annotate=False,tie_lca=False,dont_translate_blocks=False):
 		self.tree=tree
 		self.k=tree.k
 		self.simulate_lca=simulate_lca
 		self.annotate=annotate
 		self.tie_lca=tie_lca
+		self.dont_translate_blocks=dont_translate_blocks
 
 	def process_krakline(self,krakline,form,crit):
 		self.load_krakline(krakline)
@@ -228,18 +229,19 @@ class Read:
 					),file=file)
 
 
-	def print_kraken_line(self,rname,simulate_kraken=True,file=sys.stdout):
+	def print_kraken_line(self,rname,file=sys.stdout):
 		if rname is None:
 			stat="U"
 			rname="0"
 		else:
 			stat="C"
 
-		if simulate_kraken and self.simulate_lca:
+		if self.simulate_lca:
 			lca_rnames=[]
 			for [rnames, count] in self.kmer_blocks:
 				assert len(rnames)==1
-				if rnames[0]=="A" or rnames[0]=="0":
+
+				if rnames[0]=="A" or rnames[0]=="0" or self.dont_translate_blocks:
 					taxid=rnames[0]
 				else:
 					taxid=int(self.tree.taxid_dict[rnames[0]])
@@ -427,6 +429,12 @@ if __name__ == "__main__":
 			help='use LCA when tie (more hits with the same score)',
 		)
 
+	parser.add_argument('-d', '--nontransl-blocks',
+			action='store_true',
+			dest='donttransl',
+			help='do not translate blocks from node to tax IDs',
+		)
+
 	args = parser.parse_args()
 
 	newick_fn=args.newick_fn
@@ -437,6 +445,7 @@ if __name__ == "__main__":
 	crit=args.crit
 	annotate=args.annotate
 	tie=args.tie
+	d=args.donttransl
 
 
 	ti=TreeIndex(
@@ -449,6 +458,7 @@ if __name__ == "__main__":
 			simulate_lca=lca,
 			annotate=annotate,
 			tie_lca=tie,
+			dont_translate_blocks=d,
 		)
 	if form=="sam":
 		read.print_sam_header()
