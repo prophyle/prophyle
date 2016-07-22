@@ -35,13 +35,12 @@ for node in root.traverse("postorder"):
 			node.add_features(lineage = temp.lineage, named_lineage = temp.named_lineage,
 					rank = temp.rank, sci_name = temp.sci_name)
 
-for node in root.traverse("postorder"):
-	if len(root.search_nodes(name=node.name)) > 1:
-		print("DUPLICATE: " + node.name)
+# for node in root.traverse("postorder"):
+# 	if len(root.search_nodes(name=node.name)) > 1:
+# 		print("DUPLICATE: " + node.name)
 
 root.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
 					"support", "taxid", "rank", "base_len", "fastapath",
 					"sci_name", "infasta_offset", "gi"],
 			format = 1,
 			outfile = sys.argv[2])
-root.show()

@@ -2,7 +2,7 @@
 
 import sys, os, argparse, re
 from collections import deque
-from ete3 import PhyloTree, NCBITaxa
+from ete3 import Tree, PhyloTree, NCBITaxa
 
 def index_of(taxid, taxa_list):
 	for i, seq in enumerate(taxa_list):
@@ -182,8 +182,13 @@ for node in topo.traverse("postorder"):
 			count += 1
 		node.add_features(fastapath = fastapath, seqname = seqname, base_len = base_len,
 							infasta_offset = infasta_offset, gi = gi)
-topo.name = ("n" + ("0"*(digits-len(str(new_id)))) + str(new_id))
+
+topo.name = ("n" + ("0"*(digits-len(str(new_id-1)))) + str(new_id-1))
 topo.add_features(taxid = "0")
+
+for node in topo.traverse("postorder"):
+	assert node.name.startswith('n')
+assert topo.name.startswith('n')
 
 print("Built taxonomic tree for " + str(count) + " sequences")
 
