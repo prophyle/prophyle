@@ -40,7 +40,7 @@ matrix:
         - export CXX="clang++-3.7" CC="clang-3.7"
         - sudo brew install llvm37 boost159 bats python3
         - sudo brew unlink cmake && sudo brew install cmake31
-        - sudo pip install --upgrade jinja2 nose
+        - sudo pip install --upgrade jinja2 nose ete3
 
 script:
   - make test
