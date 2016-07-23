@@ -2,7 +2,6 @@ language: cpp
 
 cache: 
   - brew
-  - pip
   - apt: true
 
 env:
@@ -29,7 +28,7 @@ matrix:
         - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
         - sudo apt-get install zlib1g-dev git-svn bats
-        - sudo pip3 install --upgrade ete3
+        - sudo pip install --upgrade ete3
         - ./bin/install-boost.sh
 
     - os: osx
