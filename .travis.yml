@@ -48,7 +48,7 @@ matrix:
         - sudo brew install llvm37 boost159 bats python3
         - sudo brew unlink cmake && sudo brew install cmake31
         - sudo pip --version
-        - sudo pip install --upgrade ete3==3.0.0b34
+        - sudo pip3 install --upgrade ete3
 
 script:
   - make test
