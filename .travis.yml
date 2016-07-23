@@ -24,14 +24,19 @@ matrix:
         - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         - sudo add-apt-repository ppa:duggan/bats -y
         - sudo apt-get update
-        - sudo apt-get install g++-4.8 cmake python3  python3-setuptools texinfo
-        - sudo easy_install3 pip
+        - sudo apt-get install g++-4.8 cmake python3  python3-setuptools texinfo zlib1g-dev git-svn bats
         - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
-        - sudo apt-get install zlib1g-dev git-svn bats
-        - sudo pip --version
-        - sudo pip install --upgrade ete3
         - ./bin/install-boost.sh
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes --set changeps1 no
+        - conda update -q conda
+        - conda info -a
+        - conda create -q -n metang -c etetoolkit -c bioconda python==3.4 ete3 ete3_external_apps bitarray cmake parallel blast
+        - source activate metang
 
     - os: osx
       compiler: clang-3.7
