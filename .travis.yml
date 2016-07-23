@@ -29,7 +29,7 @@ matrix:
         - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
         - sudo apt-get install zlib1g-dev git-svn bats
-        - sudo pip install --upgrade ete3
+        - sudo pip3 install --upgrade ete3
         - ./bin/install-boost.sh
 
     - os: osx
@@ -41,7 +41,7 @@ matrix:
         - export CXX="clang++-3.7" CC="clang-3.7"
         - sudo brew install llvm37 boost159 bats python3
         - sudo brew unlink cmake && sudo brew install cmake31
-        - sudo pip install --upgrade ete3
+        - sudo pip install --upgrade ete3==3.0.0b34
 
 script:
   - make test
