@@ -11,6 +11,6 @@ all:
 	./experiments/run_serial.sh -j $(JOBS)
 
 test:
-	make -C src NOTIME=1
+	make -C src
 	make -C tests clean
 	make -C tests
