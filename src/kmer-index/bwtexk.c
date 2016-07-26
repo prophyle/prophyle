@@ -204,43 +204,56 @@ void output_old(int* seen_nodes, const int nodes_cnt) {
 	fprintf(stdout, "\n");
 }
 
-const size_t MAX_STREAKS_LENGTH = 10000000;
+const size_t MAX_STREAK_LENGTH = 10000000;
+const size_t MAX_SOFT_STREAK_LENGTH = 9000000;
 char* all_streaks;
 char* current_streak;
 
-void strcat_with_check(char* str, char* str_to_append, int length_limit) {
-	if (strlen(str) + strlen(str_to_append) >= length_limit) {
+void strncat_with_check(char* str, char* str_to_append, int* str_length,
+	int str_to_append_length, int length_limit) {
+	if (*str_length >= length_limit) {
 		fprintf(stderr, "too long output string, more than %d symbols\n", length_limit);
 	} else {
-		strcat(str, str_to_append);
+		strncat(str, str_to_append, length_limit - str_to_append_length);
+		*str_length += str_to_append_length;
+		if (*str_length > length_limit) {
+			*str_length = length_limit;
+		}
 	}
 }
 
-void construct_streaks(int* seen_nodes, const int nodes_cnt, int streak_length,
+void construct_streaks(int* seen_nodes, const int nodes_cnt, int streak_size,
 	int is_ambiguous_streak, int is_first_streak) {
 	if (is_first_streak) {
 		all_streaks[0] = '\0';
 	}
 	current_streak[0] = '\0';
+	int current_streak_approximate_length = 0;
 	if (is_ambiguous_streak) {
-		strcat_with_check(current_streak, "A:", MAX_STREAKS_LENGTH);
+		strcat(current_streak, "A:");
+		current_streak_approximate_length += 2;
 	} else if (nodes_cnt > 0) {
 		int r;
 		for(r = 0; r < nodes_cnt - 1; ++r) {
-			strcat_with_check(current_streak, get_node_name(seen_nodes[r]), MAX_STREAKS_LENGTH);
-			strcat_with_check(current_streak, ",", MAX_STREAKS_LENGTH);
+			strncat_with_check(current_streak, get_node_name(seen_nodes[r]), &current_streak_approximate_length, get_node_name_length(seen_nodes[r]), MAX_SOFT_STREAK_LENGTH);
+			strncat_with_check(current_streak, ",", &current_streak_approximate_length, 1, MAX_SOFT_STREAK_LENGTH);
 		}
-		strcat_with_check(current_streak, get_node_name(seen_nodes[nodes_cnt - 1]), MAX_STREAKS_LENGTH);
-		strcat_with_check(current_streak, ":", MAX_STREAKS_LENGTH);
+		strncat_with_check(current_streak, get_node_name(seen_nodes[nodes_cnt - 1]), &current_streak_approximate_length, get_node_name_length(seen_nodes[nodes_cnt - 1]), MAX_SOFT_STREAK_LENGTH);
+		strncat_with_check(current_streak, ":", &current_streak_approximate_length, 1, MAX_SOFT_STREAK_LENGTH);
 	} else {
-		strcat_with_check(current_streak, "0:", MAX_STREAKS_LENGTH);
+		strncat_with_check(current_streak, "0:", &current_streak_approximate_length, 2, MAX_SOFT_STREAK_LENGTH);
 	}
-	snprintf(current_streak + strlen(current_streak), MAX_STREAKS_LENGTH, "%d", streak_length);
+	sprintf(current_streak + strlen(current_streak), "%d", streak_size);
+	current_streak_approximate_length += 3;
 	if (is_first_streak) {
-		strcpy(all_streaks, current_streak);
+		if (current_streak_approximate_length <= MAX_STREAK_LENGTH) {
+			strcpy(all_streaks, current_streak);
+		} else {
+			strncpy(all_streaks, current_streak, MAX_STREAK_LENGTH);
+		}
 	} else {
-		strcat_with_check(current_streak, " ", MAX_STREAKS_LENGTH);
-		strcat_with_check(current_streak, all_streaks, MAX_STREAKS_LENGTH);
+		strncat_with_check(current_streak, " ", &current_streak_approximate_length, 1, MAX_SOFT_STREAK_LENGTH);
+		strncat_with_check(current_streak, all_streaks, &current_streak_approximate_length, strlen(all_streaks), MAX_SOFT_STREAK_LENGTH);
 		char* tmp = all_streaks;
 		all_streaks = current_streak;
 		current_streak = tmp;
@@ -258,18 +271,10 @@ void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
 		if (positions[i].position == (uint64_t)-1) {
 			continue;
 		}
-		//if (position.position < bns->l_pac && bns->l_pac < position.position + ref_len)
 		if (positions[i].strand == 0) {
 			positions[i].position++;
 		} else {
-			// if (positions[i].position == 0) {
-			// 	bwt_position_t new_position = get_position(idx, query_length, k + i);
-			// 	position->position = new_position.position;
-			// 	position->strand = new_position.strand;
-			// 	position->rid = new_position.rid;
-			// } else {
 				positions[i].position--;
-			//}
 		}
 	}
 }
@@ -293,8 +298,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	bwase_initialize();
 	seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int));
 	prev_seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int));
-	current_streak = malloc(MAX_STREAKS_LENGTH * sizeof(char));
-	all_streaks = malloc(MAX_STREAKS_LENGTH * sizeof(char));
+	current_streak = malloc(MAX_STREAK_LENGTH * sizeof(char));
+	all_streaks = malloc(MAX_STREAK_LENGTH * sizeof(char));
 	int i, j;
 	bwt_t* bwt = idx->bwt;
 
@@ -328,7 +333,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			fprintf(stdout, "U\t%s\t0\t%d\t", p->name, p->len);
 		}
 		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
-		int current_streak_length = 0;
+		int current_streak_size = 0;
 		nodes_count = 0;
 		prev_nodes_count = 0;
 		int start_pos = 0;
@@ -363,27 +368,27 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					}
 					if (end_pos - last_ambiguous_index < opt->kmer_length) {
 						if (!is_ambiguous_streak) {
-							construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_length,
+							construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
 								is_ambiguous_streak, is_first_streak);
 							if (is_first_streak) {
 								is_first_streak = 0;
 							}
 							is_ambiguous_streak = 1;
-							current_streak_length = 1;
+							current_streak_size = 1;
 						} else {
-							current_streak_length++;
+							current_streak_size++;
 						}
 						start_pos++;
 						continue;
 					} else {
-						if (is_ambiguous_streak && current_streak_length > 0) {
-							construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_length,
+						if (is_ambiguous_streak && current_streak_size > 0) {
+							construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
 								is_ambiguous_streak, is_first_streak);
 							if (is_first_streak) {
 								is_first_streak = 0;
 							}
 							is_ambiguous_streak = 0;
-							current_streak_length = 0;
+							current_streak_size = 0;
 						}
 					}
 					if (end_pos - last_ambiguous_index == opt->kmer_length) {
@@ -426,14 +431,14 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 					output_old(seen_nodes, nodes_cnt);
 				} else if (opt->output) {
 					if (start_pos == 0 || ambiguous_streak_just_ended || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
-						current_streak_length++;
+						current_streak_size++;
 					} else {
-						construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_length,
+						construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
 							is_ambiguous_streak, is_first_streak);
 						if (is_first_streak) {
 							is_first_streak = 0;
 						}
-						current_streak_length = 1;
+						current_streak_size = 1;
 					}
 				}
 				int* tmp = seen_nodes;
@@ -465,8 +470,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 				// }
 				start_pos++;
 			}
-			if (current_streak_length > 0) {
-				construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_length,
+			if (current_streak_size > 0) {
+				construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
 					is_ambiguous_streak, is_first_streak);
 			}
 			if (opt->output) {
