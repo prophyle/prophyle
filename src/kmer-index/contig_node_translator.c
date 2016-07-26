@@ -37,6 +37,7 @@ void add_contig(const char* contig, int contig_number) {
     nodes_count++;
   } else {
     contig_to_node[contig_number] = nodes_count - 1;
+    free(node_name);
   }
   //fprintf(stderr, "contig = %d, nodes_count = %d\n", contig_number, nodes_count);
 }
