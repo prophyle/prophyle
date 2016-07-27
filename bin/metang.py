@@ -23,9 +23,10 @@ DEFAULT_THREADS=multiprocessing.cpu_count()
 DEFAULT_MEASURE='h1'
 DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'metang')
 
-LIBRARIES=['bacteria', 'viruses', 'plasmids']
+LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI='http://ftp.ncbi.nlm.nih.gov'
+# todo: add both FTP and HTTP variants
 
 def _test_files(*fns,test_nonzero=False):
 	#print(fns)
@@ -90,6 +91,7 @@ def init(library, home_dir):
 			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
 			_run_safe(cmd)
+			_touch(os.path.join(d,".complete"))
 		elif l=='viruses':
 			d=os.path.join(home_dir,'viruses')
 			os.makedirs(d, exist_ok=True)
@@ -98,12 +100,21 @@ def init(library, home_dir):
 			_run_safe(cmd)
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
 			_run_safe(cmd)
-		if l=='plasmids':
+			_touch(os.path.join(d,".complete"))
+		elif l=='plasmids':
 			d=os.path.join(home_dir,'plasmids')
 			os.makedirs(d, exist_ok=True)
 			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
 			_run_safe(cmd)
+			_touch(os.path.join(d,".complete"))
+		elif l=='hmp':
+			d=os.path.join(home_dir,'hmp')
+			os.makedirs(d, exist_ok=True)
+			# fix when error appears
+			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
+			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
+			_touch(os.path.join(d,".complete"))
 		else:
 			raise ValueError('Unknown library ""'.format(library))
 
