@@ -20,7 +20,7 @@ assign=os.path.join(bin_dir,"assignment.py")
 
 DEFAULT_K=32
 DEFAULT_THREADS=multiprocessing.cpu_count()
-
+DEFAULT_MEASURE='h1'
 
 def _test_files(*fns):
 	#print(fns)
@@ -155,7 +155,7 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True):
 # METANG CLASSIFY #
 ###################
 
-def classify(index_dir,fq_fn,k,use_klcp,out_format='sam'):
+def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate,tie_lca):
 	index_fa=os.path.join(index_dir, 'index.fa')
 	index_newick=os.path.join(index_dir, 'tree.newick')
 
@@ -174,12 +174,26 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format='sam'):
 
 	# todo: add integrity checking (correct file size: |sa|=|pac|, |bwt|=2|sa|)
 
-	command=[exk, 'match', '-k', k, '-u' if use_klcp else '', index_fa, fq_fn] \
-		+ \
-		['|'] \
-		+ \
-		[assign, '-i', '-', '-k', k, '-n', index_newick, '-f', out_format]
+	if mimic_kraken:
+		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_newick, '-m', 'h1', '-f', 'kraken', '-l', '-t']
+	else:
+		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_newick, '-m', measure, '-f', out_format]
+		if annotate:
+			cmd_assign+=['--annotate']
+		if tie_lca:
+			cmd_assign+=['--tie-lca']
+
+	cmd_match=[exk, 'match', '-k', k, '-u' if use_klcp else '', index_fa, fq_fn]
+
+
+	#(['|', '|'] if mimic_kraken else ['|']) \
+	command=cmd_match + ['|'] + cmd_assign
 	_run_safe(command)
+
+
+########
+# MAIN #
+########
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -262,6 +276,38 @@ if __name__ == "__main__":
 			action='store_false',
 			help='do not use k-LCP',
 		)
+	parser_classify.add_argument(
+			'-m','--measure',
+			dest='measure',
+			choices=['h1','c1'],
+			help='measure: h1=hit count, c1=coverage [{}]'.format(DEFAULT_MEASURE),
+			default=DEFAULT_MEASURE,
+		)
+	parser_classify.add_argument(
+			'-o','--out-form',
+			dest='oform',
+			choices=['kraken','sam'],
+			default='sam',
+			help='output format',
+		)
+	parser_classify.add_argument(
+			'--annotate',
+			dest='annotate',
+			action='store_true',
+			help='annotate assignments',
+		)
+	parser_classify.add_argument(
+			'--tie-lca',
+			dest='tie',
+			action='store_true',
+			help='use LCA when tie (multiple hits with the same score)',
+		)
+	parser_classify.add_argument(
+			'--mimic-kraken',
+			dest='mimic',
+			action='store_true',
+			help='mimic Kraken algorithm and output (for debugging purposes)',
+		)
 
 	##########
 
@@ -286,6 +332,11 @@ if __name__ == "__main__":
 				fq_fn=args.reads,
 				k=args.k,
 				use_klcp=args.klcp,
+				out_format=args.oform,
+				mimic_kraken=args.mimic,
+				measure=args.measure,
+				tie_lca=args.tie,
+				annotate=args.annotate,
 			)
 
 	else:
