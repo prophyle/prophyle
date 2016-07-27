@@ -22,13 +22,16 @@ DEFAULT_K=32
 DEFAULT_THREADS=multiprocessing.cpu_count()
 DEFAULT_MEASURE='h1'
 
-def _test_files(*fns):
+def _test_files(*fns,test_nonzero=False):
 	#print(fns)
 	for fn in fns:
 		assert os.path.isfile(fn), 'File "{}" does not exist'.format(fn)
+		if test_nonzero:
+			assert _file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
+
 
 def _file_sizes(*fns):
-	return (os.stat(fn).st_size for fn in fns)
+	return tuple( [os.stat(fn).st_size for fn in fns] )
 
 def _run_safe(command, output_fn=None):
 	command_str=" ".join(map(lambda x: str(x),command))
@@ -87,7 +90,7 @@ def _create_makefile(index_dir, k, library_dir):
 def _propagate(index_dir,threads):
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
-	_test_files(os.path.join(propagation_dir, 'Makefile'))
+	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
 	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "ASSEMBLER={}".format(asm)]
 	_run_safe(command)
 
