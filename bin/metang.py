@@ -14,7 +14,9 @@ exk=os.path.join(bin_dir,"exk")
 asm=os.path.abspath(os.path.join(bin_dir,"assembler"))
 newick2makefile=os.path.join(bin_dir,"newick2makefile.py")
 test_newick=os.path.join(bin_dir,"test_newick_tree.py")
+merge_fastas=os.path.join(bin_dir,"create_final_fasta.py")
 assign=os.path.join(bin_dir,"assignment.py")
+
 
 def _test_files(*fns):
 	#print(fns)
@@ -70,8 +72,13 @@ def _propagate(index_dir,threads):
 	_run_safe(command)
 
 def _merge_fastas(index_dir):
-	#todo
-	pass
+	_message('Generating index.fa')
+	propagation_dir=os.path.join(index_dir, 'propagation')
+	# todo: check files for all nodes exist and are of size > 0
+	index_fa=os.path.join(index_dir,"index.fa")
+	_test_files(merge_fastas)
+	command=[merge_fastas, propagation_dir]
+	_run_safe(command, index_fa)	
 
 def _fa2pac(fa_fn):
 	_message('Generating packed FASTA file')
