@@ -48,9 +48,18 @@ def _message(msg):
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
 	print('[metang]', fdt, msg, file=sys.stderr)
 
-def _touch(fn):
-    with open(fn, 'a'):
-        pass
+def _touch(*fns):
+	for fn in fns:
+		with open(fn, 'a'):
+			pass
+
+def _rm(*fns):
+	for fn in fns:
+		try:
+			os.remove(fn)
+		except FileNotFoundError:
+			pass
+
 
 ###############
 # METANG INIT #
@@ -156,16 +165,18 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 		_touch(index_fa+'.complete')
 
 	# bwa index & klcp
-	if ccontinue and os.path.isfile(index_fa+'.bwt'):
+	if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
 		_message('Skipping BWT construction, already exists')
 	else:
+		_rm(index_fa+'.bwt',index_fa+'.bwt.complete')
 		_fa2pac(index_fa)
 		_pac2bwt(index_fa)
+		_bwt2bwtocc(index_fa)
+		_touch(index_fa+'.bwt.complete')
 
 	if ccontinue and os.path.isfile(index_fa+'.sa'):
 		_message('Skipping SA construction, already exists')
 	else:
-		_bwt2bwtocc(index_fa)
 		_bwtocc2sa(index_fa)
 
 	if klcp:
