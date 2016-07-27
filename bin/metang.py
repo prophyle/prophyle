@@ -27,6 +27,8 @@ LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI='http://ftp.ncbi.nlm.nih.gov'
 # todo: add both FTP and HTTP variants
+#   http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
+#   ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
 
 def _test_files(*fns,test_nonzero=False):
 	#print(fns)
@@ -87,34 +89,54 @@ def init(library, home_dir):
 	for l in ls:
 		if l=='bacteria':
 			d=os.path.join(home_dir,'bacteria')
+			compl=os.path.join(d,".complete")
 			os.makedirs(d, exist_ok=True)
-			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
-			_run_safe(cmd)
-			_touch(os.path.join(d,".complete"))
+			if os.path.isfile(compl):
+				_message("Skipping library '{}' (already exists)".format(l))
+			else:
+				_message("Downloading library '{}'".format(l))
+				# fix when error appears
+				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
+				_run_safe(cmd)
+				_touch(compl)
 		elif l=='viruses':
 			d=os.path.join(home_dir,'viruses')
+			compl=os.path.join(d,".complete")
 			os.makedirs(d, exist_ok=True)
-			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
-			_run_safe(cmd)
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
-			_run_safe(cmd)
-			_touch(os.path.join(d,".complete"))
+			if os.path.isfile(compl):
+				_message("Skipping library '{}' (already exists)".format(l))
+			else:
+				_message("Downloading library '{}'".format(l))
+				# fix when error appears
+				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
+				_run_safe(cmd)
+				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
+				_run_safe(cmd)
+				_touch(compl)
 		elif l=='plasmids':
 			d=os.path.join(home_dir,'plasmids')
+			compl=os.path.join(d,".complete")
 			os.makedirs(d, exist_ok=True)
-			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
-			_run_safe(cmd)
-			_touch(os.path.join(d,".complete"))
+			if os.path.isfile(compl):
+				_message("Skipping library '{}' (already exists)".format(l))
+			else:
+				_message("Downloading library '{}'".format(l))
+				# fix when error appears
+				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
+				_run_safe(cmd)
+				_touch(compl)
 		elif l=='hmp':
 			d=os.path.join(home_dir,'hmp')
+			compl=os.path.join(d,".complete")
 			os.makedirs(d, exist_ok=True)
-			# fix when error appears
-			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
-			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
-			_touch(os.path.join(d,".complete"))
+			if os.path.isfile(compl):
+				_message("Skipping library '{}' (already exists)".format(l))
+			else:
+				_message("Downloading library '{}'".format(l))
+				# fix when error appears
+				cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
+				_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
+				_touch(compl)
 		else:
 			raise ValueError('Unknown library ""'.format(library))
 
