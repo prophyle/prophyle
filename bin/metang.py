@@ -2,6 +2,7 @@
 
 import argparse
 import datetime
+import multiprocessing
 import os
 import shutil
 import subprocess
@@ -16,6 +17,9 @@ newick2makefile=os.path.join(bin_dir,"newick2makefile.py")
 test_newick=os.path.join(bin_dir,"test_newick_tree.py")
 merge_fastas=os.path.join(bin_dir,"create_final_fasta.py")
 assign=os.path.join(bin_dir,"assignment.py")
+
+DEFAULT_K=32
+DEFAULT_THREADS=multiprocessing.cpu_count()
 
 
 def _test_files(*fns):
@@ -179,85 +183,87 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format='sam'):
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-
 	subparsers = parser.add_subparsers(help='sub-command help',dest='subcommand')
+	fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
 
-	parser_init = subparsers.add_parser('init', help='Initialize data')
+	##########
+
+	parser_init = subparsers.add_parser('init', help='Initialize data', formatter_class=fc)
 	parser_init.add_argument('--bar', type=int, help='bar help', required=False)
 
-	parser_index = subparsers.add_parser('index', help='Create index')
+	##########
+
+	parser_index = subparsers.add_parser('index', help='Create index', formatter_class=fc)
 	parser_index.add_argument(
-			'-n',
+			'-n','--newick',
 			metavar='FILE',
 			dest='newick',
 			type=str,
-			help='newick tree',
+			help='taxonomy tree (in Newick format)',
 			required=True,
 		)
 	parser_index.add_argument(
-			'-i',
-			metavar='DIR',
-			dest='index_dir',
+			'index_dir',
+			metavar='<index.dir>',
 			type=str,
-			help='directory with index',
-			required=True,
+			help='index directory (will be created)',
 		)
 	parser_index.add_argument(
-			'-l',
+			'-l','--lib-dir',
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with sequence library',
+			help='directory with genomic sequences',
 			required=True,
 		)
 	parser_index.add_argument(
-			'-t',
+			'-t','--threads',
 			metavar='INT',
 			dest='threads',
 			type=int,
-			help='number of threads',
-			required=True,
+			help='number of threads [auto={}]'.format(DEFAULT_THREADS),
+			default=DEFAULT_THREADS,
 		)
 	parser_index.add_argument(
-			'-k',
-			metavar='INT',
+			'-k','--kmer-len',
 			dest='k',
+			metavar='INT',
 			type=int,
-			help='k-mer length',
-			required=True,
+			help='k-mer length [{}]'.format(DEFAULT_K),
+			default=DEFAULT_K,
 		)
 
-	parser_classify = subparsers.add_parser('classify', help='Classify reads')
+	##########
+
+	parser_classify = subparsers.add_parser('classify', help='Classify reads', formatter_class=fc)
 	parser_classify.add_argument(
-			'-i',
-			metavar='DIR',
-			dest='index_dir',
+			'index_dir',
+			metavar='<index.dir>',
 			type=str,
-			help='directory with index',
-			required=True,
+			help='index directory',
 		)
 	parser_classify.add_argument(
-			'-f',
-			metavar='FILE',
-			dest='reads',
+			'reads',
+			metavar='<reads.fq>',
 			type=str,
 			help='file with reads in FASTA or FASTQ [- for standard input]',
-			required=True,
 		)
 	parser_classify.add_argument(
-			'-k',
+			'-k','--kmer-len',
 			dest='k',
 			metavar='INT',
 			type=int,
-			help='K-mer length',
-			required=True,
+			help='k-mer length [{}]'.format(DEFAULT_K),
+			default=DEFAULT_K,
 		)
 	parser_classify.add_argument(
-			'--no-klcp','-n',
+			'-n','--no-klcp',
 			dest='klcp',
 			action='store_false',
-			help='Do not use k-LCP',
+			help='do not use k-LCP',
 		)
+
+	##########
 
 	args = parser.parse_args()
 	subcommand=args.subcommand
