@@ -48,6 +48,10 @@ def _message(msg):
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
 	print('[metang]', fdt, msg, file=sys.stderr)
 
+def _touch(fn):
+    with open(fn, 'a'):
+        pass
+
 ###############
 # METANG INIT #
 ###############
@@ -85,7 +89,8 @@ def _merge_fastas(index_dir):
 	index_fa=os.path.join(index_dir,"index.fa")
 	_test_files(merge_fastas)
 	command=[merge_fastas, propagation_dir]
-	_run_safe(command, index_fa)	
+	_run_safe(command, index_fa)
+	_touch(index_fa+".complete")
 
 def _fa2pac(fa_fn):
 	_message('Generating packed FASTA file')
@@ -117,7 +122,7 @@ def _bwtocc2klcp(fa_fn,k):
 	command=[exk, 'index', '-k', k, fa_fn]
 	_run_safe(command)
 
-def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True):
+def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, ccontinue=False):
 	assert k>1
 
 	# check files & dirs
@@ -127,31 +132,48 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True):
 	makefile_dir=os.path.join(index_dir,'propagation')
 	makefile=os.path.join(index_dir,'propagation','Makefile')
 
-	assert not os.path.isfile(index_dir) 
-	assert not os.path.isdir(index_dir)
-
 	# make index dir
-	os.makedirs(index_dir)
+	if ccontinue:
+		assert not os.path.isfile(index_dir)
+		os.makedirs(index_dir, exist_ok=True)
+	else:
+		assert not os.path.isfile(index_dir)
+		assert not os.path.isdir(index_dir)
 
 	# copy newick
-	shutil.copy(newick_fn, index_newick)
+	if ccontinue and os.path.isfile(index_newick):
+		_message('Skipping Newick copying, already exists')
+	else:
+		shutil.copy(newick_fn, index_newick)
 
-	# create makefile
-	_create_makefile(index_dir, k, library_dir)
-
-	# run makefile
-	_propagate(index_dir, threads=threads)
-
-	# merge fastas
-	_merge_fastas(index_dir)
+	# create Makefile & run Makefile & merge fastas
+	if ccontinue and index_fa+'.complete':
+		_message('Skipping k-mer propagation, index.fa already exists')
+	else:
+		_create_makefile(index_dir, k, library_dir)
+		_propagate(index_dir, threads=threads)
+		_merge_fastas(index_dir)
+		_touch(index_fa+'.complete')
 
 	# bwa index & klcp
-	_fa2pac(index_fa)
-	_pac2bwt(index_fa)
-	_bwt2bwtocc(index_fa)
-	_bwtocc2sa(index_fa)
+	if ccontinue and index_fa+'.bwt':
+		_message('Skipping BWT construction, already exists')
+	else:
+		_fa2pac(index_fa)
+		_pac2bwt(index_fa)
+
+	if ccontinue and index_fa+'.sa':
+		_message('Skipping SA construction, already exists')
+	else:
+		_bwt2bwtocc(index_fa)
+		_bwtocc2sa(index_fa)
+
 	if klcp:
-		_bwtocc2klcp(index_fa,k)
+		klcp_fn="{}.{}.bit.klcp".format(index_fa,k)
+		if ccontinue and os.path.isfile(klcp_fn):
+			_message('Skipping k-LCP construction, already exists')
+		else:
+			_bwtocc2klcp(index_fa,k)
 
 
 ###################
@@ -256,6 +278,12 @@ if __name__ == "__main__":
 			help='k-mer length [{}]'.format(DEFAULT_K),
 			default=DEFAULT_K,
 		)
+	parser_index.add_argument(
+			'--continue',
+			dest='ccontinue',
+			action='store_true',
+			help='continue with index construction (construct only missing parts)',
+		)
 
 	##########
 
@@ -334,6 +362,7 @@ if __name__ == "__main__":
 				k=args.k,
 				newick_fn=args.newick,
 				library_dir=args.library_dir,
+				ccontinue=args.ccontinue,
 			)
 
 	elif subcommand=="classify":
