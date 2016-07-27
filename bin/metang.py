@@ -67,7 +67,7 @@ def init():
 def _create_makefile(index_dir, k, library_dir):
 	_message('Creating Makefile for k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
-	os.makedirs(propagation_dir)
+	os.makedirs(propagation_dir,exist_ok=True)
 
 	makefile=os.path.join(propagation_dir,'Makefile')
 	newick_fn=os.path.join(index_dir,'tree.newick')
@@ -147,7 +147,7 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 		shutil.copy(newick_fn, index_newick)
 
 	# create Makefile & run Makefile & merge fastas
-	if ccontinue and index_fa+'.complete':
+	if ccontinue and os.path.isfile(index_fa+'.complete'):
 		_message('Skipping k-mer propagation, index.fa already exists')
 	else:
 		_create_makefile(index_dir, k, library_dir)
@@ -156,13 +156,13 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 		_touch(index_fa+'.complete')
 
 	# bwa index & klcp
-	if ccontinue and index_fa+'.bwt':
+	if ccontinue and os.path.isfile(index_fa+'.bwt'):
 		_message('Skipping BWT construction, already exists')
 	else:
 		_fa2pac(index_fa)
 		_pac2bwt(index_fa)
 
-	if ccontinue and index_fa+'.sa':
+	if ccontinue and os.path.isfile(index_fa+'.sa'):
 		_message('Skipping SA construction, already exists')
 	else:
 		_bwt2bwtocc(index_fa)
