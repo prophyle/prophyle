@@ -21,6 +21,11 @@ assign=os.path.join(bin_dir,"assignment.py")
 DEFAULT_K=32
 DEFAULT_THREADS=multiprocessing.cpu_count()
 DEFAULT_MEASURE='h1'
+DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'metang')
+
+LIBRARIES=['bacteria', 'viruses', 'plasmids']
+
+FTP_NCBI='http://ftp.ncbi.nlm.nih.gov'
 
 def _test_files(*fns,test_nonzero=False):
 	#print(fns)
@@ -68,8 +73,39 @@ def _rm(*fns):
 # METANG INIT #
 ###############
 
-def init():
-	pass
+def init(library, home_dir):
+	print('making',home_dir)
+	os.makedirs(home_dir, exist_ok=True)
+	if library=='all':
+		ls=LIBRARIES
+	else:
+		ls=[library]
+
+	# todo: http vs ftp
+
+	for l in ls:
+		if l=='bacteria':
+			d=os.path.join(home_dir,'bacteria')
+			os.makedirs(d, exist_ok=True)
+			# fix when error appears
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
+			_run_safe(cmd)
+		elif l=='viruses':
+			d=os.path.join(home_dir,'viruses')
+			os.makedirs(d, exist_ok=True)
+			# fix when error appears
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
+			_run_safe(cmd)
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
+			_run_safe(cmd)
+		if l=='plasmids':
+			d=os.path.join(home_dir,'plasmids')
+			os.makedirs(d, exist_ok=True)
+			# fix when error appears
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
+			_run_safe(cmd)
+		else:
+			raise ValueError('Unknown library ""'.format(library))
 
 
 ################
@@ -218,8 +254,6 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 		(klcp_s,)=_file_sizes(klcp_fn)
 		assert abs(bwt_s - 2*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
 
-	# todo: add integrity checking (correct file size: |sa|=|pac|, |bwt|=2|sa|)
-
 	if mimic_kraken:
 		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_newick, '-m', 'h1', '-f', 'kraken', '-l', '-t']
 	else:
@@ -249,7 +283,20 @@ if __name__ == "__main__":
 	##########
 
 	parser_init = subparsers.add_parser('init', help='Initialize data', formatter_class=fc)
-	parser_init.add_argument('--bar', type=int, help='bar help', required=False)
+	parser_init.add_argument(
+			'library',
+			metavar='<library>',
+			choices=LIBRARIES+['all'],
+			help='genomic library {}'.format(LIBRARIES+['all']),
+		)
+	parser_init.add_argument(
+			'-m','--metang-dir',
+			metavar='DIR',
+			dest='home_dir',
+			type=str,
+			default=DEFAULT_HOME_DIR,
+			help='Metang directory [{}]'.format(DEFAULT_HOME_DIR),
+		)
 
 	##########
 
@@ -367,7 +414,10 @@ if __name__ == "__main__":
 	subcommand=args.subcommand
 
 	if subcommand=="init":
-		init()
+		init(
+				library=args.library,
+				home_dir=args.home_dir,
+			)
 
 	elif subcommand=="index":		
 		index(
