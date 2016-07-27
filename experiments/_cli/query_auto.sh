@@ -1,4 +1,4 @@
 #! /usr/bin/env bash
 
-../../bin/metang.py classify -i auto -f ../../reads/simulation_bacteria.1000.fq -k 20
+../../bin/metang.py classify -k 6 autoindex ../../reads/simulation_bacteria.1000.fq
 
