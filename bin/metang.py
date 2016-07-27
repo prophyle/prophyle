@@ -27,6 +27,9 @@ def _test_files(*fns):
 	for fn in fns:
 		assert os.path.isfile(fn), 'File "{}" does not exist'.format(fn)
 
+def _file_sizes(*fns):
+	return (os.stat(fn).st_size for fn in fns)
+
 def _run_safe(command, output_fn=None):
 	command_str=" ".join(map(lambda x: str(x),command))
 	print("Running:", command_str, file=sys.stderr)
@@ -169,8 +172,15 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 			index_fa+'.amb',
 		)
 
+	(bwt_s, sa_s, pac_s)=_file_sizes(index_fa+'.bwt',index_fa+'.sa',index_fa+'.pac')
+	assert abs(bwt_s - 2*sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
+	assert abs(bwt_s - 2*pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
+
 	if use_klcp:
-		_test_files("{}.{}.bit.klcp".format(index_fa,k))
+		klcp_fn="{}.{}.bit.klcp".format(index_fa,k)
+		_test_files(klcp_fn)
+		(klcp_s,)=_file_sizes(klcp_fn)
+		assert abs(bwt_s - 2*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
 
 	# todo: add integrity checking (correct file size: |sa|=|pac|, |bwt|=2|sa|)
 
