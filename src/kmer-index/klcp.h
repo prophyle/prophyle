@@ -16,7 +16,7 @@ typedef struct {
 void destroy_klcp(klcp_t* klcp);
 klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length);
 void klcp_restore(const char *fn, klcp_t* klcp);
-void exk_index_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt);
+void exk_index_core(const char *prefix, const exk_opt_t *opt, int sa_intv);
 uint64_t decrease_k(klcp_t* klcp, const uint64_t k);
 uint64_t increase_l(klcp_t* klcp, const uint64_t l);
 
