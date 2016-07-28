@@ -140,7 +140,7 @@ def init(library, home_dir):
 				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
 				_run_safe(cmd)
 				_complete(d, 1)
-
+			_pseudo_fai(d)
 
 		elif l=='viruses':
 			d=os.path.join(home_dir,'viruses')
@@ -160,6 +160,7 @@ def init(library, home_dir):
 				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
 				_run_safe(cmd)
 				_complete(d, 1)
+			_pseudo_fai(d)
 
 		elif l=='hmp':
 			d=os.path.join(home_dir,'hmp')
@@ -169,6 +170,8 @@ def init(library, home_dir):
 				cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
 				_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
 				_complete(d, 1)
+			_pseudo_fai(d)
+
 
 		else:
 			raise ValueError('Unknown library ""'.format(library))
