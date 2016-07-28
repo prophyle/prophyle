@@ -61,8 +61,11 @@ def _message(msg):
 
 def _touch(*fns):
 	for fn in fns:
-		with open(fn, 'a'):
-			pass
+		if os.path.exists(fn):
+			os.utime(fn, None)
+		else:
+			with open(fn, 'a'):
+				pass
 
 def _rm(*fns):
 	for fn in fns:
@@ -75,6 +78,48 @@ def _rm(*fns):
 ###############
 # METANG INIT #
 ###############
+
+def _complete(d, i):
+	fn=os.path.join(d,".complete.{}".format(i))
+	_touch(fn)
+
+# .complete.i exists AND it is newere than .complete.(i-1)
+def _is_complete(d, i):
+	assert i>0
+	fn=os.path.join(d,".complete.{}".format(i))
+	fn0=os.path.join(d,".complete.{}".format(i-1))
+	if not os.path.isfile(fn):
+		return False
+	if i==1:
+		return True
+	if os.path.isfile(fn0) and os.path.getmtime(fn0)<=os.path.getmtime(fn):
+		return True
+	else:
+		return False
+
+def _missing_library(d):
+	l=os.path.dirname(d)
+	os.makedirs(d, exist_ok=True)
+	if _is_complete(d,1):
+		_message("Skipping downloading library '{}' (already exists)".format(l))
+		return False
+	else:
+		_message("Downloading library '{}'".format(l))
+		return True
+
+
+def _pseudo_fai(d):
+	l=os.path.dirname(d)
+	pseudofai_fn=d+".pseudofai"
+	os.makedirs(d, exist_ok=True)
+	if _is_complete(d,2) and os.path.isfile(pseudofai_fn):
+		_message("Skipping generating pseudofai for library '{}' (already exists)".format(l))
+	else:
+		_message("Generating pseudofai for library '{}'".format(l))
+		assert d[-1]!="/"
+		cmd=['grep -r --include=\\*.{fa,ffn,fna}', '">"', d, '| sed "s/:>/\t/"']
+		_run_safe(cmd, pseudofai_fn)
+		_complete(d, 2)
 
 def init(library, home_dir):
 	print('making',home_dir)
@@ -89,54 +134,42 @@ def init(library, home_dir):
 	for l in ls:
 		if l=='bacteria':
 			d=os.path.join(home_dir,'bacteria')
-			compl=os.path.join(d,".complete")
-			os.makedirs(d, exist_ok=True)
-			if os.path.isfile(compl):
-				_message("Skipping library '{}' (already exists)".format(l))
-			else:
+			if _missing_library(d):
 				_message("Downloading library '{}'".format(l))
 				# fix when error appears
 				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
 				_run_safe(cmd)
-				_touch(compl)
+				_complete(d, 1)
+
+
 		elif l=='viruses':
 			d=os.path.join(home_dir,'viruses')
-			compl=os.path.join(d,".complete")
-			os.makedirs(d, exist_ok=True)
-			if os.path.isfile(compl):
-				_message("Skipping library '{}' (already exists)".format(l))
-			else:
-				_message("Downloading library '{}'".format(l))
+			if _missing_library(d):
 				# fix when error appears
 				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
 				_run_safe(cmd)
 				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
 				_run_safe(cmd)
-				_touch(compl)
+				_complete(d, 1)
+			_pseudo_fai(d)
+
 		elif l=='plasmids':
 			d=os.path.join(home_dir,'plasmids')
-			compl=os.path.join(d,".complete")
-			os.makedirs(d, exist_ok=True)
-			if os.path.isfile(compl):
-				_message("Skipping library '{}' (already exists)".format(l))
-			else:
-				_message("Downloading library '{}'".format(l))
+			if _missing_library(d):
 				# fix when error appears
 				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
 				_run_safe(cmd)
-				_touch(compl)
+				_complete(d, 1)
+
 		elif l=='hmp':
 			d=os.path.join(home_dir,'hmp')
-			compl=os.path.join(d,".complete")
-			os.makedirs(d, exist_ok=True)
-			if os.path.isfile(compl):
-				_message("Skipping library '{}' (already exists)".format(l))
-			else:
-				_message("Downloading library '{}'".format(l))
+			if _missing_library(d):
+				_message("Downloading downloading library '{}'".format(l))
 				# fix when error appears
 				cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
 				_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
-				_touch(compl)
+				_complete(d, 1)
+
 		else:
 			raise ValueError('Unknown library ""'.format(library))
 
