@@ -666,6 +666,8 @@ int exk_index(int argc, char *argv[])
     // fprintf(stderr, "         -f FILE   file to write output to instead of stdout\n");
 
 		fprintf(stderr, "Options:  -k INT    length of k-mer\n");
+		fprintf(stderr, "          -s        construct klcp and sa in parallel\n");
+		fprintf(stderr, "          -i        sampling distance for SA\n");
 
 		// fprintf(stderr, "         -B INT    length of barcode\n");
 		// fprintf(stderr, "         -I        the input is in the Illumina 1.3+ FASTQ-like format\n");
@@ -692,7 +694,7 @@ static int usage()
 	fprintf(stderr, "Program: exk (alignment of k-mers)\n");
 	fprintf(stderr, "Usage:   exk command [options]\n\n");
 	fprintf(stderr, "Command: index         construct klcp array\n");
-	fprintf(stderr, "Command: match         align k-mers\n");
+	fprintf(stderr, "Command: match         match k-mers\n");
 	fprintf(stderr, "\n");
 	return 1;
 }
