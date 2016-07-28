@@ -53,6 +53,8 @@ def _run_safe(command, output_fn=None):
 		print("Finished:", command_str, file=sys.stderr)
 	else:
 		print("Finished with error (error code {}):".format(error_code), command_str, file=sys.stderr)
+		# todo: maybe it will be better to throw an exception
+		sys.exit(error_code)
 
 def _message(msg):
 	dt=datetime.datetime.now()
