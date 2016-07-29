@@ -663,7 +663,7 @@ int exk_index(int argc, char *argv[])
 	char *prefix;
 	opt = exk_init_opt();
 	int sa_intv = 32;
-	while ((c = getopt(argc, argv, "si:k:n:o:e:i:d:l:k:LR:m:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	while ((c = getopt(argc, argv, "si:k:")) >= 0) {
 		switch (c) {
 		case 'k': opt->kmer_length = atoi(optarg); break;
 		case 'i': sa_intv = atoi(optarg); break;
