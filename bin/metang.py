@@ -17,6 +17,7 @@ newick2makefile=os.path.join(bin_dir,"newick2makefile.py")
 test_newick=os.path.join(bin_dir,"test_newick_tree.py")
 merge_fastas=os.path.join(bin_dir,"create_final_fasta.py")
 assign=os.path.join(bin_dir,"assignment.py")
+test_newick=os.path.join(bin_dir,"test_newick_tree.py")
 
 DEFAULT_K=32
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -37,6 +38,9 @@ def _test_files(*fns,test_nonzero=False):
 		if test_nonzero:
 			assert _file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
 
+def _test_newick(fn):
+	_test_files(fn)
+	cmd=[test_newick, '-n', fn]
 
 def _file_sizes(*fns):
 	return tuple( [os.stat(fn).st_size for fn in fns] )
@@ -190,6 +194,7 @@ def _create_makefile(index_dir, k, library_dir):
 
 	makefile=os.path.join(propagation_dir,'Makefile')
 	newick_fn=os.path.join(index_dir,'tree.newick')
+	_test_newick(newick_fn)
 	#_test_files(newick2makefile, newick_fn)
 	command=[newick2makefile, '-n', newick_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
 	_run_safe(command,makefile)
@@ -245,7 +250,7 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 	assert k>1
 
 	# check files & dirs
-	_test_files(newick_fn)
+	_test_newick(newick_fn)
 	index_fa=os.path.join(index_dir,'index.fa')
 	index_newick=os.path.join(index_dir,'tree.newick')
 	makefile_dir=os.path.join(index_dir,'propagation')
@@ -305,7 +310,8 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 	index_fa=os.path.join(index_dir, 'index.fa')
 	index_newick=os.path.join(index_dir, 'tree.newick')
 
-	_test_files(fq_fn,index_fa,index_newick,exk,assign)
+	_test_newick(index_newick)
+	_test_files(fq_fn,index_fa,exk,assign)
 
 	_test_files(
 			index_fa+'.bwt',
@@ -490,7 +496,7 @@ if __name__ == "__main__":
 				home_dir=args.home_dir,
 			)
 
-	elif subcommand=="index":		
+	elif subcommand=="index":
 		index(
 				index_dir=args.index_dir,
 				threads=args.threads,
