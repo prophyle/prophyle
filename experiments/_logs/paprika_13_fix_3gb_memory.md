@@ -185,151 +185,151 @@ Memory peak:      1.49 GB
 
 
 ### 01_1from10_bacteria_bin_k31/3.1a_matching_rolling.log
-* Tue Jul 26 12:06:30 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:27:46 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
 User time:     0:01:23
-System time:   0:00:03
-Elapsed time:  0:01:39
-CPU usage:          87%
+System time:   0:00:06
+Elapsed time:  0:01:41
+CPU usage:          88%
 
 Memory peak:      2.50 GB
 ```
 
-* 4869568inputs+173160outputs (0major+240306minor)pagefaults 0swaps
+* 4828072inputs+173160outputs (0major+1194426minor)pagefaults 0swaps
 
 
 ### 01_1from10_bacteria_bin_k31/3.1b_matching_rolling.log
 * bwt_loading	1.23s
-* sa_loading	0.61s
-* bns_loading	5.14s
-* klcp_loading	0.60s
-* matching_time	78.73s
+* sa_loading	1.46s
+* bns_loading	5.66s
+* klcp_loading	1.44s
+* matching_time	79.35s
 * reads	1000000
 * kmers	70000000
-* rpm	762140
-* kpm	53349826
+* rpm	756135
+* kpm	52929462
 
 
 ### 01_1from10_bacteria_bin_k31/3.2a_matching_restarted.log
-* Tue Jul 26 12:08:09 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:29:27 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:02:07
+User time:     0:02:01
 System time:   0:00:02
-Elapsed time:  0:02:10
-CPU usage:         100%
+Elapsed time:  0:02:11
+CPU usage:          94%
 
 Memory peak:      2.00 GB
 ```
 
-* 0inputs+173160outputs (0major+508694minor)pagefaults 0swaps
+* 2452432inputs+173160outputs (0major+361795minor)pagefaults 0swaps
 
 
 ### 01_1from10_bacteria_bin_k31/3.2b_matching_restarted.log
-* bwt_loading	0.47s
-* sa_loading	0.21s
-* bns_loading	5.10s
-* matching_time	124.65s
+* bwt_loading	1.39s
+* sa_loading	0.45s
+* bns_loading	4.69s
+* matching_time	116.97s
 * reads	1000000
 * kmers	70000000
-* rpm	481330
-* kpm	33693086
+* rpm	512970
+* kpm	35907900
 
 
 ### 01_1from10_bacteria_bin_k31/3.3a_matching_rolling_skipping.log
-* Tue Jul 26 12:10:20 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:31:39 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.3b_matching_rolling_skipping.log -k 31 -u -s index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:01:25
-System time:   0:00:03
-Elapsed time:  0:01:29
+User time:     0:01:24
+System time:   0:00:01
+Elapsed time:  0:01:26
 CPU usage:         100%
 
 Memory peak:      2.50 GB
 ```
 
-* 0inputs+173160outputs (0major+1249828minor)pagefaults 0swaps
+* 0inputs+173160outputs (0major+290436minor)pagefaults 0swaps
 
 
 ### 01_1from10_bacteria_bin_k31/3.3b_matching_rolling_skipping.log
-* bwt_loading	0.49s
-* sa_loading	0.24s
-* bns_loading	5.31s
-* klcp_loading	0.91s
-* matching_time	81.86s
+* bwt_loading	0.45s
+* sa_loading	0.22s
+* bns_loading	4.61s
+* klcp_loading	0.23s
+* matching_time	80.30s
 * reads	1000000
 * kmers	70000000
-* rpm	732985
-* kpm	51308965
+* rpm	747159
+* kpm	52301101
 
 
 ### 01_1from10_bacteria_bin_k31/3.4a_matching_restarted_skipping.log
-* Tue Jul 26 12:11:49 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:33:05 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.4b_matching_restarted_skipping.log -k 31 -s index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:02:00
+User time:     0:02:02
 System time:   0:00:01
-Elapsed time:  0:02:02
+Elapsed time:  0:02:03
 CPU usage:         100%
 
 Memory peak:      2.00 GB
 ```
 
-* 0inputs+173160outputs (0major+546494minor)pagefaults 0swaps
+* 0inputs+173160outputs (0major+327602minor)pagefaults 0swaps
 
 
 ### 01_1from10_bacteria_bin_k31/3.4b_matching_restarted_skipping.log
-* bwt_loading	0.46s
-* sa_loading	0.21s
-* bns_loading	5.09s
-* matching_time	116.08s
+* bwt_loading	0.45s
+* sa_loading	0.22s
+* bns_loading	4.58s
+* matching_time	118.36s
 * reads	1000000
 * kmers	70000000
-* rpm	516900
-* kpm	36183018
+* rpm	506937
+* kpm	35485613
 
 
 ### 01_1from10_bacteria_bin_k31/4.1_read_assignment.log
-* Tue Jul 26 12:08:09 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:35:09 CEST 2016
+* jobs: 1
 * ../../bin/assignment.py -i kmers_rolling.txt -n ../../trees/1from10.bacteria.bin.newick -k 31 -f sam -a
 
 ```
-User time:     0:00:28
+User time:     0:00:29
 System time:   0:00:00
-Elapsed time:  0:00:29
-CPU usage:         100%
+Elapsed time:  0:00:30
+CPU usage:          97%
 
-Memory peak:      0.06 GB
+Memory peak:      0.05 GB
 ```
 
-* 488inputs+0outputs (0major+23891minor)pagefaults 0swaps
+* 19272inputs+0outputs (52major+20249minor)pagefaults 0swaps
 
 
 ### 01_1from10_bacteria_bin_k31/4.2_read_assignment_simlca.log
-* Tue Jul 26 12:08:09 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:35:39 CEST 2016
+* jobs: 1
 * ../../bin/assignment.py -l -i kmers_rolling.txt -n ../../trees/1from10.bacteria.bin.newick -k 31 -f sam -a -t
 
 ```
-User time:     0:00:45
+User time:     0:00:44
 System time:   0:00:00
-Elapsed time:  0:00:45
+Elapsed time:  0:00:44
 CPU usage:         100%
 
-Memory peak:      0.06 GB
+Memory peak:      0.05 GB
 ```
 
-* 0inputs+0outputs (0major+30651minor)pagefaults 0swaps
+* 0inputs+0outputs (0major+22426minor)pagefaults 0swaps
 
 
 ### 01_1from10_bacteria_bin_k31/5.1_contigs_stats.log
@@ -471,151 +471,151 @@ Memory peak:     14.15 GB
 
 
 ### 02_bacteria_orig_k31/3.1a_matching_rolling.log
-* Tue Jul 26 12:13:52 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:36:24 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:03:23
-System time:   0:01:35
-Elapsed time:  0:06:40
-CPU usage:          75%
-
-Memory peak:     23.00 GB
-```
-
-* 46029368inputs+360824outputs (0major+48674134minor)pagefaults 0swaps
-
-
-### 02_bacteria_orig_k31/3.1b_matching_rolling.log
-* bwt_loading	30.04s
-* sa_loading	16.09s
-* bns_loading	64.80s
-* klcp_loading	16.11s
-* matching_time	169.24s
-* reads	1000000
-* kmers	70000000
-* rpm	354522
-* kpm	24816563
-
-
-### 02_bacteria_orig_k31/3.2a_matching_restarted.log
-* Tue Jul 26 12:20:32 CEST 2016
-* jobs: 24
-* ../../bin/exk match -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
-
-```
-User time:     0:08:55
-System time:   0:01:19
-Elapsed time:  0:11:53
-CPU usage:          86%
-
-Memory peak:     18.29 GB
-```
-
-* 28716656inputs+360824outputs (0major+79908497minor)pagefaults 0swaps
-
-
-### 02_bacteria_orig_k31/3.2b_matching_restarted.log
-* bwt_loading	17.88s
-* sa_loading	11.60s
-* bns_loading	63.68s
-* matching_time	520.55s
-* reads	1000000
-* kmers	70000000
-* rpm	115263
-* kpm	8068432
-
-
-### 02_bacteria_orig_k31/3.3a_matching_rolling_skipping.log
-* Tue Jul 26 12:32:26 CEST 2016
-* jobs: 24
-* ../../bin/exk match -l 3.3b_matching_rolling_skipping.log -k 31 -u -s index.fa ../../reads/simulation_bacteria.1000000.fq
-
-```
-User time:     0:03:18
+User time:     0:03:17
 System time:   0:01:13
-Elapsed time:  0:05:41
+Elapsed time:  0:05:38
 CPU usage:          80%
 
 Memory peak:     23.00 GB
 ```
 
-* 23697992inputs+360824outputs (0major+34765810minor)pagefaults 0swaps
+* 30041464inputs+360824outputs (0major+20751283minor)pagefaults 0swaps
+
+
+### 02_bacteria_orig_k31/3.1b_matching_rolling.log
+* bwt_loading	25.31s
+* sa_loading	16.57s
+* bns_loading	61.22s
+* klcp_loading	12.39s
+* matching_time	153.91s
+* reads	1000000
+* kmers	70000000
+* rpm	389834
+* kpm	27288369
+
+
+### 02_bacteria_orig_k31/3.2a_matching_restarted.log
+* Fri Jul 29 12:42:02 CEST 2016
+* jobs: 1
+* ../../bin/exk match -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
+
+```
+User time:     0:08:48
+System time:   0:01:09
+Elapsed time:  0:10:59
+CPU usage:          91%
+
+Memory peak:     18.29 GB
+```
+
+* 27085616inputs+360824outputs (1major+36165728minor)pagefaults 0swaps
+
+
+### 02_bacteria_orig_k31/3.2b_matching_restarted.log
+* bwt_loading	25.85s
+* sa_loading	15.78s
+* bns_loading	60.14s
+* matching_time	494.63s
+* reads	1000000
+* kmers	70000000
+* rpm	121302
+* kpm	8491135
+
+
+### 02_bacteria_orig_k31/3.3a_matching_rolling_skipping.log
+* Fri Jul 29 12:53:01 CEST 2016
+* jobs: 1
+* ../../bin/exk match -l 3.3b_matching_rolling_skipping.log -k 31 -u -s index.fa ../../reads/simulation_bacteria.1000000.fq
+
+```
+User time:     0:03:19
+System time:   0:00:56
+Elapsed time:  0:05:01
+CPU usage:          85%
+
+Memory peak:     23.00 GB
+```
+
+* 12100360inputs+360824outputs (2major+16821263minor)pagefaults 0swaps
 
 
 ### 02_bacteria_orig_k31/3.3b_matching_rolling_skipping.log
-* bwt_loading	21.54s
-* sa_loading	8.39s
-* bns_loading	62.53s
-* klcp_loading	17.77s
-* matching_time	159.50s
+* bwt_loading	18.52s
+* sa_loading	11.45s
+* bns_loading	59.00s
+* klcp_loading	10.27s
+* matching_time	154.92s
 * reads	1000000
 * kmers	70000000
-* rpm	376169
-* kpm	26331848
+* rpm	387294
+* kpm	27110570
 
 
 ### 02_bacteria_orig_k31/3.4a_matching_restarted_skipping.log
-* Tue Jul 26 12:38:08 CEST 2016
-* jobs: 24
+* Fri Jul 29 12:58:03 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.4b_matching_restarted_skipping.log -k 31 -s index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:09:07
-System time:   0:01:23
-Elapsed time:  0:10:55
+User time:     0:08:47
+System time:   0:01:05
+Elapsed time:  0:10:17
 CPU usage:          96%
 
 Memory peak:     18.29 GB
 ```
 
-* 7015528inputs+360824outputs (2major+86710194minor)pagefaults 0swaps
+* 7971728inputs+360824outputs (1major+45899156minor)pagefaults 0swaps
 
 
 ### 02_bacteria_orig_k31/3.4b_matching_restarted_skipping.log
-* bwt_loading	19.40s
-* sa_loading	10.28s
-* bns_loading	63.58s
-* matching_time	535.98s
+* bwt_loading	21.36s
+* sa_loading	11.48s
+* bns_loading	58.85s
+* matching_time	499.28s
 * reads	1000000
 * kmers	70000000
-* rpm	111945
-* kpm	7836141
+* rpm	120173
+* kpm	8412088
 
 
 ### 02_bacteria_orig_k31/4.1_read_assignment.log
-* Tue Jul 26 12:20:32 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:08:20 CEST 2016
+* jobs: 1
 * ../../bin/assignment.py -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 31 -f sam -a
 
 ```
-User time:     0:02:06
-System time:   0:00:01
-Elapsed time:  0:02:19
-CPU usage:          92%
+User time:     0:02:07
+System time:   0:00:00
+Elapsed time:  0:02:08
+CPU usage:          99%
 
 Memory peak:      0.07 GB
 ```
 
-* 104808inputs+0outputs (214major+88863minor)pagefaults 0swaps
+* 407840inputs+0outputs (180major+122733minor)pagefaults 0swaps
 
 
 ### 02_bacteria_orig_k31/4.2_read_assignment_simlca.log
-* Tue Jul 26 12:20:32 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:10:29 CEST 2016
+* jobs: 1
 * ../../bin/assignment.py -l -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 31 -f sam -a -t
 
 ```
-User time:     0:04:47
+User time:     0:04:39
 System time:   0:00:00
-Elapsed time:  0:04:57
-CPU usage:          97%
+Elapsed time:  0:04:40
+CPU usage:         100%
 
 Memory peak:      0.07 GB
 ```
 
-* 31032inputs+0outputs (191major+51308minor)pagefaults 0swaps
+* 0inputs+0outputs (0major+64637minor)pagefaults 0swaps
 
 
 ### 02_bacteria_orig_k31/5.1_contigs_stats.log
@@ -757,151 +757,151 @@ Memory peak:      8.87 GB
 
 
 ### 03_hmp_orig_k31/3.1a_matching_rolling.log
-* Tue Jul 26 12:49:04 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:15:10 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:02:33
-System time:   0:00:46
-Elapsed time:  0:04:33
-CPU usage:          73%
+User time:     0:02:34
+System time:   0:00:52
+Elapsed time:  0:04:39
+CPU usage:          74%
 
 Memory peak:     13.75 GB
 ```
 
-* 28418912inputs+258864outputs (0major+18635182minor)pagefaults 0swaps
+* 28127488inputs+258864outputs (0major+24883301minor)pagefaults 0swaps
 
 
 ### 03_hmp_orig_k31/3.1b_matching_rolling.log
-* bwt_loading	13.03s
-* sa_loading	10.00s
-* bns_loading	28.39s
-* klcp_loading	10.24s
-* matching_time	136.66s
+* bwt_loading	15.51s
+* sa_loading	10.32s
+* bns_loading	27.05s
+* klcp_loading	10.56s
+* matching_time	142.40s
 * reads	1000000
 * kmers	70000000
-* rpm	439051
-* kpm	30733580
+* rpm	421349
+* kpm	29494412
 
 
 ### 03_hmp_orig_k31/3.2a_matching_restarted.log
-* Tue Jul 26 12:53:37 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:19:50 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:05:36
-System time:   0:00:20
-Elapsed time:  0:06:40
-CPU usage:          89%
+User time:     0:04:51
+System time:   0:00:11
+Elapsed time:  0:05:35
+CPU usage:          90%
 
 Memory peak:     10.80 GB
 ```
 
-* 9029976inputs+258864outputs (1major+10541896minor)pagefaults 0swaps
+* 8493968inputs+258864outputs (1major+418263minor)pagefaults 0swaps
 
 
 ### 03_hmp_orig_k31/3.2b_matching_restarted.log
-* bwt_loading	6.08s
-* sa_loading	1.60s
-* bns_loading	29.73s
-* matching_time	317.73s
+* bwt_loading	7.20s
+* sa_loading	2.14s
+* bns_loading	23.78s
+* matching_time	269.49s
 * reads	1000000
 * kmers	70000000
-* rpm	188842
-* kpm	13218935
+* rpm	222644
+* kpm	15585046
 
 
 ### 03_hmp_orig_k31/3.3a_matching_rolling_skipping.log
-* Tue Jul 26 13:00:17 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:25:25 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.3b_matching_rolling_skipping.log -k 31 -u -s index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:02:30
-System time:   0:00:41
-Elapsed time:  0:03:28
-CPU usage:          92%
+User time:     0:02:32
+System time:   0:00:39
+Elapsed time:  0:03:11
+CPU usage:         100%
 
 Memory peak:     13.75 GB
 ```
 
-* 6224872inputs+258864outputs (0major+23192518minor)pagefaults 0swaps
+* 0inputs+258864outputs (0major+24877865minor)pagefaults 0swaps
 
 
 ### 03_hmp_orig_k31/3.3b_matching_rolling_skipping.log
-* bwt_loading	6.90s
-* sa_loading	6.60s
-* bns_loading	28.19s
-* klcp_loading	11.32s
-* matching_time	137.88s
+* bwt_loading	9.35s
+* sa_loading	6.66s
+* bns_loading	26.68s
+* klcp_loading	6.31s
+* matching_time	141.68s
 * reads	1000000
 * kmers	70000000
-* rpm	435171
-* kpm	30461961
+* rpm	423504
+* kpm	29645266
 
 
 ### 03_hmp_orig_k31/3.4a_matching_restarted_skipping.log
-* Tue Jul 26 13:03:46 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:28:37 CEST 2016
+* jobs: 1
 * ../../bin/exk match -l 3.4b_matching_restarted_skipping.log -k 31 -s index.fa ../../reads/simulation_bacteria.1000000.fq
 
 ```
-User time:     0:04:53
-System time:   0:00:29
-Elapsed time:  0:05:23
+User time:     0:04:50
+System time:   0:00:06
+Elapsed time:  0:04:56
 CPU usage:         100%
 
 Memory peak:     10.80 GB
 ```
 
-* 56inputs+258864outputs (0major+19892953minor)pagefaults 0swaps
+* 0inputs+258864outputs (0major+462039minor)pagefaults 0swaps
 
 
 ### 03_hmp_orig_k31/3.4b_matching_restarted_skipping.log
-* bwt_loading	7.29s
-* sa_loading	7.64s
-* bns_loading	27.92s
-* matching_time	279.55s
+* bwt_loading	2.50s
+* sa_loading	1.31s
+* bns_loading	23.59s
+* matching_time	268.55s
 * reads	1000000
 * kmers	70000000
-* rpm	214633
-* kpm	15024304
+* rpm	223419
+* kpm	15639315
 
 
 ### 03_hmp_orig_k31/4.1_read_assignment.log
-* Tue Jul 26 12:53:37 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:33:34 CEST 2016
+* jobs: 1
 * ../../bin/assignment.py -i kmers_rolling.txt -n ../../trees/hmp.orig.newick -k 31 -f sam -a
 
 ```
-User time:     0:01:13
+User time:     0:01:15
 System time:   0:00:00
-Elapsed time:  0:01:24
-CPU usage:          88%
+Elapsed time:  0:01:17
+CPU usage:          99%
 
 Memory peak:      0.09 GB
 ```
 
-* 35336inputs+0outputs (165major+123213minor)pagefaults 0swaps
+* 270632inputs+0outputs (10major+180898minor)pagefaults 0swaps
 
 
 ### 03_hmp_orig_k31/4.2_read_assignment_simlca.log
-* Tue Jul 26 12:53:37 CEST 2016
-* jobs: 24
+* Fri Jul 29 13:34:51 CEST 2016
+* jobs: 1
 * ../../bin/assignment.py -l -i kmers_rolling.txt -n ../../trees/hmp.orig.newick -k 31 -f sam -a -t
 
 ```
-User time:     0:02:43
+User time:     0:02:30
 System time:   0:00:00
-Elapsed time:  0:02:53
-CPU usage:          95%
+Elapsed time:  0:02:31
+CPU usage:         100%
 
 Memory peak:      0.09 GB
 ```
 
-* 36960inputs+0outputs (165major+215060minor)pagefaults 0swaps
+* 0inputs+0outputs (0major+137040minor)pagefaults 0swaps
 
 
 ### 03_hmp_orig_k31/5.1_contigs_stats.log
