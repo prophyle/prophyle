@@ -271,7 +271,7 @@ void bwt_restore_sa_partial(const char *fn, bwt_t *bwt)
 	err_fclose(fp);
 }
 
-bwt_t *bwa_idx_load_bwt_without_sa(const char *hint)
+bwt_t *bwa_idx_load_bwt_sa_partial(const char *hint)
 {
 	char *tmp, *prefix;
 	bwt_t *bwt;
@@ -285,6 +285,22 @@ bwt_t *bwa_idx_load_bwt_without_sa(const char *hint)
 	bwt = bwt_restore_bwt(tmp);
 	strcat(strcpy(tmp, prefix), ".sa");  // partial suffix array (SA)
 	bwt_restore_sa_partial(tmp, bwt);
+	free(tmp); free(prefix);
+	return bwt;
+}
+
+bwt_t *bwa_idx_load_bwt_without_sa(const char *hint)
+{
+	char *tmp, *prefix;
+	bwt_t *bwt;
+	prefix = bwa_idx_infer_prefix(hint);
+	if (prefix == 0) {
+		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		return 0;
+	}
+	tmp = calloc(strlen(prefix) + 5, 1);
+	strcat(strcpy(tmp, prefix), ".bwt"); // FM-index
+	bwt = bwt_restore_bwt(tmp);
 	free(tmp); free(prefix);
 	return bwt;
 }
