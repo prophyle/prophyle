@@ -36,7 +36,7 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n metang -c etetoolkit -c bioconda python==3.4 ete3 ete3_external_apps bitarray cmake parallel blast
+        - conda create -q -n metang -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
         - source activate metang
 
     - os: osx
@@ -58,7 +58,7 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n metang -c etetoolkit -c bioconda python==3.4 ete3 ete3_external_apps bitarray cmake parallel blast
+        - conda create -q -n metang -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
         - source activate metang
 
 

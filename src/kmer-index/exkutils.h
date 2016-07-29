@@ -18,6 +18,8 @@ typedef struct {
 
 	int need_log;
 	char* log_file_name;
+
+	int construct_sa_parallel;
 } exk_opt_t;
 
 #endif //
