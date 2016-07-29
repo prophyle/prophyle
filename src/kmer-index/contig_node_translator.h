@@ -5,6 +5,7 @@
 
 int get_node_from_contig(int contig);
 char* get_node_name(int node);
-void add_contig(const char* contig, int contig_number);
+int get_node_name_length(const int node);
+void add_contig(char* contig, int contig_number);
 
 #endif //CONTIG_NODE_TRANSLATOR_H
