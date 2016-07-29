@@ -52,6 +52,7 @@ exk_opt_t *exk_init_opt()
 	o->output = 1;
 	o->output_old = 0;
 	o->skip_positions_on_border = 1;
+	o->construct_sa_parallel = 0;
 	o->need_log = 0;
 	o->log_file_name = NULL;
 	return o;
@@ -636,9 +637,12 @@ int exk_index(int argc, char *argv[])
 	int c, opte = -1;	exk_opt_t *opt;
 	char *prefix;
 	opt = exk_init_opt();
-	while ((c = getopt(argc, argv, "k:n:o:e:i:d:l:k:LR:m:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	int sa_intv = 32;
+	while ((c = getopt(argc, argv, "si:k:n:o:e:i:d:l:k:LR:m:t:NM:O:E:q:f:b012IYB:")) >= 0) {
 		switch (c) {
 		case 'k': opt->kmer_length = atoi(optarg); break;
+		case 'i': sa_intv = atoi(optarg); break;
+		case 's': opt->construct_sa_parallel = 1; break;
 		case 'e': opte = atoi(optarg); break;
 		case 't': opt->n_threads = atoi(optarg); break;
 		case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
@@ -667,6 +671,8 @@ int exk_index(int argc, char *argv[])
     // fprintf(stderr, "         -f FILE   file to write output to instead of stdout\n");
 
 		fprintf(stderr, "Options:  -k INT    length of k-mer\n");
+		fprintf(stderr, "          -s        construct klcp and sa in parallel\n");
+		fprintf(stderr, "          -i        sampling distance for SA\n");
 
 		// fprintf(stderr, "         -B INT    length of barcode\n");
 		// fprintf(stderr, "         -I        the input is in the Illumina 1.3+ FASTQ-like format\n");
@@ -682,7 +688,7 @@ int exk_index(int argc, char *argv[])
 		fprintf(stderr, "[%s] fail to locate the index %s\n", __func__, argv[optind]);
 		return 1;
 	}
-	exk_index_core(prefix, argv[optind+1], opt);
+	exk_index_core(prefix, opt, sa_intv);
 	free(prefix);
 	return 0;
 }
@@ -693,7 +699,7 @@ static int usage()
 	fprintf(stderr, "Program: exk (alignment of k-mers)\n");
 	fprintf(stderr, "Usage:   exk command [options]\n\n");
 	fprintf(stderr, "Command: index         construct klcp array\n");
-	fprintf(stderr, "Command: match         align k-mers\n");
+	fprintf(stderr, "Command: match         match k-mers\n");
 	fprintf(stderr, "\n");
 	return 1;
 }
