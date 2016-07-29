@@ -31,6 +31,7 @@ FTP_NCBI='http://ftp.ncbi.nlm.nih.gov'
 #   http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
 #   ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
 
+
 def _test_files(*fns,test_nonzero=False):
 	#print(fns)
 	for fn in fns:
@@ -55,6 +56,9 @@ def _run_safe(command, output_fn=None):
 	error_code=subprocess.call("/bin/bash -x -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
 	if error_code==0:
 		print("Finished:", command_str, file=sys.stderr)
+	elif error_code==141:
+		pass
+		#print("Exited before finishing:", command_str, file=sys.stderr)
 	else:
 		print("Finished with error (error code {}):".format(error_code), command_str, file=sys.stderr)
 		# todo: maybe it will be better to throw an exception
@@ -524,5 +528,5 @@ if __name__ == "__main__":
 			parser.print_help()
 			sys.exit(1)
 
-	except BrokenPipeError:
+	except (IOError, OSError):
 		sys.exit(0)

@@ -467,5 +467,5 @@ if __name__ == "__main__":
 		for x in inp_fo:
 			read.process_krakline(x,form=form,crit=crit)
 
-	except BrokenPipeError:
+	except (IOError, OSError):
 		sys.exit(0)
