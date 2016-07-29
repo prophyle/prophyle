@@ -353,172 +353,176 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 ########
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	subparsers = parser.add_subparsers(help='sub-command help',dest='subcommand')
-	fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
+	try:
+		parser = argparse.ArgumentParser()
+		subparsers = parser.add_subparsers(help='sub-command help',dest='subcommand')
+		fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
 
-	##########
+		##########
 
-	parser_init = subparsers.add_parser('init', help='Initialize data', formatter_class=fc)
-	parser_init.add_argument(
-			'library',
-			metavar='<library>',
-			choices=LIBRARIES+['all'],
-			help='genomic library {}'.format(LIBRARIES+['all']),
-		)
-	parser_init.add_argument(
-			'-m','--metang-dir',
-			metavar='DIR',
-			dest='home_dir',
-			type=str,
-			default=DEFAULT_HOME_DIR,
-			help='Metang directory [{}]'.format(DEFAULT_HOME_DIR),
-		)
-
-	##########
-
-	parser_index = subparsers.add_parser('index', help='Create index', formatter_class=fc)
-	parser_index.add_argument(
-			'-n','--newick',
-			metavar='FILE',
-			dest='newick',
-			type=str,
-			help='taxonomy tree (in Newick format)',
-			required=True,
-		)
-	parser_index.add_argument(
-			'index_dir',
-			metavar='<index.dir>',
-			type=str,
-			help='index directory (will be created)',
-		)
-	parser_index.add_argument(
-			'-l','--lib-dir',
-			metavar='DIR',
-			dest='library_dir',
-			type=str,
-			help='directory with genomic sequences',
-			required=True,
-		)
-	parser_index.add_argument(
-			'-t','--threads',
-			metavar='INT',
-			dest='threads',
-			type=int,
-			help='number of threads [auto={}]'.format(DEFAULT_THREADS),
-			default=DEFAULT_THREADS,
-		)
-	parser_index.add_argument(
-			'-k','--kmer-len',
-			dest='k',
-			metavar='INT',
-			type=int,
-			help='k-mer length [{}]'.format(DEFAULT_K),
-			default=DEFAULT_K,
-		)
-	parser_index.add_argument(
-			'--continue',
-			dest='ccontinue',
-			action='store_true',
-			help='continue with index construction (construct only missing parts)',
-		)
-
-	##########
-
-	parser_classify = subparsers.add_parser('classify', help='Classify reads', formatter_class=fc)
-	parser_classify.add_argument(
-			'index_dir',
-			metavar='<index.dir>',
-			type=str,
-			help='index directory',
-		)
-	parser_classify.add_argument(
-			'reads',
-			metavar='<reads.fq>',
-			type=str,
-			help='file with reads in FASTA or FASTQ [- for standard input]',
-		)
-	parser_classify.add_argument(
-			'-k','--kmer-len',
-			dest='k',
-			metavar='INT',
-			type=int,
-			help='k-mer length [{}]'.format(DEFAULT_K),
-			default=DEFAULT_K,
-		)
-	parser_classify.add_argument(
-			'-n','--no-klcp',
-			dest='klcp',
-			action='store_false',
-			help='do not use k-LCP',
-		)
-	parser_classify.add_argument(
-			'-m','--measure',
-			dest='measure',
-			choices=['h1','c1'],
-			help='measure: h1=hit count, c1=coverage [{}]'.format(DEFAULT_MEASURE),
-			default=DEFAULT_MEASURE,
-		)
-	parser_classify.add_argument(
-			'-o','--out-form',
-			dest='oform',
-			choices=['kraken','sam'],
-			default='sam',
-			help='output format',
-		)
-	parser_classify.add_argument(
-			'--annotate',
-			dest='annotate',
-			action='store_true',
-			help='annotate assignments',
-		)
-	parser_classify.add_argument(
-			'--tie-lca',
-			dest='tie',
-			action='store_true',
-			help='use LCA when tie (multiple hits with the same score)',
-		)
-	parser_classify.add_argument(
-			'--mimic-kraken',
-			dest='mimic',
-			action='store_true',
-			help='mimic Kraken algorithm and output (for debugging purposes)',
-		)
-
-	##########
-
-	args = parser.parse_args()
-	subcommand=args.subcommand
-
-	if subcommand=="init":
-		init(
-				library=args.library,
-				home_dir=args.home_dir,
+		parser_init = subparsers.add_parser('init', help='Initialize data', formatter_class=fc)
+		parser_init.add_argument(
+				'library',
+				metavar='<library>',
+				choices=LIBRARIES+['all'],
+				help='genomic library {}'.format(LIBRARIES+['all']),
+			)
+		parser_init.add_argument(
+				'-m','--metang-dir',
+				metavar='DIR',
+				dest='home_dir',
+				type=str,
+				default=DEFAULT_HOME_DIR,
+				help='Metang directory [{}]'.format(DEFAULT_HOME_DIR),
 			)
 
-	elif subcommand=="index":
-		index(
-				index_dir=args.index_dir,
-				threads=args.threads,
-				k=args.k,
-				newick_fn=args.newick,
-				library_dir=args.library_dir,
-				ccontinue=args.ccontinue,
+		##########
+
+		parser_index = subparsers.add_parser('index', help='Create index', formatter_class=fc)
+		parser_index.add_argument(
+				'-n','--newick',
+				metavar='FILE',
+				dest='newick',
+				type=str,
+				help='taxonomy tree (in Newick format)',
+				required=True,
+			)
+		parser_index.add_argument(
+				'index_dir',
+				metavar='<index.dir>',
+				type=str,
+				help='index directory (will be created)',
+			)
+		parser_index.add_argument(
+				'-l','--lib-dir',
+				metavar='DIR',
+				dest='library_dir',
+				type=str,
+				help='directory with genomic sequences',
+				required=True,
+			)
+		parser_index.add_argument(
+				'-t','--threads',
+				metavar='INT',
+				dest='threads',
+				type=int,
+				help='number of threads [auto={}]'.format(DEFAULT_THREADS),
+				default=DEFAULT_THREADS,
+			)
+		parser_index.add_argument(
+				'-k','--kmer-len',
+				dest='k',
+				metavar='INT',
+				type=int,
+				help='k-mer length [{}]'.format(DEFAULT_K),
+				default=DEFAULT_K,
+			)
+		parser_index.add_argument(
+				'--continue',
+				dest='ccontinue',
+				action='store_true',
+				help='continue with index construction (construct only missing parts)',
 			)
 
-	elif subcommand=="classify":
-		classify(
-				index_dir=args.index_dir,
-				fq_fn=args.reads,
-				k=args.k,
-				use_klcp=args.klcp,
-				out_format=args.oform,
-				mimic_kraken=args.mimic,
-				measure=args.measure,
-				tie_lca=args.tie,
-				annotate=args.annotate,
+		##########
+
+		parser_classify = subparsers.add_parser('classify', help='Classify reads', formatter_class=fc)
+		parser_classify.add_argument(
+				'index_dir',
+				metavar='<index.dir>',
+				type=str,
+				help='index directory',
+			)
+		parser_classify.add_argument(
+				'reads',
+				metavar='<reads.fq>',
+				type=str,
+				help='file with reads in FASTA or FASTQ [- for standard input]',
+			)
+		parser_classify.add_argument(
+				'-k','--kmer-len',
+				dest='k',
+				metavar='INT',
+				type=int,
+				help='k-mer length [{}]'.format(DEFAULT_K),
+				default=DEFAULT_K,
+			)
+		parser_classify.add_argument(
+				'-n','--no-klcp',
+				dest='klcp',
+				action='store_false',
+				help='do not use k-LCP',
+			)
+		parser_classify.add_argument(
+				'-m','--measure',
+				dest='measure',
+				choices=['h1','c1'],
+				help='measure: h1=hit count, c1=coverage [{}]'.format(DEFAULT_MEASURE),
+				default=DEFAULT_MEASURE,
+			)
+		parser_classify.add_argument(
+				'-o','--out-form',
+				dest='oform',
+				choices=['kraken','sam'],
+				default='sam',
+				help='output format',
+			)
+		parser_classify.add_argument(
+				'--annotate',
+				dest='annotate',
+				action='store_true',
+				help='annotate assignments',
+			)
+		parser_classify.add_argument(
+				'--tie-lca',
+				dest='tie',
+				action='store_true',
+				help='use LCA when tie (multiple hits with the same score)',
+			)
+		parser_classify.add_argument(
+				'--mimic-kraken',
+				dest='mimic',
+				action='store_true',
+				help='mimic Kraken algorithm and output (for debugging purposes)',
 			)
 
-	else:
-		parser.print_help()
-		sys.exit(1)
+		##########
+
+		args = parser.parse_args()
+		subcommand=args.subcommand
+
+		if subcommand=="init":
+			init(
+					library=args.library,
+					home_dir=args.home_dir,
+				)
+
+		elif subcommand=="index":
+			index(
+					index_dir=args.index_dir,
+					threads=args.threads,
+					k=args.k,
+					newick_fn=args.newick,
+					library_dir=args.library_dir,
+					ccontinue=args.ccontinue,
+				)
+
+		elif subcommand=="classify":
+			classify(
+					index_dir=args.index_dir,
+					fq_fn=args.reads,
+					k=args.k,
+					use_klcp=args.klcp,
+					out_format=args.oform,
+					mimic_kraken=args.mimic,
+					measure=args.measure,
+					tie_lca=args.tie,
+					annotate=args.annotate,
+				)
+
+		else:
+			parser.print_help()
+			sys.exit(1)
+
+	except BrokenPipeError:
+		sys.exit(0)
