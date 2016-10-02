@@ -1,4 +1,4 @@
-# k-mer propagation experiments
+# ProPhyle - a metagenomic classifier
 
 [![Build Status](https://travis-ci.com/karel-brinda/ProPhyle.svg?token=LzzDiQkWWqF4hBjZahmQ&branch=master)](https://travis-ci.com/karel-brinda/ProPhyle)
 
