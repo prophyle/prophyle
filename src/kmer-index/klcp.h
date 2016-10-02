@@ -9,8 +9,6 @@
 typedef struct {
   uint64_t seq_len;
   bitarray_t* klcp;
-  uint64_t* prev;
-  uint64_t* next;
 } klcp_t;
 
 void destroy_klcp(klcp_t* klcp);

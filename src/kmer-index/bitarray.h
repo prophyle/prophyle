@@ -2,8 +2,12 @@
 #include<stdlib.h>
 #include <stdint.h>
 
+#define bitarray_value_t uint16_t
+#define BITS_IN_VALUE 16
+#define MAX_BITARRAY_VALUE (1 << BITS_IN_VALUE) - 1
+
 typedef struct {
-  char* values;
+  bitarray_value_t* values;
   uint64_t size;
   uint64_t capacity;
 } bitarray_t;
