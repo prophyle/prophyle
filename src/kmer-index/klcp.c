@@ -19,67 +19,111 @@
 #include "kstring.h"
 #include "klcp.h"
 
-const uint32_t SAMPLING_DISTANCE = 128;
-
 uint64_t overall_increase = 0;
+size_t position_of_smallest_zero_bit[MAX_BITARRAY_VALUE];
+size_t position_of_biggest_zero_bit[MAX_BITARRAY_VALUE];
 
 void destroy_klcp(klcp_t* klcp) {
 	if (klcp == 0) {
 		return;
 	}
 	destroy_bitarray(klcp->klcp);
-	free(klcp->next);
-	free(klcp->prev);
 	free(klcp);
 }
 
-uint64_t prev_size(const klcp_t* klcp) {
-	return (klcp->seq_len + SAMPLING_DISTANCE - 1) / SAMPLING_DISTANCE;
-}
-
-uint64_t next_size(const klcp_t* klcp) {
-	return (klcp->seq_len + 1 + SAMPLING_DISTANCE - 1) / SAMPLING_DISTANCE;
-}
-
 uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
-	uint64_t new_k = k;
-	uint64_t size = prev_size(klcp);
-	while (new_k >= 1 && is_member(klcp->klcp, new_k - 1)) {
-		overall_increase++;
-		new_k--;
-		if (new_k % SAMPLING_DISTANCE == 0 && new_k < size / SAMPLING_DISTANCE) {
-			new_k = klcp->prev[new_k / SAMPLING_DISTANCE];
-			break;
-		}
-	}
-	return new_k;
+	int64_t new_k = (int64_t)k;
+  // while (new_k > 0 && is_member(klcp->klcp, new_k - 1)) {
+	// 	overall_increase++;
+	// 	new_k--;
+	// }
+  // int64_t real_new_k = new_k;
+  new_k = (int64_t)k - 1;
+  int stop = 0;
+  bitarray_value_t value = klcp->klcp->values[new_k / BITS_IN_VALUE];
+  value = value >> (BITS_IN_VALUE - 1 - new_k % BITS_IN_VALUE);
+  if (value == (1 << (new_k % BITS_IN_VALUE + 1)) - 1) {
+    new_k -= (new_k % BITS_IN_VALUE + 1);
+  } else {
+    new_k -= position_of_smallest_zero_bit[value];
+    stop = 1;
+  }
+  if (!stop) {
+  	while (new_k >= 0) {
+  		bitarray_value_t value = klcp->klcp->values[new_k / BITS_IN_VALUE];
+      if (value == (1 << BITS_IN_VALUE) - 1) {
+        new_k -= BITS_IN_VALUE;
+      } else {
+        new_k -= position_of_smallest_zero_bit[value];
+        break;
+      }
+    }
+  }
+  new_k++;
+  // if (real_new_k != new_k) {
+  //   fprintf(stderr, "init_k = %lld\n", k);
+  //   fprintf(stderr, "real_new_k = %lld\n", real_new_k);
+  //   fprintf(stderr, "new_k = %lld\n", new_k);
+  //   int a;
+  //   scanf("%d", &a);
+  // }
+	return (uint64_t)new_k;
 }
 
 uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
-	uint64_t new_l = l;
-	uint64_t size = next_size(klcp);
-	while (new_l < klcp->seq_len && is_member(klcp->klcp, new_l)) {
-		overall_increase++;
-		new_l++;
-		if (new_l % SAMPLING_DISTANCE == 0 && new_l < size / SAMPLING_DISTANCE) {
-			new_l = klcp->next[new_l / SAMPLING_DISTANCE];
-			break;
-		}
-	}
-	return new_l;
+	int64_t new_l = (int64_t)l;
+	//uint64_t size = next_size(klcp);
+	// while (new_l < klcp->seq_len && is_member(klcp->klcp, new_l)) {
+	// 	overall_increase++;
+	// 	new_l++;
+	// }
+  // int64_t real_new_l = new_l;
+  new_l = (int64_t)l;
+  int stop = 0;
+  bitarray_value_t value = klcp->klcp->values[new_l / BITS_IN_VALUE];
+  int64_t shift = BITS_IN_VALUE - new_l % BITS_IN_VALUE;
+  value = value & ((1 << shift) - 1);
+  if (value == (1 << (BITS_IN_VALUE - new_l % BITS_IN_VALUE)) - 1) {
+    new_l += (BITS_IN_VALUE - new_l % BITS_IN_VALUE);
+  } else {
+    new_l += BITS_IN_VALUE - new_l % BITS_IN_VALUE - 1 -
+      position_of_biggest_zero_bit[value + (1 << BITS_IN_VALUE) - (1 << (BITS_IN_VALUE - new_l % BITS_IN_VALUE))];
+    stop = 1;
+  }
+  if (!stop) {
+	   while (new_l < klcp->seq_len) {
+      //fprintf(stderr, "new_k = %lld\n", new_k);
+  		bitarray_value_t value = klcp->klcp->values[new_l / BITS_IN_VALUE];
+      if (value == (1 << BITS_IN_VALUE) - 1) {
+        new_l += BITS_IN_VALUE;
+      } else {
+        new_l += BITS_IN_VALUE - 1 - position_of_biggest_zero_bit[value];//find_biggest_zero_index(value);
+        stop = 1;
+        break;
+      }
+  	}
+  }
+  if (new_l > klcp->seq_len) {
+    new_l = klcp->seq_len;
+  }
+  // if (real_new_l != new_l) {
+  //   fprintf(stderr, "init_l = %lld\n", l);
+  //   fprintf(stderr, "real_new_l = %lld\n", real_new_l);
+  //   fprintf(stderr, "new_l = %lld\n", new_l);
+  //   int a;
+  //   scanf("%d", &a);
+  // }
+	return (uint64_t)new_l;
 }
 
 void construct_klcp_recursion(const bwt_t* bwt, bwtint_t k, bwtint_t l, int i, int kmer_length, klcp_t* klcp) {
 	if (k > l) {
-		//fprintf(stderr, "exit on i = %d\n", i);
 		return;
 	}
 	if (k == l) {
-		//fprintf(stderr, "exit on i = %d, k = l = %d\n", i, k);
 		return;
 	}
 	if (i == kmer_length - 1) {
-		//fprintf(stderr, "New entry found! k = %d, l = %d\n", k, l);
 		uint64_t t;
 		for(t = k; t < l; ++t) {
 			//klcp->klcp[t] = 1;
@@ -116,15 +160,13 @@ void klcp_dump(const char *fn, const klcp_t* klcp)
 	FILE *fp;
 	fp = xopen(fn, "wb");
 	err_fwrite(&klcp->seq_len, sizeof(uint64_t), 1, fp);
-	err_fwrite(klcp->klcp->values, sizeof(char), klcp->klcp->capacity, fp);
-	err_fwrite(klcp->prev, sizeof(uint64_t), prev_size(klcp), fp);
-	err_fwrite(klcp->next, sizeof(uint64_t), next_size(klcp), fp);
+	err_fwrite(klcp->klcp->values, sizeof(bitarray_value_t), klcp->klcp->capacity, fp);
 	err_fflush(fp);
 	err_fclose(fp);
 }
 
 static bwtint_t fread_fix(FILE *fp, bwtint_t size, void *a)
-{ // Mac/Darwin has a bug when reading data longer than 2GB. This function fixes this issue by reading data in small chunks
+{
 	const int bufsize = 0x1000000; // 16M block
 	bwtint_t offset = 0;
 	while (size) {
@@ -135,53 +177,29 @@ static bwtint_t fread_fix(FILE *fp, bwtint_t size, void *a)
 	return offset;
 }
 
-void construct_aux_arrays(klcp_t* klcp) {
-	int take_current = 1;
-	uint64_t prev_one = -1;
-	klcp->prev = malloc(prev_size(klcp) * sizeof(uint64_t));
-	int64_t i;
-	for(i = 0; i < klcp->seq_len; ++i) {
-		if (take_current) {
-			if (i % SAMPLING_DISTANCE == 0) {
-				klcp->prev[i / SAMPLING_DISTANCE] = i;
-			}
-		} else {
-			if (i % SAMPLING_DISTANCE == 0) {
-				klcp->prev[i / SAMPLING_DISTANCE] = prev_one;
-			}
-		}
-		if (is_member(klcp->klcp, i)) {
-			if (take_current) {
-				take_current = 0;
-				prev_one = i;
-			}
-		} else {
-			take_current = 1;
-		}
-	}
-	take_current = 1;
-	uint64_t next_zero = -1;
-	klcp->next = malloc(next_size(klcp) * sizeof(uint64_t));
-	for(i = klcp->seq_len; i >= 0; --i) {
-		if (i < klcp->seq_len && is_member(klcp->klcp, i)) {
-			if (take_current) {
-				next_zero = i + 1;
-				take_current = 0;
-				if (i % SAMPLING_DISTANCE == 0) {
-					klcp->next[i / SAMPLING_DISTANCE] = next_zero;
-				}
-			} else {
-				if (i % SAMPLING_DISTANCE == 0) {
-					klcp->next[i / SAMPLING_DISTANCE] = next_zero;
-				}
-			}
-		} else {
-			if (i % SAMPLING_DISTANCE == 0) {
-				klcp->next[i / SAMPLING_DISTANCE] = i;
-			}
-			take_current = 1;
-		}
-	}
+size_t find_smallest_zero_index(bitarray_value_t value) {
+  int position = 0;
+  while (position < BITS_IN_VALUE) {
+    if (value % 2 != 0) {
+      position++;
+      value /= 2;
+    } else {
+      break;
+    }
+  }
+  return position;
+}
+
+size_t find_biggest_zero_index(bitarray_value_t value) {
+  int position = BITS_IN_VALUE - 1;
+  while (position >= 0) {
+    if ((value & (1 << position)) != 0) {
+      position--;
+    } else {
+      break;
+    }
+  }
+  return position;
 }
 
 void klcp_restore(const char *fn, klcp_t* klcp)
@@ -190,15 +208,18 @@ void klcp_restore(const char *fn, klcp_t* klcp)
 	fp = xopen(fn, "rb");
 	err_fread_noeof(&klcp->seq_len, sizeof(uint64_t), 1, fp);
 	klcp->klcp->size = klcp->seq_len;
-	klcp->klcp->capacity = (klcp->seq_len + 7) / 8;
-	klcp->klcp->values = (char*)calloc(klcp->klcp->capacity, sizeof(char));
-	klcp->prev = (uint64_t*)calloc(prev_size(klcp), sizeof(uint64_t));
-	klcp->next = (uint64_t*)calloc(next_size(klcp), sizeof(uint64_t));
-	fread_fix(fp, sizeof(int8_t) * klcp->klcp->capacity, klcp->klcp->values);
-	fread_fix(fp, sizeof(uint64_t) * prev_size(klcp), klcp->prev);
-	fread_fix(fp, sizeof(uint64_t) * next_size(klcp), klcp->next);
+	klcp->klcp->capacity = (klcp->seq_len + BITS_IN_VALUE - 1) / BITS_IN_VALUE;
+	klcp->klcp->values = (bitarray_value_t*)calloc(klcp->klcp->capacity, sizeof(bitarray_value_t));
+	fread_fix(fp, sizeof(bitarray_value_t) * klcp->klcp->capacity, klcp->klcp->values);
 	err_fclose(fp);
 	fprintf(stderr, "klcp was read\n");
+  bitarray_value_t i;
+  for(i = 0; i < MAX_BITARRAY_VALUE; ++i) {
+    position_of_smallest_zero_bit[i] = find_smallest_zero_index(i);
+  }
+  for(i = 0; i < MAX_BITARRAY_VALUE; ++i) {
+    position_of_biggest_zero_bit[i] = find_biggest_zero_index(i);
+  }
 }
 
 klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
@@ -213,10 +234,6 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 		klcp->klcp->values[i] = 0;
 	}
 	construct_klcp_recursion(bwt, (bwtint_t)0, (bwtint_t)n, 0, kmer_length, klcp);
-	construct_aux_arrays(klcp);
-	// fprintf(stderr, "DIRECT\n");
-	// construct_klcp_direct(bwt, kmer_length, klcp);
-
 	fprintf(stdout, "\n[%s]  time: %.3f sec; CPU: %.3f sec\n", __func__, realtime() - t_real, cputime());
 	return klcp;
 }
@@ -294,81 +311,3 @@ void exk_index_core(const char *prefix, const exk_opt_t *opt, int sa_intv) {
 		bwt_destroy_without_sa(bwt);
 	}
 }
-
-// void construct_klcp_direct(const bwt_t* bwt, int kmer_length, klcp_t* klcp) {
-// 	int* ks = malloc(kmer_length * sizeof(int));
-// 	int* ls = malloc(kmer_length * sizeof(int));
-// 	int* cs = malloc(kmer_length * sizeof(ubyte_t));
-// 	for(int i = 0; i < kmer_length; ++i) {
-// 		ks[i] = 0;
-// 		ls[i] = 0;
-// 	}
-// 	bwtint_t k = 0, l = bwt->seq_len;
-// 	ubyte_t c = 0;
-// 	int direction = 1;
-// 	int i = 0;
-// 	while (i >= 0) {
-// 		if (i == 0) {
-// 			k = 0;
-// 			l = bwt->seq_len;
-// 		}
-// 		else {
-// 			k = ks[i - 1];
-// 			l = ls[i - 1];
-// 		}
-// 		if (k > l) {
-// 			direction = -1;
-// 			i--;
-// 			continue;
-// 		}
-// 		if (k == l) {
-// 			direction = -1;
-// 			i--;
-// 			continue;
-// 		}
-// 		if (direction == 1) {
-// 			if (i == kmer_length) {
-// 				//fprintf(stderr, "New entry found! k = %d, l = %d\n", k, l);
-// 				// for(int t = 0; t < kmer_length; ++t) {
-// 				// 	fprintf(stderr, "%d %d %d\n", ks[t], ls[t], cs[t]);
-// 				// }
-// 				for(int t = k; t < l; ++t) {
-// 					klcp[t] = 1;
-// 				}
-// 				direction = -1;
-// 				i--;
-// 				continue;
-// 			}
-// 			c = 0;
-// 			bwtint_t new_k = 0;
-// 			bwtint_t new_l = 0;
-// 			bwt_2occ(bwt, k - 1, l, c, &new_k, &new_l);
-// 			new_k = bwt->L2[c] + new_k + 1;
-// 			new_l = bwt->L2[c] + new_l;
-// 			ks[i] = new_k;
-// 			ls[i] = new_l;
-// 			cs[i] = c;
-// 			direction = 1;
-// 			i++;
-// 			continue;
-// 		} else {
-// 			if (cs[i] == 3) {
-// 				direction = -1;
-// 				i--;
-// 				continue;
-// 			}
-// 			cs[i]++;
-// 			c = cs[i];
-// 			bwtint_t new_k = 0;
-// 			bwtint_t new_l = 0;
-// 			bwt_2occ(bwt, k - 1, l, c, &new_k, &new_l);
-// 			new_k = bwt->L2[c] + new_k + 1;
-// 			new_l = bwt->L2[c] + new_l;
-// 			ks[i] = new_k;
-// 			ls[i] = new_l;
-// 			direction = 1;
-// 			i++;
-// 			continue;
-// 		}
-// 	}
-// }
