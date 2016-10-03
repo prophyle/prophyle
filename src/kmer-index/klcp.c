@@ -20,8 +20,8 @@
 #include "klcp.h"
 
 uint64_t overall_increase = 0;
-int32_t position_of_smallest_zero_bit[MAX_BITARRAY_VALUE + 1];
-int32_t position_of_biggest_zero_bit[MAX_BITARRAY_VALUE + 1];
+int32_t position_of_smallest_zero_bit[MAX_BITARRAY_BLOCK_VALUE + 1];
+int32_t position_of_biggest_zero_bit[MAX_BITARRAY_BLOCK_VALUE + 1];
 
 void destroy_klcp(klcp_t* klcp) {
 	if (klcp == 0) {
@@ -33,16 +33,11 @@ void destroy_klcp(klcp_t* klcp) {
 
 uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
 	int64_t new_k = (int64_t)k;
-  // while (new_k > 0 && is_member(klcp->klcp, new_k - 1)) {
-	// 	overall_increase++;
-	// 	new_k--;
-	// }
-  // int64_t real_new_k = new_k;
   new_k = (int64_t)k - 1;
   int stop = 0;
-  bitarray_value_t value = klcp->klcp->values[new_k / BITS_IN_VALUE];
-	int64_t new_k_res = new_k % BITS_IN_VALUE;
-  value = value >> (BITS_IN_VALUE - 1 - new_k_res);
+  bitarray_block_t value = klcp->klcp->blocks[new_k / BITS_IN_BLOCK];
+	int64_t new_k_res = new_k % BITS_IN_BLOCK;
+  value = value >> (BITS_IN_BLOCK - 1 - new_k_res);
   if (value == (1 << (new_k_res + 1)) - 1) {
     new_k -= (new_k_res + 1);
   } else {
@@ -51,9 +46,9 @@ uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
   }
   if (!stop) {
   	while (new_k >= 0) {
-  		bitarray_value_t value = klcp->klcp->values[new_k / BITS_IN_VALUE];
-      if (value == MAX_BITARRAY_VALUE) {
-        new_k -= BITS_IN_VALUE;
+  		bitarray_block_t value = klcp->klcp->blocks[new_k / BITS_IN_BLOCK];
+      if (value == MAX_BITARRAY_BLOCK_VALUE) {
+        new_k -= BITS_IN_BLOCK;
       } else {
         new_k -= position_of_smallest_zero_bit[value];
         break;
@@ -61,44 +56,30 @@ uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
     }
   }
   new_k++;
-  // if (real_new_k != new_k) {
-  //   fprintf(stderr, "init_k = %lld\n", k);
-  //   fprintf(stderr, "real_new_k = %lld\n", real_new_k);
-  //   fprintf(stderr, "new_k = %lld\n", new_k);
-  //   int a;
-  //   scanf("%d", &a);
-  // }
 	return (uint64_t)new_k;
 }
 
 uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
 	int64_t new_l = (int64_t)l;
-	//uint64_t size = next_size(klcp);
-	// while (new_l < klcp->seq_len && is_member(klcp->klcp, new_l)) {
-	// 	overall_increase++;
-	// 	new_l++;
-	// }
-  // int64_t real_new_l = new_l;
   new_l = (int64_t)l;
   int stop = 0;
-  bitarray_value_t value = klcp->klcp->values[new_l / BITS_IN_VALUE];
-  int64_t shift = BITS_IN_VALUE - new_l % BITS_IN_VALUE;
+  bitarray_block_t value = klcp->klcp->blocks[new_l / BITS_IN_BLOCK];
+  int64_t shift = BITS_IN_BLOCK - new_l % BITS_IN_BLOCK;
   value = value & ((1 << shift) - 1);
   if (value == (1 << shift) - 1) {
     new_l += shift;
   } else {
     new_l += shift - 1 -
-      position_of_biggest_zero_bit[(bitarray_value_t)((1 << BITS_IN_VALUE) - (1 << shift) + value)];
+      position_of_biggest_zero_bit[(bitarray_block_t)((1 << BITS_IN_BLOCK) - (1 << shift) + value)];
     stop = 1;
   }
   if (!stop) {
 	   while (new_l < klcp->seq_len) {
-      //fprintf(stderr, "new_k = %lld\n", new_k);
-  		bitarray_value_t value = klcp->klcp->values[new_l / BITS_IN_VALUE];
-      if (value == MAX_BITARRAY_VALUE) {
-        new_l += BITS_IN_VALUE;
+  		bitarray_block_t value = klcp->klcp->blocks[new_l / BITS_IN_BLOCK];
+      if (value == MAX_BITARRAY_BLOCK_VALUE) {
+        new_l += BITS_IN_BLOCK;
       } else {
-        new_l += BITS_IN_VALUE - 1 - position_of_biggest_zero_bit[value];//find_biggest_zero_index(value);
+        new_l += BITS_IN_BLOCK - 1 - position_of_biggest_zero_bit[value];//find_biggest_zero_index(value);
         stop = 1;
         break;
       }
@@ -107,13 +88,6 @@ uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
   if (new_l > klcp->seq_len) {
     new_l = klcp->seq_len;
   }
-  // if (real_new_l != new_l) {
-  //   fprintf(stderr, "init_l = %lld\n", l);
-  //   fprintf(stderr, "real_new_l = %lld\n", real_new_l);
-  //   fprintf(stderr, "new_l = %lld\n", new_l);
-  //   int a;
-  //   scanf("%d", &a);
-  // }
 	return (uint64_t)new_l;
 }
 
@@ -161,7 +135,7 @@ void klcp_dump(const char *fn, const klcp_t* klcp)
 	FILE *fp;
 	fp = xopen(fn, "wb");
 	err_fwrite(&klcp->seq_len, sizeof(uint64_t), 1, fp);
-	err_fwrite(klcp->klcp->values, sizeof(bitarray_value_t), klcp->klcp->capacity, fp);
+	err_fwrite(klcp->klcp->blocks, sizeof(bitarray_block_t), klcp->klcp->capacity, fp);
 	err_fflush(fp);
 	err_fclose(fp);
 }
@@ -178,9 +152,9 @@ static bwtint_t fread_fix(FILE *fp, bwtint_t size, void *a)
 	return offset;
 }
 
-size_t find_smallest_zero_index(bitarray_value_t value) {
-  int position = 0;
-  while (position < BITS_IN_VALUE) {
+int32_t find_smallest_zero_index(bitarray_block_t value) {
+  int32_t position = 0;
+  while (position < BITS_IN_BLOCK) {
     if (value % 2 != 0) {
       position++;
       value /= 2;
@@ -191,8 +165,8 @@ size_t find_smallest_zero_index(bitarray_value_t value) {
   return position;
 }
 
-size_t find_biggest_zero_index(bitarray_value_t value) {
-  int position = BITS_IN_VALUE - 1;
+int32_t find_biggest_zero_index(bitarray_block_t value) {
+  int32_t position = BITS_IN_BLOCK - 1;
   while (position >= 0) {
     if ((value & (1 << position)) != 0) {
       position--;
@@ -209,15 +183,15 @@ void klcp_restore(const char *fn, klcp_t* klcp)
 	fp = xopen(fn, "rb");
 	err_fread_noeof(&klcp->seq_len, sizeof(uint64_t), 1, fp);
 	klcp->klcp->size = klcp->seq_len;
-	klcp->klcp->capacity = (klcp->seq_len + BITS_IN_VALUE - 1) / BITS_IN_VALUE;
-	klcp->klcp->values = (bitarray_value_t*)calloc(klcp->klcp->capacity, sizeof(bitarray_value_t));
-	fread_fix(fp, sizeof(bitarray_value_t) * klcp->klcp->capacity, klcp->klcp->values);
+	klcp->klcp->capacity = (klcp->seq_len + BITS_IN_BLOCK - 1) / BITS_IN_BLOCK;
+	klcp->klcp->blocks = (bitarray_block_t*)calloc(klcp->klcp->capacity, sizeof(bitarray_block_t));
+	fread_fix(fp, sizeof(bitarray_block_t) * klcp->klcp->capacity, klcp->klcp->blocks);
 	err_fclose(fp);
 	fprintf(stderr, "klcp was read\n");
   uint64_t i;
-  for(i = 0; i <= MAX_BITARRAY_VALUE; ++i) {
-    position_of_smallest_zero_bit[i] = find_smallest_zero_index((bitarray_value_t)i);
-		position_of_biggest_zero_bit[i] = find_biggest_zero_index((bitarray_value_t)i);
+  for(i = 0; i <= MAX_BITARRAY_BLOCK_VALUE; ++i) {
+    position_of_smallest_zero_bit[i] = find_smallest_zero_index((bitarray_block_t)i);
+		position_of_biggest_zero_bit[i] = find_biggest_zero_index((bitarray_block_t)i);
   }
 }
 
@@ -230,7 +204,7 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 	klcp->klcp = create_bitarray(n);
 	uint64_t i;
 	for(i = 0; i < klcp->klcp->capacity; ++i) {
-		klcp->klcp->values[i] = 0;
+		klcp->klcp->blocks[i] = 0;
 	}
 	construct_klcp_recursion(bwt, (bwtint_t)0, (bwtint_t)n, 0, kmer_length, klcp);
 	fprintf(stdout, "\n[%s]  time: %.3f sec; CPU: %.3f sec\n", __func__, realtime() - t_real, cputime());
