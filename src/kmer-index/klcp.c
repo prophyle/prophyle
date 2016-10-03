@@ -20,8 +20,8 @@
 #include "klcp.h"
 
 uint64_t overall_increase = 0;
-size_t position_of_smallest_zero_bit[MAX_BITARRAY_VALUE];
-size_t position_of_biggest_zero_bit[MAX_BITARRAY_VALUE];
+int32_t position_of_smallest_zero_bit[MAX_BITARRAY_VALUE + 1];
+int32_t position_of_biggest_zero_bit[MAX_BITARRAY_VALUE + 1];
 
 void destroy_klcp(klcp_t* klcp) {
 	if (klcp == 0) {
@@ -41,9 +41,10 @@ uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
   new_k = (int64_t)k - 1;
   int stop = 0;
   bitarray_value_t value = klcp->klcp->values[new_k / BITS_IN_VALUE];
-  value = value >> (BITS_IN_VALUE - 1 - new_k % BITS_IN_VALUE);
-  if (value == (1 << (new_k % BITS_IN_VALUE + 1)) - 1) {
-    new_k -= (new_k % BITS_IN_VALUE + 1);
+	int64_t new_k_res = new_k % BITS_IN_VALUE;
+  value = value >> (BITS_IN_VALUE - 1 - new_k_res);
+  if (value == (1 << (new_k_res + 1)) - 1) {
+    new_k -= (new_k_res + 1);
   } else {
     new_k -= position_of_smallest_zero_bit[value];
     stop = 1;
@@ -51,7 +52,7 @@ uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
   if (!stop) {
   	while (new_k >= 0) {
   		bitarray_value_t value = klcp->klcp->values[new_k / BITS_IN_VALUE];
-      if (value == (1 << BITS_IN_VALUE) - 1) {
+      if (value == MAX_BITARRAY_VALUE) {
         new_k -= BITS_IN_VALUE;
       } else {
         new_k -= position_of_smallest_zero_bit[value];
@@ -83,18 +84,18 @@ uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
   bitarray_value_t value = klcp->klcp->values[new_l / BITS_IN_VALUE];
   int64_t shift = BITS_IN_VALUE - new_l % BITS_IN_VALUE;
   value = value & ((1 << shift) - 1);
-  if (value == (1 << (BITS_IN_VALUE - new_l % BITS_IN_VALUE)) - 1) {
-    new_l += (BITS_IN_VALUE - new_l % BITS_IN_VALUE);
+  if (value == (1 << shift) - 1) {
+    new_l += shift;
   } else {
-    new_l += BITS_IN_VALUE - new_l % BITS_IN_VALUE - 1 -
-      position_of_biggest_zero_bit[value + (1 << BITS_IN_VALUE) - (1 << (BITS_IN_VALUE - new_l % BITS_IN_VALUE))];
+    new_l += shift - 1 -
+      position_of_biggest_zero_bit[(bitarray_value_t)((1 << BITS_IN_VALUE) - (1 << shift) + value)];
     stop = 1;
   }
   if (!stop) {
 	   while (new_l < klcp->seq_len) {
       //fprintf(stderr, "new_k = %lld\n", new_k);
   		bitarray_value_t value = klcp->klcp->values[new_l / BITS_IN_VALUE];
-      if (value == (1 << BITS_IN_VALUE) - 1) {
+      if (value == MAX_BITARRAY_VALUE) {
         new_l += BITS_IN_VALUE;
       } else {
         new_l += BITS_IN_VALUE - 1 - position_of_biggest_zero_bit[value];//find_biggest_zero_index(value);
@@ -213,12 +214,10 @@ void klcp_restore(const char *fn, klcp_t* klcp)
 	fread_fix(fp, sizeof(bitarray_value_t) * klcp->klcp->capacity, klcp->klcp->values);
 	err_fclose(fp);
 	fprintf(stderr, "klcp was read\n");
-  bitarray_value_t i;
-  for(i = 0; i < MAX_BITARRAY_VALUE; ++i) {
-    position_of_smallest_zero_bit[i] = find_smallest_zero_index(i);
-  }
-  for(i = 0; i < MAX_BITARRAY_VALUE; ++i) {
-    position_of_biggest_zero_bit[i] = find_biggest_zero_index(i);
+  uint64_t i;
+  for(i = 0; i <= MAX_BITARRAY_VALUE; ++i) {
+    position_of_smallest_zero_bit[i] = find_smallest_zero_index((bitarray_value_t)i);
+		position_of_biggest_zero_bit[i] = find_biggest_zero_index((bitarray_value_t)i);
   }
 }
 
