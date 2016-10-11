@@ -70,7 +70,7 @@ class Read:
 	def find_assignments(self):
 		# hits before top-down propagation
 		hitmasks,covmasks=self.tree.masks_from_kmer_blocks(self.kmer_blocks,simulate_lca=self.simulate_lca)
-		
+
 		rnames=hitmasks.keys()
 
 		# hits after top-down propagation
@@ -373,95 +373,99 @@ class TreeIndex:
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description='Implementation of assignment algorithm')
+	try:
 
-	parser.add_argument('-i', '--input',
-			type=argparse.FileType('r'),
-			required=True,
-			dest='input_file',
-			help='input file',
-		)
+		parser = argparse.ArgumentParser(description='Implementation of assignment algorithm')
 
-	parser.add_argument('-k', '--kmer-size',
-			type=int,
-			required=True,
-			dest='k',
-			help='k-mer size',
-		)
+		parser.add_argument('-i', '--input',
+				type=argparse.FileType('r'),
+				required=True,
+				dest='input_file',
+				help='input file',
+			)
 
-	parser.add_argument('-n', '--newick-tree',
-			type=str,
-			metavar='str',
-			required=True,
-			dest='newick_fn',
-			help='newick tree',
-		)
+		parser.add_argument('-k', '--kmer-size',
+				type=int,
+				required=True,
+				dest='k',
+				help='k-mer size',
+			)
 
-	parser.add_argument('-f', '--oformat',
-			choices=['kraken','sam'],
-			default='kraken',
-			dest='format',
-			help='format of output',
-		)
+		parser.add_argument('-n', '--newick-tree',
+				type=str,
+				metavar='str',
+				required=True,
+				dest='newick_fn',
+				help='newick tree',
+			)
 
-	parser.add_argument('-m', '--measure',
-			choices=['h1','c1'],
-			default='h1',
-			dest='crit',
-			help='measure: h1=hitnumber, c1=coverage',
-		)
+		parser.add_argument('-f', '--oformat',
+				choices=['kraken','sam'],
+				default='kraken',
+				dest='format',
+				help='format of output',
+			)
 
-	parser.add_argument('-l', '--sim-lca',
-			action='store_true',
-			dest='lca',
-			help='simulate LCA',
-		)
+		parser.add_argument('-m', '--measure',
+				choices=['h1','c1'],
+				default='h1',
+				dest='crit',
+				help='measure: h1=hitnumber, c1=coverage',
+			)
 
-	parser.add_argument('-a', '--annotate',
-			action='store_true',
-			dest='annotate',
-			help='annotate assignments',
-		)
+		parser.add_argument('-l', '--sim-lca',
+				action='store_true',
+				dest='lca',
+				help='simulate LCA',
+			)
 
-	parser.add_argument('-t', '--tie-lca',
-			action='store_true',
-			dest='tie',
-			help='use LCA when tie (more hits with the same score)',
-		)
+		parser.add_argument('-a', '--annotate',
+				action='store_true',
+				dest='annotate',
+				help='annotate assignments',
+			)
 
-	parser.add_argument('-d', '--nontransl-blocks',
-			action='store_true',
-			dest='donttransl',
-			help='do not translate blocks from node to tax IDs',
-		)
+		parser.add_argument('-t', '--tie-lca',
+				action='store_true',
+				dest='tie',
+				help='use LCA when tie (more hits with the same score)',
+			)
 
-	args = parser.parse_args()
+		parser.add_argument('-d', '--nontransl-blocks',
+				action='store_true',
+				dest='donttransl',
+				help='do not translate blocks from node to tax IDs',
+			)
 
-	newick_fn=args.newick_fn
-	inp_fo=args.input_file
-	lca=args.lca
-	form=args.format
-	k=args.k
-	crit=args.crit
-	annotate=args.annotate
-	tie=args.tie
-	d=args.donttransl
+		args = parser.parse_args()
+
+		newick_fn=args.newick_fn
+		inp_fo=args.input_file
+		lca=args.lca
+		form=args.format
+		k=args.k
+		crit=args.crit
+		annotate=args.annotate
+		tie=args.tie
+		d=args.donttransl
 
 
-	ti=TreeIndex(
-			tree_newick_fn=newick_fn,
-			k=k,
-		)
+		ti=TreeIndex(
+				tree_newick_fn=newick_fn,
+				k=k,
+			)
 
-	read=Read(
-			tree=ti,
-			simulate_lca=lca,
-			annotate=annotate,
-			tie_lca=tie,
-			dont_translate_blocks=d,
-		)
-	if form=="sam":
-		read.print_sam_header()
-	for x in inp_fo:
-		read.process_krakline(x,form=form,crit=crit)
+		read=Read(
+				tree=ti,
+				simulate_lca=lca,
+				annotate=annotate,
+				tie_lca=tie,
+				dont_translate_blocks=d,
+			)
+		if form=="sam":
+			read.print_sam_header()
+		for x in inp_fo:
+			read.process_krakline(x,form=form,crit=crit)
 
+	except (IOError, OSError):
+		sys.exit(0)
