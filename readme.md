@@ -18,7 +18,7 @@
 Environment installation:
 
 ```bash
-	conda create -y --name metang \
+	conda create -y --name prophyle \
 		-c etetoolkit -c bioconda \
 		python==3.4 ete3 ete3_external_apps bitarray \
 		cmake parallel blast
@@ -27,7 +27,7 @@ Environment installation:
 Environment activation:
 
 ```bash
-	source activate metang
+	source activate prophyle
 ```
 
 ### Compile all programs
