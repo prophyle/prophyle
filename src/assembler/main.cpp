@@ -506,7 +506,7 @@ int main (int argc, char* argv[])
 	}
 
 	//for (auto a=old_sizes.begin(),auto b=new_sizes.begin();a<old_sizes.end() && b<new_sizes.end();++a,++b){
-	for (int32_t i=0;i<old_sizes.size();i++){
+	for (int32_t i=0;i<static_cast<int32_t>(old_sizes.size());i++){
 		assert(old_sizes[i]==new_sizes[i]+intersection_size);
 		std::cout << old_sizes[i] << " " << new_sizes[i] << " ...inter:" << intersection_size << std::endl;
 	}

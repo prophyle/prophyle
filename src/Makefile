@@ -8,7 +8,6 @@ clean:
 	$(MAKE) -C kraken-db clean
 
 compile_assembler:
-	@cd assembler && cmake .
 	$(MAKE) -C assembler
 
 compile_index:

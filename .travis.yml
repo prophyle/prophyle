@@ -13,7 +13,7 @@ matrix:
       install:
         - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         - sudo apt-get update
-        - sudo apt-get install g++-4.8 cmake texinfo zlib1g-dev
+        - sudo apt-get install g++-4.8 texinfo zlib1g-dev
         - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
 
@@ -23,7 +23,7 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel || true
         - source activate prophyle
 
     - os: osx
@@ -41,7 +41,7 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel || true
         - source activate prophyle
 
 script:
