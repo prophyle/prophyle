@@ -4,16 +4,6 @@ cache:
   - brew
   - apt: true
 
-env:
-  global:
-    # Maintenance note: to move to a new version
-    # of boost, update both BOOST_ROOT and BOOST_URL.
-    # Note that for simplicity, BOOST_ROOT's final
-    # namepart must match the folder name internal
-    # to boost's .tar.gz.
-    - BOOST_ROOT=$HOME/boost_1_60_0
-    - BOOST_URL='http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.gz?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fboost%2Ffiles%2Fboost%2F1.60.0%2Fboost_1_60_0.tar.gz&ts=1460417589&use_mirror=netix'
-
 matrix:
   include:
 
@@ -22,13 +12,10 @@ matrix:
       compiler: gcc
       install:
         - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-        #- sudo add-apt-repository ppa:duggan/bats -y
         - sudo apt-get update
-        #- sudo apt-get install g++-4.8 cmake python3  python3-setuptools texinfo zlib1g-dev git-svn bats
         - sudo apt-get install g++-4.8 cmake texinfo zlib1g-dev
         - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
-        - ./bin/install-boost.sh
 
         - if [ ! -d "$HOME/miniconda/bin" ]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && bash miniconda.sh -f -b -p $HOME/miniconda; fi
         - export PATH="$HOME/miniconda/bin:$PATH"
@@ -36,8 +23,8 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n metang -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
-        - source activate metang
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
+        - source activate prophyle
 
     - os: osx
       compiler: clang-3.7
@@ -46,11 +33,7 @@ matrix:
         - sudo brew tap homebrew/versions
       install:
         - export CXX="clang++-3.7" CC="clang-3.7"
-        - sudo brew install llvm37 boost159
-        #- sudo brew install llvm37 boost159 bats python3
-        #- sudo brew unlink cmake && sudo brew install cmake31
-        #- sudo pip3 --version
-        #- sudo pip3 install --upgrade ete3 six
+        - sudo brew install llvm37
 
         - if [ ! -d "$HOME/miniconda/bin" ]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh && bash miniconda.sh -f -b -p $HOME/miniconda; fi
         - export PATH="$HOME/miniconda/bin:$PATH"
@@ -58,14 +41,12 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n metang -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
-        - source activate metang
-
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray cmake parallel || true
+        - source activate prophyle
 
 script:
   - make test
 
 cache:
   directories:
-  - $BOOST_ROOT
   - $HOME/miniconda
