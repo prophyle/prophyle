@@ -7,6 +7,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <algorithm>
 #include <set>
 #include <cassert>
 #include <sstream>
@@ -18,7 +19,7 @@ typedef uint64_t nkmer_t;
 typedef std::set<nkmer_t> set_t;
 
 const int32_t fasta_line_length=60;
-const int32_t max_contig_length=1000000;
+const int32_t max_contig_length=10000000;
 const int32_t max_allowed_kmer_length=sizeof(nkmer_t)*4;
 
 static const uint8_t nt4_nt256[] = "ACGTN";
@@ -131,35 +132,56 @@ int32_t decode_kmer(_nkmer_T nkmer, int32_t k, std::string &kmer){
 	return 0;
 }
 
+void reverse_complement_in_place(std::string &kmer){
+	//std::cerr << "before reverse complementing " << kmer << std::endl;
+    std::reverse(kmer.begin(), kmer.end());
+	for (int32_t i=0;i<static_cast<int32_t>(kmer.size());i++){
+		char nt4=nt256_nt4[static_cast<int32_t>(kmer[i])];
+		if (nt4<4){
+			nt4=3-nt4;
+		}
+		kmer[i]=nt4_nt256[static_cast<int32_t>(nt4)];
+	}
+	//std::cerr << "after reverse complementing " << kmer << std::endl;
+}
+
 template<typename _set_T>
 void debug_print_kmer_set(_set_T &set, int k){
 	std::string kmer;
 	for(auto x: set){
 		decode_kmer(x, k, kmer);
-		std::cout << x << " " << kmer << ";  ";
+		std::cerr << x << " " << kmer << ";  ";
 	}
-	std::cout<<std::endl;
+	std::cerr<<std::endl;
 }
 
 
 struct contig_t{
 	int32_t k;
 
+	/* contig buffer */
 	char *seq_buffer;
-	char *r_ext;
+
+	/* the first position of the contig */
 	char *l_ext;
 
-	char *r_ext_border;
+	/* the last position of the contig +1 (semiopen ) */
+	char *r_ext;
+
+	/* min possible value of l_ext */
 	char *l_ext_border;
+
+	/* max possible value of l_ext */
+	char *r_ext_border;
 
 	contig_t(uint32_t _k){
 		this->k=_k;
 		seq_buffer=new char[k+2*max_contig_length+1]();
 		l_ext_border=seq_buffer;
-		r_ext_border=seq_buffer+k+2*max_contig_length;
+		r_ext_border=seq_buffer+2*max_contig_length;
 	}
 
-	int32_t reinit(const char *base_kmer){
+	int32_t new_contig(const char *base_kmer){
 		assert(static_cast<int32_t>(strlen(base_kmer))==k);
 
 		l_ext = r_ext = &seq_buffer[max_contig_length];
@@ -363,41 +385,66 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 		std::string central_kmer_string;
 		decode_kmer(central_nkmer,k,central_kmer_string);
-		contig.reinit(central_kmer_string.c_str());
-
-		strncpy(kmer_str,central_kmer_string.c_str(),k);
-		kmer_str[k]='\0';
+		contig.new_contig(central_kmer_string.c_str());
 
 		typename _set_T::value_type nkmer;
 
-		bool extending = true;
-		while (extending){
-			
-			for(int32_t i=0;i<k;i++){
-				kmer_str[i]=kmer_str[i+1];
+
+		for (int direction=0;direction<2;direction++){
+
+			//std::cerr << "direction " << direction << std::endl;
+
+			if (direction==0){
+				// forward
 			}
+			else{
+				// reverse
+				reverse_complement_in_place(central_kmer_string);
+			}
+
+			strncpy(kmer_str,central_kmer_string.c_str(),k);
 			kmer_str[k]='\0';
 
+			bool extending = true;
 
-			extending=false;
-			for(const char &c : nucls){
-				kmer_str[k-1]=c;
+			//std::cerr << "central k-mer: " << central_kmer_string << std::endl;
 
-				encode_canonical(kmer_str, k, nkmer);
 
-				if(set.count( nkmer )){
-					contig.r_extend(c);
-					extending=true;
-					set.erase(nkmer);
-					break;
+			while (extending){
+				for(int32_t i=0;i<k;i++){
+					kmer_str[i]=kmer_str[i+1];
 				}
+				kmer_str[k]='\0';
 
-			}
-
-			if(contig.is_full()){
 				extending=false;
+				for(const char &c : nucls){
+					kmer_str[k-1]=c;
+
+					encode_canonical(kmer_str, k, nkmer);
+
+					if(set.count( nkmer )){
+						//std::cerr << "extending " << c << std::endl;
+						//debug_print_kmer_set(set,k);
+						//std::cerr << std::string(contig.l_ext) << c << std::endl;
+						//std::cerr << std::endl;
+						if(direction==0){
+							contig.r_extend(c);
+						}
+						else{
+							contig.l_extend(c);
+						}
+						set.erase(nkmer);
+
+						if(!contig.is_full()){
+							extending=true;
+						}
+						break;
+					}
+				}
 			}
 		}
+
+		//std::cerr << "====================" << std::endl;
 
 		std::stringstream ss;
 		ss<<"contig_"<<contig_id;
