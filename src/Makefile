@@ -5,7 +5,7 @@ all: compile_assembler compile_index #compile_ext
 clean:
 	$(MAKE) -C assembler clean
 	$(MAKE) -C kmer-index clean
-	$(MAKE) -C kraken-db clean
+	#$(MAKE) -C kraken-db clean
 
 compile_assembler:
 	$(MAKE) -C assembler
