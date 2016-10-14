@@ -91,3 +91,4 @@ if u:
 
 #cmd('"{exk}" match -v -k {k} "{fa}" "{fq}"'.format(exk=exk,fa=args.in_fasta,fq=args.in_fq,k=args.k),stdout=sys.stdout)
 match(fa, fq, k, s=s, u=u, v=v)
+
