@@ -7,20 +7,19 @@
 #include <iostream>
 #include <limits>
 #include <vector>
-
-#include <boost/unordered_set.hpp>
-
-#include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/variables_map.hpp>
+#include <algorithm>
+#include <set>
+#include <cassert>
+#include <sstream>
+#include <unordered_set>
+#include <getopt.h>
 
 //typedef __uint128_t nkmer_t;
 typedef uint64_t nkmer_t;
 typedef std::set<nkmer_t> set_t;
 
 const int32_t fasta_line_length=60;
-const int32_t max_contig_length=1000000;
+const int32_t max_contig_length=10000000;
 const int32_t max_allowed_kmer_length=sizeof(nkmer_t)*4;
 
 static const uint8_t nt4_nt256[] = "ACGTN";
@@ -46,6 +45,24 @@ static const uint8_t nt256_nt4[] = {
 
 
 KSEQ_INIT(gzFile, gzread)
+
+
+void print_help(int k){
+	std::cerr <<
+		"\n" <<
+		"Program: assembler (for k-mer propagation)\n" <<
+		"Contact: Karel Brinda <karel.brinda@gmail.com>\n" <<
+		"\n" <<
+		"Usage:   assembler [options]\n" <<
+		"\n"
+		"Command-line parameters:\n" <<
+		" -i arg  Input FASTA files.\n" <<
+		" -o arg  Output FASTA files. They will contain the same \n" <<
+		"            k-mers as input file except those from \n" <<
+		"            intersection.\n" <<
+		" -x arg  Intersection FASTA file.\n" <<
+		" -k arg  K-mer size. [" << k << "]\n" << std::endl;
+}
 
 
 template<typename _nkmer_T>
@@ -115,35 +132,56 @@ int32_t decode_kmer(_nkmer_T nkmer, int32_t k, std::string &kmer){
 	return 0;
 }
 
+void reverse_complement_in_place(std::string &kmer){
+	//std::cerr << "before reverse complementing " << kmer << std::endl;
+    std::reverse(kmer.begin(), kmer.end());
+	for (int32_t i=0;i<static_cast<int32_t>(kmer.size());i++){
+		char nt4=nt256_nt4[static_cast<int32_t>(kmer[i])];
+		if (nt4<4){
+			nt4=3-nt4;
+		}
+		kmer[i]=nt4_nt256[static_cast<int32_t>(nt4)];
+	}
+	//std::cerr << "after reverse complementing " << kmer << std::endl;
+}
+
 template<typename _set_T>
 void debug_print_kmer_set(_set_T &set, int k){
 	std::string kmer;
 	for(auto x: set){
 		decode_kmer(x, k, kmer);
-		std::cout << x << " " << kmer << ";  ";
+		std::cerr << x << " " << kmer << ";  ";
 	}
-	std::cout<<std::endl;
+	std::cerr<<std::endl;
 }
 
 
 struct contig_t{
 	int32_t k;
 
+	/* contig buffer */
 	char *seq_buffer;
-	char *r_ext;
+
+	/* the first position of the contig */
 	char *l_ext;
 
-	char *r_ext_border;
+	/* the last position of the contig +1 (semiopen ) */
+	char *r_ext;
+
+	/* min possible value of l_ext */
 	char *l_ext_border;
+
+	/* max possible value of l_ext */
+	char *r_ext_border;
 
 	contig_t(uint32_t _k){
 		this->k=_k;
 		seq_buffer=new char[k+2*max_contig_length+1]();
 		l_ext_border=seq_buffer;
-		r_ext_border=seq_buffer+k+2*max_contig_length;
+		r_ext_border=seq_buffer+2*max_contig_length;
 	}
 
-	int32_t reinit(const char *base_kmer){
+	int32_t new_contig(const char *base_kmer){
 		assert(static_cast<int32_t>(strlen(base_kmer))==k);
 
 		l_ext = r_ext = &seq_buffer[max_contig_length];
@@ -347,41 +385,66 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 		std::string central_kmer_string;
 		decode_kmer(central_nkmer,k,central_kmer_string);
-		contig.reinit(central_kmer_string.c_str());
-
-		strncpy(kmer_str,central_kmer_string.c_str(),k);
-		kmer_str[k]='\0';
+		contig.new_contig(central_kmer_string.c_str());
 
 		typename _set_T::value_type nkmer;
 
-		bool extending = true;
-		while (extending){
-			
-			for(int32_t i=0;i<k;i++){
-				kmer_str[i]=kmer_str[i+1];
+
+		for (int direction=0;direction<2;direction++){
+
+			//std::cerr << "direction " << direction << std::endl;
+
+			if (direction==0){
+				// forward
 			}
+			else{
+				// reverse
+				reverse_complement_in_place(central_kmer_string);
+			}
+
+			strncpy(kmer_str,central_kmer_string.c_str(),k);
 			kmer_str[k]='\0';
 
+			bool extending = true;
 
-			extending=false;
-			for(const char &c : nucls){
-				kmer_str[k-1]=c;
+			//std::cerr << "central k-mer: " << central_kmer_string << std::endl;
 
-				encode_canonical(kmer_str, k, nkmer);
 
-				if(set.count( nkmer )){
-					contig.r_extend(c);
-					extending=true;
-					set.erase(nkmer);
-					break;
+			while (extending){
+				for(int32_t i=0;i<k;i++){
+					kmer_str[i]=kmer_str[i+1];
 				}
+				kmer_str[k]='\0';
 
-			}
-
-			if(contig.is_full()){
 				extending=false;
+				for(const char &c : nucls){
+					kmer_str[k-1]=c;
+
+					encode_canonical(kmer_str, k, nkmer);
+
+					if(set.count( nkmer )){
+						//std::cerr << "extending " << c << std::endl;
+						//debug_print_kmer_set(set,k);
+						//std::cerr << std::string(contig.l_ext) << c << std::endl;
+						//std::cerr << std::endl;
+						if(direction==0){
+							contig.r_extend(c);
+						}
+						else{
+							contig.l_extend(c);
+						}
+						set.erase(nkmer);
+
+						if(!contig.is_full()){
+							extending=true;
+						}
+						break;
+					}
+				}
 			}
 		}
+
+		//std::cerr << "====================" << std::endl;
 
 		std::stringstream ss;
 		ss<<"contig_"<<contig_id;
@@ -407,47 +470,41 @@ int main (int argc, char* argv[])
 	std::vector<std::string> input_fns;
 	std::vector<std::string> output_fns;
 
-	try
-	{
-		namespace po = boost::program_options;
-		
-		po::positional_options_description pos;
-		pos.add("input-file", -1);
-		
-		po::options_description vol("Command-line parameters");
-
-		vol.add_options()
-			   ("input,i", po::value<std::vector<std::string>>(&input_fns)->required(), "Input FASTA files.")
-			   ("output,o", po::value<std::vector<std::string>>(&output_fns)->required(), "Output FASTA files. They will contain the same k-mers as input file except those from intersection.")
-			   ("intersection,x", po::value<std::string>(&intersection_fn)->required(), "Intersection FASTA file.")
-			   ("kmer-size,k", po::value<int32_t>(&k), "K-mer size. [22]")
-			   ;
-
-
-		po::variables_map vm;
-		try
-		{
-			po::store(po::command_line_parser(argc, argv).options(vol).positional(pos).run(),vm); // can throw
-			po::notify(vm); // throws on error, so do after help in case there are any problems
-			
-			if (input_fns.size() != output_fns.size()) {
-				fprintf(stderr,"There must be equal number of input and output files.\n");
-				return EXIT_FAILURE;
-			}
-			
-		}
-		catch(po::error& e)
-		{
-			std::cout << vol << "\n";
-			fprintf(stderr,"%s.\n",e.what());
-			return EXIT_FAILURE;
-		}
-		
+	if (argc<2){
+		print_help(k);
+		exit(1);
 	}
-	catch(std::exception& e)
-	{
-		fprintf(stderr,"Unhandled Exception: %s.\n",e.what());
-		return EXIT_FAILURE;
+
+	int c;
+	while ((c = getopt(argc, (char *const *)argv, "hi:o:x:k:")) >= 0) {
+		switch (c) {
+			case 'h': {
+				print_help(k);
+				exit(0);
+				break;
+			}
+			case 'i': {
+				input_fns.push_back(std::string(optarg));
+				break;
+			}
+			case 'o': {
+				output_fns.push_back(std::string(optarg));
+				break;
+			}
+			case 'x': {
+				intersection_fn=std::string(optarg);
+				break;
+			}
+			case 'k': {
+				k = atoi(optarg);
+				break;
+			}
+			case '?': {
+				std::cerr<<"Unknown error"<<std::endl;
+				exit(1);
+				break;
+			}
+		}
 	}
 
 	if(k < 2 || max_allowed_kmer_length<k){
@@ -455,7 +512,7 @@ int main (int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	std::vector< boost::unordered_set<nkmer_t> > full_sets(output_fns.size());
+	std::vector< std::unordered_set<nkmer_t> > full_sets(output_fns.size());
 
 	std::cout << "=====================" << std::endl;
 	std::cout << "1) Loading references" << std::endl;
@@ -472,7 +529,7 @@ int main (int argc, char* argv[])
 	std::cout << "===============" << std::endl;
 
 
-	boost::unordered_set<nkmer_t> intersection;
+	std::unordered_set<nkmer_t> intersection;
 
 	std::cout << "Computing intersection" << std::endl;
 
@@ -496,7 +553,7 @@ int main (int argc, char* argv[])
 	}
 
 	//for (auto a=old_sizes.begin(),auto b=new_sizes.begin();a<old_sizes.end() && b<new_sizes.end();++a,++b){
-	for (int32_t i=0;i<old_sizes.size();i++){
+	for (int32_t i=0;i<static_cast<int32_t>(old_sizes.size());i++){
 		assert(old_sizes[i]==new_sizes[i]+intersection_size);
 		std::cout << old_sizes[i] << " " << new_sizes[i] << " ...inter:" << intersection_size << std::endl;
 	}
