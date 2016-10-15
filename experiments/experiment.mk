@@ -78,7 +78,7 @@ index.fa.bwt: index.fa.pac
 #	$(BWA) bwt2sa index.fa.bwt index.fa.sa
 
 $(KLCP): index.fa index.fa.bwt
-	$(TTIME) -o 2.5_klcp.log \
+	$(TTIME) -o 2.5_klcp_sa.log \
 	$(EXK) index -s -k $(K) $<
 
 %.fai: %
