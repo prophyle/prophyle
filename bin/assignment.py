@@ -44,10 +44,15 @@ class Read:
 
 
 	def load_krakline(self,krakline):
-		_,self.qname,_,qlen,self.krakmers=krakline.strip().split("\t")
+		parts=krakline.strip().split("\t")
+		self.qname,_,qlen,self.krakmers=parts[1:5]
 		self.qlen=int(qlen)
-		self.seq=None
-		self.qual=None
+		if len(parts)==7:
+			self.seq=parts[5]
+			self.qual=parts[6]
+		else:
+			self.seq="*"
+			self.qual="*"
 
 		#self.hitmasks=None
 		self.asgs={}
@@ -187,7 +192,7 @@ class Read:
 		columns=[
 				qname,str(flag),rname,
 				pos,mapq,cigar,
-				"*","0", "0","*","*",
+				"*","0", "0",self.seq,self.qual,
 			]
 
 		if rname!="*":
