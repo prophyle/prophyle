@@ -50,6 +50,7 @@ exk_opt_t *exk_init_opt()
 	o->kmer_length = 14;
 	o->use_klcp = 0;
 	o->output = 1;
+	o->output_read_qual = 0;
 	o->output_old = 0;
 	o->skip_positions_on_border = 1;
 	o->construct_sa_parallel = 0;
@@ -262,7 +263,7 @@ void construct_streaks(int* seen_nodes, const int nodes_cnt, int streak_size,
 }
 
 void print_output() {
-	fprintf(stdout, "%s\n", all_streaks);
+	fprintf(stdout, "%s", all_streaks);
 }
 
 void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
@@ -293,6 +294,24 @@ int equal(int a_cnt, int* a, int b_cnt, int* b) {
 	return 1;
 }
 
+void print_read(bwa_seq_t* p) {
+	int j;
+	for(j = (int)p->len - 1; j>= 0; j--) {
+		fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
+	}
+}
+
+void print_read_qual(bwa_seq_t* p) {
+	if (p->qual) {
+		int j;
+		for(j = 0; j < (int)p->len; j++) {
+			fprintf(stdout, "%c", p->qual[j]);
+		}
+	} else {
+		fprintf(stdout, "*");
+	}
+}
+
 void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp, int64_t* kmers_count)
 {
@@ -301,7 +320,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	prev_seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int));
 	current_streak = malloc(MAX_STREAK_LENGTH * sizeof(char));
 	all_streaks = malloc(MAX_STREAK_LENGTH * sizeof(char));
-	int i, j;
+	int i;
 	bwt_t* bwt = idx->bwt;
 
 	int8_t* seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
@@ -325,9 +344,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 
 		if (opt->output_old) {
 			fprintf(stdout, "#");
-			for(j = (int)p->len - 1; j>= 0; j--) {
-				fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
-			}
+			print_read(p);
 			fprintf(stdout, "\n");
 		}
 		if (opt->output) {
@@ -478,6 +495,13 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 			if (opt->output) {
 				//fprintf(stdout, "\n");
 				print_output();
+				if (opt->output_read_qual) {
+					fprintf(stdout, "\t");
+					print_read(p);
+					fprintf(stdout, "\t");
+					print_read_qual(p);
+				}
+				fprintf(stdout, "\n");
 			}
 		}
 		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
@@ -570,7 +594,7 @@ int exk_match(int argc, char *argv[])
 	char *prefix;
 
 	opt = exk_init_opt();
-	while ((c = getopt(argc, argv, "l:psuvk:n:o:e:i:d:LR:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	while ((c = getopt(argc, argv, "l:psuvk:b")) >= 0) {
 		switch (c) {
 		case 'v': { opt->output_old = 1; opt->output = 0; } break;
 		case 'u': opt->use_klcp = 1; break;
@@ -578,19 +602,20 @@ int exk_match(int argc, char *argv[])
 		case 's': opt->skip_after_fail = 1; break;
 		case 'p': opt->skip_positions_on_border = 0; break;
 		case 'l': { opt->need_log = 1; opt->log_file_name = optarg; break; }
-		case 'e': opte = atoi(optarg); break;
-		case 't': opt->n_threads = atoi(optarg); break;
-		case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
-		case 'q': opt->trim_qual = atoi(optarg); break;
-		case 'N': opt->mode |= BWA_MODE_NONSTOP; break;
-		case 'f': xreopen(optarg, "wb", stdout); break;
-		case 'b': opt->mode |= BWA_MODE_BAM; break;
-		case '0': opt->mode |= BWA_MODE_BAM_SE; break;
-		case '1': opt->mode |= BWA_MODE_BAM_READ1; break;
-		case '2': opt->mode |= BWA_MODE_BAM_READ2; break;
-		case 'I': opt->mode |= BWA_MODE_IL13; break;
-		case 'Y': opt->mode |= BWA_MODE_CFY; break;
-		case 'B': opt->mode |= atoi(optarg) << 24; break;
+		case 'b': opt->output_read_qual = 1; break;
+		// case 'e': opte = atoi(optarg); break;
+		// case 't': opt->n_threads = atoi(optarg); break;
+		// case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
+		// case 'q': opt->trim_qual = atoi(optarg); break;
+		// case 'N': opt->mode |= BWA_MODE_NONSTOP; break;
+		// case 'f': xreopen(optarg, "wb", stdout); break;
+		// case 'b': opt->mode |= BWA_MODE_BAM; break;
+		// case '0': opt->mode |= BWA_MODE_BAM_SE; break;
+		// case '1': opt->mode |= BWA_MODE_BAM_READ1; break;
+		// case '2': opt->mode |= BWA_MODE_BAM_READ2; break;
+		// case 'I': opt->mode |= BWA_MODE_IL13; break;
+		// case 'Y': opt->mode |= BWA_MODE_CFY; break;
+		// case 'B': opt->mode |= atoi(optarg) << 24; break;
 		default: return 1;
 		}
 	}
@@ -637,24 +662,11 @@ int exk_index(int argc, char *argv[])
 	char *prefix;
 	opt = exk_init_opt();
 	int sa_intv = 32;
-	while ((c = getopt(argc, argv, "si:k:n:o:e:i:d:l:k:LR:m:t:NM:O:E:q:f:b012IYB:")) >= 0) {
+	while ((c = getopt(argc, argv, "si:k:")) >= 0) {
 		switch (c) {
 		case 'k': opt->kmer_length = atoi(optarg); break;
 		case 'i': sa_intv = atoi(optarg); break;
 		case 's': opt->construct_sa_parallel = 1; break;
-		case 'e': opte = atoi(optarg); break;
-		case 't': opt->n_threads = atoi(optarg); break;
-		case 'L': opt->mode |= BWA_MODE_LOGGAP; break;
-		case 'q': opt->trim_qual = atoi(optarg); break;
-		case 'N': opt->mode |= BWA_MODE_NONSTOP; break;
-		case 'f': xreopen(optarg, "wb", stdout); break;
-		case 'b': opt->mode |= BWA_MODE_BAM; break;
-		case '0': opt->mode |= BWA_MODE_BAM_SE; break;
-		case '1': opt->mode |= BWA_MODE_BAM_READ1; break;
-		case '2': opt->mode |= BWA_MODE_BAM_READ2; break;
-		case 'I': opt->mode |= BWA_MODE_IL13; break;
-		case 'Y': opt->mode |= BWA_MODE_CFY; break;
-		case 'B': opt->mode |= atoi(optarg) << 24; break;
 		default: return 1;
 		}
 	}

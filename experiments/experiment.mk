@@ -86,13 +86,13 @@ $(KLCP): index.fa index.fa.bwt
 
 kmers_rolling.txt: $(KLCP)
 	$(TTIME) -o 3.1a_matching_rolling.log \
-	$(EXK) match -l 3.1b_matching_rolling.log  \
+	$(EXK) match -b -l 3.1b_matching_rolling.log  \
 		-k $(K) -u index.fa $(READS) > $@
 
 kmers_restarted.txt: $(READS) $(KLCP) \
 	kmers_rolling.txt
 	$(TTIME) -o 3.2a_matching_restarted.log \
-	$(EXK) match -l 3.2b_matching_restarted.log \
+	$(EXK) match -b -l 3.2b_matching_restarted.log \
 		-k $(K) index.fa $(READS) > $@
 
 assigned_reads.bam: kmers_rolling.txt $(TREE)
