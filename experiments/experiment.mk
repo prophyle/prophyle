@@ -6,7 +6,7 @@ SHELL:=/bin/bash -o pipefail
 include *.mk
 
 #ASSEMBLER=../../bin/assembler
-EXK=../../bin/exk
+EXK=../../bin/prophyle-index
 BUILD_FA=../../src/build_index.py
 BWA=../../bin/bwa
 SAMTOOLS?=samtools

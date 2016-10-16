@@ -11,8 +11,8 @@ import sys
 #bin_dir=os.path.normpath(os.path.join(os.path.dirname(__file__),"../../bin"))
 bin_dir=os.path.dirname(__file__)
 bwa=os.path.join(bin_dir,"bwa")
-exk=os.path.join(bin_dir,"exk")
-asm=os.path.abspath(os.path.join(bin_dir,"assembler"))
+exk=os.path.join(bin_dir,"prophyle-index")
+asm=os.path.abspath(os.path.join(bin_dir,"prophyle-assembler"))
 newick2makefile=os.path.join(bin_dir,"newick2makefile.py")
 test_newick=os.path.join(bin_dir,"test_newick_tree.py")
 merge_fastas=os.path.join(bin_dir,"create_final_fasta.py")
@@ -22,7 +22,7 @@ test_newick=os.path.join(bin_dir,"test_newick_tree.py")
 DEFAULT_K=32
 DEFAULT_THREADS=multiprocessing.cpu_count()
 DEFAULT_MEASURE='h1'
-DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'metang')
+DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'prophyle')
 
 LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
@@ -67,7 +67,7 @@ def _run_safe(command, output_fn=None):
 def _message(msg):
 	dt=datetime.datetime.now()
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
-	print('[metang]', fdt, msg, file=sys.stderr)
+	print('[prophyle]', fdt, msg, file=sys.stderr)
 
 def _touch(*fns):
 	for fn in fns:
@@ -85,9 +85,9 @@ def _rm(*fns):
 			pass
 
 
-###############
-# METANG INIT #
-###############
+#################
+# PROPHYLE INIT #
+#################
 
 def _complete(d, i):
 	fn=os.path.join(d,".complete.{}".format(i))
@@ -187,9 +187,9 @@ def init(library, home_dir):
 			raise ValueError('Unknown library ""'.format(library))
 
 
-################
-# METANG INDEX #
-################
+##################
+# PROPHYLE INDEX #
+##################
 
 def _create_makefile(index_dir, k, library_dir):
 	_message('Creating Makefile for k-mer propagation')
@@ -306,9 +306,9 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 			_bwtocc2klcp(index_fa,k)
 
 
-###################
-# METANG CLASSIFY #
-###################
+#####################
+# PROPHYLE CLASSIFY #
+#####################
 
 def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate,tie_lca):
 	index_fa=os.path.join(index_dir, 'index.fa')
@@ -372,12 +372,12 @@ if __name__ == "__main__":
 				help='genomic library {}'.format(LIBRARIES+['all']),
 			)
 		parser_init.add_argument(
-				'-m','--metang-dir',
+				'-m','--prophyle-dir',
 				metavar='DIR',
 				dest='home_dir',
 				type=str,
 				default=DEFAULT_HOME_DIR,
-				help='Metang directory [{}]'.format(DEFAULT_HOME_DIR),
+				help='ProPhyle directory [{}]'.format(DEFAULT_HOME_DIR),
 			)
 
 		##########
