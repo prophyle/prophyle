@@ -6,9 +6,7 @@
 
 ### Prerequisities
 
-* CMake 2.6+
 * GCC 4.8+
-* Boost 1.46+ 
 * ZLib
 * Python 3 with ete3 library
 * SamTools
