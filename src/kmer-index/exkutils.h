@@ -12,6 +12,7 @@ typedef struct {
 	int kmer_length;
 	int output;
 	int output_old;
+	int output_read_qual;
 	int skip_after_fail;
 	int skip_positions_on_border;
 
