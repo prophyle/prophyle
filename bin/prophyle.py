@@ -333,7 +333,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 		klcp_fn="{}.{}.bit.klcp".format(index_fa,k)
 		_test_files(klcp_fn)
 		(klcp_s,)=_file_sizes(klcp_fn)
-		assert abs(bwt_s - 2*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
+		assert abs(bwt_s - klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
 
 	if mimic_kraken:
 		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_newick, '-m', 'h1', '-f', 'kraken', '-l', '-t']
