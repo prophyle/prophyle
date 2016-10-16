@@ -78,7 +78,7 @@ index.fa.bwt: index.fa.pac
 #	$(BWA) bwt2sa index.fa.bwt index.fa.sa
 
 $(KLCP): index.fa index.fa.bwt
-	$(TTIME) -o 2.5_klcp.log \
+	$(TTIME) -o 2.5_klcp_sa.log \
 	$(EXK) index -s -k $(K) $<
 
 %.fai: %
@@ -95,18 +95,6 @@ kmers_restarted.txt: $(READS) $(KLCP) \
 	$(EXK) match -l 3.2b_matching_restarted.log \
 		-k $(K) index.fa $(READS) > $@
 
-kmers_rolling_skipping.txt: $(READS) $(KLCP) \
-	kmers_restarted.txt
-	$(TTIME) -o 3.3a_matching_rolling_skipping.log \
-	$(EXK) match -l 3.3b_matching_rolling_skipping.log \
-		-k $(K) -u -s index.fa $(READS) > $@
-
-kmers_restarted_skipping.txt: $(READS) $(KLCP) \
-	kmers_rolling_skipping.txt
-	$(TTIME) -o 3.4a_matching_restarted_skipping.log \
-	$(EXK) match -l 3.4b_matching_restarted_skipping.log \
-		-k $(K) -s index.fa $(READS) > $@
-
 assigned_reads.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.1_read_assignment.log \
 	$(ASSIGNMENT) -i $< -n $(TREE) -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
@@ -119,7 +107,7 @@ assigned_reads_simlca.bam: kmers_rolling.txt $(TREE)
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@
 
 _main_log.log: index.fa.$(K).bit.klcp 5.1_contigs_stats.log \
-	kmers_rolling.txt kmers_restarted.txt kmers_rolling_skipping.txt kmers_restarted_skipping.txt \
+	kmers_rolling.txt kmers_restarted.txt \
 	assigned_reads.bam assigned_reads_simlca.bam
 	du -sh *.fa.* | grep -v "fa.amb" | grep -v "fa.fai" > 5.2_index_size.log
 	echo > _main_log.log
