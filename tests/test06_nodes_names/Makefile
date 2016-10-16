@@ -5,7 +5,7 @@ FQ=../../reads/simulation_bacteria.1000.fq
 K=10
 
 all:
-	../../bin/1step_exk_match.py -k $(K) $(FA) $(FQ) > _exk_output.txt
+	../../bin/1step_match.py -k $(K) $(FA) $(FQ) > _exk_output.txt
 
 	# test if number of reads is correct
 	$(eval L=$(shell cat $(FQ) | grep "^@" | wc -l))

@@ -156,7 +156,7 @@ class TreeIndex:
 
 	def build_index(self,k,mask_repeats):
 		print()
-		print("ASSEMBLER=../../bin/assembler")
+		print("ASSEMBLER=../../bin/prophyle-assembler")
 		print("DUSTMASKER=dustmasker")
 		print("K={}".format(k))
 		if mask_repeats:
