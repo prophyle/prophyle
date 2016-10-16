@@ -313,7 +313,7 @@ void print_read_qual(bwa_seq_t* p) {
 }
 
 void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
-								const exk_opt_t *opt, klcp_t* klcp)
+								const exk_opt_t *opt, klcp_t* klcp, int64_t* kmers_count)
 {
 	bwase_initialize();
 	seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int));
@@ -336,7 +336,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		}
 		bwa_seq_t *p = seqs + i;
 		p->sa = 0; p->type = BWA_TYPE_NO_MATCH; p->c1 = p->c2 = 0; p->n_aln = 0; p->aln = 0;
-
+		*kmers_count += p->len - opt->kmer_length + 1;
 		// NEED TO UNDERSTAND
 		// core function
 		// for (j = 0; j < p->len; ++j) // we need to complement
@@ -554,10 +554,9 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	float total_time = 0;
 	int64_t total_seqs = 0;
 	t = clock();
-	int seq_len = 0;
+	int64_t kmers_count = 0;
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
-		seq_len = seqs[0].len;
-		bwa_cal_sa(0, idx, n_seqs, seqs, opt, klcp);
+		bwa_cal_sa(0, idx, n_seqs, seqs, opt, klcp, &kmers_count);
 		total_seqs += n_seqs;
 		bwa_free_read_seq(n_seqs, seqs);
 	}
@@ -566,9 +565,9 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	if (opt->need_log) {
 		fprintf(log_file, "matching_time\t%.2fs\n", total_time);
 		fprintf(log_file, "reads\t%" PRId64 "\n", total_seqs);
-		fprintf(log_file, "kmers\t%" PRId64 "\n", total_seqs * (seq_len - opt->kmer_length + 1));
+		fprintf(log_file, "kmers\t%" PRId64 "\n", kmers_count);
 		fprintf(log_file, "rpm\t%" PRId64 "\n", (int64_t)(round(total_seqs * 60.0 / total_time)));
-		fprintf(log_file, "kpm\t%" PRId64 "\n", (int64_t)(round(total_seqs * (seq_len - opt->kmer_length + 1) * 60.0 / total_time)));
+		fprintf(log_file, "kpm\t%" PRId64 "\n", (int64_t)(round(kmers_count * 60.0 / total_time)));
 	}
 	//fprintf(stderr, "tot_seqs = %d\n", tot_seqs);
 	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
