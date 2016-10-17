@@ -12,7 +12,6 @@ BWA=../../bin/bwa
 SAMTOOLS?=samtools
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
 ASSIGNMENT=../../bin/assignment.py
-FINAL_FA=../../bin/create_final_fasta.py
 
 READS?=../../reads/simulation_bacteria.1000000.fq
 KLCP=index.fa.$(K).bit.klcp
@@ -37,7 +36,11 @@ else
 	REP_PARAM=
 endif
 
-
+ifdef NONDEL
+	FINAL_FA=../../bin/create_final_fasta.py --nondel
+else
+	FINAL_FA=../../bin/create_final_fasta.py
+endif
 
 all: index.fa.$(K).bit.klcp _main_log.log _main_log.md \
 	assigned_reads.bam assigned_reads_simlca.bam
