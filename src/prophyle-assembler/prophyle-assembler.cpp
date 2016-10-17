@@ -578,10 +578,12 @@ int main (int argc, char* argv[])
 		}
 	}
 
-	for (int32_t i=0;i<no_sets;i++){
-		out_sizes.insert(out_sizes.end(),full_sets[i].size());
-		assert(in_sizes[i]==out_sizes[i]+intersection_size);
-		std::cerr << in_sizes[i] << " " << out_sizes[i] << " ...inter:" << intersection_size << std::endl;
+	if(compute_output){
+		for (int32_t i=0;i<no_sets;i++){
+			out_sizes.insert(out_sizes.end(),full_sets[i].size());
+			assert(in_sizes[i]==out_sizes[i]+intersection_size);
+			std::cerr << in_sizes[i] << " " << out_sizes[i] << " ...inter:" << intersection_size << std::endl;
+		}
 	}
 
 	std::cerr << "=============" << std::endl;

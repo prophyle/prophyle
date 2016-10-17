@@ -51,7 +51,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 	if is_leaf:
 		cmd =  (
 				"{o}: {i}\n" +
-				"\tcat $^ | $(MASKING) > $@\n\n"
+				"\tcat $^ | $(MASKING) | $(REASM) > $@\n\n"
 			).format(
 				i=' \\\n\t\t'.join(input_files),
 				o=output_file,
@@ -70,10 +70,16 @@ def assembly(input_files, output_files, intersection_file):
 	assert(len(input_files)==len(output_files))
 	#logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
 	cmd =  (
-			"{x}: {i}\n" +
+			"ifdef NONDEL\n"
+			"   OUTPUT=\n"
+			"else\n"
+			"   OUTPUT=-o {oo}\n"
+			"endif\n"
+			""
+			"{x}: {i}\n"
 			"\t$(ASSEMBLER) -k $(K) \\\n"
 			"\t\t-i {ii}\\\n"
-			"\t\t-o {oo}\\\n"
+			"\t\t$(OUTPUT)\\\n"
 			"\t\t-x $@\n\n"
 		).format(
 			i=' '.join(input_files),
@@ -156,6 +162,7 @@ class TreeIndex:
 
 	def build_index(self,k,mask_repeats):
 		print()
+		print("NONDEL=1")
 		print("ASSEMBLER=../../bin/prophyle-assembler")
 		print("DUSTMASKER=dustmasker")
 		print("K={}".format(k))
@@ -166,6 +173,12 @@ class TreeIndex:
 		print("   MASKING=$(DUSTMASKER) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'")
 		print("else")
 		print("   MASKING=tee")
+		print("endif")
+		print()
+		print("ifdef NONDEL")
+		print("   REASM=$(ASSEMBLER) -i - -o -")
+		print("else")
+		print("   REASM=tee")
 		print("endif")
 		print("")
 		print("")
