@@ -9,7 +9,7 @@ ASM=../../bin/prophyle-assembler
 .SECONDARY:
 
 all:
-	$(ASM) -k $(K) -i input.fa -i input.fa -x _output_obtained.fa -o /dev/null -o /dev/null
+	$(ASM) -k $(K) -i input.fa -o _output_obtained.fa
 
 	$(NORM) -i expected_output.fa > _output_expected.norm.fa
 	$(NORM) -i _output_obtained.fa > _output_obtained.norm.fa
