@@ -21,6 +21,7 @@ typedef std::set<nkmer_t> set_t;
 const int32_t fasta_line_length=60;
 const int32_t max_contig_length=10000000;
 const int32_t max_allowed_kmer_length=sizeof(nkmer_t)*4;
+const int32_t default_k=31;
 
 static const uint8_t nt4_nt256[] = "ACGTN";
 
@@ -47,21 +48,29 @@ static const uint8_t nt256_nt4[] = {
 KSEQ_INIT(gzFile, gzread)
 
 
-void print_help(int k){
+void print_help(){
 	std::cerr <<
 		"\n" <<
-		"Program: assembler (for k-mer propagation)\n" <<
-		"Contact: Karel Brinda <karel.brinda@gmail.com>\n" <<
+		"Program:  prophyle-assembler (greedy assembler for ProPhyle)\n" <<
+		"Contact:  Karel Brinda <karel.brinda@gmail.com>\n" <<
 		"\n" <<
-		"Usage:   assembler [options]\n" <<
-		"\n"
+		"Usage:    prophyle-assembler [options]\n" <<
+		"\n" <<
+		"Examples: prophyle-assembler -i f1.fa -i f2.fa -x fx.fa\n" <<
+		"             - compute intersection of f1 and f2\n" <<
+		"          prophyle-assembler -i f1.fa -i f2.fa -x fx.fa -o g1.fa -o g2.fa\n" <<
+		"             - compute intersection of f1 and f2, and subtract it from them\n" <<
+		"          prophyle-assembler -i f1.fa -o g1.fa\n" <<
+		"             - re-assemble f1 to g1\n" <<
+		"\n" <<
 		"Command-line parameters:\n" <<
-		" -i arg  Input FASTA files.\n" <<
-		" -o arg  Output FASTA files. They will contain the same \n" <<
-		"            k-mers as input file except those from \n" <<
-		"            intersection.\n" <<
-		" -x arg  Intersection FASTA file.\n" <<
-		" -k arg  K-mer size. [" << k << "]\n" << std::endl;
+		" -i FILE  Input FASTA file (can be used multiple times).\n" <<
+		" -o FILE  Output FASTA file (if used, must be used as many times as -i).\n" <<
+		" -x FILE  Compute intersection, subtract it, save it.\n" <<
+		" -k INT   K-mer size. [" << default_k << "]\n" <<
+		"\n" <<
+		"Note that '-' can be used for standard input/output. \n" <<
+		std::endl;
 }
 
 
@@ -253,36 +262,42 @@ struct contig_t{
 template<typename _set_T>
 int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
 
-	std::cout << "Loading " << fasta_fn << std::endl;
+	std::cerr << "Loading " << fasta_fn << std::endl;
 
 	set.clear();
 
-	gzFile fp;
 	kseq_t *seq;
 	int64_t l;
 
-	fp = gzopen(fasta_fn.c_str(), "r");
+	FILE *instream = NULL;
+	if(fasta_fn=="-"){
+		instream = stdin;
+	}
+	else {
+		instream = fopen(fasta_fn.c_str(), "r");
+	}
+	gzFile fp = gzdopen(fileno(instream), "r");
 	seq = kseq_init(fp);
 
 	typename _set_T::value_type nkmer;
 
 	for(int32_t seqid=0;(l = kseq_read(seq)) >= 0;seqid++) {
-		//std::cout << "kmers from fasta" << std::endl;
+		//std::cerr << "kmers from fasta" << std::endl;
 
-		//std::cout << "starting iterator" << std::endl;
+		//std::cerr << "starting iterator" << std::endl;
 		for(char *kmer=seq->seq.s; kmer < (seq->seq.s) + (seq->seq.l) -k +1 ;kmer++){
 			int c = encode_canonical(kmer, k, nkmer);
 			if (c==0){
 				set.insert(nkmer);
 			}
 			else{
-				//std::cout << "problem" <<std::endl;
+				//std::cerr << "problem" <<std::endl;
 			}
 		}
 	}
 
-	std::cout << "  " << fasta_fn << " loaded - #kmers: " << set.size()<<std::endl;
-	//std::cout << "iterator finished" << std::endl;
+	std::cerr << "  " << fasta_fn << " loaded - #kmers: " << set.size()<<std::endl;
+	//std::cerr << "iterator finished" << std::endl;
 
 	kseq_destroy(seq);
 	gzclose(fp);
@@ -301,13 +316,13 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 	int32_t min=std::numeric_limits<int32_t>::max();
 	int32_t i_min=-1;
 
-	//std::cout << "searching min" << std::endl;
+	//std::cerr << "searching min" << std::endl;
 
 	for(int32_t i=0;i<static_cast<int32_t>(sets.size());i++){
 		if (static_cast<int32_t>(sets[i].size())<min){
 			min=sets[i].size();
 			i_min=i;
-			//std::cout << "new min" << i << std::endl;
+			//std::cerr << "new min" << i << std::endl;
 		}
 	}
 
@@ -317,10 +332,10 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 		2) Take it as the intersection.
 	*/
 
-	//std::cout << "2" << std::endl;
+	//std::cerr << "2" << std::endl;
 
 	intersection.clear();
-	//std::cout << "2.1" << std::endl;
+	//std::cerr << "2.1" << std::endl;
 	std::copy(
 		sets[i_min].cbegin(), sets[i_min].cend(),
 		std::inserter(intersection,intersection.end())
@@ -365,19 +380,21 @@ int32_t remove_subset(std::vector<_set_T> &sets, const _subset_T &subset){
 
 template<typename _set_T>
 int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
+	std::cerr << "Assembling " << fasta_fn << " from " << set.size() << " kmers" << std::endl;
 
-	std::cout << "Assembling " << fasta_fn << " from " << set.size() << " kmers" << std::endl;
-
-	FILE *file=fopen(fasta_fn.c_str(),"w+");
-
+	FILE *file;
+	if(fasta_fn=="-"){
+		file=stdout;
+	}
+	else{
+		file=fopen(fasta_fn.c_str(),"w+");
+	}
 	char kmer_str[max_allowed_kmer_length+1];
-
 	contig_t contig(k);
-
 	const std::vector<char> nucls = {'A','C','G','T'};
 
 	//int32_t i=0;
-	int32_t contig_id=0;
+	int32_t contig_id=1;
 	while(set.size()>0){
 
 		const auto central_nkmer=*(set.begin());
@@ -455,7 +472,7 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 	fclose(file);
 
-	std::cout << "   assembly finished (" << contig_id << " contigs)" << std::endl;
+	std::cerr << "   assembly finished (" << contig_id << " contigs)" << std::endl;
 
 	return 0;
 
@@ -464,35 +481,42 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 
 int main (int argc, char* argv[])
 {
-	int32_t k=22;
+	int32_t k=default_k;
 
 	std::string intersection_fn;
-	std::vector<std::string> input_fns;
-	std::vector<std::string> output_fns;
+	std::vector<std::string> in_fns;
+	std::vector<std::string> out_fns;
 
 	if (argc<2){
-		print_help(k);
+		print_help();
 		exit(1);
 	}
+
+	bool compute_intersection=false;
+	bool compute_output=false;
+	int32_t no_sets=0;
 
 	int c;
 	while ((c = getopt(argc, (char *const *)argv, "hi:o:x:k:")) >= 0) {
 		switch (c) {
 			case 'h': {
-				print_help(k);
+				print_help();
 				exit(0);
 				break;
 			}
 			case 'i': {
-				input_fns.push_back(std::string(optarg));
+				in_fns.push_back(std::string(optarg));
+				no_sets+=1;
 				break;
 			}
 			case 'o': {
-				output_fns.push_back(std::string(optarg));
+				out_fns.push_back(std::string(optarg));
+				compute_output=true;
 				break;
 			}
 			case 'x': {
 				intersection_fn=std::string(optarg);
+				compute_intersection=true;
 				break;
 			}
 			case 'k': {
@@ -507,69 +531,71 @@ int main (int argc, char* argv[])
 		}
 	}
 
-	if(k < 2 || max_allowed_kmer_length<k){
-		fprintf(stderr, "K-mer size must satisfy 1 < k <= %" PRId32 ".\n", max_allowed_kmer_length);
+	if (k <= 1 || max_allowed_kmer_length<k){
+		std::cerr << "K-mer size must satisfy 1 < k <= " << max_allowed_kmer_length << "." << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	std::vector< std::unordered_set<nkmer_t> > full_sets(output_fns.size());
-
-	std::cout << "=====================" << std::endl;
-	std::cout << "1) Loading references" << std::endl;
-	std::cout << "=====================" << std::endl;
-
-	for(int32_t i=0;i<static_cast<int32_t>(input_fns.size());i++){
-		kmers_from_fasta(input_fns[i],full_sets[i],k);
-		//debug_print_kmer_set(full_sets[i],k);
+	if (compute_output && (out_fns.size()!=no_sets)){
+		std::cerr << "If -o is used, it must be used as many times as -i (" << no_sets << "!=" << out_fns.size() << ")." << std::endl;
+		return EXIT_FAILURE;
 	}
 
+	std::vector< std::unordered_set<nkmer_t> > full_sets(no_sets);
 
-	std::cout << "===============" << std::endl;
-	std::cout << "2) Intersecting" << std::endl;
-	std::cout << "===============" << std::endl;
+	std::cerr << "=====================" << std::endl;
+	std::cerr << "1) Loading references" << std::endl;
+	std::cerr << "=====================" << std::endl;
+
+
+	std::vector<int32_t> in_sizes;
+	std::vector<int32_t> out_sizes;
+
+	for(int32_t i=0;i<no_sets;i++){
+		kmers_from_fasta(in_fns[i],full_sets[i],k);
+		//debug_print_kmer_set(full_sets[i],k);
+		in_sizes.insert(in_sizes.end(),full_sets[i].size());
+	}
+
+	std::cerr << "===============" << std::endl;
+	std::cerr << "2) Intersecting" << std::endl;
+	std::cerr << "===============" << std::endl;
 
 
 	std::unordered_set<nkmer_t> intersection;
 
-	std::cout << "Computing intersection" << std::endl;
+	int32_t intersection_size = 0;
 
-	find_intersection(full_sets, intersection);
-	std::cout << "   intersection size: " <<  intersection.size() << std::endl;
+	if(compute_intersection){
+		std::cerr << "2.1) Computing intersection" << std::endl;
 
-	std::cout << "Removing this intersection from all kmer sets" << std::endl;
-
-	int32_t intersection_size  = intersection.size();
-
-	std::vector<int32_t> old_sizes;	
-	for (auto const &x : full_sets){
-		old_sizes.insert(old_sizes.end(),x.size());
+		find_intersection(full_sets, intersection);
+		intersection_size  = intersection.size();
+		std::cerr << "   intersection size: " <<  intersection_size << std::endl;
+		if(compute_output){
+			std::cerr << "2.2) Removing this intersection from all kmer sets" << std::endl;
+			remove_subset(full_sets, intersection);
+		}
 	}
 
-	remove_subset(full_sets, intersection);
-
-	std::vector<int32_t> new_sizes;	
-	for (auto const &x : full_sets){
-		new_sizes.insert(new_sizes.end(),x.size());
+	for (int32_t i=0;i<no_sets;i++){
+		out_sizes.insert(out_sizes.end(),full_sets[i].size());
+		assert(in_sizes[i]==out_sizes[i]+intersection_size);
+		std::cerr << in_sizes[i] << " " << out_sizes[i] << " ...inter:" << intersection_size << std::endl;
 	}
 
-	//for (auto a=old_sizes.begin(),auto b=new_sizes.begin();a<old_sizes.end() && b<new_sizes.end();++a,++b){
-	for (int32_t i=0;i<static_cast<int32_t>(old_sizes.size());i++){
-		assert(old_sizes[i]==new_sizes[i]+intersection_size);
-		std::cout << old_sizes[i] << " " << new_sizes[i] << " ...inter:" << intersection_size << std::endl;
+	std::cerr << "=============" << std::endl;
+	std::cerr << "3) Assembling" << std::endl;
+	std::cerr << "=============" << std::endl;
+
+	if(compute_output){
+		for(int32_t i=0;i<static_cast<int32_t>(in_fns.size());i++){
+			assemble(out_fns[i],full_sets[i],k);
+		}
 	}
-
-
-	std::cout << "=============" << std::endl;
-	std::cout << "3) Assembling" << std::endl;
-	std::cout << "=============" << std::endl;
-
-
-	for(int32_t i=0;i<static_cast<int32_t>(input_fns.size());i++){
-		assemble(output_fns[i],full_sets[i],k);
+	if(compute_intersection){
+		assemble(intersection_fn,intersection,k);
 	}
-
-	assemble(intersection_fn,intersection,k);
-
 
 	return 0;
 }
