@@ -61,6 +61,21 @@ Table of Contents
   * [04_bacteria_orig_k31_lowcomp_masked/4.2_read_assignment_simlca.log](#04_bacteria_orig_k31_lowcomp_masked42_read_assignment_simlcalog)
   * [04_bacteria_orig_k31_lowcomp_masked/5.1_contigs_stats.log](#04_bacteria_orig_k31_lowcomp_masked51_contigs_statslog)
   * [04_bacteria_orig_k31_lowcomp_masked/5.2_index_size.log](#04_bacteria_orig_k31_lowcomp_masked52_index_sizelog)
+* [05_bacteria_orig_k32](#05_bacteria_orig_k32)
+  * [05_bacteria_orig_k32/1.1_kmer_propagation.log](#05_bacteria_orig_k3211_kmer_propagationlog)
+  * [05_bacteria_orig_k32/1.2_merging_fasta.log](#05_bacteria_orig_k3212_merging_fastalog)
+  * [05_bacteria_orig_k32/2.1_bwa_fa2pac.log](#05_bacteria_orig_k3221_bwa_fa2paclog)
+  * [05_bacteria_orig_k32/2.2_bwa_pac2bwtgen.log](#05_bacteria_orig_k3222_bwa_pac2bwtgenlog)
+  * [05_bacteria_orig_k32/2.3_bwa_bwtupdate.log](#05_bacteria_orig_k3223_bwa_bwtupdatelog)
+  * [05_bacteria_orig_k32/2.5_klcp_sa.log](#05_bacteria_orig_k3225_klcp_salog)
+  * [05_bacteria_orig_k32/3.1a_matching_rolling.log](#05_bacteria_orig_k3231a_matching_rollinglog)
+  * [05_bacteria_orig_k32/3.1b_matching_rolling.log](#05_bacteria_orig_k3231b_matching_rollinglog)
+  * [05_bacteria_orig_k32/3.2a_matching_restarted.log](#05_bacteria_orig_k3232a_matching_restartedlog)
+  * [05_bacteria_orig_k32/3.2b_matching_restarted.log](#05_bacteria_orig_k3232b_matching_restartedlog)
+  * [05_bacteria_orig_k32/4.1_read_assignment.log](#05_bacteria_orig_k3241_read_assignmentlog)
+  * [05_bacteria_orig_k32/4.2_read_assignment_simlca.log](#05_bacteria_orig_k3242_read_assignment_simlcalog)
+  * [05_bacteria_orig_k32/5.1_contigs_stats.log](#05_bacteria_orig_k3251_contigs_statslog)
+  * [05_bacteria_orig_k32/5.2_index_size.log](#05_bacteria_orig_k3252_index_sizelog)
 
 ***
 ## 01_1from10_bacteria_bin_k31
@@ -909,4 +924,216 @@ Memory peak:      0.07 GB
 * 7.3G	index.fa.bwt
 * 3.7G	index.fa.pac
 * 3.7G	index.fa.sa
+
+***
+## 05_bacteria_orig_k32
+
+### 05_bacteria_orig_k32/1.1_kmer_propagation.log
+* Mon Oct 17 16:52:51 CEST 2016
+* jobs: 24
+* make -f Makefile.generated
+
+```
+User time:     5:04:29
+System time:   0:17:37
+Elapsed time:  0:18:54
+CPU usage:        1704%
+
+Memory peak:     10.17 GB
+```
+
+* 26833296inputs+36130040outputs (5major+393148592minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/1.2_merging_fasta.log
+* Mon Oct 17 17:11:45 CEST 2016
+* jobs: 24
+* ../../bin/create_final_fasta.py index
+
+```
+User time:     0:05:20
+System time:   0:00:16
+Elapsed time:  0:07:01
+CPU usage:          80%
+
+Memory peak:      0.01 GB
+```
+
+* 9395488inputs+16840120outputs (21major+62172minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/2.1_bwa_fa2pac.log
+* Mon Oct 17 17:18:47 CEST 2016
+* jobs: 24
+* ../../bin/bwa fa2pac index.fa index.fa
+
+```
+User time:     0:01:04
+System time:   0:00:12
+Elapsed time:  0:02:14
+CPU usage:          58%
+
+Memory peak:      6.02 GB
+```
+
+* 1312inputs+9837136outputs (3major+2021937minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/2.2_bwa_pac2bwtgen.log
+* Mon Oct 17 17:21:01 CEST 2016
+* jobs: 24
+* ../../bin/bwa pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
+
+```
+User time:     2:14:52
+System time:   0:00:32
+Elapsed time:  2:15:25
+CPU usage:         100%
+
+Memory peak:      4.43 GB
+```
+
+* 0inputs+7828704outputs (0major+35280620minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/2.3_bwa_bwtupdate.log
+* Mon Oct 17 19:36:26 CEST 2016
+* jobs: 24
+* ../../bin/bwa bwtupdate index.fa.bwt
+
+```
+User time:     0:00:33
+System time:   0:00:24
+Elapsed time:  0:02:24
+CPU usage:          40%
+
+Memory peak:     11.20 GB
+```
+
+* 416inputs+15657400outputs (0major+2277408minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/2.5_klcp_sa.log
+* Mon Oct 17 19:38:51 CEST 2016
+* jobs: 24
+* ../../bin/prophyle-index index -s -k 32 index.fa
+
+```
+User time:     2:26:57
+System time:   0:08:33
+Elapsed time:  1:52:55
+CPU usage:         138%
+
+Memory peak:     13.07 GB
+```
+
+* 336inputs+11743056outputs (1major+503057853minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/3.1a_matching_rolling.log
+* Mon Oct 17 21:31:46 CEST 2016
+* jobs: 24
+* ../../bin/prophyle-index match -b -l 3.1b_matching_rolling.log -k 32 -u index.fa ../../reads/simulation_bacteria.1000000.fq
+
+```
+User time:     0:01:36
+System time:   0:00:16
+Elapsed time:  0:01:54
+CPU usage:          99%
+
+Memory peak:     14.24 GB
+```
+
+* 2507800inputs+706248outputs (1major+4275658minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/3.1b_matching_rolling.log
+* bwt_loading	3.45s
+* sa_loading	3.45s
+* bns_loading	16.11s
+* klcp_loading	3.72s
+* matching_time	85.85s
+* reads	1000000
+* kmers	69000000
+* rpm	698879
+* kpm	48222640
+
+
+### 05_bacteria_orig_k32/3.2a_matching_restarted.log
+* Mon Oct 17 21:33:41 CEST 2016
+* jobs: 24
+* ../../bin/prophyle-index match -b -l 3.2b_matching_restarted.log -k 32 index.fa ../../reads/simulation_bacteria.1000000.fq
+
+```
+User time:     0:08:23
+System time:   0:00:14
+Elapsed time:  0:08:38
+CPU usage:         100%
+
+Memory peak:     12.37 GB
+```
+
+* 144inputs+706248outputs (2major+7590358minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/3.2b_matching_restarted.log
+* bwt_loading	3.14s
+* sa_loading	2.05s
+* bns_loading	15.96s
+* matching_time	496.16s
+* reads	1000000
+* kmers	69000000
+* rpm	120929
+* kpm	8344090
+
+
+### 05_bacteria_orig_k32/4.1_read_assignment.log
+* Mon Oct 17 21:33:41 CEST 2016
+* jobs: 24
+* ../../bin/assignment.py -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 32 -f sam -a
+
+```
+User time:     0:01:51
+System time:   0:00:00
+Elapsed time:  0:01:58
+CPU usage:          94%
+
+Memory peak:      0.07 GB
+```
+
+* 38616inputs+0outputs (197major+66720minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/4.2_read_assignment_simlca.log
+* Mon Oct 17 21:33:41 CEST 2016
+* jobs: 24
+* ../../bin/assignment.py -l -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 32 -f sam -a -t
+
+```
+User time:     0:04:31
+System time:   0:00:00
+Elapsed time:  0:04:38
+CPU usage:          98%
+
+Memory peak:      0.07 GB
+```
+
+* 41992inputs+0outputs (176major+232326minor)pagefaults 0swaps
+
+
+### 05_bacteria_orig_k32/5.1_contigs_stats.log
+* Number of contigs: 23624544
+* Total length: 8016586123
+* Average length: 339.3329464052301
+
+* Median length: 72.0
+* Number of k-mer occurencies: 7284225259
+
+
+### 05_bacteria_orig_k32/5.2_index_size.log
+* 1.9G	index.fa.32.bit.klcp
+* 981M	index.fa.ann
+* 7.5G	index.fa.bwt
+* 3.8G	index.fa.pac
+* 3.8G	index.fa.sa
 
