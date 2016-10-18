@@ -31,15 +31,19 @@ TIME=../../bin/time
 TTIME:=DATETIME=`date` && $(TIME) -f "$${DATETIME}\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
 
 ifdef MASK_REPEATS
-	REP_PARAM=-r
+	REP_PARAM:=-r
 else
-	REP_PARAM=
+	REP_PARAM:=
 endif
 
 ifdef NONDEL
-	FINAL_FA=../../bin/create_final_fasta.py --nondel
+	FINAL_FA:=../../bin/create_final_fasta.py --nondel
 else
-	FINAL_FA=../../bin/create_final_fasta.py
+	FINAL_FA:=../../bin/create_final_fasta.py
+endif
+
+ifdef NONPROP
+	FINAL_FA:=../../bin/create_final_fasta.py --nondel
 endif
 
 all: index.fa.$(K).bit.klcp _main_log.log _main_log.md \
