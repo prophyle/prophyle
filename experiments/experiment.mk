@@ -57,7 +57,7 @@ index/.complete: $(TREE)
 	> Makefile.generated
 
 	$(TTIME) -o 1.1_kmer_propagation.log \
-	$(MAKE) -f Makefile.generated
+	$(MAKE) -f Makefile.generated V=1
 
 	touch index/.complete
 

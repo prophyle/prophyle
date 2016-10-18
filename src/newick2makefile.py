@@ -1,5 +1,13 @@
 #! /usr/bin/env python3
 
+"""
+    Parameters:
+        - NOPROP: no k-mer propagation
+        - REASM: reassembly sequences in leaves
+        - NONDEL: non-deletative propagation
+        - MASK_REPEATS: mask repeats in leaves
+"""
+
 import os
 import shutil
 import datetime
@@ -8,16 +16,7 @@ import argparse
 
 from ete3 import Tree
 
-#import logging
-
 DEFAULT_FORMAT = 1
-
-#logger = logging.getLogger()
-#handler = logging.StreamHandler()
-#formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-#handler.setFormatter(formatter)
-#logger.addHandler(handler)
-#logger.setLevel(logging.INFO)
 
 def size_in_mb(file_fn):
 	return os.path.getsize(file_fn)/(1024**2)
@@ -26,28 +25,6 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 	"""Merge files, remove empty lines.
 	"""
 
-#	if len(input_files)==1:
-#
-#		ln_name=os.path.basename(output_file)
-#		ln_dir=os.path.dirname(output_file)
-#		rel_path=os.path.relpath(input_files[0],ln_dir)
-#
-#		cmd =  (
-#				"{o}: {i}\n" +
-#				#"{o}:\n" +
-#				"\t(cd {d} && ln -sf {i2} {o2})\n" +
-#				#"\ttouch {o}\n"
-#				"\n"
-#			).format(
-#				o=output_file,
-#				i=input_files[0],
-#				d=ln_dir,
-#				i2=rel_path,
-#				o2=ln_name,
-#			)
-#
-#
-#	else:
 	if is_leaf:
 		cmd =  (
 				"{o}: {i}\n" +
@@ -71,22 +48,27 @@ def assembly(input_files, output_files, intersection_file):
 	#logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
 	cmd =  (
 			"ifdef NONDEL\n"
-			"   OUTPUT=\n"
+                        "   OUTPUT{nid} = \n"
 			"else\n"
-			"   OUTPUT=-o {oo}\n"
+                        "   OUTPUT{nid} = -o {oo}\n"
 			"endif\n"
-			""
+			"\n"
+			"ifdef NOPROP\n"
+                        "   ASMCOMMAND{nid} = touch {x} {o}\n"
+			"else\n"
+                        "   ASMCOMMAND{nid} = $(ASSEMBLER) -k $(K) -i {ii} $(OUTPUT{nid}) -x {x}\n"
+			"endif\n"
+			"\n"
 			"{x}: {i}\n"
-			"\t$(ASSEMBLER) -k $(K) \\\n"
-			"\t\t-i {ii}\\\n"
-			"\t\t$(OUTPUT)\\\n"
-			"\t\t-x $@\n\n"
+			"\t@echo starting propagation for $@\n"
+			"\t$(ASMCOMMAND{nid})\n\n"
 		).format(
 			i=' '.join(input_files),
 			o=' '.join(output_files),
 			ii=' -i '.join(input_files),
 			oo=' -o '.join(output_files),
 			x=intersection_file,
+			nid=intersection_file,
 		)
 	print(cmd)
 
@@ -162,7 +144,8 @@ class TreeIndex:
 
 	def build_index(self,k,mask_repeats):
 		print()
-		print("NONDEL=1")
+		print("include params.mk\n")
+		print()
 		print("ASSEMBLER=../../bin/prophyle-assembler")
 		print("DUSTMASKER=dustmasker")
 		print("K={}".format(k))
@@ -182,8 +165,13 @@ class TreeIndex:
 		print("endif")
 		print("")
 		print("")
+		#print("all: {}".format(
+		#    " ".join(
+		#        [self.nonreduced_fasta_fn(x) for x in self.tree.traverse()]
+		#        )
+		#    )
+		#)
 		print("all: {}".format(self.nonreduced_fasta_fn(self.tree.get_tree_root())))
-		print()
 		#logger.info('Going to build index for k={}'.format(k))
 		self.process_node(self.tree.get_tree_root())
 
