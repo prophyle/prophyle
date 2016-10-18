@@ -149,7 +149,7 @@ class TreeIndex:
 		print("PRG_ASM=../../bin/prophyle-assembler")
 		print("PRG_DUST=dustmasker")
 		print()
-		print("$(info")
+		print("$(info  ")
 		print("$(info /------------------------------------------------------------------)")
 		print("# size of k-mer")
 		print("ifdef K")
@@ -184,7 +184,7 @@ class TreeIndex:
 		print("   CMD_REASM=tee")
 		print("endif")
 		print("$(info \------------------------------------------------------------------)")
-		print("$(info")
+		print("$(info  ")
 		print("")
 		print("")
 		#print("all: {}".format(
