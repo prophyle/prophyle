@@ -1,3 +1,4 @@
 TREE=../../trees/bacteria.orig.newick
 K=31
-NOPROP=1
+NONPROP=1
+REASM=1
