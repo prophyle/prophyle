@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 
 """
-    Parameters:
-        - NOPROP: no k-mer propagation
-        - REASM: reassembly sequences in leaves
-        - NONDEL: non-deletative propagation
-        - MASK_REPEATS: mask repeats in leaves
+	Parameters:
+		- NONPROP: no k-mer propagation (sequences for leaves only)
+		- REASM: re-assemble sequences in leaves
+		- NONDEL: non-deletative propagation, implies REASM
+		- MASKREP: mask repeats in leaves
 """
 
 import os
@@ -28,7 +28,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 	if is_leaf:
 		cmd =  (
 				"{o}: {i}\n" +
-				"\tcat $^ | $(MASKING) | $(REASM) > $@\n\n"
+				"\tcat $^ | $(CMD_MASKING) | $(CMD_REASM) > $@\n\n"
 			).format(
 				i=' \\\n\t\t'.join(input_files),
 				o=output_file,
@@ -48,20 +48,20 @@ def assembly(input_files, output_files, intersection_file):
 	#logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
 	cmd =  (
 			"ifdef NONDEL\n"
-                        "   OUTPUT{nid} = \n"
+                        "   CMD_ASM_OUT_{nid} = \n"
 			"else\n"
-                        "   OUTPUT{nid} = -o {oo}\n"
+                        "   CMD_ASM_OUT_{nid} = -o {oo}\n"
 			"endif\n"
 			"\n"
-			"ifdef NOPROP\n"
-                        "   ASMCOMMAND{nid} = touch {x} {o}\n"
+			"ifdef NONPROP\n"
+                        "   CMD_ASM_{nid} = touch {x} {o}\n"
 			"else\n"
-                        "   ASMCOMMAND{nid} = $(ASSEMBLER) -k $(K) -i {ii} $(OUTPUT{nid}) -x {x}\n"
+                        "   CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x}\n"
 			"endif\n"
 			"\n"
 			"{x}: {i}\n"
 			"\t@echo starting propagation for $@\n"
-			"\t$(ASMCOMMAND{nid})\n\n"
+			"\t$(CMD_ASM_{nid})\n\n"
 		).format(
 			i=' '.join(input_files),
 			o=' '.join(output_files),
@@ -146,22 +146,40 @@ class TreeIndex:
 		print()
 		print("include params.mk\n")
 		print()
-		print("ASSEMBLER=../../bin/prophyle-assembler")
-		print("DUSTMASKER=dustmasker")
-		print("K={}".format(k))
-		if mask_repeats:
-			print("MASK_REPEATS=1")
+		print("PRG_ASM=../../bin/prophyle-assembler")
+		print("PRG_DUST=dustmasker")
 		print()
-		print("ifdef MASK_REPEATS")
-		print("   MASKING=$(DUSTMASKER) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'")
+		print("# size of k-mer")
+		print("ifdef K")
+		print("   $(info k is $(K))")
 		print("else")
-		print("   MASKING=tee")
+		print("   $(error K is not specified)")
 		print("endif")
 		print()
-		print("ifdef NONDEL")
-		print("   REASM=$(ASSEMBLER) -i - -o -")
+		print("# mask repeats")
+		print("ifdef MASKREP")
+		print("   $(info Masking repeats is on)")
+		print("   CMD_MASKING=$(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'")
 		print("else")
-		print("   REASM=tee")
+		print("   $(info Masking repeats is off)")
+		print("   CMD_MASKING=tee")
+		print("endif")
+		print()
+		print("# non-deletative k-mer propagation")
+		print("ifdef NONDEL")
+		print("   $(info Non-deletative k-mer propagation)")
+		print("   REASM=1")
+		print("else")
+		print("   $(info Deletative k-mer propagation)")
+		print("endif")
+		print()
+		print("# re-assemble k-mers in leaves")
+		print("ifdef REASM")
+		print("   $(info Re-assembling k-mers in leaves is on)")
+		print("   CMD_REASM=$(PRG_ASM) -i - -o -")
+		print("else")
+		print("   $(info Re-assembling k-mers in leaves is off)")
+		print("   CMD_REASM=tee")
 		print("endif")
 		print("")
 		print("")
