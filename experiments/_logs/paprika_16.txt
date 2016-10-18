@@ -421,3 +421,109 @@ Number of k-mer occurencies: 7019368927
 7.3G	index.fa.bwt
 3.7G	index.fa.pac
 3.7G	index.fa.sa
+
+==> 05_bacteria_orig_k32/1.1_kmer_propagation.log <==
+Mon Oct 17 16:52:51 CEST 2016
+jobs: 24
+make -f Makefile.generated
+18269.20user 1057.55system 18:54.49elapsed 1703%CPU (0avgtext+0avgdata 42661872maxresident)k
+26833296inputs+36130040outputs (5major+393148592minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/1.2_merging_fasta.log <==
+Mon Oct 17 17:11:45 CEST 2016
+jobs: 24
+../../bin/create_final_fasta.py index
+320.72user 16.69system 7:01.35elapsed 80%CPU (0avgtext+0avgdata 34576maxresident)k
+9395488inputs+16840120outputs (21major+62172minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/2.1_bwa_fa2pac.log <==
+Mon Oct 17 17:18:47 CEST 2016
+jobs: 24
+../../bin/bwa fa2pac index.fa index.fa
+64.99user 12.89system 2:14.05elapsed 58%CPU (0avgtext+0avgdata 25267152maxresident)k
+1312inputs+9837136outputs (3major+2021937minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/2.2_bwa_pac2bwtgen.log <==
+Mon Oct 17 17:21:01 CEST 2016
+jobs: 24
+../../bin/bwa pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
+8092.48user 32.61system 2:15:25elapsed 99%CPU (0avgtext+0avgdata 18594288maxresident)k
+0inputs+7828704outputs (0major+35280620minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/2.3_bwa_bwtupdate.log <==
+Mon Oct 17 19:36:26 CEST 2016
+jobs: 24
+../../bin/bwa bwtupdate index.fa.bwt
+33.37user 24.50system 2:24.51elapsed 40%CPU (0avgtext+0avgdata 46980160maxresident)k
+416inputs+15657400outputs (0major+2277408minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/2.5_klcp_sa.log <==
+Mon Oct 17 19:38:51 CEST 2016
+jobs: 24
+../../bin/prophyle-index index -s -k 32 index.fa
+8817.70user 513.50system 1:52:55elapsed 137%CPU (0avgtext+0avgdata 54808560maxresident)k
+336inputs+11743056outputs (1major+503057853minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/3.1a_matching_rolling.log <==
+Mon Oct 17 21:31:46 CEST 2016
+jobs: 24
+../../bin/prophyle-index match -b -l 3.1b_matching_rolling.log -k 32 -u index.fa ../../reads/simulation_bacteria.1000000.fq
+96.62user 16.47system 1:54.74elapsed 98%CPU (0avgtext+0avgdata 59720864maxresident)k
+2507800inputs+706248outputs (1major+4275658minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/3.1b_matching_rolling.log <==
+bwt_loading	3.45s
+sa_loading	3.45s
+bns_loading	16.11s
+klcp_loading	3.72s
+matching_time	85.85s
+reads	1000000
+kmers	69000000
+rpm	698879
+kpm	48222640
+
+==> 05_bacteria_orig_k32/3.2a_matching_restarted.log <==
+Mon Oct 17 21:33:41 CEST 2016
+jobs: 24
+../../bin/prophyle-index match -b -l 3.2b_matching_restarted.log -k 32 index.fa ../../reads/simulation_bacteria.1000000.fq
+503.57user 14.27system 8:38.60elapsed 99%CPU (0avgtext+0avgdata 51890448maxresident)k
+144inputs+706248outputs (2major+7590358minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/3.2b_matching_restarted.log <==
+bwt_loading	3.14s
+sa_loading	2.05s
+bns_loading	15.96s
+matching_time	496.16s
+reads	1000000
+kmers	69000000
+rpm	120929
+kpm	8344090
+
+==> 05_bacteria_orig_k32/4.1_read_assignment.log <==
+Mon Oct 17 21:33:41 CEST 2016
+jobs: 24
+../../bin/assignment.py -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 32 -f sam -a
+111.33user 0.62system 1:58.87elapsed 94%CPU (0avgtext+0avgdata 279728maxresident)k
+38616inputs+0outputs (197major+66720minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/4.2_read_assignment_simlca.log <==
+Mon Oct 17 21:33:41 CEST 2016
+jobs: 24
+../../bin/assignment.py -l -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 32 -f sam -a -t
+271.51user 0.60system 4:38.77elapsed 97%CPU (0avgtext+0avgdata 277856maxresident)k
+41992inputs+0outputs (176major+232326minor)pagefaults 0swaps
+
+==> 05_bacteria_orig_k32/5.1_contigs_stats.log <==
+Number of contigs: 23624544
+Total length: 8016586123
+Average length: 339.3329464052301
+   ..st. dev: 3690.714081686775
+Median length: 72.0
+Number of k-mer occurencies: 7284225259
+
+==> 05_bacteria_orig_k32/5.2_index_size.log <==
+1.9G	index.fa.32.bit.klcp
+981M	index.fa.ann
+7.5G	index.fa.bwt
+3.8G	index.fa.pac
+3.8G	index.fa.sa
