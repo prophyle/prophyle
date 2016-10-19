@@ -91,8 +91,25 @@ Table of Contents
   * [06_bacteria_orig_k31_nondel/4.2_read_assignment_simlca.log](#06_bacteria_orig_k31_nondel42_read_assignment_simlcalog)
   * [06_bacteria_orig_k31_nondel/5.1_contigs_stats.log](#06_bacteria_orig_k31_nondel51_contigs_statslog)
   * [06_bacteria_orig_k31_nondel/5.2_index_size.log](#06_bacteria_orig_k31_nondel52_index_sizelog)
-* [07_bacteria_orig_k31_noprop](#07_bacteria_orig_k31_noprop)
-  * [07_bacteria_orig_k31_noprop/1.1_kmer_propagation.log](#07_bacteria_orig_k31_noprop11_kmer_propagationlog)
+* [07_bacteria_orig_k31_nonprop](#07_bacteria_orig_k31_nonprop)
+  * [07_bacteria_orig_k31_nonprop/1.1_kmer_propagation.log](#07_bacteria_orig_k31_nonprop11_kmer_propagationlog)
+  * [07_bacteria_orig_k31_nonprop/1.2_merging_fasta.log](#07_bacteria_orig_k31_nonprop12_merging_fastalog)
+  * [07_bacteria_orig_k31_nonprop/2.1_bwa_fa2pac.log](#07_bacteria_orig_k31_nonprop21_bwa_fa2paclog)
+  * [07_bacteria_orig_k31_nonprop/2.2_bwa_pac2bwtgen.log](#07_bacteria_orig_k31_nonprop22_bwa_pac2bwtgenlog)
+  * [07_bacteria_orig_k31_nonprop/2.3_bwa_bwtupdate.log](#07_bacteria_orig_k31_nonprop23_bwa_bwtupdatelog)
+  * [07_bacteria_orig_k31_nonprop/2.5_klcp_sa.log](#07_bacteria_orig_k31_nonprop25_klcp_salog)
+  * [07_bacteria_orig_k31_nonprop/3.1a_matching_rolling.log](#07_bacteria_orig_k31_nonprop31a_matching_rollinglog)
+  * [07_bacteria_orig_k31_nonprop/3.1b_matching_rolling.log](#07_bacteria_orig_k31_nonprop31b_matching_rollinglog)
+  * [07_bacteria_orig_k31_nonprop/3.2a_matching_restarted.log](#07_bacteria_orig_k31_nonprop32a_matching_restartedlog)
+  * [07_bacteria_orig_k31_nonprop/3.2b_matching_restarted.log](#07_bacteria_orig_k31_nonprop32b_matching_restartedlog)
+  * [07_bacteria_orig_k31_nonprop/4.1_read_assignment.log](#07_bacteria_orig_k31_nonprop41_read_assignmentlog)
+  * [07_bacteria_orig_k31_nonprop/4.2_read_assignment_simlca.log](#07_bacteria_orig_k31_nonprop42_read_assignment_simlcalog)
+  * [07_bacteria_orig_k31_nonprop/5.1_contigs_stats.log](#07_bacteria_orig_k31_nonprop51_contigs_statslog)
+  * [07_bacteria_orig_k31_nonprop/5.2_index_size.log](#07_bacteria_orig_k31_nonprop52_index_sizelog)
+* [08_bacteria_orig_k31_nonprop_reasm](#08_bacteria_orig_k31_nonprop_reasm)
+  * [08_bacteria_orig_k31_nonprop_reasm/1.1_kmer_propagation.log](#08_bacteria_orig_k31_nonprop_reasm11_kmer_propagationlog)
+  * [08_bacteria_orig_k31_nonprop_reasm/1.2_merging_fasta.log](#08_bacteria_orig_k31_nonprop_reasm12_merging_fastalog)
+  * [08_bacteria_orig_k31_nonprop_reasm/2.1_bwa_fa2pac.log](#08_bacteria_orig_k31_nonprop_reasm21_bwa_fa2paclog)
 
 ***
 ## 01_1from10_bacteria_bin_k31
@@ -1367,22 +1384,268 @@ Memory peak:      0.07 GB
 * 4.5G	index.fa.sa
 
 ***
-## 07_bacteria_orig_k31_noprop
+## 07_bacteria_orig_k31_nonprop
 
-### 07_bacteria_orig_k31_noprop/1.1_kmer_propagation.log
-* Command terminated by signal 2
-* Tue Oct 18 18:04:08 CEST 2016
-* jobs: 1
+### 07_bacteria_orig_k31_nonprop/1.1_kmer_propagation.log
+* Tue Oct 18 20:37:20 CEST 2016
+* jobs: 24
 * make -f Makefile.generated V=1
 
 ```
-User time:     0:00:01
-System time:   0:00:03
-Elapsed time:  0:00:16
-CPU usage:          25%
+User time:     0:00:08
+System time:   0:00:21
+Elapsed time:  0:01:29
+CPU usage:          34%
 
-Memory peak:      0.02 GB
+Memory peak:      0.07 GB
 ```
 
-* 2157600inputs+4638656outputs (0major+434925minor)pagefaults 0swaps
+* 5054800inputs+17937056outputs (0major+1628310minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/1.2_merging_fasta.log
+* Tue Oct 18 23:03:06 CEST 2016
+* jobs: 1
+* ../../bin/create_final_fasta.py --nondel index
+
+```
+User time:     0:04:38
+System time:   0:00:16
+Elapsed time:  0:05:16
+CPU usage:          93%
+
+Memory peak:      0.01 GB
+```
+
+* 0inputs+17926800outputs (0major+6879minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/2.1_bwa_fa2pac.log
+* Tue Oct 18 23:08:22 CEST 2016
+* jobs: 1
+* ../../bin/bwa fa2pac index.fa index.fa
+
+```
+User time:     0:00:57
+System time:   0:00:18
+Elapsed time:  0:02:01
+CPU usage:          62%
+
+Memory peak:      4.23 GB
+```
+
+* 264inputs+8838472outputs (0major+1714321minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/2.2_bwa_pac2bwtgen.log
+* Tue Oct 18 23:10:24 CEST 2016
+* jobs: 1
+* ../../bin/bwa pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
+
+```
+User time:     3:00:25
+System time:   0:00:24
+Elapsed time:  3:00:50
+CPU usage:         100%
+
+Memory peak:      4.97 GB
+```
+
+* 0inputs+8836624outputs (0major+30978757minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/2.3_bwa_bwtupdate.log
+* Wed Oct 19 02:11:14 CEST 2016
+* jobs: 1
+* ../../bin/bwa bwtupdate index.fa.bwt
+
+```
+User time:     0:00:37
+System time:   0:00:30
+Elapsed time:  0:02:51
+CPU usage:          40%
+
+Memory peak:     12.64 GB
+```
+
+* 472inputs+17673248outputs (0major+4606134minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/2.5_klcp_sa.log
+* Wed Oct 19 02:14:06 CEST 2016
+* jobs: 1
+* ../../bin/prophyle-index index -s -k 31 index.fa
+
+```
+User time:     3:46:34
+System time:   0:09:27
+Elapsed time:  2:57:24
+CPU usage:         133%
+
+Memory peak:     14.75 GB
+```
+
+* 520inputs+13254936outputs (1major+692607598minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/3.1a_matching_rolling.log
+* Wed Oct 19 05:12:02 CEST 2016
+* jobs: 1
+* ../../bin/prophyle-index match -b -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
+
+```
+User time:     0:04:02
+System time:   0:00:51
+Elapsed time:  0:04:55
+CPU usage:          99%
+
+Memory peak:     14.90 GB
+```
+
+* 524016inputs+904392outputs (0major+37075297minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/3.1b_matching_rolling.log
+* bwt_loading	11.38s
+* sa_loading	5.10s
+* bns_loading	0.01s
+* klcp_loading	5.46s
+* matching_time	271.00s
+* reads	1000000
+* kmers	70000000
+* rpm	221405
+* kpm	15498361
+
+
+### 07_bacteria_orig_k31_nonprop/3.2a_matching_restarted.log
+* Wed Oct 19 05:16:58 CEST 2016
+* jobs: 1
+* ../../bin/prophyle-index match -b -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
+
+```
+User time:     0:12:53
+System time:   0:00:49
+Elapsed time:  0:13:43
+CPU usage:         100%
+
+Memory peak:     12.80 GB
+```
+
+* 14752inputs+904392outputs (1major+40356726minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/3.2b_matching_restarted.log
+* bwt_loading	16.28s
+* sa_loading	10.04s
+* bns_loading	0.01s
+* matching_time	795.91s
+* reads	1000000
+* kmers	70000000
+* rpm	75386
+* kpm	5277007
+
+
+### 07_bacteria_orig_k31_nonprop/4.1_read_assignment.log
+* Wed Oct 19 05:30:41 CEST 2016
+* jobs: 1
+* ../../bin/assignment.py -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 31 -f sam -a
+
+```
+User time:     0:03:14
+System time:   0:00:00
+Elapsed time:  0:03:18
+CPU usage:          99%
+
+Memory peak:      0.07 GB
+```
+
+* 80240inputs+0outputs (223major+110252minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/4.2_read_assignment_simlca.log
+* Wed Oct 19 05:34:00 CEST 2016
+* jobs: 1
+* ../../bin/assignment.py -l -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 31 -f sam -a -t
+
+```
+User time:     0:06:54
+System time:   0:00:00
+Elapsed time:  0:06:55
+CPU usage:         100%
+
+Memory peak:      0.07 GB
+```
+
+* 0inputs+0outputs (0major+300930minor)pagefaults 0swaps
+
+
+### 07_bacteria_orig_k31_nonprop/5.1_contigs_stats.log
+* Number of contigs: 4875
+* Total length: 9048702447
+* Average length: 1856144.0916923077
+
+* Median length: 1207381
+* Number of k-mer occurencies: 9048556197
+
+
+### 07_bacteria_orig_k31_nonprop/5.2_index_size.log
+* 2.2G	index.fa.31.bit.klcp
+* 576K	index.fa.ann
+* 8.5G	index.fa.bwt
+* 4.3G	index.fa.pac
+* 4.3G	index.fa.sa
+
+***
+## 08_bacteria_orig_k31_nonprop_reasm
+
+### 08_bacteria_orig_k31_nonprop_reasm/1.1_kmer_propagation.log
+* Tue Oct 18 20:38:50 CEST 2016
+* jobs: 24
+* make -f Makefile.generated V=1
+
+```
+User time:     3:54:46
+System time:   0:05:54
+Elapsed time:  0:10:11
+CPU usage:        2362%
+
+Memory peak:      0.59 GB
+```
+
+* 8inputs+17472328outputs (0major+187698600minor)pagefaults 0swaps
+
+
+### 08_bacteria_orig_k31_nonprop_reasm/1.2_merging_fasta.log
+* Tue Oct 18 20:49:02 CEST 2016
+* jobs: 24
+* ../../bin/create_final_fasta.py index
+
+```
+User time:     0:00:00
+System time:   0:00:00
+Elapsed time:  0:00:00
+CPU usage:          96%
+
+Memory peak:      0.01 GB
+```
+
+* 0inputs+0outputs (0major+1458minor)pagefaults 0swaps
+
+
+### 08_bacteria_orig_k31_nonprop_reasm/2.1_bwa_fa2pac.log
+* Command exited with non-zero status 1
+* Tue Oct 18 20:49:02 CEST 2016
+* jobs: 24
+* ../../bin/bwa fa2pac index.fa index.fa
+
+```
+User time:     0:00:00
+System time:   0:00:00
+Elapsed time:  0:00:00
+CPU usage:           0%
+
+Memory peak:      0.00 GB
+```
+
+* 0inputs+0outputs (0major+101minor)pagefaults 0swaps
 
