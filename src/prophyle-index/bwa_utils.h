@@ -5,7 +5,7 @@
 #include "bwt.h"
 #include "bwtaln.h"
 #include "bwa.h"
-#include "exkutils.h"
+#include "prophyle_utils.h"
 
 struct __bwa_seqio_t;
 typedef struct __bwa_seqio_t bwa_seqio_t;
