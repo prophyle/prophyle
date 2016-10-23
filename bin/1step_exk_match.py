@@ -24,7 +24,12 @@ def cmd(command,stdout=sys.stderr,stderr=sys.stderr):
 	#print(file=sys.stderr)
 
 def create_bwa_index(fa):
-	cmd('"{bwa}" index "{fa}"'.format(bwa=bwa,fa=fa))
+	#cmd('"{bwa}" index "{fa}"'.format(bwa=bwa,fa=fa))
+	cmd('"{bwa}" fa2pac "{fa}" "{fa}"'.format(bwa=bwa,fa=fa))
+	cmd('"{bwa}" pac2bwtgen "{fa}.pac" "{bwt}"'.format(bwa=bwa,fa=fa,bwt=fa+".bwt"))
+	cmd('"{bwa}" bwtupdate "{fa}.bwt"'.format(bwa=bwa,fa=fa))
+	cmd('"{bwa}" fa2pac -f "{fa}" "{fa}"'.format(bwa=bwa,fa=fa))
+	cmd('"{bwa}" bwt2sa "{bwt}" "{sa}"'.format(bwa=bwa,bwt=fa+".bwt",sa=fa+".sa"))
 
 def create_klcp(fa, k):
 	cmd('"{exk}" index -k {k} "{fa}"'.format(exk=exk,fa=fa,k=k))
@@ -91,4 +96,3 @@ if u:
 
 #cmd('"{exk}" match -v -k {k} "{fa}" "{fq}"'.format(exk=exk,fa=args.in_fasta,fq=args.in_fq,k=args.k),stdout=sys.stdout)
 match(fa, fq, k, s=s, u=u, v=v)
-
