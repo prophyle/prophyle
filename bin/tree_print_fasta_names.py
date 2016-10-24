@@ -4,11 +4,8 @@ import os
 import shutil
 import datetime
 import sys
-import argparse
 
 from ete3 import Tree
-
-import logging
 
 DEFAULT_FORMAT = 1
 
@@ -16,7 +13,7 @@ class TreeIndex:
 
 	def __init__(self,tree_newick_fn,format=DEFAULT_FORMAT):
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=read_newick(tree_newick_fn,format=format)
+		self.tree=Tree(tree_newick_fn,format=format)
 
 	def process_node(self,node):
 		if node.is_leaf():

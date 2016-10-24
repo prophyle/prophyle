@@ -12,7 +12,6 @@ BWA=../../bin/bwa
 SAMTOOLS?=samtools
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
 ASSIGNMENT=../../bin/assignment.py
-FINAL_FA=../../bin/create_final_fasta.py
 
 READS?=../../reads/simulation_bacteria.1000000.fq
 KLCP=index.fa.$(K).bit.klcp
@@ -32,12 +31,20 @@ TIME=../../bin/time
 TTIME:=DATETIME=`date` && $(TIME) -f "$${DATETIME}\njobs: $(JOBS)\n%C\n%Uuser %Ssystem %Eelapsed %PCPU (%Xavgtext+%Davgdata %Mmaxresident)k\n%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps"
 
 ifdef MASK_REPEATS
-	REP_PARAM=-r
+	REP_PARAM:=-r
 else
-	REP_PARAM=
+	REP_PARAM:=
 endif
 
+ifdef NONDEL
+	FINAL_FA:=../../bin/create_final_fasta.py --nondel
+else
+	FINAL_FA:=../../bin/create_final_fasta.py
+endif
 
+ifdef NONPROP
+	FINAL_FA:=../../bin/create_final_fasta.py --nondel
+endif
 
 all: index.fa.$(K).bit.klcp _main_log.log _main_log.md \
 	assigned_reads.bam assigned_reads_simlca.bam
@@ -54,7 +61,7 @@ index/.complete: $(TREE)
 	> Makefile.generated
 
 	$(TTIME) -o 1.1_kmer_propagation.log \
-	$(MAKE) -f Makefile.generated
+	$(MAKE) -f Makefile.generated V=1
 
 	touch index/.complete
 
