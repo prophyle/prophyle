@@ -28,7 +28,6 @@ def create_bwa_index(fa):
 	cmd('"{bwa}" fa2pac "{fa}" "{fa}"'.format(bwa=bwa,fa=fa))
 	cmd('"{bwa}" pac2bwtgen "{fa}.pac" "{bwt}"'.format(bwa=bwa,fa=fa,bwt=fa+".bwt"))
 	cmd('"{bwa}" bwtupdate "{fa}.bwt"'.format(bwa=bwa,fa=fa))
-	cmd('"{bwa}" fa2pac -f "{fa}" "{fa}"'.format(bwa=bwa,fa=fa))
 	cmd('"{bwa}" bwt2sa "{bwt}" "{sa}"'.format(bwa=bwa,bwt=fa+".bwt",sa=fa+".sa"))
 
 def create_klcp(fa, k):
