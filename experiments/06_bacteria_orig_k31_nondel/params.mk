@@ -1,3 +1,3 @@
 TREE=../../trees/bacteria.orig.newick
+NONDEL=1
 K=31
-MASKREP=1
