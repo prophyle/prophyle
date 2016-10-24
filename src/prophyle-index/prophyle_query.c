@@ -36,9 +36,12 @@
 
 bwt_position_t positions[MAX_POSSIBLE_SA_POSITIONS];
 int* seen_nodes;
+int8_t* seen_nodes_marks;
 int nodes_count;
 int* prev_seen_nodes;
 int prev_nodes_count;
+int rids_computations = 0;
+int using_prev_rids = 0;
 
 exk_opt_t *exk_init_opt()
 {
@@ -312,6 +315,150 @@ void print_read_qual(bwa_seq_t* p) {
 	}
 }
 
+void prophyle_process_sequence(int tid, bwaidx_t* idx, bwa_seq_t *seq,
+								const exk_opt_t *opt, klcp_t* klcp) {
+	if (opt->output_old) {
+		fprintf(stdout, "#");
+		print_read(seq);
+		fprintf(stdout, "\n");
+	}
+	if (opt->output) {
+		fprintf(stdout, "U\t%s\t0\t%d\t", seq->name, seq->len);
+	}
+	bwt_t* bwt = idx->bwt;
+	uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
+	int current_streak_size = 0;
+	nodes_count = 0;
+	prev_nodes_count = 0;
+	int start_pos = 0;
+	size_t positions_cnt = 0;
+	uint64_t decreased_k = 1;
+	uint64_t increased_l = 0;
+	int is_first_streak = 1;
+	int last_ambiguous_index = 0 - opt->kmer_length;
+	int is_ambiguous_streak = 0;
+	int ambiguous_streak_just_ended = 0;
+	if (start_pos + opt->kmer_length > seq->len) {
+		if (opt->output) {
+			fprintf(stdout, "0:0\n");
+		}
+	} else {
+		while (start_pos + opt->kmer_length <= seq->len) {
+			int end_pos = start_pos + opt->kmer_length - 1;
+			if (opt->output) {
+				if (start_pos == 0) {
+					int index = 0;
+					for(index = 0; index < opt->kmer_length; ++index) {
+						if (seq->seq[index] > 3) {
+							last_ambiguous_index = index;
+						}
+					}
+				} else {
+					if (seq->seq[end_pos] > 3) {
+						last_ambiguous_index = end_pos;
+					}
+				}
+				if (end_pos - last_ambiguous_index < opt->kmer_length) {
+					if (!is_ambiguous_streak) {
+						construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
+							is_ambiguous_streak, is_first_streak);
+						if (is_first_streak) {
+							is_first_streak = 0;
+						}
+						is_ambiguous_streak = 1;
+						current_streak_size = 1;
+					} else {
+						current_streak_size++;
+					}
+					start_pos++;
+					continue;
+				} else {
+					if (is_ambiguous_streak && current_streak_size > 0) {
+						construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
+							is_ambiguous_streak, is_first_streak);
+						if (is_first_streak) {
+							is_first_streak = 0;
+						}
+						is_ambiguous_streak = 0;
+						current_streak_size = 0;
+					}
+				}
+				if (end_pos - last_ambiguous_index == opt->kmer_length) {
+					ambiguous_streak_just_ended = 1;
+				} else {
+					ambiguous_streak_just_ended = 0;
+				}
+			}
+			if (start_pos == 0) {
+				k = 0;
+				l = 0;
+				bwt_cal_sa_coord(bwt, opt->kmer_length, seq->seq, &k, &l, start_pos);
+			} else {
+				if (opt->use_klcp && k <= l) {
+					bwt_cal_sa_coord_continue(bwt, 1, seq->seq, &k, &l, &decreased_k, &increased_l, start_pos + opt->kmer_length - 1, klcp);
+				} else {
+					k = 0;
+					l = 0;
+					bwt_cal_sa_coord(bwt, opt->kmer_length, seq->seq, &k, &l, start_pos);
+				}
+			}
+			//fprintf(stderr, "start_pos = %d\n", start_pos);
+			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
+			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
+			int nodes_cnt = 0;
+			if (k <= l) {
+				if (prev_l - prev_k == l - k
+						&& increased_l - decreased_k == l - k) {
+					using_prev_rids++;
+					shift_positions_by_one(idx, positions_cnt, opt->kmer_length, k, l);
+				} else {
+					rids_computations++;
+					positions_cnt = get_positions(idx, opt->kmer_length,
+						k, l);
+				}
+				nodes_cnt = get_nodes_from_positions(idx, opt->kmer_length,
+					positions_cnt, &seen_nodes_marks, opt->skip_positions_on_border);
+			}
+			if (opt->output_old) {
+				output_old(seen_nodes, nodes_cnt);
+			} else if (opt->output) {
+				if (start_pos == 0 || ambiguous_streak_just_ended || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
+					current_streak_size++;
+				} else {
+					construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
+						is_ambiguous_streak, is_first_streak);
+					if (is_first_streak) {
+						is_first_streak = 0;
+					}
+					current_streak_size = 1;
+				}
+			}
+			int* tmp = seen_nodes;
+			seen_nodes = prev_seen_nodes;
+			prev_seen_nodes = tmp;
+			prev_nodes_count = nodes_cnt;
+			prev_k = k;
+			prev_l = l;
+			start_pos++;
+		}
+		if (current_streak_size > 0) {
+			construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
+				is_ambiguous_streak, is_first_streak);
+		}
+		if (opt->output) {
+			//fprintf(stdout, "\n");
+			print_output();
+			if (opt->output_read_qual) {
+				fprintf(stdout, "\t");
+				print_read(seq);
+				fprintf(stdout, "\t");
+				print_read_qual(seq);
+			}
+			fprintf(stdout, "\n");
+		}
+	}
+}
+
 void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp, int64_t* kmers_count)
 {
@@ -321,15 +468,11 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	current_streak = malloc(MAX_STREAK_LENGTH * sizeof(char));
 	all_streaks = malloc(MAX_STREAK_LENGTH * sizeof(char));
 	int i;
-	bwt_t* bwt = idx->bwt;
-
-	int8_t* seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
+	seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
 	uint64_t index;
 	for(index = 0; index < idx->bns->n_seqs; ++index) {
 		seen_nodes_marks[index] = 0;
 	}
-	int rids_computations = 0;
-	int using_prev_rids = 0;
 	for (i = 0; i != n_seqs; ++i) {
 		if (i % 1000 == 0) {
 			fprintf(stderr, "starting processing %d-th read in chunk\n", i);
@@ -342,168 +485,8 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		// for (j = 0; j < p->len; ++j) // we need to complement
 		// 	p->seq[j] = p->seq[j] > 3? 4 : 3 - p->seq[j];
 
-		if (opt->output_old) {
-			fprintf(stdout, "#");
-			print_read(p);
-			fprintf(stdout, "\n");
-		}
-		if (opt->output) {
-			fprintf(stdout, "U\t%s\t0\t%d\t", p->name, p->len);
-		}
-		uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
-		int current_streak_size = 0;
-		nodes_count = 0;
-		prev_nodes_count = 0;
-		int start_pos = 0;
-		size_t positions_cnt = 0;
-		//int zero_streak = 0;
-		//int was_one = 0;
-		uint64_t decreased_k = 1;
-		uint64_t increased_l = 0;
-		int is_first_streak = 1;
-		int last_ambiguous_index = 0 - opt->kmer_length;
-		int is_ambiguous_streak = 0;
-		int ambiguous_streak_just_ended = 0;
-		if (start_pos + opt->kmer_length > p->len) {
-			if (opt->output) {
-				fprintf(stdout, "0:0\n");
-			}
-		} else {
-			while (start_pos + opt->kmer_length <= p->len) {
-				int end_pos = start_pos + opt->kmer_length - 1;
-				if (opt->output) {
-					if (start_pos == 0) {
-						int index = 0;
-						for(index = 0; index < opt->kmer_length; ++index) {
-							if (p->seq[index] > 3) {
-								last_ambiguous_index = index;
-							}
-						}
-					} else {
-						if (p->seq[end_pos] > 3) {
-							last_ambiguous_index = end_pos;
-						}
-					}
-					if (end_pos - last_ambiguous_index < opt->kmer_length) {
-						if (!is_ambiguous_streak) {
-							construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
-								is_ambiguous_streak, is_first_streak);
-							if (is_first_streak) {
-								is_first_streak = 0;
-							}
-							is_ambiguous_streak = 1;
-							current_streak_size = 1;
-						} else {
-							current_streak_size++;
-						}
-						start_pos++;
-						continue;
-					} else {
-						if (is_ambiguous_streak && current_streak_size > 0) {
-							construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
-								is_ambiguous_streak, is_first_streak);
-							if (is_first_streak) {
-								is_first_streak = 0;
-							}
-							is_ambiguous_streak = 0;
-							current_streak_size = 0;
-						}
-					}
-					if (end_pos - last_ambiguous_index == opt->kmer_length) {
-						ambiguous_streak_just_ended = 1;
-					} else {
-						ambiguous_streak_just_ended = 0;
-					}
-				}
-				if (start_pos == 0) {
-					k = 0;
-					l = 0;
-					bwt_cal_sa_coord(bwt, opt->kmer_length, p->seq, &k, &l, start_pos);
-				} else {
-					if (opt->use_klcp && k <= l) {
-						bwt_cal_sa_coord_continue(bwt, 1, p->seq, &k, &l, &decreased_k, &increased_l, start_pos + opt->kmer_length - 1, klcp);
-					} else {
-						k = 0;
-						l = 0;
-						bwt_cal_sa_coord(bwt, opt->kmer_length, p->seq, &k, &l, start_pos);
-					}
-				}
-			  //fprintf(stderr, "start_pos = %d\n", start_pos);
-				//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
-				// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
-				int nodes_cnt = 0;
-				if (k <= l) {
-					if (prev_l - prev_k == l - k
-							&& increased_l - decreased_k == l - k) {
-						using_prev_rids++;
-						shift_positions_by_one(idx, positions_cnt, opt->kmer_length, k, l);
-					} else {
-						rids_computations++;
-						positions_cnt = get_positions(idx, opt->kmer_length,
-							k, l);
-					}
-					nodes_cnt = get_nodes_from_positions(idx, opt->kmer_length,
-						positions_cnt, &seen_nodes_marks, opt->skip_positions_on_border);
-				}
-				if (opt->output_old) {
-					output_old(seen_nodes, nodes_cnt);
-				} else if (opt->output) {
-					if (start_pos == 0 || ambiguous_streak_just_ended || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
-						current_streak_size++;
-					} else {
-						construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
-							is_ambiguous_streak, is_first_streak);
-						if (is_first_streak) {
-							is_first_streak = 0;
-						}
-						current_streak_size = 1;
-					}
-				}
-				int* tmp = seen_nodes;
-				seen_nodes = prev_seen_nodes;
-				prev_seen_nodes = tmp;
-				prev_nodes_count = nodes_cnt;
-				prev_k = k;
-				prev_l = l;
-				// if (opt->skip_after_fail) {
-				// 	if (k <= l) {
-				// 		was_one = 1;
-				// 		zero_streak = 0;
-				// 	} else {
-				// 		if (was_one) {
-				// 			if (zero_streak == 0) {
-				// 				zero_streak += opt->kmer_length - 2;
-				// 				if (opt->output_rids) {
-				// 					int ind;
-				// 					for(ind = 0; ind < opt->kmer_length - 2 && start_pos + ind < p->len - opt->kmer_length; ++ind) {
-				// 						fprintf(stdout, "0 \n");
-				// 					}
-				// 				}
-				// 				start_pos += opt->kmer_length - 2;
-				// 			} else {
-				// 				zero_streak++;
-				// 			}
-				// 		}
-				// 	}
-				// }
-				start_pos++;
-			}
-			if (current_streak_size > 0) {
-				construct_streaks(prev_seen_nodes, prev_nodes_count, current_streak_size,
-					is_ambiguous_streak, is_first_streak);
-			}
-			if (opt->output) {
-				//fprintf(stdout, "\n");
-				print_output();
-				if (opt->output_read_qual) {
-					fprintf(stdout, "\t");
-					print_read(p);
-					fprintf(stdout, "\t");
-					print_read_qual(p);
-				}
-				fprintf(stdout, "\n");
-			}
-		}
+		prophyle_process_sequence(tid, idx, p, opt, klcp);
+
 		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
 		p->name = 0; p->seq = p->rseq = p->qual = 0;
 	}
