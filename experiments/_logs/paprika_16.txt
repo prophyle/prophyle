@@ -741,23 +741,107 @@ Number of k-mer occurencies: 9048556197
 4.3G	index.fa.sa
 
 ==> 08_bacteria_orig_k31_nonprop_reasm/1.1_kmer_propagation.log <==
-Tue Oct 18 20:38:50 CEST 2016
+Wed Oct 19 10:35:29 CEST 2016
 jobs: 24
 make -f Makefile.generated V=1
-14086.94user 354.67system 10:11.31elapsed 2362%CPU (0avgtext+0avgdata 2463568maxresident)k
-8inputs+17472328outputs (0major+187698600minor)pagefaults 0swaps
+14059.36user 365.14system 10:32.84elapsed 2279%CPU (0avgtext+0avgdata 2463104maxresident)k
+13040568inputs+17472328outputs (25major+189838266minor)pagefaults 0swaps
 
 ==> 08_bacteria_orig_k31_nonprop_reasm/1.2_merging_fasta.log <==
-Tue Oct 18 20:49:02 CEST 2016
+Wed Oct 19 10:46:02 CEST 2016
 jobs: 24
-../../bin/create_final_fasta.py index
-0.21user 0.03system 0:00.25elapsed 98%CPU (0avgtext+0avgdata 37680maxresident)k
-0inputs+0outputs (0major+1458minor)pagefaults 0swaps
+../../bin/create_final_fasta.py --nondel index
+320.42user 15.91system 6:00.83elapsed 93%CPU (0avgtext+0avgdata 38144maxresident)k
+0inputs+17481544outputs (0major+14223minor)pagefaults 0swaps
 
 ==> 08_bacteria_orig_k31_nonprop_reasm/2.1_bwa_fa2pac.log <==
-Command exited with non-zero status 1
-Tue Oct 18 20:49:02 CEST 2016
+Wed Oct 19 10:52:03 CEST 2016
 jobs: 24
 ../../bin/bwa fa2pac index.fa index.fa
-0.00user 0.00system 0:00.00elapsed 0%CPU (0avgtext+0avgdata 8192maxresident)k
-0inputs+0outputs (0major+101minor)pagefaults 0swaps
+57.57user 14.80system 2:03.24elapsed 58%CPU (0avgtext+0avgdata 17817824maxresident)k
+904inputs+8705488outputs (3major+1781452minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/2.2_bwa_pac2bwtgen.log <==
+Wed Oct 19 10:54:06 CEST 2016
+jobs: 24
+../../bin/bwa pac2bwtgen -b 50000000 index.fa.pac index.fa.bwt
+11664.94user 106.51system 3:16:11elapsed 99%CPU (0avgtext+0avgdata 20260688maxresident)k
+0inputs+8567976outputs (0major+161918088minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/2.3_bwa_bwtupdate.log <==
+Wed Oct 19 14:10:18 CEST 2016
+jobs: 24
+../../bin/bwa bwtupdate index.fa.bwt
+36.78user 36.17system 2:13.10elapsed 54%CPU (0avgtext+0avgdata 51415040maxresident)k
+424inputs+17135944outputs (1major+5832984minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/2.5_klcp_sa.log <==
+Wed Oct 19 14:12:31 CEST 2016
+jobs: 24
+../../bin/prophyle-index index -s -k 31 index.fa
+14798.46user 1322.55system 3:21:50elapsed 133%CPU (0avgtext+0avgdata 59983888maxresident)k
+1216inputs+12851968outputs (5major+1420739563minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/3.1a_matching_rolling.log <==
+Wed Oct 19 17:34:21 CEST 2016
+jobs: 24
+../../bin/prophyle-index match -b -l 3.1b_matching_rolling.log -k 31 -u index.fa ../../reads/simulation_bacteria.1000000.fq
+116.49user 28.23system 2:27.08elapsed 98%CPU (0avgtext+0avgdata 60912528maxresident)k
+1066008inputs+836608outputs (0major+8047911minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/3.1b_matching_rolling.log <==
+bwt_loading	8.72s
+sa_loading	9.25s
+bns_loading	1.13s
+klcp_loading	5.10s
+matching_time	120.06s
+reads	1000000
+kmers	70000000
+rpm	499737
+kpm	34981605
+
+==> 08_bacteria_orig_k31_nonprop_reasm/3.2a_matching_restarted.log <==
+Wed Oct 19 17:36:49 CEST 2016
+jobs: 24
+../../bin/prophyle-index match -b -l 3.2b_matching_restarted.log -k 31 index.fa ../../reads/simulation_bacteria.1000000.fq
+579.79user 53.12system 10:33.53elapsed 99%CPU (0avgtext+0avgdata 52343072maxresident)k
+744inputs+836608outputs (0major+57822361minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/3.2b_matching_restarted.log <==
+bwt_loading	11.74s
+sa_loading	9.80s
+bns_loading	1.16s
+matching_time	609.81s
+reads	1000000
+kmers	70000000
+rpm	98391
+kpm	6887342
+
+==> 08_bacteria_orig_k31_nonprop_reasm/4.1_read_assignment.log <==
+Wed Oct 19 17:36:49 CEST 2016
+jobs: 24
+../../bin/assignment.py -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 31 -f sam -a
+165.00user 1.35system 2:48.37elapsed 98%CPU (0avgtext+0avgdata 288880maxresident)k
+10800inputs+0outputs (66major+499991minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/4.2_read_assignment_simlca.log <==
+Wed Oct 19 17:36:49 CEST 2016
+jobs: 24
+../../bin/assignment.py -l -i kmers_rolling.txt -n ../../trees/bacteria.orig.newick -k 31 -f sam -a -t
+384.89user 0.66system 6:27.35elapsed 99%CPU (0avgtext+0avgdata 281280maxresident)k
+5976inputs+0outputs (54major+420276minor)pagefaults 0swaps
+
+==> 08_bacteria_orig_k31_nonprop_reasm/5.1_contigs_stats.log <==
+Number of contigs: 1646440
+Total length: 8773601662
+Average length: 5328.831698695367
+   ..st. dev: 20477.896541838934
+Median length: 91.0
+Number of k-mer occurencies: 8724208462
+
+==> 08_bacteria_orig_k31_nonprop_reasm/5.2_index_size.log <==
+2.1G	index.fa.31.bit.klcp
+68M	index.fa.ann
+8.2G	index.fa.bwt
+4.1G	index.fa.pac
+4.1G	index.fa.sa
