@@ -3,29 +3,44 @@
 import sys
 import os
 import glob
+import argparse
 
-if len(sys.argv)!=2:
-	print ("Script has 1 parameter: directory with FASTA files")
-	sys.exit(-1)
+parser = argparse.ArgumentParser(description='Merge FASTA files')
+parser.add_argument(
+		'dir',
+		type=str,
+		help='directory with FASTA file'
+	)
+parser.add_argument(
+		'--nondel',
+		dest='nondel',
+		action='store_true',
+		help='Non-deleting propagation',
+	)
 
-dir_fn=sys.argv[1]
+args = parser.parse_args()
+
+dir_fn=args.dir
+if args.nondel:
+	suffix="full.fa"
+else:
+	suffix="reduced.fa"
 
 os.chdir(dir_fn)
-fa_fns=glob.glob("*.reduced.fa")
+fa_fns=glob.glob("*.{}".format(suffix))
 fa_fns.sort()
 for fn in fa_fns:
 	print("Processing '{}'".format(fn), file=sys.stderr)
 
-	node=fn.replace(".reduced.fa","")
+	node=fn.replace("."+suffix,"")
 
 	with open(fn) as f:
 		for x in f:
-			x=x.strip()
 			if len(x)==0:
 				continue
 			if x[0]==">":
-				print (">{}_{}".format(node,x[1:]))
+				print (">{}_{}".format(node,x[1:]),end="")
 			else:
-				print(x)
+				print(x,end="")
 
 
