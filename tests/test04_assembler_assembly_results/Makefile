@@ -4,7 +4,7 @@ SHELL=/bin/bash -o pipefail
 
 K=4
 NORM=../../bin/_fa_norm.py
-ASM=../../bin/assembler
+ASM=../../bin/prophyle-assembler
 
 .SECONDARY:
 

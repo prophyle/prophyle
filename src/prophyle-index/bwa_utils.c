@@ -15,7 +15,7 @@
 #include "bwa.h"
 #include "bwase.h"
 #include "kstring.h"
-#include "bwautils.h"
+#include "prophyle_utils.h"
 #include "khash.h"
 #include "contig_node_translator.h"
 

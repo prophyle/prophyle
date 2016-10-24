@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "bwt.h"
-#include "exkutils.h"
+#include "prophyle_utils.h"
 #include "bitarray.h"
 
 typedef struct {
