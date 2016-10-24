@@ -7,11 +7,11 @@ import os
 
 script_dir=os.path.dirname(os.path.realpath(__file__))
 bwa=os.path.join(script_dir,"bwa")
-exk=os.path.join(script_dir,"exk")
+exk=os.path.join(script_dir,"prophyle-index")
 
 def cmd(command,stdout=sys.stderr,stderr=sys.stderr):
 	print(file=sys.stderr)
-	print("[exk_match_1step.py]",command,file=sys.stderr)
+	print("[1step_match.py]",command,file=sys.stderr)
 	#print(file=sys.stderr)
 	child=subprocess.Popen(command, shell=True, universal_newlines=True, stdout=stdout, stderr=stderr)
 	child.communicate()
