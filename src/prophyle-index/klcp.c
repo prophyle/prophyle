@@ -9,8 +9,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "bwautils.h"
-#include "bwtexk.h"
+#include "bwa_utils.h"
+#include "prophyle_query.h"
 #include "bwtaln.h"
 #include "bwtgap.h"
 #include "utils.h"

@@ -1,4 +1,4 @@
-assembler
+prophyle-assembler
 *.o
 
 intersect.fa
