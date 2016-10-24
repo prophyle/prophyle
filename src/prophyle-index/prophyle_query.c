@@ -531,6 +531,10 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 		fprintf(stderr, "Couldn't load idx from %s\n", prefix);
 		return;
 	}
+
+	// If fa2pac was called only for doubled string, then set bns->l_pac = bwt->seq_len, as it is for forward-only string
+	idx->bns->l_pac = idx->bwt->seq_len / 2;
+
 	fprintf(stderr, "BWA loaded\n");
 	bwa_destroy_unused_fields(idx);
 
