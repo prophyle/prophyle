@@ -1,16 +1,19 @@
 .PHONY: all clean
 
+BWA=../../bin/bwa
+EXK=../../bin/prophyle-index
+
 FA=index.fa
 K=10
 diffs = $(wildcard ./diff*.txt)
 
 all: 
-	../../bin/bwa index $(FA) $(FQ) 
-	../../bin/exk index -k $(K) $(FA) $(FQ)
+	$(BWA) index $(FA) $(FQ) 
+	$(EXK) index -k $(K) $(FA) $(FQ)
 	mv $(FA).sa $(FA).sa.separate
 	mv $(FA).$(K).bit.klcp $(FA).$(K).bit.klcp.separate
 
-	../../bin/exk index -s -k $(K) $(FA) 
+	$(EXK) index -s -k $(K) $(FA) 
 
 	cmp $(FA).sa $(FA).sa.separate > diff_sa.txt
 	cmp $(FA).$(K).bit.klcp $(FA).$(K).bit.klcp.separate > diff_klcp.txt

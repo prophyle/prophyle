@@ -1,5 +1,5 @@
-#ifndef EXKUTILS_H
-#define EXKUTILS_H
+#ifndef PROPHYLE_UTILS_H
+#define PROPHYLE_UTILS_H
 
 #include <stdint.h>
 

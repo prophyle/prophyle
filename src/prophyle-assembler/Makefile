@@ -2,15 +2,15 @@ CXX      ?= g++
 CXXFLAGS  = -std=c++11 -Wall -Wextra -Wno-missing-field-initializers -g -O2
 LIBS      = -lz
 
-.PHONY: all clean assembler
+.PHONY: all clean 
 
-all: assembler
+all: prophyle-assembler
 
-assembler: main.o
+prophyle-assembler: prophyle-assembler.o
 	$(CXX) $(CXXFLAGS) $(DFLAGS) $^ -o $@ -L. $(LIBS)
 
-main.o: main.cpp kseq.h
+prophyle-assembler.o: prophyle-assembler.cpp kseq.h
 	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $<
 
 clean:
-	rm -f assembler *.o
+	rm -f prophyle-assembler *.o
