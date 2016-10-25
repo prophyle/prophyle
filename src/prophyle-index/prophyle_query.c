@@ -508,7 +508,7 @@ void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void *data, int n);
 	bwase_initialize();
 	prophyle_worker_t* prophyle_worker_data = prophyle_worker_init(idx, seqs, opt, klcp);
-	kt_for(2, prophyle_process_sequence, prophyle_worker_data, n_seqs);
+	kt_for(1, prophyle_process_sequence, prophyle_worker_data, n_seqs);
 	int i;
 	for (i = 0; i < n_seqs; ++i) {
 		bwa_seq_t* p = seqs + i;
