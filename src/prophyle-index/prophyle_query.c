@@ -36,14 +36,12 @@
 #define MAX_STREAK_LENGTH 10000000
 #define MAX_SOFT_STREAK_LENGTH 9000000
 
-bwt_position_t positions[MAX_POSSIBLE_SA_POSITIONS];
-
 exk_opt_t *exk_init_opt()
 {
 	exk_opt_t *o;
 	o = (exk_opt_t*)calloc(1, sizeof(exk_opt_t));
 	o->mode = BWA_MODE_GAPE | BWA_MODE_COMPREAD;
-	o->n_threads = 1;
+	o->n_threads = 10;
 	o->trim_qual = 0;
 	o->kmer_length = 14;
 	o->use_klcp = 0;
@@ -119,7 +117,7 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 	return len;
 }
 
-size_t get_positions(const bwaidx_t* idx, const int query_length,
+size_t get_positions(const bwaidx_t* idx, bwt_position_t* positions, const int query_length,
 										 const uint64_t k, const uint64_t l) {
 	uint64_t t;
 	for(t = k; t <= l; ++t) {
@@ -160,7 +158,7 @@ void sort(int count, int** array) {
 }
 
 size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
-																const int positions_cnt, int32_t* seen_nodes,
+																const int positions_cnt, bwt_position_t* positions, int32_t* seen_nodes,
 																int8_t** seen_nodes_marks, int skip_positions_on_border) {
 	size_t nodes_cnt = 0;
 	int i;
@@ -259,7 +257,7 @@ void print_streaks(char* streaks) {
 	fprintf(stdout, "%s", streaks);
 }
 
-void shift_positions_by_one(bwaidx_t* idx, int positions_cnt,
+void shift_positions_by_one(bwaidx_t* idx, int positions_cnt, bwt_position_t* positions,
 														const int query_length, const uint64_t k, const uint64_t l) {
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
@@ -306,7 +304,14 @@ void print_read_qual(bwa_seq_t* p) {
 }
 
 typedef struct {
-
+	bwt_position_t* positions;
+	char* all_streaks;
+	char* current_streak;
+	int32_t* seen_nodes;
+	int32_t* prev_seen_nodes;
+	int8_t* seen_nodes_marks;
+	int rids_computations;
+	int using_prev_rids;
 } prophyle_query_aux_t;
 
 typedef struct {
@@ -314,39 +319,71 @@ typedef struct {
 	klcp_t* klcp;
 	const exk_opt_t *opt;
 	bwa_seq_t *seqs;
-	bwt_position_t positions[MAX_POSSIBLE_SA_POSITIONS];
-	char* all_streaks;
-	char* current_streak;
-	int32_t* seen_nodes;
-	int32_t* prev_seen_nodes;
-	int8_t* seen_nodes_marks;
-	//int nodes_count;
-	//int prev_nodes_count;
-	int rids_computations;
-	int using_prev_rids;
+	prophyle_query_aux_t* aux_data;
+	int32_t seqs_cnt;
+	char** output;
 } prophyle_worker_t;
 
-prophyle_worker_t* prophyle_worker_init(bwaidx_t* idx, bwa_seq_t *seqs,
+prophyle_worker_t* prophyle_worker_init(bwaidx_t* idx, int32_t seqs_cnt, bwa_seq_t *seqs,
 		const exk_opt_t *opt, klcp_t* klcp) {
 	prophyle_worker_t* prophyle_worker_data = malloc(1 * sizeof(prophyle_worker_t));
 	prophyle_worker_data->idx = idx;
 	prophyle_worker_data->seqs = seqs;
 	prophyle_worker_data->opt = opt;
 	prophyle_worker_data->klcp = klcp;
-	prophyle_worker_data->all_streaks = malloc(MAX_STREAK_LENGTH * sizeof(char));
-	prophyle_worker_data->current_streak = malloc(MAX_STREAK_LENGTH * sizeof(char));
-	prophyle_worker_data->seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int32_t));
-	prophyle_worker_data->prev_seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int32_t));
-	prophyle_worker_data->seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
-	int index;
-	for(index = 0; index < idx->bns->n_seqs; ++index) {
-		prophyle_worker_data->seen_nodes_marks[index] = 0;
+	prophyle_worker_data->aux_data = malloc(opt->n_threads * sizeof(prophyle_query_aux_t));
+	for (int tid = 0; tid < opt->n_threads; ++tid) {
+		prophyle_worker_data->aux_data[tid].positions = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(bwt_position_t));
+		prophyle_worker_data->aux_data[tid].all_streaks = malloc(MAX_STREAK_LENGTH * sizeof(char));
+		prophyle_worker_data->aux_data[tid].current_streak = malloc(MAX_STREAK_LENGTH * sizeof(char));
+		prophyle_worker_data->aux_data[tid].seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int32_t));
+		prophyle_worker_data->aux_data[tid].prev_seen_nodes = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(int32_t));
+		prophyle_worker_data->aux_data[tid].seen_nodes_marks = malloc(idx->bns->n_seqs * sizeof(int8_t));
+		int index;
+		for(index = 0; index < idx->bns->n_seqs; ++index) {
+			prophyle_worker_data->aux_data[tid].seen_nodes_marks[index] = 0;
+		}
+		prophyle_worker_data->aux_data[tid].rids_computations = 0;
+		prophyle_worker_data->aux_data[tid].using_prev_rids = 0;
 	}
-	//prophyle_worker_data->nodes_count = 0;
-	//prophyle_worker_data->prev_nodes_count = 0;
-	prophyle_worker_data->rids_computations = 0;
-	prophyle_worker_data->using_prev_rids = 0;
+	prophyle_worker_data->seqs_cnt = seqs_cnt;
+	prophyle_worker_data->output = malloc(seqs_cnt * sizeof(char*));
 	return prophyle_worker_data;
+}
+
+void prophyle_aux_data_destroy(prophyle_query_aux_t* prophyle_query_aux_data) {
+	if (prophyle_query_aux_data->positions) {
+		free(prophyle_query_aux_data->positions);
+	}
+	if (prophyle_query_aux_data->all_streaks) {
+		free(prophyle_query_aux_data->all_streaks);
+	}
+	if (prophyle_query_aux_data->current_streak) {
+		free(prophyle_query_aux_data->current_streak);
+	}
+	if (prophyle_query_aux_data->seen_nodes) {
+		free(prophyle_query_aux_data->seen_nodes);
+	}
+	if (prophyle_query_aux_data->prev_seen_nodes) {
+		free(prophyle_query_aux_data->prev_seen_nodes);
+	}
+	if (prophyle_query_aux_data->seen_nodes_marks) {
+		free(prophyle_query_aux_data->seen_nodes_marks);
+	}
+}
+
+void prophyle_worker_destroy(prophyle_worker_t* prophyle_worker_data) {
+	if (!prophyle_worker_data) {
+		return;
+	}
+	int i;
+	for (i = 0; i < prophyle_worker_data->opt->n_threads; ++i) {
+		prophyle_aux_data_destroy(&prophyle_worker_data->aux_data[i]);
+	}
+	if (prophyle_worker_data->aux_data) {
+		free(prophyle_worker_data->aux_data);
+	}
+	free(prophyle_worker_data);
 }
 
 void prophyle_process_sequence(void* data, int i, int tid) {
@@ -355,19 +392,17 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 	bwa_seq_t seq = prophyle_worker_data->seqs[i];
 	const exk_opt_t* opt = prophyle_worker_data->opt;
 	klcp_t* klcp = prophyle_worker_data->klcp;
-	char* current_streak = prophyle_worker_data->current_streak;
-	char* all_streaks = prophyle_worker_data->all_streaks;
-	int32_t* seen_nodes = prophyle_worker_data->seen_nodes;
-	int32_t* prev_seen_nodes = prophyle_worker_data->prev_seen_nodes;
-	int8_t* seen_nodes_marks = prophyle_worker_data->seen_nodes_marks;
+	prophyle_query_aux_t aux_data = prophyle_worker_data->aux_data[tid];
+	char* current_streak = aux_data.current_streak;
+	char* all_streaks = aux_data.all_streaks;
+	int32_t* seen_nodes = aux_data.seen_nodes;
+	int32_t* prev_seen_nodes = aux_data.prev_seen_nodes;
+	int8_t* seen_nodes_marks = aux_data.seen_nodes_marks;
 
 	if (opt->output_old) {
 		fprintf(stdout, "#");
 		print_read(&seq);
 		fprintf(stdout, "\n");
-	}
-	if (opt->output) {
-		fprintf(stdout, "U\t%s\t0\t%d\t", seq.name, seq.len);
 	}
 	bwt_t* bwt = idx->bwt;
 	uint64_t k = 0, l = 0, prev_k = 1, prev_l = 0;
@@ -383,7 +418,9 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 	int ambiguous_streak_just_ended = 0;
 	if (start_pos + opt->kmer_length > seq.len) {
 		if (opt->output) {
-			fprintf(stdout, "0:0\n");
+			//fprintf(stdout, "0:0\n");
+			prophyle_worker_data->output[i] = malloc(5 * sizeof(char));
+			strncpy(prophyle_worker_data->output[i], "0:0\n", 5);
 		}
 	} else {
 		while (start_pos + opt->kmer_length <= seq.len) {
@@ -452,15 +489,15 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 			if (k <= l) {
 				if (prev_l - prev_k == l - k
 						&& increased_l - decreased_k == l - k) {
-					prophyle_worker_data->using_prev_rids++;
-					shift_positions_by_one(idx, positions_cnt, opt->kmer_length, k, l);
+					aux_data.using_prev_rids++;
+					shift_positions_by_one(idx, positions_cnt, aux_data.positions, opt->kmer_length, k, l);
 				} else {
-					prophyle_worker_data->rids_computations++;
-					positions_cnt = get_positions(idx, opt->kmer_length,
+					aux_data.rids_computations++;
+					positions_cnt = get_positions(idx, aux_data.positions, opt->kmer_length,
 						k, l);
 				}
 				nodes_cnt = get_nodes_from_positions(idx, opt->kmer_length,
-					positions_cnt, seen_nodes, &seen_nodes_marks, opt->skip_positions_on_border);
+					positions_cnt, aux_data.positions, seen_nodes, &seen_nodes_marks, opt->skip_positions_on_border);
 			}
 			if (opt->output_old) {
 				output_old(seen_nodes, nodes_cnt);
@@ -490,38 +527,43 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 		}
 		if (opt->output) {
 			//fprintf(stdout, "\n");
-			print_streaks(all_streaks);
-			if (opt->output_read_qual) {
-				fprintf(stdout, "\t");
-				print_read(&seq);
-				fprintf(stdout, "\t");
-				print_read_qual(&seq);
-			}
-			fprintf(stdout, "\n");
+			size_t all_streaks_length = strlen(all_streaks);
+			prophyle_worker_data->output[i] = malloc((all_streaks_length + 1) * sizeof(char));
+			strncpy(prophyle_worker_data->output[i], all_streaks, all_streaks_length + 1);
 		}
 	}
 }
 
-void bwa_cal_sa(int tid, bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
+void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 								const exk_opt_t *opt, klcp_t* klcp, int64_t* kmers_count)
 {
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void *data, int n);
 	bwase_initialize();
-	prophyle_worker_t* prophyle_worker_data = prophyle_worker_init(idx, seqs, opt, klcp);
-	kt_for(1, prophyle_process_sequence, prophyle_worker_data, n_seqs);
+	prophyle_worker_t* prophyle_worker_data = prophyle_worker_init(idx, n_seqs, seqs, opt, klcp);
+	kt_for(opt->n_threads, prophyle_process_sequence, prophyle_worker_data, n_seqs);
 	int i;
 	for (i = 0; i < n_seqs; ++i) {
-		bwa_seq_t* p = seqs + i;
-		free(p->name); free(p->seq); free(p->rseq); free(p->qual);
-		p->name = 0; p->seq = p->rseq = p->qual = 0;
+		bwa_seq_t* seq = seqs + i;
+
+		if (opt->output) {
+			fprintf(stdout, "U\t%s\t0\t%d\t", seq->name, seq->len);
+			print_streaks(prophyle_worker_data->output[i]);
+			if (opt->output_read_qual) {
+				fprintf(stdout, "\t");
+				print_read(seq);
+				fprintf(stdout, "\t");
+				print_read_qual(seq);
+			}
+			fprintf(stdout, "\n");
+		}
+
+		free(seq->name); free(seq->seq); free(seq->rseq); free(seq->qual);
+		seq->name = 0; seq->seq = seq->rseq = seq->qual = 0;
 	}
 	// write combining results
-	// write freeing
 	// fprintf(stderr, "rids computed: %d\n", rids_computations);
 	// fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
-	// free(seen_nodes_marks);
-	// free(seen_nodes);
-	// free(prev_seen_nodes);
+	prophyle_worker_destroy(prophyle_worker_data);
 }
 
 void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
@@ -570,7 +612,7 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	t = clock();
 	int64_t kmers_count = 0;
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
-		bwa_cal_sa(0, idx, n_seqs, seqs, opt, klcp, &kmers_count);
+		bwa_cal_sa(idx, n_seqs, seqs, opt, klcp, &kmers_count);
 		total_seqs += n_seqs;
 		bwa_free_read_seq(n_seqs, seqs);
 	}

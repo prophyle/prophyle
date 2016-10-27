@@ -39,7 +39,7 @@ int exk_match(int argc, char *argv[])
 	char *prefix;
 
 	opt = exk_init_opt();
-	while ((c = getopt(argc, argv, "l:psuvk:b")) >= 0) {
+	while ((c = getopt(argc, argv, "l:psuvk:bt:")) >= 0) {
 		switch (c) {
 		case 'v': { opt->output_old = 1; opt->output = 0; } break;
 		case 'u': opt->use_klcp = 1; break;
@@ -48,7 +48,7 @@ int exk_match(int argc, char *argv[])
 		case 'p': opt->skip_positions_on_border = 0; break;
 		case 'l': { opt->need_log = 1; opt->log_file_name = optarg; break; }
 		case 'b': opt->output_read_qual = 1; break;
-		// case 't': opt->n_threads = atoi(optarg); break;
+		case 't': opt->n_threads = atoi(optarg); break;
 		default: return 1;
 		}
 	}
@@ -65,7 +65,7 @@ int exk_match(int argc, char *argv[])
 		fprintf(stderr, "         -s        skip k-1 k-mers after failing matching k-mer\n");
 		fprintf(stderr, "         -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output\n");
 		fprintf(stderr, "         -l char*  log file name to output statistics\n");
-		// fprintf(stderr, "         -t INT    number of threads [%d]\n", opt->n_threads);
+		fprintf(stderr, "         -t INT    number of threads [%d]\n", opt->n_threads);
 		// fprintf(stderr, "         -B INT    length of barcode\n");
 		// fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
     // fprintf(stderr, "         -f FILE   file to write output to instead of stdout\n");
