@@ -547,7 +547,6 @@ void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void *data, int n);
 	bwase_initialize();
 	prophyle_worker_t* prophyle_worker_data = prophyle_worker_init(idx, n_seqs, seqs, opt, klcp);
-	fprintf(stderr, "number of threads = %d\n", opt->n_threads);
 	kt_for(opt->n_threads, prophyle_process_sequence, prophyle_worker_data, n_seqs);
 	int i;
 	for (i = 0; i < n_seqs; ++i) {
@@ -620,6 +619,7 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	int64_t total_seqs = 0;
 	ctime = cputime(); rtime = realtime();
 	int64_t kmers_count = 0;
+	fprintf(stderr, "number of threads = %d\n", opt->n_threads);
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
 		bwa_cal_sa(idx, n_seqs, seqs, opt, klcp, &kmers_count);
 		total_seqs += n_seqs;
