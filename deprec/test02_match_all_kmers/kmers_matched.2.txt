@@ -1,0 +1,4 @@
+1 seq3 G
+1 seq4 C
+2 seq1 Aseq3 G
+2 seq1 Tseq3 A

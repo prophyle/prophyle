@@ -41,7 +41,7 @@ exk_opt_t *exk_init_opt()
 	exk_opt_t *o;
 	o = (exk_opt_t*)calloc(1, sizeof(exk_opt_t));
 	o->mode = BWA_MODE_GAPE | BWA_MODE_COMPREAD;
-	o->n_threads = 10;
+	o->n_threads = 1;
 	o->trim_qual = 0;
 	o->kmer_length = 14;
 	o->use_klcp = 0;
@@ -383,6 +383,12 @@ void prophyle_worker_destroy(prophyle_worker_t* prophyle_worker_data) {
 	if (prophyle_worker_data->aux_data) {
 		free(prophyle_worker_data->aux_data);
 	}
+	if (prophyle_worker_data->output) {
+		for (i = 0; i < prophyle_worker_data->seqs_cnt; ++i) {
+			free(prophyle_worker_data->output[i]);
+		}
+		free(prophyle_worker_data->output);
+	}
 	free(prophyle_worker_data);
 }
 
@@ -540,6 +546,7 @@ void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void *data, int n);
 	bwase_initialize();
 	prophyle_worker_t* prophyle_worker_data = prophyle_worker_init(idx, n_seqs, seqs, opt, klcp);
+	fprintf(stderr, "number of threads = %d\n", opt->n_threads);
 	kt_for(opt->n_threads, prophyle_process_sequence, prophyle_worker_data, n_seqs);
 	int i;
 	for (i = 0; i < n_seqs; ++i) {
@@ -590,7 +597,8 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	fprintf(stderr, "BWA loaded\n");
 	bwa_destroy_unused_fields(idx);
 
-	clock_t t = clock();
+	double ctime, rtime;
+	ctime = cputime(); rtime = realtime();
 	klcp_t* klcp = malloc(sizeof(klcp_t));
 	klcp->klcp = malloc(sizeof(bitarray_t));
 
@@ -604,20 +612,22 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	  strcat(fn, ".bit.klcp");
 		klcp_restore(fn, klcp);
 		free(fn);
-		fprintf(log_file, "klcp_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
+		fprintf(log_file, "klcp_loading\t%.2fs\n", realtime() - rtime);
 	}
 	ks = bwa_open_reads_new(opt->mode, fn_fa);
 	float total_time = 0;
 	int64_t total_seqs = 0;
-	t = clock();
+	ctime = cputime(); rtime = realtime();
 	int64_t kmers_count = 0;
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
 		bwa_cal_sa(idx, n_seqs, seqs, opt, klcp, &kmers_count);
 		total_seqs += n_seqs;
 		bwa_free_read_seq(n_seqs, seqs);
 	}
-	total_time += (float)(clock() - t) / CLOCKS_PER_SEC;
+	total_time = realtime() - rtime;
 	fprintf(stderr, "match time: %.2f sec\n", total_time);
+	fprintf(stderr, "[M::%s] Processed %llu reads in %.3f CPU sec, %.3f real sec\n", __func__, total_seqs, cputime() - ctime, realtime() - rtime);
+
 	if (opt->need_log) {
 		fprintf(log_file, "matching_time\t%.2fs\n", total_time);
 		fprintf(log_file, "reads\t%" PRId64 "\n", total_seqs);
