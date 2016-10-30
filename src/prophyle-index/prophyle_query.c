@@ -332,7 +332,8 @@ prophyle_worker_t* prophyle_worker_init(bwaidx_t* idx, int32_t seqs_cnt, bwa_seq
 	prophyle_worker_data->opt = opt;
 	prophyle_worker_data->klcp = klcp;
 	prophyle_worker_data->aux_data = malloc(opt->n_threads * sizeof(prophyle_query_aux_t));
-	for (int tid = 0; tid < opt->n_threads; ++tid) {
+	int tid;
+	for (tid = 0; tid < opt->n_threads; ++tid) {
 		prophyle_worker_data->aux_data[tid].positions = malloc(MAX_POSSIBLE_SA_POSITIONS * sizeof(bwt_position_t));
 		prophyle_worker_data->aux_data[tid].all_streaks = malloc(MAX_STREAK_LENGTH * sizeof(char));
 		prophyle_worker_data->aux_data[tid].current_streak = malloc(MAX_STREAK_LENGTH * sizeof(char));
