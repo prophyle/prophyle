@@ -1,0 +1,32 @@
+##AAAC
+
+2 seq2 seq3 
+2 #seq1 Aseq3 G
+
+#1 Aseq3 T
+
+#0 C
+A#
+C1 Cseq2 
+
+1 #seq4 C
+G#
+C1 Tseq1 
+
+1 #seq3 G
+A#
+G2 Cseq1 
+seq3 2 
+seq2 #seq4 G
+G#
+G1 Tseq4 
+
+2 #seq1 Tseq3 A
+
+#0 T
+C#
+T2 Gseq1 
+seq3 1 
+seq2 #
+TT
+2 seq2 seq3 
