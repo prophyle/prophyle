@@ -31,6 +31,6 @@ update is going to be merged to master.
 
 6. Create a git commit and push it to the repository
 
-7. Verify that RPM and memory footprint are OK
+7. Verify that logs look correct and that RPM and memory footprint did not change much compared to the previous log (if yes, there is probably a problem)
 
-8. Merge with master
+8. If everything is OK, merge with master
