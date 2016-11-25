@@ -140,6 +140,9 @@ static int usage()
 	return 1;
 }
 
+int bwa_compress(int argc, char *argv[]);
+int bwa_decompress(int argc, char *argv[]);
+
 int main(int argc, char *argv[])
 {
 	extern char *bwa_pg;
@@ -151,7 +154,8 @@ int main(int argc, char *argv[])
 	if (argc < 2) return usage();
 	if (strcmp(argv[1], "index") == 0) ret = exk_index(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "match") == 0) ret = exk_match(argc-1, argv+1);
-
+	else if (strcmp(argv[1], "compress") == 0) ret = bwa_compress(argc-1, argv+1);
+	else if (strcmp(argv[1], "decompress") == 0) ret = bwa_decompress(argc-1, argv+1);
 	err_fflush(stdout);
 	err_fclose(stdout);
 
