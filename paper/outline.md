@@ -1,6 +1,6 @@
 ## Paper outline
 
-Target journal: PLOS Comp Bio?? Genome Reseach (as Centrifuge)?? Nature Scientific Reports?? Genome Biology (as Kraken)???
+Target journal: PLOS Comp Bio?? Genome Reseach (as Centrifuge)?? Nature Scientific Reports?? Nature Communications?? Nature Methods?? BMC Genome Biology (as Kraken)????
 
 Proposed title: ProPhyle: accurate and resource-frugal phylogeny-based metagenomic classification
 
