@@ -40,9 +40,11 @@ Centrifuge:
 * Note that, in contrast to Kraken, Centrifuge does not really maps reads to the tree, but classifies them to (one or several) genomes and then possibly propagates bottom-up to some internal node. ProPhyle (and Kraken) directly map every read to a (possibly internal) tree node
 * Centrifuge index takes 4.2Gb for ~4300 bacterial genomes. **Can we compete?**
 * *question: what BWT-index implementation is used in Centrifuge?*
+   * Karel: Their implementation is based on Bowtie 2 (see, e.g., https://github.com/infphilo/centrifuge/blob/master/aligner_sw.cpp).
 
 Compared to both Kraken and Centrifuge:
 * our program is "self-contained" i.e. does not use external tools (e.g. Centrifuge uses Nucmer for constructing the index)
+   * Karel: unless we mask low complexity regions
 * since we work with Newick tree format, we can use any phylogeny, not necessarily NCBI
 * [*other reasons why ProPhyle has been programmed more professionally*]
 * what about the classification speed (?)
