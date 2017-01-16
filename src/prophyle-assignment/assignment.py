@@ -384,7 +384,7 @@ if __name__ == "__main__":
 
 		parser.add_argument('-i', '--input',
 				type=argparse.FileType('r'),
-				required=True,
+				default=sys.stdin,
 				dest='input_file',
 				help='input file',
 			)
