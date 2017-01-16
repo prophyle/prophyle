@@ -386,7 +386,7 @@ if __name__ == "__main__":
 				type=argparse.FileType('r'),
 				default=sys.stdin,
 				dest='input_file',
-				help='input file',
+				help='input file (stdin if not specified)',
 			)
 
 		parser.add_argument('-k', '--kmer-size',
