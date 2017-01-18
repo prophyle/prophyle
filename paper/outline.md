@@ -43,11 +43,15 @@ Centrifuge:
    * Karel: Their implementation is based on Bowtie 2 (see, e.g., https://github.com/infphilo/centrifuge/blob/master/aligner_sw.cpp).
 
 Compared to both Kraken and Centrifuge:
+* we are exact so we can support even trees with very similar strains
 * our program is "self-contained" i.e. does not use external tools (e.g. Centrifuge uses Nucmer for constructing the index)
    * Karel: unless we mask low complexity regions
 * since we work with Newick tree format, we can use any phylogeny, not necessarily NCBI
 * [*other reasons why ProPhyle has been programmed more professionally*]
 * what about the classification speed (?)
+
+Other points: 
+* Karel: maybe ProPhyle can be applied to the phylogenetic placement problem
 
 ### Methods and Models
 
