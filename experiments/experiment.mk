@@ -13,6 +13,8 @@ SAMTOOLS?=samtools
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
 ASSIGNMENT=../../bin/assignment.py
 
+ANNOTATEKMERS=../../bin/tree_annotate_kmers.py
+
 READS?=../../reads/simulation_bacteria.1000000.fq
 KLCP=index.fa.$(K).bit.klcp
 #UNAME_S := $(shell uname -s)
@@ -69,10 +71,15 @@ index.fa: index/.complete
 	$(TTIME) -o 1.2_merging_fasta.log \
 	$(FINAL_FA) index > $@
 
+	# todo: split rule into 2 rules
+
 	# todo: add this to the main prophyle cli script
 	touch $@.kmers.tsv
 	echo "#file	no_kmers" >> $@.kmers.tsv
 	cat index/*.count.tsv | grep -v "^#" | sort | uniq >> $@.kmers.tsv
+
+	$(ANNOTATEKMERS) -i $(TREE) -o $@.newick -c $@.kmers.tsv
+
 
 index.fa.pac: index.fa
 	$(TTIME) -o 2.1_bwa_fa2pac.log \
