@@ -43,20 +43,20 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 				)
 	print(cmd)
 
-def assembly(input_files, output_files, intersection_file):
+def assembly(input_files, output_files, intersection_file, count_file="/dev/null"):
 	assert(len(input_files)==len(output_files))
 	#logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
 	cmd =  (
 			"ifdef NONDEL\n"
-                        "   CMD_ASM_OUT_{nid} = \n"
+			"   CMD_ASM_OUT_{nid} = \n"
 			"else\n"
-                        "   CMD_ASM_OUT_{nid} = -o {oo}\n"
+			"   CMD_ASM_OUT_{nid} = -o {oo}\n"
 			"endif\n"
 			"\n"
 			"ifdef NONPROP\n"
-                        "   CMD_ASM_{nid} = touch {x} {o}\n"
+			"   CMD_ASM_{nid} = touch {x} {o}\n"
 			"else\n"
-                        "   CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x}\n"
+			"   CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} > {c}\n"
 			"endif\n"
 			"\n"
 			"{x}: {i}\n"
@@ -68,6 +68,7 @@ def assembly(input_files, output_files, intersection_file):
 			ii=' -i '.join(input_files),
 			oo=' -o '.join(output_files),
 			x=intersection_file,
+			c=count_file,
 			nid=intersection_file,
 		)
 	print(cmd)
@@ -98,6 +99,9 @@ class TreeIndex:
 	def reduced_fasta_fn(self,node):
 		return os.path.join(self.index_dir,node.name+".reduced.fa")
 
+	def count_fn(self,node):
+		return os.path.join(self.index_dir,node.name+".count.tsv")
+
 	def process_node(self,node):
 
 		if node.is_leaf():
@@ -120,26 +124,28 @@ class TreeIndex:
 			input_files=[self.nonreduced_fasta_fn(x) for x in children]
 			output_files=[self.reduced_fasta_fn(x) for x in children]
 			intersection_file=self.nonreduced_fasta_fn(node)
+			count_file=self.count_fn(node)
+
 
 			# 2a) 1 child
-			if len(input_files)==1:
-				
-				merge_fasta_files(input_files,intersection_file,is_leaf=False)
-				#print("ahoj")
-				#print(
-				#	(
-				#		"{new}: {old}\n" +
-				#		"\t@cp {old} {new}\n" +
-				#		"\n"
-				#	).format(new=intersection_file,old=input_files[0])
-				#)
-				#print(.format(input_files[0],intersection_file))
-				#shutil.copyfile(input_files[0],intersection_file)
-				#open(output_files[0], 'w').close()
+			#if len(input_files)==1:
+				#				
+				#merge_fasta_files(input_files,intersection_file,is_leaf=False)
+				##print("ahoj")
+				##print(
+				##	(
+				##		"{new}: {old}\n" +
+				##		"\t@cp {old} {new}\n" +
+				##		"\n"
+				##	).format(new=intersection_file,old=input_files[0])
+				##)
+				##print(.format(input_files[0],intersection_file))
+				##shutil.copyfile(input_files[0],intersection_file)
+				##open(output_files[0], 'w').close()
 
 			# 2b) several children
-			else:
-				assembly(input_files,output_files,intersection_file)
+			#else:
+			assembly(input_files,output_files,intersection_file,count_file)
 		
 
 	def build_index(self,k,mask_repeats):
