@@ -81,11 +81,12 @@ index.fa.tree: index.fa.kmers.tsv $(TREE)
 	$(ANNOTATEKMERS) -i $(TREE) -o $@ -c $<
 	touch $@.kmers.tsv
 	echo "#file	no kmers" >> $@.kmers.tsv
-	cat index/*.count.tsv | sort >  $@.kmers.tsv
-	# todo: add this to the main prophyle cli script
 	touch $@.kmers.tsv
 	echo "#file	no_kmers" >> $@.kmers.tsv
 	cat index/*.count.tsv | grep -v "^#" | sort | uniq >> $@.kmers.tsv
+
+	$(ANNOTATEKMERS) -i $(TREE) -o $@.newick -c $@.kmers.tsv
+
 
 index.fa.pac: index.fa
 	$(TTIME) -o 2.1_bwa_fa2pac.log \
