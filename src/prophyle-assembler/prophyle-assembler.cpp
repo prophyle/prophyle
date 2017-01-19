@@ -296,7 +296,7 @@ int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
 		}
 	}
 
-	std::cerr << "  " << fasta_fn << " loaded - #kmers: " << set.size()<<std::endl;
+	std::cout << fasta_fn << "\t" << set.size()<<std::endl;
 	//std::cerr << "iterator finished" << std::endl;
 
 	kseq_destroy(seq);
@@ -380,7 +380,7 @@ int32_t remove_subset(std::vector<_set_T> &sets, const _subset_T &subset){
 
 template<typename _set_T>
 int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
-	std::cerr << "Assembling " << fasta_fn << " from " << set.size() << " kmers" << std::endl;
+	std::cout << fasta_fn << "\t" << set.size() << std::endl;
 
 	FILE *file;
 	if(fasta_fn=="-"){
