@@ -68,9 +68,11 @@ index/.complete: $(TREE)
 index.fa: index/.complete
 	$(TTIME) -o 1.2_merging_fasta.log \
 	$(FINAL_FA) index > $@
+
+	# todo: add this to the main prophyle cli script
 	touch $@.kmers.tsv
-	echo "#file	no kmers" >> $@.kmers.tsv
-	cat index/*.count.tsv | sort >  $@.kmers.tsv
+	echo "#file	no_kmers" >> $@.kmers.tsv
+	cat index/*.count.tsv | grep -v "^#" | sort >> $@.kmers.tsv
 
 index.fa.pac: index.fa
 	$(TTIME) -o 2.1_bwa_fa2pac.log \
