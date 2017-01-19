@@ -9,11 +9,6 @@ from subprocess import Popen, PIPE
 
 from ete3 import Tree
 
-#FEATURES=["lineage", "named_lineage", "seqname", "dist", "name",
-#	"support", "taxid", "rank", "base_len", "fastapath",
-#	"sci_name", "infasta_offset", "gi",
-#	'kmers_full','kmers_reduced']
-
 
 def load_nb_kmers(tsv_fn):
 	re_fa=re.compile(r'(.*)\.([a-z]*)\.fa')
@@ -31,14 +26,7 @@ def load_nb_kmers(tsv_fn):
 				count=int(count)
 				fa_short = os.path.basename(fa)
 				m=re_fa.match(fa_short)
-
-				cat=m.group(2)
-				nname=m.group(1)
-
-				try:
-					assert counts[cat][nname]==count, "Different k-mer sizes reported for the same node '{}', probably a bug of prophyle-assembler".format(nname)
-				except KeyError:
-					counts[cat][nname]=count
+				counts[m.group(2)][m.group(1)]=count
 	return counts
 
 def enrich_tree(
@@ -50,42 +38,46 @@ def enrich_tree(
 
 	tree=Tree(inp_tree_fn,format=1)
 
+	# remove k-mer counts
+	for node in tree.traverse("postorder"):
+		node.del_feature('no_repr_kmers_full')
+		node.del_feature('no_repr_kmers_reduced')
+
+
 	# compute k-mer counts
 	#print(sorted(count_tb["full"].keys()))
 	#print(sorted(count_tb["reduced"].keys()))
 	for node in tree.traverse("preorder"):
-		node.del_feature('kmers_full')
-		node.del_feature('kmers_reduced')
-
 		nname=node.name
+		#print (nname)
+
 
 		# todo: nodes with name="" should not exist
+		if nname != "":
+			try:
+				node.add_features(kmers_full=count_tb["full"][nname])
+			except KeyError:
+				print("Warning: full-{} is missing".format(nname),file=sys.stderr)
+				node.add_features(kmers_full=0)
 
-		assert nname != "", "There is a node without any name ('')"
+			try:
+				node.add_features(kmers_reduced=count_tb["reduced"][nname])
+			except KeyError:
+				print("Warning: reduced-{} is missing".format(nname),file=sys.stderr)
+				node.add_features(kmers_reduced=0)
 
-		try:
-			node.add_features(kmers_full=count_tb["full"][nname])
-		except KeyError:
-			print("Warning: full-{} is missing".format(nname),file=sys.stderr)
-			node.add_features(kmers_full=0)
-
-		try:
-			node.add_features(kmers_reduced=count_tb["reduced"][nname])
-		except KeyError:
-			print("Warning: reduced-{} is missing".format(nname),file=sys.stderr)
-			node.add_features(kmers_reduced=0)
+			# todo: compute rtn
+		else:
+			print("Warning: there is a node without name",file=sys.stderr)
 
 
-		assert 0<=node.kmers_reduced
-		assert node.kmers_reduced<=node.kmers_full
 
-	# regularly update
-	tree.write(
-			format=1,
-			features=[],
-			outfile=out_tree_fn,
-			format_root_node=True,
-		)
+		# regularly update
+		tree.write(
+				format=1,
+				features=['fastapath','kmers_full','kmers_reduced','kmers_rtn'],
+				outfile=out_tree_fn,
+			)
 
 if __name__ == "__main__":
 
@@ -139,4 +131,3 @@ if __name__ == "__main__":
 		out_tree_fn=out_tree_fn,
 		count_tb=count_tb,
 	)
-	
