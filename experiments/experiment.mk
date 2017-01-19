@@ -79,7 +79,10 @@ index.fa.kmers.tsv: index.fa
 
 index.fa.tree: index.fa.kmers.tsv $(TREE)
 	$(ANNOTATEKMERS) -i $(TREE) -o $@ -c $<
-
+	touch $@.kmers.tsv
+	echo "#file	no kmers" >> $@.kmers.tsv
+	cat index/*.count.tsv | sort >  $@.kmers.tsv
+>>>>>>> Count k-mers during propagation
 
 index.fa.pac: index.fa
 	$(TTIME) -o 2.1_bwa_fa2pac.log \
