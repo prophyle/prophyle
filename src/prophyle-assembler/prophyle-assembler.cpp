@@ -464,7 +464,7 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 		//std::cerr << "====================" << std::endl;
 
 		std::stringstream ss;
-		ss<<"contig_"<<contig_id;
+		ss<<"c"<<contig_id;
 		const std::string contig_name(ss.str());
 		contig.print_to_fasta(file,contig_name.c_str());
 		contig_id++;
