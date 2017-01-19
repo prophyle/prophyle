@@ -67,7 +67,10 @@ index/.complete: $(TREE)
 
 index.fa: index/.complete
 	$(TTIME) -o 1.2_merging_fasta.log \
-	$(FINAL_FA) index > index.fa
+	$(FINAL_FA) index > $@
+	touch $@.kmers.tsv
+	echo "#file	no kmers" >> $@.kmers.tsv
+	cat index/*.count.tsv | sort >  $@.kmers.tsv
 
 index.fa.pac: index.fa
 	$(TTIME) -o 2.1_bwa_fa2pac.log \
