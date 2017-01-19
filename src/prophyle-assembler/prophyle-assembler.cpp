@@ -541,6 +541,13 @@ int main (int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+
+	std::cout << "# cmd: " << argv[0];
+	for (int32_t i=1;i<argc;i++){
+		std::cout << " " << argv[i];
+	}
+	std::cout << std::endl;
+
 	std::vector< std::unordered_set<nkmer_t> > full_sets(no_sets);
 
 	std::cerr << "=====================" << std::endl;

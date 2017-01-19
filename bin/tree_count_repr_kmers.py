@@ -66,11 +66,12 @@ def enrich_tree(
 			node.add_features(no_repr_kmers_full=nb_full)
 			node.add_features(no_repr_kmers_reduced=nb_red)
 
-	tree.write(
-			format=1,
-			features=['fastapath','no_repr_kmers_full','no_repr_kmers_reduced'],
-			outfile=out_tree_fn,
-		)
+		# regularly update
+		tree.write(
+				format=1,
+				features=['fastapath','no_repr_kmers_full','no_repr_kmers_reduced'],
+				outfile=out_tree_fn,
+			)
 
 if __name__ == "__main__":
 
