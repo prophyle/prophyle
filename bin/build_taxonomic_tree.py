@@ -196,11 +196,13 @@ topo.add_features(taxid = "0")
 
 print("Built taxonomic tree for " + str(count) + " sequences")
 
-topo.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
-					"support", "taxid", "rank", "base_len", "fastapath",
-					"sci_name", "infasta_offset", "gi"],
-			format = 1,
-			format_root_node = True,
-			outfile = output_file)
+#"lineage", "named_lineage", "seqname", "dist", "name",
+#"support", "taxid", "rank", "base_len", "fastapath",
+#"sci_name", "infasta_offset", "gi"
+
+topo.write(features = [],
+	format = 1,
+	format_root_node = True,
+	outfile = output_file)
 
 error.close()

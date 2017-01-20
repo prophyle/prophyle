@@ -43,9 +43,11 @@ for node in root.traverse("postorder"):
 # 	if len(root.search_nodes(name=node.name)) > 1:
 # 		print("DUPLICATE: " + node.name)
 
-root.write(features = ["lineage", "named_lineage", "seqname", "dist", "name",
-					"support", "taxid", "rank", "base_len", "fastapath",
-					"sci_name", "infasta_offset", "gi"],
+# "lineage", "named_lineage", "seqname", "dist", "name",
+# "support", "taxid", "rank", "base_len", "fastapath",
+# "sci_name", "infasta_offset", "gi"
+
+root.write(features = [],
 			format = 1,
 			format_root_node = True,
 			outfile = sys.argv[2])
