@@ -114,13 +114,13 @@ kmers_restarted.txt: $(READS) $(KLCP) \
 	$(EXK) match -b -l 3.2b_matching_restarted.log \
 		-k $(K) index.fa $(READS) > $@
 
-assigned_reads.bam: kmers_rolling.txt $(TREE)
+assigned_reads.bam: kmers_rolling.txt index.fa.tree
 	$(TTIME) -o 4.1_read_assignment.log \
-	$(ASSIGNMENT) -i $< -n $(TREE) -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -i $< -n index.fa.tree -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
 
-assigned_reads_simlca.bam: kmers_rolling.txt $(TREE)
+assigned_reads_simlca.bam: kmers_rolling.txt index.fa.tree
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
-	$(ASSIGNMENT) -l -i $< -n $(TREE) -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -l -i $< -n index.fa.tree -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
 
 5.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@
