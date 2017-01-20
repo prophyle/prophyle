@@ -48,7 +48,7 @@ ifdef NONPROP
 	FINAL_FA:=../../bin/create_final_fasta.py --nondel
 endif
 
-all: index.fa.$(K).bit.klcp _main_log.log _main_log.md \
+all: index.fa.$(K).bit.klcp _main_log.log _main_log.md index.fa.tree \
 	assigned_reads.bam assigned_reads_simlca.bam
 
 index/.complete: $(TREE)
@@ -70,15 +70,15 @@ index/.complete: $(TREE)
 index.fa: index/.complete
 	$(TTIME) -o 1.2_merging_fasta.log \
 	$(FINAL_FA) index > $@
-
-	# todo: split rule into 2 rules
-
 	# todo: add this to the main prophyle cli script
-	touch $@.kmers.tsv
-	echo "#file	no_kmers" >> $@.kmers.tsv
-	cat index/*.count.tsv | grep -v "^#" | sort | uniq >> $@.kmers.tsv
 
-	$(ANNOTATEKMERS) -i $(TREE) -o $@.newick -c $@.kmers.tsv
+index.fa.kmers.tsv: index.fa
+	touch $@
+	echo "#file	no_kmers" >> $@
+	cat index/*.count.tsv | grep -v "^#" | sort | uniq >> $@
+
+index.fa.tree: index.fa.kmers.tsv $(TREE)
+	$(ANNOTATEKMERS) -i $(TREE) -o $@ -c $<
 
 
 index.fa.pac: index.fa
