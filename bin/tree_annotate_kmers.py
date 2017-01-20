@@ -9,6 +9,11 @@ from subprocess import Popen, PIPE
 
 from ete3 import Tree
 
+FEATURES=["lineage", "named_lineage", "seqname", "dist", "name",
+	"support", "taxid", "rank", "base_len", "fastapath",
+	"sci_name", "infasta_offset", "gi",
+	'kmers_full','kmers_reduced']
+
 
 def load_nb_kmers(tsv_fn):
 	re_fa=re.compile(r'(.*)\.([a-z]*)\.fa')
@@ -77,7 +82,7 @@ def enrich_tree(
 	# regularly update
 	tree.write(
 			format=1,
-			features=['fastapath','kmers_full','kmers_reduced'],
+			features=FEATURES,
 			outfile=out_tree_fn,
 
 		)
