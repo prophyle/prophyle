@@ -45,45 +45,43 @@ def enrich_tree(
 
 	tree=Tree(inp_tree_fn,format=1)
 
-	# remove k-mer counts
-	for node in tree.traverse("postorder"):
-		node.del_feature('no_repr_kmers_full')
-		node.del_feature('no_repr_kmers_reduced')
-
-
 	# compute k-mer counts
 	#print(sorted(count_tb["full"].keys()))
 	#print(sorted(count_tb["reduced"].keys()))
 	for node in tree.traverse("preorder"):
+		node.del_feature('kmers_full')
+		node.del_feature('kmers_reduced')
+
 		nname=node.name
-		#print (nname)
+		print (nname)
 
 		# todo: nodes with name="" should not exist
-		if nname != "":
-			try:
-				node.add_features(kmers_full=count_tb["full"][nname])
-			except KeyError:
-				print("Warning: full-{} is missing".format(nname),file=sys.stderr)
-				node.add_features(kmers_full=0)
 
-			try:
-				node.add_features(kmers_reduced=count_tb["reduced"][nname])
-			except KeyError:
-				print("Warning: reduced-{} is missing".format(nname),file=sys.stderr)
-				node.add_features(kmers_reduced=0)
+		assert nname != "", "There is a node without any name ('')"
 
-			# todo: compute rtn
-		else:
-			print("Warning: there is a node without name",file=sys.stderr)
+		try:
+			node.add_features(kmers_full=count_tb["full"][nname])
+		except KeyError:
+			print("Warning: full-{} is missing".format(nname),file=sys.stderr)
+			node.add_features(kmers_full=0)
+
+		try:
+			node.add_features(kmers_reduced=count_tb["reduced"][nname])
+		except KeyError:
+			print("Warning: reduced-{} is missing".format(nname),file=sys.stderr)
+			node.add_features(kmers_reduced=0)
 
 
+		assert 0<=node.kmers_reduced
+		assert node.kmers_reduced<=node.kmers_full
 
-		# regularly update
-		tree.write(
-				format=1,
-				features=['fastapath','kmers_full','kmers_reduced','kmers_rtn'],
-				outfile=out_tree_fn,
-			)
+	# regularly update
+	tree.write(
+			format=1,
+			features=['fastapath','kmers_full','kmers_reduced'],
+			outfile=out_tree_fn,
+
+		)
 
 if __name__ == "__main__":
 
