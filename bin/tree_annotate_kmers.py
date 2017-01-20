@@ -53,7 +53,6 @@ def enrich_tree(
 		node.del_feature('kmers_reduced')
 
 		nname=node.name
-		print (nname)
 
 		# todo: nodes with name="" should not exist
 
