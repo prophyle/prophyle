@@ -49,7 +49,7 @@ ifdef NONPROP
 endif
 
 all: index.fa.$(K).bit.klcp _main_log.log _main_log.md index.fa.tree \
-	assigned_reads.bam assigned_reads_simlca.bam
+	assigned_reads.bam assigned_reads_simlca.bam index.fa
 
 index/.complete: $(TREE)
 	mkdir -p index
