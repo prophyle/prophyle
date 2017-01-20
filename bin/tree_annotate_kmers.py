@@ -84,7 +84,7 @@ def enrich_tree(
 			format=1,
 			features=FEATURES,
 			outfile=out_tree_fn,
-
+			format_root_node=True,
 		)
 
 if __name__ == "__main__":
