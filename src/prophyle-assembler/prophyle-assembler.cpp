@@ -464,7 +464,7 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 		//std::cerr << "====================" << std::endl;
 
 		std::stringstream ss;
-		ss<<"contig_"<<contig_id;
+		ss<<"c"<<contig_id;
 		const std::string contig_name(ss.str());
 		contig.print_to_fasta(file,contig_name.c_str());
 		contig_id++;
@@ -540,6 +540,13 @@ int main (int argc, char* argv[])
 		std::cerr << "If -o is used, it must be used as many times as -i (" << no_sets << "!=" << out_fns.size() << ")." << std::endl;
 		return EXIT_FAILURE;
 	}
+
+
+	std::cout << "# cmd: " << argv[0];
+	for (int32_t i=1;i<argc;i++){
+		std::cout << " " << argv[i];
+	}
+	std::cout << std::endl;
 
 	std::vector< std::unordered_set<nkmer_t> > full_sets(no_sets);
 
