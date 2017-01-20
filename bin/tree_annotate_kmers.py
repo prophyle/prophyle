@@ -26,7 +26,14 @@ def load_nb_kmers(tsv_fn):
 				count=int(count)
 				fa_short = os.path.basename(fa)
 				m=re_fa.match(fa_short)
-				counts[m.group(2)][m.group(1)]=count
+
+				cat=m.group(2)
+				nname=m.group(1)
+
+				try:
+					assert counts[cat][nname]==count, "Different k-mer sizes reported for the same node '{}', probably a bug of prophyle-assembler".format(nname)
+				except KeyError:
+					counts[cat][nname]=count
 	return counts
 
 def enrich_tree(
@@ -50,7 +57,6 @@ def enrich_tree(
 	for node in tree.traverse("preorder"):
 		nname=node.name
 		#print (nname)
-
 
 		# todo: nodes with name="" should not exist
 		if nname != "":
@@ -131,3 +137,4 @@ if __name__ == "__main__":
 		out_tree_fn=out_tree_fn,
 		count_tb=count_tb,
 	)
+	
