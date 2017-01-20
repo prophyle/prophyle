@@ -49,7 +49,7 @@ ifdef NONPROP
 endif
 
 all: index.fa.$(K).bit.klcp _main_log.log _main_log.md index.fa.tree \
-	assigned_reads.bam assigned_reads_simlca.bam index.fa
+	assigned_reads.bam assigned_reads_simlca.bam
 
 index/.complete: $(TREE)
 	mkdir -p index
@@ -79,13 +79,6 @@ index.fa.kmers.tsv: index.fa
 
 index.fa.tree: index.fa.kmers.tsv $(TREE)
 	$(ANNOTATEKMERS) -i $(TREE) -o $@ -c $<
-	touch $@.kmers.tsv
-	echo "#file	no kmers" >> $@.kmers.tsv
-	touch $@.kmers.tsv
-	echo "#file	no_kmers" >> $@.kmers.tsv
-	cat index/*.count.tsv | grep -v "^#" | sort | uniq >> $@.kmers.tsv
-
-	$(ANNOTATEKMERS) -i $(TREE) -o $@.newick -c $@.kmers.tsv
 
 
 index.fa.pac: index.fa
@@ -121,13 +114,13 @@ kmers_restarted.txt: $(READS) $(KLCP) \
 	$(EXK) match -b -l 3.2b_matching_restarted.log \
 		-k $(K) index.fa $(READS) > $@
 
-assigned_reads.bam: kmers_rolling.txt index.fa.tree
+assigned_reads.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.1_read_assignment.log \
-	$(ASSIGNMENT) -i $< -n index.fa.tree -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -i $< -n $(TREE) -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
 
-assigned_reads_simlca.bam: kmers_rolling.txt index.fa.tree
+assigned_reads_simlca.bam: kmers_rolling.txt $(TREE)
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
-	$(ASSIGNMENT) -l -i $< -n index.fa.tree -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -l -i $< -n $(TREE) -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
 
 5.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@
