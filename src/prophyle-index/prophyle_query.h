@@ -31,7 +31,7 @@ typedef struct {
 
 	void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt);
 
-	void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs, const exk_opt_t *opt, klcp_t* klcp, int64_t* kmers_count);
+	void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs, const exk_opt_t *opt, klcp_t* klcp);
 
 #ifdef __cplusplus
 }
