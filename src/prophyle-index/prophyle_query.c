@@ -542,7 +542,7 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 }
 
 void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
-								const exk_opt_t *opt, klcp_t* klcp, int64_t* kmers_count)
+								const exk_opt_t *opt, klcp_t* klcp)
 {
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void *data, int n);
 	bwase_initialize();
@@ -578,7 +578,7 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	bwa_seq_t *seqs;
 	bwa_seqio_t *ks;
 	bwaidx_t* idx;
-
+	int i;
 	FILE* log_file;
 	if (opt->need_log) {
 		log_file = fopen(opt->log_file_name, "w");
@@ -618,11 +618,17 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	float total_time = 0;
 	int64_t total_seqs = 0;
 	ctime = cputime(); rtime = realtime();
-	int64_t kmers_count = 0;
+	int64_t total_kmers_count = 0;
 	fprintf(stderr, "number of threads = %d\n", opt->n_threads);
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
-		bwa_cal_sa(idx, n_seqs, seqs, opt, klcp, &kmers_count);
+		bwa_cal_sa(idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
+		for (i = 0; i < n_seqs; ++i) {
+			int seq_kmers_count = seqs[i].len - opt->kmer_length + 1;
+			if (seq_kmers_count > 0) {
+				total_kmers_count += seq_kmers_count;
+			}
+		}
 		bwa_free_read_seq(n_seqs, seqs);
 	}
 	total_time = realtime() - rtime;
@@ -632,9 +638,9 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	if (opt->need_log) {
 		fprintf(log_file, "matching_time\t%.2fs\n", total_time);
 		fprintf(log_file, "reads\t%" PRId64 "\n", total_seqs);
-		fprintf(log_file, "kmers\t%" PRId64 "\n", kmers_count);
+		fprintf(log_file, "kmers\t%" PRId64 "\n", total_kmers_count);
 		fprintf(log_file, "rpm\t%" PRId64 "\n", (int64_t)(round(total_seqs * 60.0 / total_time)));
-		fprintf(log_file, "kpm\t%" PRId64 "\n", (int64_t)(round(kmers_count * 60.0 / total_time)));
+		fprintf(log_file, "kpm\t%" PRId64 "\n", (int64_t)(round(total_kmers_count * 60.0 / total_time)));
 	}
 	//fprintf(stderr, "tot_seqs = %d\n", tot_seqs);
 	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
