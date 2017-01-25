@@ -56,7 +56,7 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 			"ifdef NONPROP\n"
 			"   CMD_ASM_{nid} = touch {x} {o}\n"
 			"else\n"
-			"   CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} > {c}\n"
+			"   CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}\n"
 			"endif\n"
 			"\n"
 			"{x}: {i}\n"
