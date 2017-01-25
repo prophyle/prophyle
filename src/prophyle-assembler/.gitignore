@@ -1,5 +1,6 @@
 prophyle-assembler
 *.o
+*.tsv
 
 intersect.fa
 out*
