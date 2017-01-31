@@ -133,9 +133,9 @@ class Read:
 
 
 	def print_assignments(self, form, crit):
-		if crit=="h1":
+		if crit=="c1":
 			winners=self.max_cov_rnames
-		elif crit=="c1":
+		elif crit=="h1":
 			winners=self.max_hit_rnames
 
 		tie_solved=False
