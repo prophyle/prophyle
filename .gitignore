@@ -60,3 +60,11 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Paper binary files
+paper/*.pdf
+paper/*.aux
+paper/*synctex.gz
+paper/*.out
+paper/*.log
+
