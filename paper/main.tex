@@ -1,0 +1,191 @@
+\documentclass[10pt,letterpaper]{article}
+
+\def\ARXIV{}
+\def\CORRECTIONS{}
+
+\ifdefined\CORRECTIONS
+	\newcommand{\greg}[1]{{\color{blue}#1}}
+	\newcommand{\karel}[1]{{\color{red}#1}}
+	\newcommand{\simone}[1]{{\color{violet}#1}}
+	\newcommand{\kamil}[1]{{\color{cyan}#1}}
+\else
+	\newcommand{\greg}[1]{{#1}}
+	\newcommand{\karel}[1]{{#1}}
+	\newcommand{\simone}[1]{{#1}}
+	\newcommand{\kamil}[1]{{#1}}
+\fi
+
+\ifdefined\ARXIV
+	\usepackage[top=0.85in,left=0.95in,footskip=0.75in]{geometry}
+	\textwidth 6.75in 
+
+	\newcommand\zsir{
+		\begin{adjustwidth}{-0.15in}{-0.15in}
+	}
+	\newcommand\ksir{
+		\end{adjustwidth}
+	}
+
+\else
+	\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+	\textwidth 5.25in 
+	
+	\newcommand\zsir{\begin{adjustwidth}{-2.25in}{0in}}
+	\newcommand\ksir{\end{adjustwidth}}
+\fi
+
+
+% PLOS packages
+\usepackage{changepage}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp,marvosym}
+\usepackage{fixltx2e}
+\usepackage{amsmath,amssymb}
+\usepackage{cite}
+\usepackage{nameref,hyperref}
+\usepackage[right]{lineno}
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
+\usepackage{rotating}
+\raggedright
+\setlength{\parindent}{0.5cm}
+\textheight 8.75in
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,justification=raggedright,singlelinecheck=off]{caption}
+\bibliographystyle{plos2015}
+\makeatletter
+\renewcommand{\@biblabel}[1]{\quad#1.}
+\makeatother
+\date{}
+\usepackage{lastpage,fancyhdr,graphicx}
+\usepackage{epstopdf}
+\pagestyle{myheadings}
+\pagestyle{fancy}
+\fancyhf{}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\footrule}{\hrule height 2pt \vspace{2mm}}
+\ifdefined\ARXIV
+\else
+	\fancyheadoffset[L]{2.25in}
+	\fancyfootoffset[L]{2.25in}
+\fi
+
+
+\ifdefined\ARXIV
+\else
+	\lhead{
+		\includegraphics[width=2.0in]{PLOS-submission}
+	}
+	
+	\lfoot{\sf PLOS}
+\fi
+
+\usepackage{todonotes}
+\usepackage{tabularx}
+\usepackage{xcolor,colortbl,soul}
+\usepackage{enumitem}
+
+\usepackage{ulem}
+\normalem
+
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{multirow}
+\usepackage{adjustbox}
+
+
+\begin{document}
+	
+\vspace*{0.35in}
+
+\begin{flushleft}	
+	
+{\Large
+	\textbf\newline{ProPhyle: accurate and resource-frugal phylogeny-based metagenomic classification}
+}
+\newline
+% Insert author names, affiliations and corresponding author email (do not include titles, positions, or degrees).
+
+Karel Břinda\textsuperscript{1},
+Kamil Salikhov\textsuperscript{2,4},
+Simone Pignotti\textsuperscript{3},
+Gregory Kucherov\textsuperscript{4\,*}
+\\
+\bigskip
+\textbf{1} Harvard, USA,
+%\\
+\textbf{2} {Moscow University, Russia},
+%\\
+\textbf{3} {UPMC, Paris, France},
+%\\
+\textbf{4} Université Paris-Est, LIGM, CNRS, 77454 Marne-la-Vallée, France
+
+\bigskip
+
+% Use the asterisk to denote corresponding authorship and provide email address in note below.
+* Corresponding author\newline
+E-mail: \url{gregory.kucherov@u-pem.fr} (GK)
+
+\end{flushleft}	
+	
+\newcommand{\counter}{C}
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+% \input{_abstract.tex}
+\begin{abstract}
+Abstract goes here
+\end{abstract}
+
+% \input{_introduction.tex}
+\section{Introduction}
+Modern high-throughput sequencing technologies changed the face of
+metagenomics by making possible the direct analysis of microbial
+communities on the whole-genome scale (?) 
+
+Talk about
+
+- phylogenetic placement
+
+- various databases
+
+- long reads, recombination and horizontal gene transfer
+
+- pre-processing for assembly ???
+
+% \input{_results.tex}
+
+% \input{_discussion.tex}
+
+% \input{_methods.tex}
+
+% \input{_conclusions.tex}
+
+%=======================================================================%
+\section*{Supporting Information}
+%=======================================================================%
+
+\paragraph{
+	S1 File. Description of ....
+}
+
+\paragraph{
+	S2 File. Detailed reports ....
+}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+%=======================================================================%
+\section*{Acknowledgments}
+%=======================================================================%
+
+KB and GK were supported by the ABS4NGS grant and by Labex B{\' e}zout of the French government (program Investissement d’Avenir). ...
+
+\nolinenumbers
+
+\bibliography{Mendeley_filtered} 
+
+\end{document}
