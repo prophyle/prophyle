@@ -13,6 +13,8 @@ SAMTOOLS?=samtools
 NEWICK2MAKEFILE=../../bin/newick2makefile.py
 ASSIGNMENT=../../bin/assignment.py
 
+ANNOTATEKMERS=../../bin/tree_annotate_kmers.py
+
 READS?=../../reads/simulation_bacteria.1000000.fq
 KLCP=index.fa.$(K).bit.klcp
 #UNAME_S := $(shell uname -s)
@@ -46,8 +48,8 @@ ifdef NONPROP
 	FINAL_FA:=../../bin/create_final_fasta.py --nondel
 endif
 
-all: index.fa.$(K).bit.klcp _main_log.log _main_log.md \
-	assigned_reads.bam assigned_reads_simlca.bam
+all: index.fa.$(K).bit.klcp _main_log.log _main_log.md index.fa.tree \
+	assigned_reads.bam assigned_reads_simlca.bam index.fa
 
 index/.complete: $(TREE)
 	mkdir -p index
@@ -67,7 +69,17 @@ index/.complete: $(TREE)
 
 index.fa: index/.complete
 	$(TTIME) -o 1.2_merging_fasta.log \
-	$(FINAL_FA) index > index.fa
+	$(FINAL_FA) index > $@
+	# todo: add this to the main prophyle cli script
+
+index.fa.kmers.tsv: index.fa
+	touch $@
+	echo "#file	no_kmers" >> $@
+	cat index/*.count.tsv | grep -v "^#" | sort | uniq >> $@
+
+index.fa.tree: index.fa.kmers.tsv $(TREE)
+	$(ANNOTATEKMERS) -i $(TREE) -o $@ -c $<
+
 
 index.fa.pac: index.fa
 	$(TTIME) -o 2.1_bwa_fa2pac.log \
@@ -102,13 +114,13 @@ kmers_restarted.txt: $(READS) $(KLCP) \
 	$(EXK) match -b -l 3.2b_matching_restarted.log \
 		-k $(K) index.fa $(READS) > $@
 
-assigned_reads.bam: kmers_rolling.txt $(TREE)
+assigned_reads.bam: kmers_rolling.txt index.fa.tree
 	$(TTIME) -o 4.1_read_assignment.log \
-	$(ASSIGNMENT) -i $< -n $(TREE) -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -i $< -n index.fa.tree -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
 
-assigned_reads_simlca.bam: kmers_rolling.txt $(TREE)
+assigned_reads_simlca.bam: kmers_rolling.txt index.fa.tree
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
-	$(ASSIGNMENT) -l -i $< -n $(TREE) -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
+	$(ASSIGNMENT) -l -i $< -n index.fa.tree -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
 
 5.1_contigs_stats.log: index.fa.fai
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@

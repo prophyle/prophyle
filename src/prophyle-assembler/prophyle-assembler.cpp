@@ -67,6 +67,7 @@ void print_help(){
 		" -i FILE  Input FASTA file (can be used multiple times).\n" <<
 		" -o FILE  Output FASTA file (if used, must be used as many times as -i).\n" <<
 		" -x FILE  Compute intersection, subtract it, save it.\n" <<
+		" -s FILE  Output file with k-mer statistics.\n" <<
 		" -k INT   K-mer size. [" << default_k << "]\n" <<
 		"\n" <<
 		"Note that '-' can be used for standard input/output. \n" <<
@@ -260,7 +261,7 @@ struct contig_t{
 
 //template<typename _nkmer_T, typename _set_T>
 template<typename _set_T>
-int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
+int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats){
 
 	std::cerr << "Loading " << fasta_fn << std::endl;
 
@@ -296,7 +297,9 @@ int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k){
 		}
 	}
 
-	std::cerr << "  " << fasta_fn << " loaded - #kmers: " << set.size()<<std::endl;
+	if(fstats){
+		fprintf(fstats,"%s\t%lu\n",fasta_fn.c_str(),set.size());
+	}
 	//std::cerr << "iterator finished" << std::endl;
 
 	kseq_destroy(seq);
@@ -379,8 +382,10 @@ int32_t remove_subset(std::vector<_set_T> &sets, const _subset_T &subset){
 
 
 template<typename _set_T>
-int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
-	std::cerr << "Assembling " << fasta_fn << " from " << set.size() << " kmers" << std::endl;
+int assemble(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats){
+	if(fstats){
+		fprintf(fstats,"%s\t%lu\n",fasta_fn.c_str(),set.size());
+	}
 
 	FILE *file;
 	if(fasta_fn=="-"){
@@ -464,7 +469,7 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k){
 		//std::cerr << "====================" << std::endl;
 
 		std::stringstream ss;
-		ss<<"contig_"<<contig_id;
+		ss<<"c"<<contig_id;
 		const std::string contig_name(ss.str());
 		contig.print_to_fasta(file,contig_name.c_str());
 		contig_id++;
@@ -486,6 +491,8 @@ int main (int argc, char* argv[])
 	std::string intersection_fn;
 	std::vector<std::string> in_fns;
 	std::vector<std::string> out_fns;
+	std::string stats_fn;
+	FILE *fstats=NULL;
 
 	if (argc<2){
 		print_help();
@@ -497,7 +504,7 @@ int main (int argc, char* argv[])
 	int32_t no_sets=0;
 
 	int c;
-	while ((c = getopt(argc, (char *const *)argv, "hi:o:x:k:")) >= 0) {
+	while ((c = getopt(argc, (char *const *)argv, "hi:o:x:s:k:")) >= 0) {
 		switch (c) {
 			case 'h': {
 				print_help();
@@ -517,6 +524,17 @@ int main (int argc, char* argv[])
 			case 'x': {
 				intersection_fn=std::string(optarg);
 				compute_intersection=true;
+				break;
+			}
+			case 's': {
+				stats_fn=std::string(optarg);
+				if(stats_fn=="-"){
+					fstats = stdin;
+				}
+				else {
+					fstats = fopen(stats_fn.c_str(), "w+");
+				}
+
 				break;
 			}
 			case 'k': {
@@ -541,6 +559,15 @@ int main (int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+	if(fstats){
+		fprintf(fstats,"# cmd: %s",argv[0]);
+
+		for (int32_t i=1;i<argc;i++){
+			fprintf(fstats," %s",argv[i]);
+		}
+		fprintf(fstats,"\n");
+	}
+
 	std::vector< std::unordered_set<nkmer_t> > full_sets(no_sets);
 
 	std::cerr << "=====================" << std::endl;
@@ -552,7 +579,7 @@ int main (int argc, char* argv[])
 	std::vector<int32_t> out_sizes;
 
 	for(int32_t i=0;i<no_sets;i++){
-		kmers_from_fasta(in_fns[i],full_sets[i],k);
+		kmers_from_fasta(in_fns[i],full_sets[i],k,fstats);
 		//debug_print_kmer_set(full_sets[i],k);
 		in_sizes.insert(in_sizes.end(),full_sets[i].size());
 	}
@@ -592,11 +619,15 @@ int main (int argc, char* argv[])
 
 	if(compute_output){
 		for(int32_t i=0;i<static_cast<int32_t>(in_fns.size());i++){
-			assemble(out_fns[i],full_sets[i],k);
+			assemble(out_fns[i],full_sets[i],k,fstats);
 		}
 	}
 	if(compute_intersection){
-		assemble(intersection_fn,intersection,k);
+		assemble(intersection_fn,intersection,k,fstats);
+	}
+
+	if (fstats){
+		fclose(fstats);
 	}
 
 	return 0;
