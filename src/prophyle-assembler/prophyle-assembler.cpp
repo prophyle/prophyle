@@ -14,6 +14,8 @@
 #include <unordered_set>
 #include <getopt.h>
 
+#include <map>
+
 //typedef __uint128_t nkmer_t;
 typedef uint64_t nkmer_t;
 typedef std::set<nkmer_t> set_t;
@@ -316,20 +318,20 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 		1) Find the smallest set from sets.
 	*/
 
-	int32_t min=std::numeric_limits<int32_t>::max();
-	int32_t i_min=-1;
+//	int32_t min=std::numeric_limits<int32_t>::max();
+//	int32_t i_min=-1;
 
 	//std::cerr << "searching min" << std::endl;
 
-	for(int32_t i=0;i<static_cast<int32_t>(sets.size());i++){
-		if (static_cast<int32_t>(sets[i].size())<min){
-			min=sets[i].size();
-			i_min=i;
-			//std::cerr << "new min" << i << std::endl;
-		}
-	}
+	//for(int32_t i=0;i<static_cast<int32_t>(sets.size());i++){
+	//	if (static_cast<int32_t>(sets[i].size())<min){
+	//		min=sets[i].size();
+	//		i_min=i;
+	//		//std::cerr << "new min" << i << std::endl;
+	//	}
+	//}
 
-	assert(i_min != std::numeric_limits<int32_t>::max() && i_min!=-1);
+	//assert(i_min != std::numeric_limits<int32_t>::max() && i_min!=-1);
 
 	/*
 		2) Take it as the intersection.
@@ -339,28 +341,68 @@ int32_t find_intersection(const std::vector<_set_T> &sets, _set_T &intersection)
 
 	intersection.clear();
 	//std::cerr << "2.1" << std::endl;
-	std::copy(
-		sets[i_min].cbegin(), sets[i_min].cend(),
-		std::inserter(intersection,intersection.end())
-	);
+	//std::copy(
+	//	sets[i_min].cbegin(), sets[i_min].cend(),
+	//	std::inserter(intersection,intersection.end())
+	//);
 
 	/*
 		3) Remove elements from intersection present in other sets.
 	*/
 
+	std::map<nkmer_t, int> counts;
+
+
 	for(const _set_T &current_set : sets) {
-
-		for(auto it = intersection.begin(); it !=intersection.end();){
-
-			if(current_set.find(*it) == current_set.cend()){
-				it=intersection.erase(it);
+		for (auto it = current_set.begin(); it != current_set.end(); ++it) {
+			auto it_map = counts.find(*it);
+			if (it_map == counts.cend()) {
+				counts.emplace(*it, 1);
+			} else {
+				counts[*it]++;
 			}
-			else{
-				++it;
-			}
+		}	
+	}
+	
+	int min_sets_for_propagation = 0;
+	switch (sets.size()) {
+		case 1: 
+			min_sets_for_propagation = 1;
+			break;
+		case 2:
+			min_sets_for_propagation = 2;
+			break;
+		case 3:
+			min_sets_for_propagation = 2;
+			break;
+		case 4:
+			min_sets_for_propagation = 3;
+			break;
+		default:
+			min_sets_for_propagation = sets.size() * 0.67;
+			break;
+
+	}
+
+		for (auto it = counts.begin(); it != counts.end(); ++it) {
+		if (it->second == min_sets_for_propagation) {
+			intersection.insert(it->first);
 		}
 	}
 
+//	for(const _set_T &current_set : sets) {
+//
+//		for(auto it = intersection.begin(); it !=intersection.end();){
+//
+//			if(current_set.find(*it) == current_set.cend()){
+//				it=intersection.erase(it);
+//			}
+//			else{
+//				++it;
+//			}
+//		}
+//	}
+//
 	return 0;
 }
 
@@ -608,7 +650,7 @@ int main (int argc, char* argv[])
 	if(compute_output){
 		for (int32_t i=0;i<no_sets;i++){
 			out_sizes.insert(out_sizes.end(),full_sets[i].size());
-			assert(in_sizes[i]==out_sizes[i]+intersection_size);
+			//assert(in_sizes[i]==out_sizes[i]+intersection_size);
 			std::cerr << in_sizes[i] << " " << out_sizes[i] << " ...inter:" << intersection_size << std::endl;
 		}
 	}
