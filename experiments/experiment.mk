@@ -121,7 +121,7 @@ kmers_rolling_10.txt: $(KLCP) \
 		-k $(K) -t 10 -u index.fa $(READS) > $@
 
 kmers_restarted.txt: $(READS) $(KLCP) \
-	kmers_rolling_10.txt
+	kmers_rolling.txt
 	$(TTIME) -o 3.2a_matching_restarted.log \
 	$(EXK) match -b -l 3.2b_matching_restarted.log \
 		-k $(K) -t 1 index.fa $(READS) > $@
@@ -138,11 +138,11 @@ kmers_restarted_10.txt: $(READS) $(KLCP) \
 	$(EXK) match -b -l 3.2b_10_matching_restarted.log \
 		-k $(K) -t 10 index.fa $(READS) > $@
 
-assigned_reads.bam: kmers_rolling.txt index.fa.tree
+assigned_reads.bam: kmers_restarted_10.txt index.fa.tree
 	$(TTIME) -o 4.1_read_assignment.log \
 	$(ASSIGNMENT) -i $< -n index.fa.tree -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
 
-assigned_reads_simlca.bam: kmers_rolling.txt index.fa.tree
+assigned_reads_simlca.bam: kmers_restarted_10.txt index.fa.tree
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
 	$(ASSIGNMENT) -l -i $< -n index.fa.tree -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
 
