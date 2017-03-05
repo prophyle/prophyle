@@ -56,6 +56,11 @@ int exk_match(int argc, char *argv[])
 		opt->mode &= ~BWA_MODE_GAPE;
 	}
 
+	if (opt->output_old && opt->n_threads > 1) {
+		fprintf(stderr, "-v option can be used only with one thread (-t 1)\n");
+		return 1;
+	}
+
 	if (optind + 2 > argc) {
 		fprintf(stderr, "\n");
 		fprintf(stderr, "Usage:   exk match [options] <prefix> <in.fq>\n\n");
