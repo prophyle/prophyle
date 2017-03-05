@@ -206,18 +206,19 @@ void strncat_with_check(char* str, char* str_to_append, int* str_length,
 	}
 }
 
-void output_old(int* seen_nodes, const int nodes_cnt) {
+char* output_old(int* seen_nodes, const int nodes_cnt) {
 	int output_length = 10;
 	int r;
 	for (r = 0; r < nodes_cnt; ++r) {
 		output_length += get_node_name_length(seen_nodes[r]) + 1;
 	}
-	char* output = malloc(output_length, sizeof(char));
+	char* output = malloc(output_length * sizeof(char));
 	output[0] = '\0';
-	snprintf(output, "%d ", nodes_cnt);
+	output_length = 0;
+	sprintf(output, "%d ", nodes_cnt);
 	for(r = 0; r < nodes_cnt; ++r) {
-		strncat_with_check(output, get_node_name(seen_nodes[r]), strlen(output), get_node_name_length(seen_nodes[r]), MAX_SOFT_STREAK_LENGTH);
-		strncat_with_check(output, " ", strlen(output), 1, MAX_SOFT_STREAK_LENGTH);
+		strncat_with_check(output, get_node_name(seen_nodes[r]), &output_length, get_node_name_length(seen_nodes[r]), MAX_SOFT_STREAK_LENGTH);
+		strncat_with_check(output, " ", &output_length, 1, MAX_SOFT_STREAK_LENGTH);
 	}
 	return output;
 }
