@@ -386,9 +386,13 @@ void prophyle_worker_destroy(prophyle_worker_t* prophyle_worker_data) {
 	}
 	if (prophyle_worker_data->output) {
 		for (i = 0; i < prophyle_worker_data->seqs_cnt; ++i) {
-			free(prophyle_worker_data->output[i]);
+			if (prophyle_worker_data->output[i]) {
+				free(prophyle_worker_data->output[i]);
+		  }
 		}
-		free(prophyle_worker_data->output);
+		if (prophyle_worker_data->output) {
+			free(prophyle_worker_data->output);
+		}
 	}
 	free(prophyle_worker_data);
 }
