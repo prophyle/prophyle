@@ -193,15 +193,6 @@ size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 	return nodes_cnt;
 }
 
-void output_old(int* seen_nodes, const int nodes_cnt) {
-	fprintf(stdout, "%d ", nodes_cnt);
-	int r;
-	for(r = 0; r < nodes_cnt; ++r) {
-		fprintf(stdout, "%s ", get_node_name(seen_nodes[r]));
-	}
-	fprintf(stdout, "\n");
-}
-
 void strncat_with_check(char* str, char* str_to_append, int* str_length,
 	int str_to_append_length, int length_limit) {
 	if (*str_length >= length_limit) {
@@ -213,6 +204,22 @@ void strncat_with_check(char* str, char* str_to_append, int* str_length,
 			*str_length = length_limit;
 		}
 	}
+}
+
+void output_old(int* seen_nodes, const int nodes_cnt) {
+	int output_length = 10;
+	int r;
+	for (r = 0; r < nodes_cnt; ++r) {
+		output_length += get_node_name_length(seen_nodes[r]) + 1;
+	}
+	char* output = malloc(output_length, sizeof(char));
+	output[0] = '\0';
+	snprintf(output, "%d ", nodes_cnt);
+	for(r = 0; r < nodes_cnt; ++r) {
+		strncat_with_check(output, get_node_name(seen_nodes[r]), strlen(output), get_node_name_length(seen_nodes[r]), MAX_SOFT_STREAK_LENGTH);
+		strncat_with_check(output, " ", strlen(output), 1, MAX_SOFT_STREAK_LENGTH);
+	}
+	return output;
 }
 
 void construct_streaks(char** all_streaks, char** current_streak, int* seen_nodes, const int nodes_cnt, int streak_size,
@@ -511,7 +518,9 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 					positions_cnt, aux_data.positions, seen_nodes, &seen_nodes_marks, opt->skip_positions_on_border);
 			}
 			if (opt->output_old) {
-				output_old(seen_nodes, nodes_cnt);
+				char* output = output_old(seen_nodes, nodes_cnt);
+				prophyle_worker_data->output[i] = malloc((strlen(output) + 1) * sizeof(char));
+				strncpy(prophyle_worker_data->output[i], output, strlen(output) + 1);
 			} else if (opt->output) {
 				if (start_pos == 0 || ambiguous_streak_just_ended || (equal(nodes_cnt, seen_nodes, prev_nodes_count, prev_seen_nodes))) {
 					current_streak_size++;
