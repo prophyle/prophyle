@@ -349,6 +349,10 @@ prophyle_worker_t* prophyle_worker_init(bwaidx_t* idx, int32_t seqs_cnt, bwa_seq
 	}
 	prophyle_worker_data->seqs_cnt = seqs_cnt;
 	prophyle_worker_data->output = malloc(seqs_cnt * sizeof(char*));
+	int i = 0;
+	for (i = 0; i < seqs_cnt; ++i) {
+		prophyle_worker_data->output[i] = NULL;
+	}
 	return prophyle_worker_data;
 }
 
