@@ -33,7 +33,7 @@ def create_bwa_index(fa):
 def create_klcp(fa, k):
 	cmd('"{exk}" index -k {k} "{fa}"'.format(exk=exk,fa=fa,k=k))
 
-def match(fa, fq, k, s=False, u=False, v=False):
+def match(fa, fq, k, s=False, u=False, v=False, t=1):
 	params=""
 	if v:
 		params+=" -v"
@@ -41,7 +41,7 @@ def match(fa, fq, k, s=False, u=False, v=False):
 		params+=" -s"
 	if u:
 		params+=" -u"
-	cmd('"{exk}" match {params} -k {k} "{fa}" "{fq}"'.format(exk=exk,fa=fa,fq=fq,k=k, params=params),stdout=sys.stdout)
+	cmd('"{exk}" match {params} -k {k} -t {t} "{fa}" "{fq}"'.format(exk=exk,fa=fa,fq=fq,k=k,t=t, params=params),stdout=sys.stdout)
 
 parser = argparse.ArgumentParser(description='One command exk matching.')
 parser.add_argument(
@@ -51,6 +51,15 @@ parser.add_argument(
 		dest='k',
 		required=True,
 		help='k-mer length',
+	)
+parser.add_argument(
+		'-t',
+		type=int,
+		default=1,
+		metavar='int',
+		dest='t',
+		required=False,
+		help='number of threads',
 	)
 parser.add_argument(
 		'-v',
@@ -86,6 +95,7 @@ k=args.k
 u=args.u
 v=args.v
 s=args.s
+t=args.t
 
 create_bwa_index(fa)
 
@@ -94,4 +104,4 @@ if u:
 	#cmd('"{exk}" index -k {k} "{fa}"'.format(exk=exk,fa=args.in_fasta,k=args.k))
 
 #cmd('"{exk}" match -v -k {k} "{fa}" "{fq}"'.format(exk=exk,fa=args.in_fasta,fq=args.in_fq,k=args.k),stdout=sys.stdout)
-match(fa, fq, k, s=s, u=u, v=v)
+match(fa, fq, k, s=s, u=u, v=v, t=t)

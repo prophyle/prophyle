@@ -106,19 +106,43 @@ $(KLCP): index.fa index.fa.bwt
 kmers_rolling.txt: $(KLCP)
 	$(TTIME) -o 3.1a_matching_rolling.log \
 	$(EXK) match -b -l 3.1b_matching_rolling.log  \
-		-k $(K) -u index.fa $(READS) > $@
+		-k $(K) -t 1 -u index.fa $(READS) > $@
+
+kmers_rolling_2.txt: $(KLCP) \
+	kmers_rolling.txt
+	$(TTIME) -o 3.1a_2_matching_rolling.log \
+	$(EXK) match -b -l 3.1b_2_matching_rolling.log  \
+		-k $(K) -t 2 -u index.fa $(READS) > $@
+
+kmers_rolling_10.txt: $(KLCP) \
+	kmers_rolling_2.txt
+	$(TTIME) -o 3.1a_10_matching_rolling.log \
+	$(EXK) match -b -l 3.1b_10_matching_rolling.log  \
+		-k $(K) -t 10 -u index.fa $(READS) > $@
 
 kmers_restarted.txt: $(READS) $(KLCP) \
 	kmers_rolling.txt
 	$(TTIME) -o 3.2a_matching_restarted.log \
 	$(EXK) match -b -l 3.2b_matching_restarted.log \
-		-k $(K) index.fa $(READS) > $@
+		-k $(K) -t 1 index.fa $(READS) > $@
 
-assigned_reads.bam: kmers_rolling.txt index.fa.tree
+kmers_restarted_2.txt: $(READS) $(KLCP) \
+	kmers_restarted.txt
+	$(TTIME) -o 3.2a_2_matching_restarted.log \
+	$(EXK) match -b -l 3.2b_2_matching_restarted.log \
+		-k $(K) -t 2 index.fa $(READS) > $@
+
+kmers_restarted_10.txt: $(READS) $(KLCP) \
+	kmers_restarted_2.txt
+	$(TTIME) -o 3.2a_10_matching_restarted.log \
+	$(EXK) match -b -l 3.2b_10_matching_restarted.log \
+		-k $(K) -t 10 index.fa $(READS) > $@
+
+assigned_reads.bam: kmers_restarted_10.txt index.fa.tree
 	$(TTIME) -o 4.1_read_assignment.log \
 	$(ASSIGNMENT) -i $< -n index.fa.tree -k $(K) -f sam -a | $(SAMTOOLS) view -b > $@
 
-assigned_reads_simlca.bam: kmers_rolling.txt index.fa.tree
+assigned_reads_simlca.bam: kmers_restarted_10.txt index.fa.tree
 	$(TTIME) -o 4.2_read_assignment_simlca.log \
 	$(ASSIGNMENT) -l -i $< -n index.fa.tree -k $(K) -f sam -a -t | $(SAMTOOLS) view -b > $@
 
@@ -126,7 +150,7 @@ assigned_reads_simlca.bam: kmers_rolling.txt index.fa.tree
 	../../bin/contig_statistics.py -k $(K) -f index.fa.fai > $@
 
 _main_log.log: index.fa.$(K).bit.klcp 5.1_contigs_stats.log \
-	kmers_rolling.txt kmers_restarted.txt \
+	kmers_rolling_10.txt kmers_restarted_10.txt \
 	assigned_reads.bam assigned_reads_simlca.bam
 	du -sh *.fa.* | grep -v "fa.amb" | grep -v "fa.fai" > 5.2_index_size.log
 	echo > _main_log.log
