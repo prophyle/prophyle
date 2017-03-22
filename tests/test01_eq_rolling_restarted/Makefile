@@ -8,7 +8,7 @@ SHELL=/bin/bash -o pipefail
 M=../../bin/1step_match.py
 
 FA=index.fa
-FQ=simulation_bacteria.1000.fq
+FQ=../simulation_bacteria.1000.fq
 K=14 16
 
 #targets = $(addsuffix .txt, $(K))
