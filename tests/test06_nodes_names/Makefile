@@ -1,7 +1,7 @@
 .PHONY: all clean
 
 FA=index.fa
-FQ=../../reads/simulation_bacteria.1000.fq
+FQ=../simulation_bacteria.1000.fq
 K=10
 
 all:
