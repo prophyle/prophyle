@@ -1,1 +1,0 @@
-../src/kraken-db/kraken_assembler.sh
