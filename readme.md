@@ -18,8 +18,8 @@ Environment installation:
 ```bash
 	conda create -y --name prophyle \
 		-c etetoolkit -c bioconda \
-		python==3.4 ete3 ete3_external_apps bitarray \
-		cmake parallel blast samtools
+		python==3.4 ete3 bitarray \
+		parallel blast samtools=1.3.1
 ```
 
 Environment activation:
