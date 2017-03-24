@@ -1,0 +1,13 @@
+$ prophyle  -h
+
+usage: prophyle.py [-h] {init,index,classify} ...
+
+positional arguments:
+  {init,index,classify}
+                        sub-command help
+    init                Initialize data
+    index               Create index
+    classify            Classify reads
+
+optional arguments:
+  -h, --help            show this help message and exit

@@ -1,0 +1,16 @@
+$ prophyle index -h
+
+usage: prophyle.py index [-h] -n FILE -l DIR [-t INT] [-k INT] [--continue]
+                         <index.dir>
+
+positional arguments:
+  <index.dir>             index directory (will be created)
+
+optional arguments:
+  -h, --help              show this help message and exit
+  -n FILE, --newick FILE  taxonomy tree (in Newick format)
+  -l DIR, --lib-dir DIR   directory with genomic sequences
+  -t INT, --threads INT   number of threads [auto=4]
+  -k INT, --kmer-len INT  k-mer length [32]
+  --continue              continue with index construction (construct only
+                          missing parts)
