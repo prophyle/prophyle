@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Reference &#8212; ProPhyle  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="reference">
+<span id="id1"></span><h1>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h1>
+<p>Here you can find an automatically generated reference for ProPhyle&#8217;s CLI.</p>
+</div>
+<div class="section" id="general">
+<h1>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="prophyle-list-of-subcommands">
+<h2><code class="docutils literal"><span class="pre">prophyle</span></code> (list of subcommands)<a class="headerlink" href="#prophyle-list-of-subcommands" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="code text highlight-default"><div class="highlight"><pre><span></span>$ prophyle  -h
+
+usage: prophyle.py [-h] {init,index,classify} ...
+
+positional arguments:
+  {init,index,classify}
+                        sub-command help
+    init                Initialize data
+    index               Create index
+    classify            Classify reads
+
+optional arguments:
+  -h, --help            show this help message and exit
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="prophyle-init">
+<h2><code class="docutils literal"><span class="pre">prophyle</span> <span class="pre">init</span></code><a class="headerlink" href="#prophyle-init" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="code text highlight-default"><div class="highlight"><pre><span></span>$ prophyle init -h
+
+usage: prophyle.py init [-h] [-m DIR] &lt;library&gt;
+
+positional arguments:
+  &lt;library&gt;                genomic library [&#39;bacteria&#39;, &#39;viruses&#39;, &#39;plasmids&#39;,
+                           &#39;hmp&#39;, &#39;all&#39;]
+
+optional arguments:
+  -h, --help               show this help message and exit
+  -m DIR, --prophyle-dir DIR
+                           ProPhyle directory [/home/simone/prophyle]
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="prophyle-index">
+<h2><code class="docutils literal"><span class="pre">prophyle</span> <span class="pre">index</span></code><a class="headerlink" href="#prophyle-index" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="code text highlight-default"><div class="highlight"><pre><span></span>$ prophyle index -h
+
+usage: prophyle.py index [-h] -n FILE -l DIR [-t INT] [-k INT] [--continue]
+                         &lt;index.dir&gt;
+
+positional arguments:
+  &lt;index.dir&gt;             index directory (will be created)
+
+optional arguments:
+  -h, --help              show this help message and exit
+  -n FILE, --newick FILE  taxonomy tree (in Newick format)
+  -l DIR, --lib-dir DIR   directory with genomic sequences
+  -t INT, --threads INT   number of threads [auto=4]
+  -k INT, --kmer-len INT  k-mer length [32]
+  --continue              continue with index construction (construct only
+                          missing parts)
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="prophyle-classify">
+<h2><code class="docutils literal"><span class="pre">prophyle</span> <span class="pre">classify</span></code><a class="headerlink" href="#prophyle-classify" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="code text highlight-default"><div class="highlight"><pre><span></span>$ prophyle classify -h
+
+usage: prophyle.py classify [-h] [-k INT] [-n] [-m {h1,c1}] [-o {kraken,sam}]
+                            [--annotate] [--tie-lca] [--mimic-kraken]
+                            &lt;index.dir&gt; &lt;reads.fq&gt;
+
+positional arguments:
+  &lt;index.dir&gt;              index directory
+  &lt;reads.fq&gt;               file with reads in FASTA or FASTQ [- for standard
+                           input]
+
+optional arguments:
+  -h, --help               show this help message and exit
+  -k INT, --kmer-len INT   k-mer length [32]
+  -n, --no-klcp            do not use k-LCP
+  -m {h1,c1}, --measure {h1,c1}
+                           measure: h1=hit count, c1=coverage [h1]
+  -o {kraken,sam}, --out-form {kraken,sam}
+                           output format
+  --annotate               annotate assignments
+  --tie-lca                use LCA when tie (multiple hits with the same
+                           score)
+  --mimic-kraken           mimic Kraken algorithm and output (for debugging
+                           purposes)
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Reference</a></li>
+<li><a class="reference internal" href="#general">General</a><ul>
+<li><a class="reference internal" href="#prophyle-list-of-subcommands"><code class="docutils literal"><span class="pre">prophyle</span></code> (list of subcommands)</a></li>
+<li><a class="reference internal" href="#prophyle-init"><code class="docutils literal"><span class="pre">prophyle</span> <span class="pre">init</span></code></a></li>
+<li><a class="reference internal" href="#prophyle-index"><code class="docutils literal"><span class="pre">prophyle</span> <span class="pre">index</span></code></a></li>
+<li><a class="reference internal" href="#prophyle-classify"><code class="docutils literal"><span class="pre">prophyle</span> <span class="pre">classify</span></code></a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/reference.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/reference.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
