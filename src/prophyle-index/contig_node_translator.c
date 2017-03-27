@@ -31,8 +31,11 @@ int get_node_name_length(const int node) {
 void add_contig(char* contig, int contig_number) {
   xassert(contigs_count < MAX_CONTIGS_COUNT, "there are more than MAX_CONTIGS_COUNT contigs, try to increase MAX_CONTIGS_COUNT in contig_node_translator.c\n");
   contigs_count++;
-  const char* ch = strchr(contig, '_');
+  const char* ch = strchr(contig, '@');
   int index = 0;
+  if (ch == NULL) {
+    ch = strchr(contig, '_');
+  }
   if (ch == NULL) {
     index = strlen(contig) - 1;
   } else {
