@@ -34,9 +34,6 @@ void add_contig(char* contig, int contig_number) {
   const char* ch = strchr(contig, '@');
   int index = 0;
   if (ch == NULL) {
-    ch = strchr(contig, '_');
-  }
-  if (ch == NULL) {
     index = strlen(contig) - 1;
   } else {
     index = ch - contig;
