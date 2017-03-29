@@ -1,32 +1,38 @@
-import os
-import shutil
-import sys
-import glob
-from setuptools import setup, find_packages, Extension
+import ez_setup
+ez_setup.use_setuptools()
 
-prophyle_assembler_c_files = ["src/prophyle-assembler/prophyle-assembler.cpp"]
+from setuptools import setup
+from setuptools import Extension
+from subprocess import call
 
-prophyle_assembler_mod = Extension(
-    "prophyle-assembler",
-    prophyle_assembler_c_files,
-	extra_compile_args=['-std=c++11', '-v', '-mmacosx-version-min=10.9'],
-    extra_link_args=['-lz'],
-    include_dirs=[os.path.join('src', 'prophyle-assembler')],
-	language = "c++",
-)
+
+# Only run lib setup when needed, not on every invocation
+from distutils.command.build_ext import build_ext as _build_ext
+
+
+class build_ext(_build_ext):
+	"""Specialized Python extension builder."""
+
+	def run(self):
+		call('make -C src', shell=True)
+		_build_ext.run(self)
+
+
+#setup(cmdclass={'build_ext': build_ext}, **setup_metadata)
+
 
 setup(
-    ext_modules=[prophyle_assembler_mod],
-    name='prophyle',
-    version='0.0.1',
-    description='ProPhyle metagenomic classifier',
-    packages = find_packages(),
-    url='https://github.com/karel-brinda/prophyle',
-    license='MIT',
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'Programming Language :: Python :: 3 :: Only',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-    ],
+	name='prophyle',
+	version='0.0.1',
+	description='ProPhyle metagenomic classifier',
+	#packages = find_packages(),
+	url='https://github.com/karel-brinda/prophyle',
+	license='MIT',
+	cmdclass={'build_ext': build_ext},
+	classifiers=[
+		'Development Status :: 4 - Beta',
+		'Topic :: Scientific/Engineering :: Bio-Informatics',
+		'Programming Language :: Python :: 3 :: Only',
+		'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+	],
 )
