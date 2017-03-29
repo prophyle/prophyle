@@ -8,16 +8,17 @@ import shutil
 import subprocess
 import sys
 
+c_d=os.path.dirname(os.path.realpath(__file__))
+
 #bin_dir=os.path.normpath(os.path.join(os.path.dirname(__file__),"../../bin"))
-bin_dir=os.path.dirname(__file__)
-bwa=os.path.join(bin_dir,"bwa")
-exk=os.path.join(bin_dir,"prophyle-index")
-asm=os.path.abspath(os.path.join(bin_dir,"prophyle-assembler"))
-newick2makefile=os.path.join(bin_dir,"newick2makefile.py")
-test_newick=os.path.join(bin_dir,"test_newick_tree.py")
-merge_fastas=os.path.join(bin_dir,"create_final_fasta.py")
-assign=os.path.join(bin_dir,"assignment.py")
-test_newick=os.path.join(bin_dir,"test_newick_tree.py")
+#bin_dir=os.path.dirname(__file__)
+bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
+exk=os.path.join(c_d,"prophyle-index","prophyle-index")
+asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
+newick2makefile=os.path.join(c_d,"newick2makefile.py")
+test_newick=os.path.join(c_d,"test_newick_tree.py")
+merge_fastas=os.path.join(c_d,"create_final_fasta.py")
+assign=os.path.join(c_d,"prophyle-assignment","assignment.py")
 
 DEFAULT_K=32
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -356,7 +357,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 # MAIN #
 ########
 
-if __name__ == "__main__":
+def main():
 	try:
 		parser = argparse.ArgumentParser()
 		subparsers = parser.add_subparsers(help='sub-command help',dest='subcommand')
@@ -530,3 +531,6 @@ if __name__ == "__main__":
 
 	except (IOError, OSError):
 		sys.exit(0)
+
+if __name__ == "__main__":
+	main()
