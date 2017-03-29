@@ -67,5 +67,11 @@ setup(
 
 	ext_modules=[fake_ext],
 
+	entry_points={
+          'console_scripts': [
+              'prophyle = prophyle.prophyle:main'
+          ]
+      },
+
 	cmdclass={'build_ext': build_ext},
 )
