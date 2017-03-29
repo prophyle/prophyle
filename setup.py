@@ -1,31 +1,32 @@
-import ez_setup
-ez_setup.use_setuptools()
+#import ez_setup
+#ez_setup.use_setuptools()
 
 from setuptools import setup
 from setuptools import Extension
-from subprocess import call
+from setuptools import find_packages
+
+import os
+import subprocess
 
 
-# Only run lib setup when needed, not on every invocation
 from distutils.command.build_ext import build_ext as _build_ext
 
+prophyle_assembler_mod = Extension(
+    "fake_extension",
+    ["src/fake_extension.c"],
+)
 
 class build_ext(_build_ext):
-	"""Specialized Python extension builder."""
-
 	def run(self):
-		call('make -C src', shell=True)
+		subprocess.call('make -C src', shell=True)
 		_build_ext.run(self)
 
-
-#setup(cmdclass={'build_ext': build_ext}, **setup_metadata)
-
-
 setup(
+    ext_modules=[prophyle_assembler_mod],
 	name='prophyle',
 	version='0.0.1',
 	description='ProPhyle metagenomic classifier',
-	#packages = find_packages(),
+	packages = find_packages(),
 	url='https://github.com/karel-brinda/prophyle',
 	license='MIT',
 	cmdclass={'build_ext': build_ext},
