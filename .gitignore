@@ -1,3 +1,5 @@
+fake_extension.c
+
 .snakemake
 .complete
 *.swp
