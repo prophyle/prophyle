@@ -2,14 +2,14 @@
 
 VERBOSE=1
 
-include src/get_nb_jobs.mk
+include prophyle/get_nb_jobs.mk
 
 all:
-	make -C src
+	make -C prophyle
 	make -C library
 	make -C reads
 
 test:
-	make -C src
+	make -C prophyle
 	make -C tests clean
 	make -C tests
