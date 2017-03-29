@@ -30,7 +30,7 @@ setup(
 	url='https://github.com/karel-brinda/prophyle',
 
 	author='Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
-	author_email='kbrinda@hsph.harvard.edu, salikhov.kamil@gmail.com, pignottisimone@gmail.com, gregory.kucherov@univ-mlv.fr ',
+	author_email='kbrinda@hsph.harvard.edu, salikhov.kamil@gmail.com, pignottisimone@gmail.com, gregory.kucherov@univ-mlv.fr',
 
 	license='MIT',
 
