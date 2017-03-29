@@ -27,7 +27,7 @@ DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'prophyle')
 
 LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
-FTP_NCBI='http://ftp.ncbi.nlm.nih.gov'
+FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
 # todo: add both FTP and HTTP variants
 #   http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
 #   ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
