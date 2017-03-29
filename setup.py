@@ -8,8 +8,8 @@ import glob
 
 from distutils.command.build_ext import build_ext as _build_ext
 
-prophyle_assembler_mod = Extension(
-	"fake_extension",
+fake_ext = Extension(
+	"prophyle.fake_extension",
 	["prophyle/fake_extension.c"],
 )
 
@@ -47,8 +47,6 @@ setup(
 
 	install_requires=['ete3', 'numpy'],
 
-	#package_dir={'prophyle': 'src'},
-
 	package_data={
 		'prophyle': [
 			'*',
@@ -67,7 +65,7 @@ setup(
 		]
 	},
 
-	ext_modules=[prophyle_assembler_mod],
+	ext_modules=[fake_ext],
 
 	cmdclass={'build_ext': build_ext},
 )
