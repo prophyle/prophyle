@@ -7,7 +7,7 @@ from setuptools import find_packages
 
 import os
 import subprocess
-
+import glob
 
 from distutils.command.build_ext import build_ext as _build_ext
 
@@ -27,6 +27,10 @@ setup(
 	version='0.0.1',
 	description='ProPhyle metagenomic classifier',
 	packages = find_packages(),
+	data_files=[
+		(x,[y for y in glob.glob("{}/*".format(x)) if os.path.isfile(y) or os.path.islink(y)])
+		for x in ["bin", "trees", "src/prophyle-assembler"]
+		],
 	url='https://github.com/karel-brinda/prophyle',
 	license='MIT',
 	cmdclass={'build_ext': build_ext},
