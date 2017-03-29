@@ -21,7 +21,7 @@ class build_ext(_build_ext):
 setup(
 	name='prophyle',
 
-	version='0.1.0.1',
+	version='0.1.0.2',
 
 
 	description='ProPhyle metagenomic classifier',
@@ -45,7 +45,7 @@ setup(
 
 	packages = find_packages(),
 
-	install_requires=['ete3', 'numpy', 'wheels'],
+	install_requires=['ete3', 'numpy', 'wheel'],
 
 	package_data={
 		'prophyle': [
