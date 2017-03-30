@@ -1,4 +1,3 @@
-[submodule "ext/bwa"]
-	path = ext/bwa
-	url = http://github.com/karel-brinda/bwa
-	ignore = dirty
+[submodule "prophyle/prophyle-index/bwa"]
+	path = prophyle/prophyle-index/bwa
+	url = http://github.com/lh3/bwa
