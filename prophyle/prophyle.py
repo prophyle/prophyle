@@ -22,7 +22,8 @@ newick2makefile="newick2makefile.py"
 test_newick=os.path.join(c_d,"test_newick_tree.py")
 ## todo: decide about the path (execution from repo vs from package)
 merge_fastas="create_final_fasta.py"
-assign=os.path.join(c_d,"prophyle-assignment","assignment.py")
+## todo: decide about the path (execution from repo vs from package)
+assign="assignment.py"
 
 DEFAULT_K=32
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -323,7 +324,8 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 	index_newick=os.path.join(index_dir, 'tree.newick')
 
 	_test_newick(index_newick)
-	_test_files(fq_fn,index_fa,ind,assign)
+	#_test_files(fq_fn,index_fa,ind,assign)
+	_test_files(fq_fn,index_fa,ind)
 
 	_test_files(
 			index_fa+'.bwt',

@@ -376,7 +376,7 @@ class TreeIndex:
 
 
 
-if __name__ == "__main__":
+def main():
 
 	try:
 
@@ -474,3 +474,6 @@ if __name__ == "__main__":
 
 	except (IOError, OSError):
 		sys.exit(0)
+
+if __name__ == "__main__":
+	main()
