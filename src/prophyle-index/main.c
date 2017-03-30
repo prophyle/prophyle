@@ -63,24 +63,13 @@ int exk_match(int argc, char *argv[])
 
 	if (optind + 2 > argc) {
 		fprintf(stderr, "\n");
-		fprintf(stderr, "Usage:   exk match [options] <prefix> <in.fq>\n\n");
+		fprintf(stderr, "Usage:   prophyle-index query [options] <prefix> <in.fq>\n\n");
 		fprintf(stderr, "Options: -k INT    length of k-mer\n");
 		fprintf(stderr, "         -u        use klcp for matching\n");
 		fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
-		fprintf(stderr, "         -s        skip k-1 k-mers after failing matching k-mer\n");
 		fprintf(stderr, "         -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output\n");
 		fprintf(stderr, "         -l char*  log file name to output statistics\n");
 		fprintf(stderr, "         -t INT    number of threads [%d]\n", opt->n_threads);
-		// fprintf(stderr, "         -B INT    length of barcode\n");
-		// fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
-    // fprintf(stderr, "         -f FILE   file to write output to instead of stdout\n");
-		// fprintf(stderr, "         -B INT    length of barcode\n");
-		// fprintf(stderr, "         -I        the input is in the Illumina 1.3+ FASTQ-like format\n");
-		// fprintf(stderr, "         -b        the input read file is in the BAM format\n");
-		// fprintf(stderr, "         -0        use single-end reads only (effective with -b)\n");
-		// fprintf(stderr, "         -1        use the 1st read in a pair (effective with -b)\n");
-		// fprintf(stderr, "         -2        use the 2nd read in a pair (effective with -b)\n");
-		// fprintf(stderr, "         -Y        filter Casava-filtered sequences\n");
 		fprintf(stderr, "\n");
 		return 1;
 	}
@@ -114,7 +103,7 @@ int exk_index(int argc, char *argv[])
 
 	if (optind + 1 > argc) {
 		fprintf(stderr, "\n");
-		fprintf(stderr, "Usage:   exk index <prefix>\n\n");
+		fprintf(stderr, "Usage:   prophyle-index build <prefix>\n\n");
 		// fprintf(stderr, "Options: -t INT    number of threads [%d]\n", opt->n_threads);
 		// fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
     // fprintf(stderr, "         -f FILE   file to write output to instead of stdout\n");
@@ -137,10 +126,10 @@ int exk_index(int argc, char *argv[])
 static int usage()
 {
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Program: exk (alignment of k-mers)\n");
-	fprintf(stderr, "Usage:   exk command [options]\n\n");
-	fprintf(stderr, "Command: index         construct klcp array\n");
-	fprintf(stderr, "Command: match         match k-mers\n");
+	fprintf(stderr, "Program: prophyle-index (alignment of k-mers)\n");
+	fprintf(stderr, "Usage:   prophyle-index command [options]\n\n");
+	fprintf(stderr, "Command: build         construct index\n");
+	fprintf(stderr, "Command: query         query reads against index\n");
 	fprintf(stderr, "\n");
 	return 1;
 }
@@ -154,8 +143,9 @@ int main(int argc, char *argv[])
 	for (i = 1; i < argc; ++i) ksprintf(&pg, " %s", argv[i]);
 	bwa_pg = pg.s;
 	if (argc < 2) return usage();
-	if (strcmp(argv[1], "index") == 0) ret = exk_index(argc - 1, argv + 1);
-	else if (strcmp(argv[1], "match") == 0) ret = exk_match(argc-1, argv+1);
+	if (strcmp(argv[1], "build") == 0) ret = exk_index(argc - 1, argv + 1);
+	else if (strcmp(argv[1], "query") == 0) ret = exk_match(argc-1, argv+1);
+	else return usage();
 
 	err_fflush(stdout);
 	err_fclose(stdout);
