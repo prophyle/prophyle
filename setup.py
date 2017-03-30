@@ -75,11 +75,12 @@ setup(
 	ext_modules=[fake_ext],
 
 	entry_points={
-          'console_scripts': [
-              'prophyle = prophyle.prophyle:main',
-              'newick2makefile.py = prophyle.newick2makefile:main',
-          ]
-      },
+			'console_scripts': [
+			'prophyle = prophyle.prophyle:main',
+			'newick2makefile.py = prophyle.newick2makefile:main',
+			'create_final_fasta.py = prophyle.create_final_fasta:main',
+		]
+	},
 
 	cmdclass={'build_ext': build_ext},
 )
