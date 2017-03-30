@@ -274,7 +274,7 @@ void exk_index_core(const char *prefix, const exk_opt_t *opt, int sa_intv) {
   char* kmer_length_str = malloc(5 * sizeof(char));
   sprintf(kmer_length_str, "%d", opt->kmer_length);
   strcat(fn, kmer_length_str);
-  strcat(fn, ".bit.klcp");
+  strcat(fn, ".klcp");
 	klcp_dump(fn, klcp);
   fprintf(stdout, "klcp dumped\n");
 	// destroy
