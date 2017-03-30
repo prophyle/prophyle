@@ -21,7 +21,7 @@ class build_ext(_build_ext):
 setup(
 	name='prophyle',
 
-	version='0.1.0.2',
+	version='0.1.0.3',
 
 
 	description='ProPhyle metagenomic classifier',
