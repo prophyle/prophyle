@@ -21,7 +21,8 @@ asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
 newick2makefile="newick2makefile.py"
 
 test_newick=os.path.join(c_d,"test_newick_tree.py")
-merge_fastas=os.path.join(c_d,"create_final_fasta.py")
+## todo: decide about the path (execution from repo vs from package)
+merge_fastas="create_final_fasta.py"
 assign=os.path.join(c_d,"prophyle-assignment","assignment.py")
 
 DEFAULT_K=32
@@ -223,7 +224,7 @@ def _merge_fastas(index_dir):
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	# todo: check files for all nodes exist and are of size > 0
 	index_fa=os.path.join(index_dir,"index.fa")
-	_test_files(merge_fastas)
+	#_test_files(merge_fastas)
 	command=[merge_fastas, propagation_dir]
 	_run_safe(command, index_fa)
 	_touch(index_fa+".complete")
