@@ -2,16 +2,16 @@ from setuptools import setup
 from setuptools import Extension
 from setuptools import find_packages
 
+from distutils.command.build_ext import build_ext as _build_ext
+
 import os
 import subprocess
 import glob
 
-from distutils.command.build_ext import build_ext as _build_ext
-
-here = path.abspath(path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 fake_ext = Extension(
@@ -36,7 +36,7 @@ setup(
 
 	url='https://github.com/karel-brinda/prophyle',
 
-	author='Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
+	author='Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
 	author_email='kbrinda@hsph.harvard.edu, salikhov.kamil@gmail.com, pignottisimone@gmail.com, gregory.kucherov@univ-mlv.fr',
 
 	license='MIT',
