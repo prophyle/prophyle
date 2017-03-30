@@ -10,7 +10,6 @@ import sys
 
 c_d=os.path.dirname(os.path.realpath(__file__))
 
-#bin_dir=os.path.normpath(os.path.join(os.path.dirname(__file__),"../../bin"))
 #bin_dir=os.path.dirname(__file__)
 bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
 exk=os.path.join(c_d,"prophyle-index","prophyle-index")
@@ -255,8 +254,8 @@ def _bwtocc2sa(fa_fn):
 
 def _bwtocc2klcp(fa_fn,k):
 	_message('Generating k-LCP array')
-	_test_files(exk, fa_fn+".bwt")
-	command=[exk, 'index', '-k', k, fa_fn]
+	_test_files(prophyle_index, fa_fn+".bwt")
+	command=[prophyle_index, 'build', '-k', k, fa_fn]
 	_run_safe(command)
 
 def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, ccontinue=False):
@@ -308,7 +307,7 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 		_bwtocc2sa(index_fa)
 
 	if klcp:
-		klcp_fn="{}.{}.bit.klcp".format(index_fa,k)
+		klcp_fn="{}.{}.klcp".format(index_fa,k)
 		if ccontinue and os.path.isfile(klcp_fn):
 			_message('Skipping k-LCP construction, already exists')
 		else:
@@ -324,7 +323,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 	index_newick=os.path.join(index_dir, 'tree.newick')
 
 	_test_newick(index_newick)
-	_test_files(fq_fn,index_fa,exk,assign)
+	_test_files(fq_fn,index_fa,prophyle_index,assign)
 
 	_test_files(
 			index_fa+'.bwt',
@@ -339,7 +338,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 	assert abs(bwt_s - 2*pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
 	if use_klcp:
-		klcp_fn="{}.{}.bit.klcp".format(index_fa,k)
+		klcp_fn="{}.{}.klcp".format(index_fa,k)
 		_test_files(klcp_fn)
 		(klcp_s,)=_file_sizes(klcp_fn)
 		assert abs(bwt_s - 4*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
@@ -353,11 +352,11 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-	cmd_match=[exk, 'match', '-k', k, '-u' if use_klcp else '', index_fa, fq_fn]
+	cmd_query=[prophyle_index, 'query', '-k', k, '-u' if use_klcp else '', index_fa, fq_fn]
 
 
 	#(['|', '|'] if mimic_kraken else ['|']) \
-	command=cmd_match + ['|'] + cmd_assign
+	command=cmd_query + ['|'] + cmd_assign
 	_run_safe(command)
 
 

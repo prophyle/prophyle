@@ -7,7 +7,7 @@ import os
 
 script_dir=os.path.dirname(os.path.realpath(__file__))
 bwa=os.path.join(script_dir,"bwa")
-exk=os.path.join(script_dir,"prophyle-index")
+prophyle_index=os.path.join(script_dir,"prophyle-index")
 
 def cmd(command,stdout=sys.stderr,stderr=sys.stderr):
 	print(file=sys.stderr)
@@ -31,17 +31,15 @@ def create_bwa_index(fa):
 	cmd('"{bwa}" bwt2sa "{bwt}" "{sa}"'.format(bwa=bwa,bwt=fa+".bwt",sa=fa+".sa"))
 
 def create_klcp(fa, k):
-	cmd('"{exk}" index -k {k} "{fa}"'.format(exk=exk,fa=fa,k=k))
+	cmd('"{prophyle_index}" build -k {k} "{fa}"'.format(prophyle_index=prophyle_index,fa=fa,k=k))
 
-def match(fa, fq, k, s=False, u=False, v=False, t=1):
+def query(fa, fq, k, u=False, v=False, t=1):
 	params=""
 	if v:
 		params+=" -v"
-	if s:
-		params+=" -s"
 	if u:
 		params+=" -u"
-	cmd('"{exk}" match {params} -k {k} -t {t} "{fa}" "{fq}"'.format(exk=exk,fa=fa,fq=fq,k=k,t=t, params=params),stdout=sys.stdout)
+	cmd('"{prophyle_index}" query {params} -k {k} -t {t} "{fa}" "{fq}"'.format(prophyle_index=prophyle_index,fa=fa,fq=fq,k=k,t=t, params=params),stdout=sys.stdout)
 
 parser = argparse.ArgumentParser(description='One command exk matching.')
 parser.add_argument(
@@ -72,11 +70,6 @@ parser.add_argument(
 		help='use rolling window',
 	)
 parser.add_argument(
-		'-s',
-		action='store_true',
-		help='skip k-1 k-mers after failing matching k-mer',
-	)
-parser.add_argument(
 		'in_fasta',
 		type=str,
 		help='Input FASTA reference.',
@@ -94,14 +87,11 @@ fq=args.in_fq
 k=args.k
 u=args.u
 v=args.v
-s=args.s
 t=args.t
 
 create_bwa_index(fa)
 
 if u:
 	create_klcp(fa, k)
-	#cmd('"{exk}" index -k {k} "{fa}"'.format(exk=exk,fa=args.in_fasta,k=args.k))
 
-#cmd('"{exk}" match -v -k {k} "{fa}" "{fq}"'.format(exk=exk,fa=args.in_fasta,fq=args.in_fq,k=args.k),stdout=sys.stdout)
-match(fa, fq, k, s=s, u=u, v=v, t=t)
+query(fa, fq, k, u=u, v=v, t=t)
