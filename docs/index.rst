@@ -18,7 +18,7 @@ Table of contents
 :ref:`introduction`
 	Introduction to ProPhyle.
 
-:ref:`tutorial`
+:ref:`tutorials`
 	Tutorials demonstrating installation and basic usage of ProPhyle.
 
 :ref:`reference`
