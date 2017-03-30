@@ -27,7 +27,7 @@ class build_ext(_build_ext):
 setup(
 	name='prophyle',
 
-	version='0.1.0.5',
+	version='0.1.0.6',
 
 
 	description='ProPhyle metagenomic classifier',
@@ -52,7 +52,7 @@ setup(
 
 	packages = find_packages(),
 
-	install_requires=['ete3', 'numpy', 'wheel', 'six','scipy'],
+	install_requires=['ete3', 'numpy', 'wheel', 'six', 'scipy', 'bitarray'],
 
 	package_data={
 		'prophyle': [
@@ -79,6 +79,7 @@ setup(
 			'prophyle = prophyle.prophyle:main',
 			'newick2makefile.py = prophyle.newick2makefile:main',
 			'create_final_fasta.py = prophyle.create_final_fasta:main',
+			'assignment.py = prophyle.assignment:main',
 		]
 	},
 
