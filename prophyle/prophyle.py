@@ -15,7 +15,11 @@ c_d=os.path.dirname(os.path.realpath(__file__))
 bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
 exk=os.path.join(c_d,"prophyle-index","prophyle-index")
 asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
-newick2makefile=os.path.join(c_d,"newick2makefile.py")
+
+## todo: decide about the path (execution from repo vs from package)
+#newick2makefile=os.path.join(c_d,"newick2makefile.py")
+newick2makefile="newick2makefile.py"
+
 test_newick=os.path.join(c_d,"test_newick_tree.py")
 merge_fastas=os.path.join(c_d,"create_final_fasta.py")
 assign=os.path.join(c_d,"prophyle-assignment","assignment.py")
