@@ -12,7 +12,7 @@ c_d=os.path.dirname(os.path.realpath(__file__))
 
 #bin_dir=os.path.dirname(__file__)
 bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
-exk=os.path.join(c_d,"prophyle-index","prophyle-index")
+ind=os.path.join(c_d,"prophyle-index","prophyle-index")
 asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
 
 ## todo: decide about the path (execution from repo vs from package)
@@ -254,8 +254,8 @@ def _bwtocc2sa(fa_fn):
 
 def _bwtocc2klcp(fa_fn,k):
 	_message('Generating k-LCP array')
-	_test_files(prophyle_index, fa_fn+".bwt")
-	command=[prophyle_index, 'build', '-k', k, fa_fn]
+	_test_files(ind, fa_fn+".bwt")
+	command=[ind, 'build', '-k', k, fa_fn]
 	_run_safe(command)
 
 def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, ccontinue=False):
@@ -323,7 +323,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 	index_newick=os.path.join(index_dir, 'tree.newick')
 
 	_test_newick(index_newick)
-	_test_files(fq_fn,index_fa,prophyle_index,assign)
+	_test_files(fq_fn,index_fa,ind,assign)
 
 	_test_files(
 			index_fa+'.bwt',
@@ -352,7 +352,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-	cmd_query=[prophyle_index, 'query', '-k', k, '-u' if use_klcp else '', index_fa, fq_fn]
+	cmd_query=[ind, 'query', '-k', k, '-u' if use_klcp else '', index_fa, fq_fn]
 
 
 	#(['|', '|'] if mimic_kraken else ['|']) \
