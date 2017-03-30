@@ -1,51 +1,51 @@
-# ProPhyle - a metagenomic classifier
+ProPhyle - accurate and resource-frugal phylogeny-based metagenomic classification
+==================================================================================
 
-[![Build Status](https://travis-ci.com/karel-brinda/ProPhyle.svg?token=LzzDiQkWWqF4hBjZahmQ&branch=master)](https://travis-ci.com/karel-brinda/ProPhyle)
 
-## Getting started
+.. image:: https://travis-ci.org/karel-brinda/prophyle.svg?branch=master
+	:target: https://travis-ci.org/karel-brinda/prophyle
 
-### Prerequisities
+
+Getting started
+---------------
+
+Prerequisities
+~~~~~~~~~~~~~~
 
 * GCC 4.8+
 * ZLib
 * Python 3 with ete3 library
 * SamTools
 
-#### Recommended way of installation using [Anaconda](https://www.continuum.io/downloads)
+Recommended way of installation using Conda
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Environment installation:
 
-```bash
+.. code-block:: bash
+
 	conda create -y --name prophyle \
 		-c etetoolkit -c bioconda \
 		python==3.4 ete3 bitarray \
 		parallel blast samtools=1.3.1
-```
+
 
 Environment activation:
 
-```bash
-	source activate prophyle
-```
+.. code-block:: bash
 
-### Compile all programs
+        source activate prophyle
 
-```bash
+
+Compile all programs
+
+.. code-block:: bash
+
   make -C src
-  make -C ext
-```
 
-### Download genomic libraries and simulate reads
-```bash
-  make -C library
-```
 
-### Download simulated reads
-```bash
-  make -C reads
-```
-
-### Custom taxonomic trees
+Custom taxonomic trees
+~~~~~~~~~~~~~~~~~~~~~~
 
 Use [`bin/build_taxonomic_tree.py`](bin/build_taxonomic_tree.py) to build custom taxonomic trees starting from your database's fasta indexes and taxonomy files ([`library/Taxonomy`](library/Taxonomy) for more information). Taxonomic identifiers are assigned to the sequences first, and then the tree is built using [ETE Toolkit](http://etetoolkit.org/) and saved as newick format 1. Necessary node attributes are:
 
@@ -57,20 +57,3 @@ Use [`bin/build_taxonomic_tree.py`](bin/build_taxonomic_tree.py) to build custom
  * `base_len`: length of each sequence, separated by @
 
 Other optional attributes are `sci_name`, `named_lineage`, `lineage`, `rank` (more info [here](http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html#automatic-tree-annotation-using-ncbi-taxonomy)).
-
-## How to use
-
-### Build the BWT-indexes
-
-#### All experiments:
-
-```bash
-  make -C experiments -j 10
-```
-
-#### First experiment only
-
-```bash
-  make -C experiments/01* -j 10
-```
-
