@@ -617,7 +617,7 @@ void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
 	  char* kmer_length_str = malloc(5 * sizeof(char));
 	  sprintf(kmer_length_str, "%d", opt->kmer_length);
 	  strcat(fn, kmer_length_str);
-	  strcat(fn, ".bit.klcp");
+	  strcat(fn, ".klcp");
 		klcp_restore(fn, klcp);
 		free(fn);
 		fprintf(log_file, "klcp_loading\t%.2fs\n", realtime() - rtime);

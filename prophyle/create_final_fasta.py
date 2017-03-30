@@ -40,7 +40,7 @@ def main():
 				if len(x)==0:
 					continue
 				if x[0]==">":
-					print (">{}_{}".format(node,x[1:]),end="")
+					print (">{}@{}".format(node,x[1:]),end="")
 				else:
 					print(x,end="")
 
