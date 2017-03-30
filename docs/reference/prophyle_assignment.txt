@@ -1,0 +1,23 @@
+$ prophyle-assignment -h
+
+usage: assignment.py [-h] -i INPUT_FILE -k K -n str [-f {kraken,sam}]
+                     [-m {h1,c1}] [-l] [-a] [-t] [-d]
+
+Implementation of assignment algorithm
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT_FILE, --input INPUT_FILE
+                        input file
+  -k K, --kmer-size K   k-mer size
+  -n str, --newick-tree str
+                        newick tree
+  -f {kraken,sam}, --oformat {kraken,sam}
+                        format of output
+  -m {h1,c1}, --measure {h1,c1}
+                        measure: h1=hitnumber, c1=coverage
+  -l, --sim-lca         simulate LCA
+  -a, --annotate        annotate assignments
+  -t, --tie-lca         use LCA when tie (more hits with the same score)
+  -d, --nontransl-blocks
+                        do not translate blocks from node to tax IDs
