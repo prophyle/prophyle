@@ -45,7 +45,7 @@ setup(
 
 	packages = find_packages(),
 
-	install_requires=['ete3', 'numpy', 'wheel'],
+	install_requires=['ete3', 'numpy', 'wheel', 'six','scipy'],
 
 	package_data={
 		'prophyle': [
@@ -69,7 +69,8 @@ setup(
 
 	entry_points={
           'console_scripts': [
-              'prophyle = prophyle.prophyle:main'
+              'prophyle = prophyle.prophyle:main',
+              'newick2makefile.py = prophyle.newick2makefile:main',
           ]
       },
 

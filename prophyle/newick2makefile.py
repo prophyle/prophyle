@@ -95,7 +95,7 @@ class TreeIndex:
 
 	def nonreduced_fasta_fn(self,node):
 		return os.path.join(self.index_dir,node.name+".full.fa")
-		
+
 	def reduced_fasta_fn(self,node):
 		return os.path.join(self.index_dir,node.name+".reduced.fa")
 
@@ -129,7 +129,7 @@ class TreeIndex:
 
 			# 2a) 1 child
 			#if len(input_files)==1:
-				#				
+				#
 				#merge_fasta_files(input_files,intersection_file,is_leaf=False)
 				##print("ahoj")
 				##print(
@@ -146,7 +146,7 @@ class TreeIndex:
 			# 2b) several children
 			#else:
 			assembly(input_files,output_files,intersection_file,count_file)
-		
+
 
 	def build_index(self,k,mask_repeats):
 		print()
@@ -211,8 +211,7 @@ class TreeIndex:
 		self.process_node(self.tree.get_tree_root())
 
 
-if __name__ == "__main__":
-
+def main():
 	parser = argparse.ArgumentParser(description='Build index.')
 	parser.add_argument(
 			'-n','--newick-tree',
@@ -276,3 +275,7 @@ if __name__ == "__main__":
 			k=k,
 			mask_repeats=r,
 		)
+
+
+if __name__ == "__main__":
+	main()
