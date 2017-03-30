@@ -215,7 +215,7 @@ def _propagate(index_dir,threads):
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
-	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "ASSEMBLER={}".format(asm)]
+	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(asm)]
 	_run_safe(command)
 
 def _merge_fastas(index_dir):

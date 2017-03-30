@@ -152,7 +152,7 @@ class TreeIndex:
 		print()
 		print("include params.mk\n")
 		print()
-		print("PRG_ASM=../../bin/prophyle-assembler")
+		print("PRG_ASM=prophyle-assembler")
 		print("PRG_DUST=dustmasker")
 		print()
 		print("$(info )")
