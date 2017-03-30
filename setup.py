@@ -8,6 +8,12 @@ import glob
 
 from distutils.command.build_ext import build_ext as _build_ext
 
+here = path.abspath(path.dirname(__file__))
+
+# Get the long description from the README file
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+	long_description = f.read()
+
 fake_ext = Extension(
 	"prophyle.fake_extension",
 	["prophyle/fake_extension.c"],
@@ -25,11 +31,12 @@ setup(
 
 
 	description='ProPhyle metagenomic classifier',
-	#long_description=long_description,
+
+	long_description=long_description,
 
 	url='https://github.com/karel-brinda/prophyle',
 
-	author='Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
+	author='Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
 	author_email='kbrinda@hsph.harvard.edu, salikhov.kamil@gmail.com, pignottisimone@gmail.com, gregory.kucherov@univ-mlv.fr',
 
 	license='MIT',
