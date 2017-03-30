@@ -206,6 +206,9 @@ def _create_makefile(index_dir, k, library_dir):
 	_test_newick(newick_fn)
 	#_test_files(newick2makefile, newick_fn)
 	command=[newick2makefile, '-n', newick_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
+	# todo: add params.mk checking
+	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
+		f.write("K={}\n".format(k))
 	_run_safe(command,makefile)
 
 def _propagate(index_dir,threads):
