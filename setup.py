@@ -6,7 +6,10 @@ from distutils.command.build_ext import build_ext as _build_ext
 
 import os
 import subprocess
-import glob
+import sys
+
+if sys.version_info < (3,2):
+	sys.exit('Minimum supported Python version is 3.2')
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -27,7 +30,7 @@ class build_ext(_build_ext):
 setup(
 	name='prophyle',
 
-	version='0.1.0.12',
+	version='0.1.0.13',
 
 
 	description='ProPhyle metagenomic classifier',
