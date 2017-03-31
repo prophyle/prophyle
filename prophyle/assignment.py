@@ -402,12 +402,9 @@ def assign(
 			)
 		if form=="sam":
 			read.print_sam_header()
-		try:
-			for x in inp_fo:
-				read.process_krakline(x,form=form,crit=crit)
-		except (BrokenPipeError, IOError):
-			# pipe error (e.g., when head is used)
-			pass
+
+		for x in inp_fo:
+			read.process_krakline(x,form=form,crit=crit)
 
 
 def parse_args():
@@ -489,17 +486,23 @@ def main():
 		tie=args.tie
 		d=args.donttransl
 
-		assign(
-				tree_fn=newick_fn,
-				inp_fo=inp_fo,
-				lca=lca,
-				form=form,
-				k=k,
-				crit=crit,
-				annotate=annotate,
-				tie=tie,
-				dont_translate_blocks=d,
-			)
+		try:
+			assign(
+					tree_fn=newick_fn,
+					inp_fo=inp_fo,
+					lca=lca,
+					form=form,
+					k=k,
+					crit=crit,
+					annotate=annotate,
+					tie=tie,
+					dont_translate_blocks=d,
+				)
+		#Karel: I don't remember why I was considering also IOError here
+		#except (BrokenPipeError, IOError):
+		except BrokenPipeError:
+			# pipe error (e.g., when head is used)
+			pass
 
 
 if __name__ == "__main__":
