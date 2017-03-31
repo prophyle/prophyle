@@ -134,6 +134,7 @@ def _is_complete(d, i):
 	assert i>0
 	fn=os.path.join(d,".complete.{}".format(i))
 	fn0=os.path.join(d,".complete.{}".format(i-1))
+
 	if not os.path.isfile(fn):
 		return False
 	if i==1:
@@ -163,7 +164,11 @@ def _pseudo_fai(d):
 	else:
 		_message("Generating pseudofai for library '{}'".format(l))
 		assert d[-1]!="/"
-		cmd=['grep -r --include=\\*.{fa,ffn,fna}', '">"', d, '| sed "s/:>/\t/"']
+		#cmd=['grep -r --include=\\*.{fa,ffn,fna}', '">"', d, '| sed "s/:>/\t/"']
+		cmd=[
+			'find', d, '-name', "'*.fa'", "-o", "-name", "'*.ffn'", "-o", "-name", "'*.fna'", "-exec", "grep", "-H", '">"', "{}", "\\;",
+			"|", 'sed', '"s/\:>/\t/"']
+
 		_run_safe(cmd, pseudofai_fn)
 		_complete(d, 2)
 
@@ -174,7 +179,7 @@ def init(library, library_dir):
 		return
 
 	if library_dir is None:
-		d=os.path.join("~/prophyle",library)
+		d=os.path.join(os.path.expanduser("~/prophyle"),library)
 	else:
 		d=library_dir
 	#print('making',d, file=sys.stderr)
@@ -182,7 +187,7 @@ def init(library, library_dir):
 	cmd=['mkdir', '-p', d]
 	_run_safe(cmd)
 
-	_message("Downloading downloading library '{}'".format(library))
+	_message("Checking library '{}'".format(library))
 
 	# todo: http vs ftp
 	if library=='bacteria':
