@@ -13,9 +13,9 @@ Main program
 	.. include:: reference/main.txt
 		:code: text
 
-``prophyle init``
-^^^^^^^^^^^^^^^^^
-	.. include:: reference/init.txt
+``prophyle download``
+^^^^^^^^^^^^^^^^^^^^^
+	.. include:: reference/download.txt
 		:code: text
 
 ``prophyle index``

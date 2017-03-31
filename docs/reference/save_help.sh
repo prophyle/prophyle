@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-for x in main init index classify ; do
+for x in main download index classify ; do
 	fn="$x.txt"
 	echo "$fn"
 
@@ -10,7 +10,7 @@ for x in main init index classify ; do
 
 	echo "$ prophyle $x -h" > $fn
 	echo >> $fn
-	../../bin/prophyle.py $x -h >> $fn
+	prophyle $x -h >> $fn
 done
 
 # TODO: solve problem with dashes and output redirection
