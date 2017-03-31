@@ -9,6 +9,8 @@ import subprocess
 import sys
 import textwrap
 
+from . import version
+
 c_d=os.path.dirname(os.path.realpath(__file__))
 
 #bin_dir=os.path.dirname(__file__)
@@ -409,12 +411,12 @@ def parser():
 
 	desc="""\
 		Program: prophyle (phylogeny-based metagenomic classification)
-		Version: VERSION
+		Version: {V}
 		Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
 		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
 
 		Usage:   prophyle <command> [options]
-	"""
+	""".format(V=version.VERSION)
 	parser = MyParser(formatter_class=argparse.RawDescriptionHelpFormatter,description=textwrap.dedent(desc))
 	subparsers = parser.add_subparsers(help="",description=argparse.SUPPRESS,dest='subcommand',metavar="")
 	fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
