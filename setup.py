@@ -24,14 +24,18 @@ fake_ext = Extension(
 
 class build_ext(_build_ext):
 	def run(self):
-		subprocess.call('make -C prophyle', shell=True)
+		##
+		## Running make deprecated, reasons:
+		## - does not work with PIP
+		## - when executables present on list of package files, they get uploaded to PyPI
+		##
+		#subprocess.call('make -C prophyle', shell=True)
 		_build_ext.run(self)
 
 setup(
 	name='prophyle',
 
 	version='0.1.0.13',
-
 
 	description='ProPhyle metagenomic classifier',
 
