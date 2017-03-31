@@ -502,7 +502,8 @@ def main():
 		#except (BrokenPipeError, IOError):
 		except BrokenPipeError:
 			# pipe error (e.g., when head is used)
-			pass
+			sys.stderr.close()
+			exit(0)
 
 
 if __name__ == "__main__":
