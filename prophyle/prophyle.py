@@ -25,8 +25,9 @@ merge_fastas="create_final_fasta.py"
 ## todo: decide about the path (execution from repo vs from package)
 assign="assignment.py"
 
-DEFAULT_K=32
-DEFAULT_THREADS=multiprocessing.cpu_count()
+DEFAULT_K=31
+#DEFAULT_THREADS=multiprocessing.cpu_count()
+DEFAULT_THREADS=1
 DEFAULT_MEASURE='h1'
 DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'prophyle')
 
@@ -137,60 +138,60 @@ def _pseudo_fai(d):
 		_run_safe(cmd, pseudofai_fn)
 		_complete(d, 2)
 
-def init(library, home_dir):
-	print('making',home_dir)
-	os.makedirs(home_dir, exist_ok=True)
-	if library=='all':
-		ls=LIBRARIES
+def init(library, library_dir):
+	if library=="all":
+		for l in LIBRARIES:
+			self.init(l, library_dir)
+		return
+
+	if library_dir is None:
+		d=os.path.join("~/prophyle",library)
 	else:
-		ls=[library]
+		d=library_dir
+	#print('making',d, file=sys.stderr)
+	#os.makedirs(d, exist_ok=True)
+	cmd=['mkdir', '-p', d]
+	_run_safe(cmd)
+
+	_message("Downloading downloading library '{}'".format(library))
 
 	# todo: http vs ftp
+	if library=='bacteria':
+		if _missing_library(d):
+			# fix when error appears
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
+			_run_safe(cmd)
+			_complete(d, 1)
+		_pseudo_fai(d)
 
-	for l in ls:
-		if l=='bacteria':
-			d=os.path.join(home_dir,'bacteria')
-			if _missing_library(d):
-				_message("Downloading library '{}'".format(l))
-				# fix when error appears
-				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
-				_run_safe(cmd)
-				_complete(d, 1)
-			_pseudo_fai(d)
+	elif library=='viruses':
+		if _missing_library(d):
+			# fix when error appears
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
+			_run_safe(cmd)
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
+			_run_safe(cmd)
+			_complete(d, 1)
+		_pseudo_fai(d)
 
-		elif l=='viruses':
-			d=os.path.join(home_dir,'viruses')
-			if _missing_library(d):
-				# fix when error appears
-				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
-				_run_safe(cmd)
-				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
-				_run_safe(cmd)
-				_complete(d, 1)
-			_pseudo_fai(d)
+	elif library=='plasmids':
+		if _missing_library(d):
+			# fix when error appears
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
+			_run_safe(cmd)
+			_complete(d, 1)
+		_pseudo_fai(d)
 
-		elif l=='plasmids':
-			d=os.path.join(home_dir,'plasmids')
-			if _missing_library(d):
-				# fix when error appears
-				cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
-				_run_safe(cmd)
-				_complete(d, 1)
-			_pseudo_fai(d)
+	elif library=='hmp':
+		if _missing_library(d):
+			# fix when error appears
+			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
+			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
+			_complete(d, 1)
+		_pseudo_fai(d)
 
-		elif l=='hmp':
-			d=os.path.join(home_dir,'hmp')
-			if _missing_library(d):
-				_message("Downloading downloading library '{}'".format(l))
-				# fix when error appears
-				cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
-				_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
-				_complete(d, 1)
-			_pseudo_fai(d)
-
-
-		else:
-			raise ValueError('Unknown library ""'.format(library))
+	else:
+		raise ValueError('Unknown library ""'.format(library))
 
 
 ##################
@@ -367,7 +368,16 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 ########
 
 def parser():
-	parser = argparse.ArgumentParser()
+
+	class MyParser(argparse.ArgumentParser):
+		def error(self, message):
+			if len(sys.argv)==2:
+				self.print_help()
+			else:
+				print('error: {}'.format(message), file=sys.stderr)
+			sys.exit(2)
+
+	parser = MyParser()
 	subparsers = parser.add_subparsers(help='sub-command help',dest='subcommand')
 	fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
 
@@ -381,23 +391,23 @@ def parser():
 			help='genomic library {}'.format(LIBRARIES+['all']),
 		)
 	parser_init.add_argument(
-			'-m','--prophyle-dir',
+			'-g',
 			metavar='DIR',
 			dest='home_dir',
 			type=str,
-			default=DEFAULT_HOME_DIR,
-			help='ProPhyle directory [{}]'.format(DEFAULT_HOME_DIR),
+			default=None,
+			help='directory with genomic sequences [~/prophyle/<library>]'.format(DEFAULT_HOME_DIR),
 		)
 
 	##########
 
 	parser_index = subparsers.add_parser('index', help='build index', formatter_class=fc)
 	parser_index.add_argument(
-			'-n','--newick',
+			'-t',
 			metavar='FILE',
 			dest='newick',
 			type=str,
-			help='taxonomy tree (in Newick format)',
+			help='phylogenetic tree (in Newick/NHX)',
 			required=True,
 		)
 	parser_index.add_argument(
@@ -407,7 +417,7 @@ def parser():
 			help='index directory (will be created)',
 		)
 	parser_index.add_argument(
-			'-l','--lib-dir',
+			'-g',
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
@@ -415,15 +425,15 @@ def parser():
 			required=True,
 		)
 	parser_index.add_argument(
-			'-t','--threads',
+			'-j',
 			metavar='INT',
 			dest='threads',
 			type=int,
-			help='number of threads [auto={}]'.format(DEFAULT_THREADS),
+			help='number of threads [{}]'.format(DEFAULT_THREADS),
 			default=DEFAULT_THREADS,
 		)
 	parser_index.add_argument(
-			'-k','--kmer-len',
+			'-k',
 			dest='k',
 			metavar='INT',
 			type=int,
@@ -431,7 +441,7 @@ def parser():
 			default=DEFAULT_K,
 		)
 	parser_index.add_argument(
-			'--continue',
+			'-C',
 			dest='ccontinue',
 			action='store_true',
 			help='continue with index construction (construct only missing parts)',
@@ -453,7 +463,7 @@ def parser():
 			help='file with reads in FASTA or FASTQ [- for standard input]',
 		)
 	parser_classify.add_argument(
-			'-k','--kmer-len',
+			'-k',
 			dest='k',
 			metavar='INT',
 			type=int,
@@ -461,39 +471,39 @@ def parser():
 			default=DEFAULT_K,
 		)
 	parser_classify.add_argument(
-			'-n','--no-klcp',
+			'-K',
 			dest='klcp',
 			action='store_false',
 			help='do not use k-LCP',
 		)
 	parser_classify.add_argument(
-			'-m','--measure',
+			'-m',
 			dest='measure',
 			choices=['h1','c1'],
 			help='measure: h1=hit count, c1=coverage [{}]'.format(DEFAULT_MEASURE),
 			default=DEFAULT_MEASURE,
 		)
 	parser_classify.add_argument(
-			'-o','--out-form',
+			'-f',
 			dest='oform',
 			choices=['kraken','sam'],
 			default='sam',
 			help='output format',
 		)
 	parser_classify.add_argument(
-			'--annotate',
+			'-A',
 			dest='annotate',
 			action='store_true',
 			help='annotate assignments',
 		)
 	parser_classify.add_argument(
-			'--tie-lca',
+			'-L',
 			dest='tie',
 			action='store_true',
 			help='use LCA when tie (multiple hits with the same score)',
 		)
 	parser_classify.add_argument(
-			'--mimic-kraken',
+			'-M',
 			dest='mimic',
 			action='store_true',
 			help='mimic Kraken algorithm and output (for debugging purposes)',
@@ -512,7 +522,7 @@ def main():
 		if subcommand=="download":
 			init(
 					library=args.library,
-					home_dir=args.home_dir,
+					library_dir=args.home_dir,
 				)
 
 		elif subcommand=="index":
