@@ -55,28 +55,39 @@ def _test_newick(fn):
 def _file_sizes(*fns):
 	return tuple( [os.stat(fn).st_size for fn in fns] )
 
-def _run_safe(command, output_fn=None):
+def _run_safe(command, output_fn=None, output_fo=None):
+	assert output_fn is None or output_fo is None
 	command_str=" ".join(map(lambda x: str(x),command))
-	print("Running:", command_str, file=sys.stderr)
+	_message("Running:", command_str)
 	if output_fn is None:
-		out_fo=sys.stdout
+		if output_fo is None:
+			out_fo=sys.stdout
+		else:
+			out_fo=output_fo
 	else:
 		out_fo=open(output_fn,"w+")
+
 	error_code=subprocess.call("/bin/bash -x -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+
+	out_fo.flush()
+
+	if output_fn is not None:
+		out_fo.close()
+
 	if error_code==0:
-		print("Finished:", command_str, file=sys.stderr)
+		_message("Finished:", command_str)
 	elif error_code==141:
 		pass
 		#print("Exited before finishing:", command_str, file=sys.stderr)
 	else:
-		print("Finished with error (error code {}):".format(error_code), command_str, file=sys.stderr)
+		_message("Finished with error (error code {}):".format(error_code), command_str)
 		# todo: maybe it will be better to throw an exception
 		sys.exit(error_code)
 
-def _message(msg):
+def _message(*msg):
 	dt=datetime.datetime.now()
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
-	print('[prophyle]', fdt, msg, file=sys.stderr)
+	print('[prophyle]', fdt, " ".join(msg), file=sys.stderr)
 
 def _touch(*fns):
 	for fn in fns:
@@ -92,6 +103,20 @@ def _rm(*fns):
 			os.remove(fn)
 		except FileNotFoundError:
 			pass
+
+
+def _compile_prophyle_bin():
+	files_to_check=[
+			os.path.join(c_d,'prophyle-assembler','prophyle-assembler'),
+			os.path.join(c_d,'prophyle-index','prophyle-index'),
+			os.path.join(c_d,'prophyle-index','bwa','bwa'),
+		]
+	for x in files_to_check:
+		if not os.path.isfile(x):
+			_message("Binaries are missing, going to compile them")
+			command=["make","-C",c_d]
+			_run_safe(command, output_fo=sys.stderr)
+			return
 
 
 #################
@@ -265,6 +290,8 @@ def _bwtocc2klcp(fa_fn,k):
 def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, ccontinue=False):
 	assert k>1
 
+	_compile_prophyle_bin()
+
 	# check files & dirs
 	_test_newick(newick_fn)
 	index_fa=os.path.join(index_dir,'index.fa')
@@ -323,6 +350,7 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 #####################
 
 def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate,tie_lca):
+	_compile_prophyle_bin()
 	index_fa=os.path.join(index_dir, 'index.fa')
 	index_newick=os.path.join(index_dir, 'tree.newick')
 
