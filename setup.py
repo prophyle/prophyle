@@ -17,10 +17,16 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
-fake_ext = Extension(
-	"prophyle.fake_extension",
-	["prophyle/fake_extension.c"],
-)
+
+# Get version
+exec(open("prophyle/version.py").read())
+
+
+## Running make deprec
+#fake_ext = Extension(
+#	"prophyle.fake_extension",
+#	["prophyle/fake_extension.c"],
+#)
 
 class build_ext(_build_ext):
 	def run(self):
@@ -35,7 +41,7 @@ class build_ext(_build_ext):
 setup(
 	name='prophyle',
 
-	version='0.1.0.13',
+	version=VERSION,
 
 	description='ProPhyle metagenomic classifier',
 
@@ -77,7 +83,8 @@ setup(
 		]
 	},
 
-	ext_modules=[fake_ext],
+	## Running make deprec
+	#ext_modules=[fake_ext],
 
 	entry_points={
 			'console_scripts': [
