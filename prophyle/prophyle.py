@@ -366,7 +366,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 # MAIN #
 ########
 
-def parse_args():
+def parser():
 	parser = argparse.ArgumentParser()
 	subparsers = parser.add_subparsers(help='sub-command help',dest='subcommand')
 	fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
@@ -501,12 +501,12 @@ def parse_args():
 
 	##########
 
-	args = parser.parse_args()
-	return args
+	return parser
 
 def main():
 	try:
-		args=parse_args()
+		par=parser()
+		args = par.parse_args()
 		subcommand=args.subcommand
 
 		if subcommand=="init":
@@ -539,7 +539,7 @@ def main():
 				)
 
 		else:
-			parser.print_help()
+			par.print_help()
 			sys.exit(1)
 
 	except BrokenPipeError:
