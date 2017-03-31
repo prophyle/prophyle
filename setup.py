@@ -27,7 +27,7 @@ class build_ext(_build_ext):
 setup(
 	name='prophyle',
 
-	version='0.1.0.6',
+	version='0.1.0.7',
 
 
 	description='ProPhyle metagenomic classifier',
@@ -60,11 +60,9 @@ setup(
 			'prophyle-assembler/*.cpp',
 			'prophyle-assembler/*.h',
 			'prophyle-assembler/Makefile',
-			'prophyle-assembler/prophyle-assembler',
 			'prophyle-index/*.c',
 			'prophyle-index/*.h',
 			'prophyle-index/Makefile',
-			'prophyle-index/prophyle-index',
 			'prophyle-index/bwa/*.c',
 			'prophyle-index/bwa/*.h',
 			'prophyle-index/bwa/Makefile',
