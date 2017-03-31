@@ -143,7 +143,7 @@ def _pseudo_fai(d):
 def init(library, library_dir):
 	if library=="all":
 		for l in LIBRARIES:
-			self.init(l, library_dir)
+			init(l, library_dir)
 		return
 
 	if library_dir is None:
