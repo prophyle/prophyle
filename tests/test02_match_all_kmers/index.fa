@@ -1,8 +1,8 @@
->seq1_contig_1
+>seq1@contig_1
 ACGA
->seq2_contig_2
+>seq2@contig_2
 GCAA
->seq3_contig_3
+>seq3@contig_3
 AAGAC
->seq4_contig_4
+>seq4@contig_4
 GCC
