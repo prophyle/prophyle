@@ -3,6 +3,38 @@
 Tutorials
 =========
 
+
+Installation
+------------
+
+.. CONDA
+
+PIP
+^^^
+
+``pip install prophyle``
+
+Standard usage
+--------------
+
+Download
+^^^^^^^^
+
+Download libraries using ``prophyle download <library>``. Use ``all`` to download bacteria, viruses and plasmids from NCBI's RefSeq archive and `HMP <http://hmpdacc.org/>`_ sequences.
+
+You can find pre-built trees for them in the ``trees`` directory.
+
+Index
+^^^^^
+
+Run ``prophyle index -n <tree.newick> -l <library_subdir> -k <kmer_length> <index_dir>`` to build an index for one of the above libraries.
+
+Classify
+^^^^^^^^
+
+Run ``prophyle classify <index_dir> <reads.fq>`` to classify reads and output the result in the SAM format to the standard output.
+
+
 Custom indexes
 --------------
 
@@ -11,16 +43,16 @@ Building custom ProPhyle indexes is easy and fast. This example focuses on NCBI'
 Download
 ^^^^^^^^
 
-- Create a subdirectory in ProPhyle's main library directory, and change the working directory to the newly created one
-- Download an ``assembly_summary.txt`` file from NCBI's FTP server. For RefSeq's bacterial genomes, follow this `link <ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt>`_. More information about these files `here <ftp://ftp.ncbi.nlm.nih.gov/genomes/README_assembly_summary.txt>`_
-- Select genomes of interest; the following command will select all complete genomes, but it is sufficient to add more conditions to ``awk`` to select a subset. Fields 1, 6 and 20 contain respectively the accession number, taxonomic identifier and ftp directory of each genome. ``acc2taxid`` will therefore be a tab separated file containing the taxid corresponding to each sequence's accession number. Please refer to `NCBI's genomes download FAQ <https://www.ncbi.nlm.nih.gov/genome/doc/ftpfaq>`_ for further information)::
+* Create a subdirectory in ProPhyle's main directory, and change the working directory to the newly created one
+* Download an ``assembly_summary.txt`` file from NCBI's FTP server. For RefSeq's bacterial genomes, follow this `link <ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt>`_. More information about these files can be found `here <ftp://ftp.ncbi.nlm.nih.gov/genomes/README_assembly_summary.txt>`_
+* Select genomes of interest; the following command will select all complete genomes, but it is sufficient to add more conditions to ``awk`` to select a subset. Fields 1, 6 and 20 contain respectively the accession number, taxonomic identifier and ftp directory of each genome. ``acc2taxid`` will therefore be a tab separated file containing the taxid corresponding to each sequence's accession number. Please refer to `NCBI's genomes download FAQ <https://www.ncbi.nlm.nih.gov/genome/doc/ftpfaq>`_ for further information)::
 
     awk -F "\t" -v OFS="\t" '$12=="Complete Genome" && $11=="latest" {print $1, $6, $20}' assembly_summary.txt >ftpselection
     cut -f 3 ftpselection | awk 'BEGIN{FS=OFS="/";filesuffix="genomic.fna.gz"}{ftpdir=$0;asm=$10;file=asm"_"filesuffix;print ftpdir,file}' >ftpfilepaths
     cut -f 1,2 ftpselection >acc2taxid
 
-- Download selected sequences using ``parallel --gnu -j 24 -a ftpfilepaths wget``. Number of jobs (``-j`` option) should be changed according to the number of available cores and bandwidth.
-- Extract them using ``parallel --gnu -j 24 -a ftpfilepaths gunzip {/}``
+* Download selected sequences using ``parallel --gnu -j 24 -a ftpfilepaths wget``. Number of jobs (``-j`` option) should be changed according to the number of available cores and bandwidth.
+* Extract them using ``parallel --gnu -j 24 -a ftpfilepaths gunzip {/}``
 
 Tree
 ^^^^
@@ -39,13 +71,11 @@ Taxonomic identifiers are assigned to the sequences first, and then the tree is 
 * ``base_len``: length of each sequence, separated by @
 
 ``seqname``, ``infasta_offset`` and ``base_len`` can be found in samtools' `fasta index <http://www.htslib.org/doc/faidx.html>`_.
-Other optional attributes are ``sci_name``, ``named_lineage``, ``lineage``, ``rank`` (more info `here<http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html#automatic-tree-annotation-using-ncbi-taxonomy>`_). Using ETE library or modifying the above script it is possible to fastly adapt any tree to match the requirements above.
+Other optional attributes are ``sci_name``, ``named_lineage``, ``lineage``, ``rank`` (more info `here <http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html#automatic-tree-annotation-using-ncbi-taxonomy>`_). Using ETE library or modifying the above script it is possible to fastly adapt any tree to match the requirements above.
 
 If taxonomic information is not available, ``taxid`` attribute can be replaced by the node name. This could be useful to perform classification over custom phylogenetic trees.
 
 Index
 ^^^^^
 
-Run the standard command to build ProPhyle index::
-
-  prophyle index -n <tree.newick> -l <library_subdir> -k <kmer_length> <index_dir>
+Run the standard command to build ProPhyle index.

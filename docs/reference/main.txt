@@ -1,13 +1,19 @@
 $ prophyle  -h
 
-usage: prophyle.py [-h] {init,index,classify} ...
+usage: prophyle [-h]  ...
 
-positional arguments:
-  {init,index,classify}
-                        sub-command help
-    init                Initialize data
-    index               Create index
-    classify            Classify reads
+Program: prophyle (phylogeny-based metagenomic classification)
+Version: 0.1.0.16
+Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
+         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+
+Usage:   prophyle <command> [options]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help  show this help message and exit
+
+subcommands:
+  
+    download  download genomes
+    index     build index
+    classify  classify reads
