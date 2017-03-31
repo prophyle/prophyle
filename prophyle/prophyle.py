@@ -384,6 +384,8 @@ def parser():
 		Version: VERSION
 		Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
 		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+
+		Usage:   prophyle <command> [options]
 	"""
 	parser = MyParser(formatter_class=argparse.RawDescriptionHelpFormatter,description=textwrap.dedent(desc))
 	subparsers = parser.add_subparsers(help="",description=argparse.SUPPRESS,dest='subcommand',metavar="")
@@ -560,7 +562,7 @@ def main():
 			msg_lns=par.format_help().split("\n")[2:]
 			msg_lns=[x for x in msg_lns if x.find("optional arguments")==-1 and x.find("show this help")==-1]
 			msg="\n".join(msg_lns)
-			msg=msg.replace("\n\n",'\n').replace("subcommands:\n","Command:")
+			msg=msg.replace("\n\n",'\n').replace("subcommands:\n","Command:").replace("Usage","\nUsage")
 			print(file=sys.stderr)
 			print(msg,file=sys.stderr)
 			sys.exit(1)
