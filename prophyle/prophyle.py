@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess
 import sys
+import textwrap
 
 c_d=os.path.dirname(os.path.realpath(__file__))
 
@@ -29,6 +30,7 @@ DEFAULT_K=31
 #DEFAULT_THREADS=multiprocessing.cpu_count()
 DEFAULT_THREADS=1
 DEFAULT_MEASURE='h1'
+DEFAULT_OUTPUT_FORMAT='sam'
 DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'prophyle')
 
 LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
@@ -377,8 +379,14 @@ def parser():
 				print('error: {}'.format(message), file=sys.stderr)
 			sys.exit(2)
 
-	parser = MyParser()
-	subparsers = parser.add_subparsers(help='sub-command help',dest='subcommand')
+	desc="""\
+		Program: prophyle (phylogeny-based metagenomic classification)
+		Version: VERSION
+		Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
+		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+	"""
+	parser = MyParser(formatter_class=argparse.RawDescriptionHelpFormatter,description=textwrap.dedent(desc))
+	subparsers = parser.add_subparsers(help="",description=argparse.SUPPRESS,dest='subcommand',metavar="")
 	fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
 
 	##########
@@ -487,8 +495,8 @@ def parser():
 			'-f',
 			dest='oform',
 			choices=['kraken','sam'],
-			default='sam',
-			help='output format',
+			default=DEFAULT_OUTPUT_FORMAT,
+			help='output format [{}]'.format(DEFAULT_OUTPUT_FORMAT),
 		)
 	parser_classify.add_argument(
 			'-A',
@@ -549,7 +557,12 @@ def main():
 				)
 
 		else:
-			par.print_help()
+			msg_lns=par.format_help().split("\n")[2:]
+			msg_lns=[x for x in msg_lns if x.find("optional arguments")==-1 and x.find("show this help")==-1]
+			msg="\n".join(msg_lns)
+			msg=msg.replace("\n\n",'\n').replace("subcommands:\n","Command:")
+			print(file=sys.stderr)
+			print(msg,file=sys.stderr)
 			sys.exit(1)
 
 	except BrokenPipeError:
