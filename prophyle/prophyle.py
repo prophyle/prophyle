@@ -373,7 +373,7 @@ def parser():
 
 	##########
 
-	parser_init = subparsers.add_parser('init', help='Initialize data', formatter_class=fc)
+	parser_init = subparsers.add_parser('download', help='download genomes', formatter_class=fc)
 	parser_init.add_argument(
 			'library',
 			metavar='<library>',
@@ -391,7 +391,7 @@ def parser():
 
 	##########
 
-	parser_index = subparsers.add_parser('index', help='Create index', formatter_class=fc)
+	parser_index = subparsers.add_parser('index', help='build index', formatter_class=fc)
 	parser_index.add_argument(
 			'-n','--newick',
 			metavar='FILE',
@@ -439,7 +439,7 @@ def parser():
 
 	##########
 
-	parser_classify = subparsers.add_parser('classify', help='Classify reads', formatter_class=fc)
+	parser_classify = subparsers.add_parser('classify', help='classify reads', formatter_class=fc)
 	parser_classify.add_argument(
 			'index_dir',
 			metavar='<index.dir>',
@@ -509,7 +509,7 @@ def main():
 		args = par.parse_args()
 		subcommand=args.subcommand
 
-		if subcommand=="init":
+		if subcommand=="download":
 			init(
 					library=args.library,
 					home_dir=args.home_dir,
