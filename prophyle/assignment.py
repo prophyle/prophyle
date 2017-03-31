@@ -375,11 +375,42 @@ class TreeIndex:
 		return lca.name
 
 
+def assign(
+		tree_fn,
+		inp_fo,
+		lca,
+		form,
+		k,
+		crit,
+		annotate,
+		tie,
+		dont_translate_blocks,
+	):
+		assert form in ["kraken", "sam"]
+		assert k>1
+		ti=TreeIndex(
+				tree_newick_fn=tree_fn,
+				k=k,
+			)
 
-def main():
+		read=Read(
+				tree=ti,
+				simulate_lca=lca,
+				annotate=annotate,
+				tie_lca=tie,
+				dont_translate_blocks=dont_translate_blocks,
+			)
+		if form=="sam":
+			read.print_sam_header()
+		try:
+			for x in inp_fo:
+				read.process_krakline(x,form=form,crit=crit)
+		except (BrokenPipeError, IOError):
+			# pipe error (e.g., when head is used)
+			pass
 
-	try:
 
+def parse_args():
 		parser = argparse.ArgumentParser(description='Implementation of assignment algorithm')
 
 		parser.add_argument('-i', '--input',
@@ -441,8 +472,12 @@ def main():
 				dest='donttransl',
 				help='do not translate blocks from node to tax IDs',
 			)
-
 		args = parser.parse_args()
+		return args
+
+
+def main():
+		args=parse_args()
 
 		newick_fn=args.newick_fn
 		inp_fo=args.input_file
@@ -454,26 +489,18 @@ def main():
 		tie=args.tie
 		d=args.donttransl
 
-
-		ti=TreeIndex(
-				tree_newick_fn=newick_fn,
+		assign(
+				tree_fn=newick_fn,
+				inp_fo=inp_fo,
+				lca=lca,
+				form=form,
 				k=k,
-			)
-
-		read=Read(
-				tree=ti,
-				simulate_lca=lca,
+				crit=crit,
 				annotate=annotate,
-				tie_lca=tie,
+				tie=tie,
 				dont_translate_blocks=d,
 			)
-		if form=="sam":
-			read.print_sam_header()
-		for x in inp_fo:
-			read.process_krakline(x,form=form,crit=crit)
 
-	except (IOError, OSError):
-		sys.exit(0)
 
 if __name__ == "__main__":
 	main()
