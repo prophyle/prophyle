@@ -27,7 +27,7 @@ class build_ext(_build_ext):
 setup(
 	name='prophyle',
 
-	version='0.1.0.9',
+	version='0.1.0.11',
 
 
 	description='ProPhyle metagenomic classifier',
@@ -56,6 +56,7 @@ setup(
 
 	package_data={
 		'prophyle': [
+			'README.rst',
 			'prophyle-assembler/*.cpp',
 			'prophyle-assembler/*.h',
 			'prophyle-assembler/Makefile',
