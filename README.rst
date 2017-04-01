@@ -5,11 +5,13 @@ ProPhyle - accurate and resource-frugal phylogeny-based metagenomic classificati
 .. image:: https://travis-ci.org/karel-brinda/prophyle.svg?branch=master
 	:target: https://travis-ci.org/karel-brinda/prophyle
 
+ProPhyle is a metagenomic classifier based on BWT-index and phylogenetic trees, whose indexing strategy is based on the bottom-up propagation of genomes' k-mers in the tree, assembling contigs at each node and matching using a standard full-text search. The analysis of shared k-mers between NGS reads and the genomes in the index determines which nodes are the best candidates for their classification.
+
 Getting started
 ---------------
 
 Prerequisities
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 * GCC 4.8+
 * ZLib
@@ -17,11 +19,9 @@ Prerequisities
 * SamTools
 
 Recommended way of installation using Conda
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Environment installation:
-
-.. code-block:: bash
+Environment installation::
 
 	conda create -y --name prophyle \
 		-c etetoolkit -c bioconda \
@@ -29,30 +29,18 @@ Environment installation:
 		parallel blast samtools=1.3.1
 
 
-Environment activation:
+Environment activation::
 
-.. code-block:: bash
-
-        source activate prophyle
+	source activate prophyle
 
 
-Compile all programs
+Compile all programs::
 
-.. code-block:: bash
+  make
 
-  make -C src
+Pipeline example
+^^^^^^^^^^^^^^^^
 
-Custom taxonomic trees
-~~~~~~~~~~~~~~~~~~~~~~
-
-Use `bin/build_taxonomic_tree.py <bin/build_taxonomic_tree.py>`_ to build custom taxonomic trees starting from your database's fasta indexes and taxonomy files (`library/Taxonomy <library/Taxonomy>`_ for more information). Taxonomic identifiers are assigned to the sequences first, and then the tree is built using `ETE Toolkit <http://etetoolkit.org/>`_ and saved with newick format 1. Necessary node attributes are:
-
-* ``name``: unique node name
-* ``taxid``: unique taxonomic identifier
-* ``seqname``: names of the sequences sharing the same taxid, separated by @
-* ``fastapath``: paths of the sequences' fasta files, separated by @ (relative paths from their library directory)
-* ``infasta_offset``: positions where each sequence starts inside the corresponding fasta files, separated by @
-* ``base_len``: length of each sequence, separated by @
-
-``seqname``, ``infasta_offset`` and ``base_len`` can be found in samtools' `fasta index <http://www.htslib.org/doc/faidx.html>`_.
-Other optional attributes are ``sci_name``, ``named_lineage``, ``lineage``, ``rank`` (more info `here <http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html#automatic-tree-annotation-using-ncbi-taxonomy>`_).
+prophyle download bacteria
+prophyle index -t bacteria.nw -g bacteria/ idx_bacteria
+prophyle classify idx_bacteria reads.fq > result.sam
