@@ -12,6 +12,7 @@ import textwrap
 from . import version
 
 c_d=os.path.dirname(os.path.realpath(__file__))
+newick_d=os.path.join(c_d,"trees")
 
 #bin_dir=os.path.dirname(__file__)
 bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
@@ -121,9 +122,9 @@ def _compile_prophyle_bin():
 			return
 
 
-#################
-# PROPHYLE download #
-#################
+#####################
+# PROPHYLE DOWNLOAD #
+#####################
 
 def _complete(d, i):
 	fn=os.path.join(d,".complete.{}".format(i))
@@ -177,6 +178,10 @@ def download(library, library_dir):
 		for l in LIBRARIES:
 			download(l, library_dir)
 		return
+	else:
+		assert library in LIBRARIES
+		nhx=os.path.join(newick_d,"{}.nw".format(library))
+		_test_files(nhx)
 
 	if library_dir is None:
 		d=os.path.join(os.path.expanduser("~/prophyle"),library)
@@ -187,7 +192,11 @@ def download(library, library_dir):
 	cmd=['mkdir', '-p', d]
 	_run_safe(cmd)
 
-	_message("Checking library '{}'".format(library))
+	_message("Checking library '{}' in '{}'".format(library,d))
+
+	if _missing_library(d):
+		_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,d))
+		shutil.copy(nhx, d)
 
 	# todo: http vs ftp
 	if library=='bacteria':

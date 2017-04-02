@@ -80,7 +80,8 @@ setup(
 			'prophyle-index/bwa/*.c',
 			'prophyle-index/bwa/*.h',
 			'prophyle-index/bwa/Makefile',
-		]
+			'trees/*.nw',
+		],
 	},
 
 	## Running make deprec
