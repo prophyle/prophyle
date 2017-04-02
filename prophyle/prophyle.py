@@ -199,8 +199,9 @@ def download(library, library_dir):
 
 	lib_missing=_missing_library(d)
 	if lib_missing:
-		_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,d))
-		shutil.copy(nhx, d)
+		new_nhx=d+".nw"
+		_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
+		shutil.copyfile(nhx, new_nhx)
 
 	# todo: http vs ftp
 	if library=='bacteria':
