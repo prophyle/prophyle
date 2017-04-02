@@ -107,6 +107,10 @@ def _rm(*fns):
 		except FileNotFoundError:
 			pass
 
+def _makedirs(d):
+	cmd=['mkdir', '-p', d]
+	_run_safe(cmd)
+
 
 def _compile_prophyle_bin():
 	files_to_check=[
@@ -147,7 +151,7 @@ def _is_complete(d, i):
 
 def _missing_library(d):
 	l=os.path.dirname(d)
-	os.makedirs(d, exist_ok=True)
+	_makedirs(d, exist_ok=True)
 	if _is_complete(d,1):
 		_message("Skipping downloading library '{}' (already exists)".format(l))
 		return False
@@ -159,7 +163,7 @@ def _missing_library(d):
 def _pseudo_fai(d):
 	l=os.path.dirname(d)
 	pseudofai_fn=d+".pseudofai"
-	os.makedirs(d, exist_ok=True)
+	_makedirs(d, exist_ok=True)
 	if _is_complete(d,2) and os.path.isfile(pseudofai_fn):
 		_message("Skipping generating pseudofai for library '{}' (already exists)".format(l))
 	else:
@@ -189,18 +193,18 @@ def download(library, library_dir):
 		d=library_dir
 	#print('making',d, file=sys.stderr)
 	#os.makedirs(d, exist_ok=True)
-	cmd=['mkdir', '-p', d]
-	_run_safe(cmd)
+	_makedirs(d)
 
 	_message("Checking library '{}' in '{}'".format(library,d))
 
-	if _missing_library(d):
+	lib_missing=_missing_library(d)
+	if lib_missing:
 		_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,d))
 		shutil.copy(nhx, d)
 
 	# todo: http vs ftp
 	if library=='bacteria':
-		if _missing_library(d):
+		if lib_missing:
 			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
 			_run_safe(cmd)
@@ -208,7 +212,7 @@ def download(library, library_dir):
 		_pseudo_fai(d)
 
 	elif library=='viruses':
-		if _missing_library(d):
+		if lib_missing:
 			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
 			_run_safe(cmd)
@@ -218,7 +222,7 @@ def download(library, library_dir):
 		_pseudo_fai(d)
 
 	elif library=='plasmids':
-		if _missing_library(d):
+		if lib_missing:
 			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
 			_run_safe(cmd)
@@ -226,7 +230,7 @@ def download(library, library_dir):
 		_pseudo_fai(d)
 
 	elif library=='hmp':
-		if _missing_library(d):
+		if lib_missing:
 			# fix when error appears
 			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
 			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
@@ -244,7 +248,7 @@ def download(library, library_dir):
 def _create_makefile(index_dir, k, library_dir):
 	_message('Creating Makefile for k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
-	os.makedirs(propagation_dir,exist_ok=True)
+	_makedirs(propagation_dir)
 
 	makefile=os.path.join(propagation_dir,'Makefile')
 	newick_fn=os.path.join(index_dir,'tree.newick')
@@ -318,7 +322,7 @@ def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, 
 	# make index dir
 	if ccontinue:
 		assert not os.path.isfile(index_dir)
-		os.makedirs(index_dir, exist_ok=True)
+		_makedirs(index_dir)
 	else:
 		assert not os.path.isfile(index_dir)
 		assert not os.path.isdir(index_dir)
