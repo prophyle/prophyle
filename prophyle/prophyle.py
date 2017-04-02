@@ -151,7 +151,7 @@ def _is_complete(d, i):
 
 def _missing_library(d):
 	l=os.path.dirname(d)
-	_makedirs(d, exist_ok=True)
+	_makedirs(d)
 	if _is_complete(d,1):
 		_message("Skipping downloading library '{}' (already exists)".format(l))
 		return False
@@ -163,7 +163,7 @@ def _missing_library(d):
 def _pseudo_fai(d):
 	l=os.path.dirname(d)
 	pseudofai_fn=d+".pseudofai"
-	_makedirs(d, exist_ok=True)
+	_makedirs(d)
 	if _is_complete(d,2) and os.path.isfile(pseudofai_fn):
 		_message("Skipping generating pseudofai for library '{}' (already exists)".format(l))
 	else:
@@ -224,7 +224,7 @@ def download(library, library_dir):
 	elif library=='plasmids':
 		if lib_missing:
 			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz']
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz --strip 5']
 			_run_safe(cmd)
 			_complete(d, 1)
 		_pseudo_fai(d)
