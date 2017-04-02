@@ -122,7 +122,7 @@ def _compile_prophyle_bin():
 
 
 #################
-# PROPHYLE INIT #
+# PROPHYLE download #
 #################
 
 def _complete(d, i):
@@ -172,10 +172,10 @@ def _pseudo_fai(d):
 		_run_safe(cmd, pseudofai_fn)
 		_complete(d, 2)
 
-def init(library, library_dir):
+def download(library, library_dir):
 	if library=="all":
 		for l in LIBRARIES:
-			init(l, library_dir)
+			download(l, library_dir)
 		return
 
 	if library_dir is None:
@@ -428,14 +428,14 @@ def parser():
 
 	##########
 
-	parser_init = subparsers.add_parser('download', help='download genomes', formatter_class=fc)
-	parser_init.add_argument(
+	parser_download = subparsers.add_parser('download', help='download genomes', formatter_class=fc)
+	parser_download.add_argument(
 			'library',
 			metavar='<library>',
 			choices=LIBRARIES+['all'],
 			help='genomic library {}'.format(LIBRARIES+['all']),
 		)
-	parser_init.add_argument(
+	parser_download.add_argument(
 			'-g',
 			metavar='DIR',
 			dest='home_dir',
@@ -565,7 +565,7 @@ def main():
 		subcommand=args.subcommand
 
 		if subcommand=="download":
-			init(
+			download(
 					library=args.library,
 					library_dir=args.home_dir,
 				)
