@@ -1,0 +1,11 @@
+$ prophyle download -h
+
+usage: prophyle download [-h] [-g DIR] <library>
+
+positional arguments:
+  <library>   genomic library ['bacteria', 'viruses', 'plasmids', 'hmp',
+              'all']
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -g DIR      directory with genomic sequences [~/prophyle/<library>]

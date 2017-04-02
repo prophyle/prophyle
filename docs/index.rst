@@ -24,7 +24,7 @@ Table of contents
 :ref:`reference`
 	Automatically generated documentation for ProPhyle's CLI.
 
-:ref:`other_information`
+.. :ref:`other_information`
  	FAQs and supplementary information about ProPhyle.
 
 .. toctree::
