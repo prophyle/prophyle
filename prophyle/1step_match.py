@@ -6,8 +6,8 @@ import sys
 import os
 
 script_dir=os.path.dirname(os.path.realpath(__file__))
-bwa=os.path.join(script_dir,"bwa")
-prophyle_index=os.path.join(script_dir,"prophyle-index")
+bwa=os.path.join(script_dir,"prophyle-index","bwa","bwa")
+prophyle_index=os.path.join(script_dir,"prophyle-index","prophyle-index")
 
 def cmd(command,stdout=sys.stderr,stderr=sys.stderr):
 	print(file=sys.stderr)
