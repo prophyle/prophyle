@@ -30,14 +30,10 @@ Installation using Conda (recommended)
 
 Environment installation::
 
-	conda create -y --name prophyle \
-		-c etetoolkit -c bioconda \
-		python==3 ete3 bitarray \
-		parallel blast samtools=1.3.1
-
+	conda create -y --name prophyle -c etetoolkit -c bioconda \
+		python==3 ete3 bitarray samtools=1.3.1
 	source activate prophyle
-
-	pip install prophyle
+	pip install --upgrade prophyle
 
 
 Environment activation::
@@ -54,8 +50,7 @@ From PyPI::
 
 From Git::
 
-	git clone http://github.com/karel-brinda
-	pip install --upgrade prophyle
+	pip install --upgrade git+https://github.com/karel-brinda/prophyle
 
 From PyPI to the current directory::
 
