@@ -480,8 +480,9 @@ def parser():
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with genomic sequences',
-			required=True,
+			help='directory with genomic sequences (if different from the directory with the tree)',
+			default=None,
+			#required=True,
 		)
 	parser_index.add_argument(
 			'-j',
@@ -585,12 +586,16 @@ def main():
 				)
 
 		elif subcommand=="index":
+			if args.library_dir is None:
+				library_dir=os.path.dirname(args.newick)
+			else:
+				library_dir=args.library_dir
 			index(
 					index_dir=args.index_dir,
 					threads=args.threads,
 					k=args.k,
 					newick_fn=args.newick,
-					library_dir=args.library_dir,
+					library_dir=library_dir,
 					ccontinue=args.ccontinue,
 				)
 
