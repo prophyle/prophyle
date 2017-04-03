@@ -1,0 +1,19 @@
+$ prophyle classify -h
+
+usage: prophyle classify [-h] [-k INT] [-K] [-m {h1,c1}] [-f {kraken,sam}]
+                         [-A] [-L] [-M]
+                         <index.dir> <reads.fq>
+
+positional arguments:
+  <index.dir>      index directory
+  <reads.fq>       file with reads in FASTA or FASTQ [- for standard input]
+
+optional arguments:
+  -h, --help       show this help message and exit
+  -k INT           k-mer length [31]
+  -K               do not use k-LCP
+  -m {h1,c1}       measure: h1=hit count, c1=coverage [h1]
+  -f {kraken,sam}  output format [sam]
+  -A               annotate assignments
+  -L               use LCA when tie (multiple hits with the same score)
+  -M               mimic Kraken algorithm and output (for debugging purposes)

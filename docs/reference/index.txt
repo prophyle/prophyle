@@ -1,0 +1,14 @@
+$ prophyle index -h
+
+usage: prophyle index [-h] -t FILE -g DIR [-j INT] [-k INT] [-C] <index.dir>
+
+positional arguments:
+  <index.dir>  index directory (will be created)
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -t FILE      phylogenetic tree (in Newick/NHX)
+  -g DIR       directory with genomic sequences
+  -j INT       number of threads [1]
+  -k INT       k-mer length [31]
+  -C           continue with index construction (construct only missing parts)
