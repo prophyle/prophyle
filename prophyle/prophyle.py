@@ -444,7 +444,11 @@ def parser():
 
 	##########
 
-	parser_download = subparsers.add_parser('download', help='download genomes', formatter_class=fc)
+	parser_download = subparsers.add_parser('download',
+			help='download a genomic database',
+			#description='Download RefSeq and HMP databases.',
+			formatter_class=fc,
+		)
 	parser_download.add_argument(
 			'library',
 			metavar='<library>',
@@ -457,19 +461,20 @@ def parser():
 			dest='home_dir',
 			type=str,
 			default=None,
-			help='directory for the tree and the sequences [~/prophyle]'.format(DEFAULT_HOME_DIR),
+			help='directory for the tree and the sequences [~/prophyle]',
 		)
 
 	##########
 
-	parser_index = subparsers.add_parser('index', help='build index', formatter_class=fc)
-	parser_index.add_argument(
-			'-t',
-			metavar='FILE',
-			dest='newick',
+	parser_index = subparsers.add_parser('index',
+			help='build index',
+			#description='Build a ProPhyle index (i.e., propagate k-mers and construct a BWT-index with k-LCP).',
+			formatter_class=fc,
+		)
+	parser_index.add_argument('newick',
+			metavar='<tree.nw>',
 			type=str,
 			help='phylogenetic tree (in Newick/NHX)',
-			required=True,
 		)
 	parser_index.add_argument(
 			'index_dir',
@@ -482,7 +487,7 @@ def parser():
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with genomic sequences [directory of the tree]',
+			help='directory with the library sequences [directory of the tree]',
 			default=None,
 			#required=True,
 		)
@@ -491,7 +496,7 @@ def parser():
 			metavar='INT',
 			dest='threads',
 			type=int,
-			help='number of threads [auto={}]'.format(DEFAULT_THREADS),
+			help='number of threads [auto ({})]'.format(DEFAULT_THREADS),
 			default=DEFAULT_THREADS,
 		)
 	parser_index.add_argument(
@@ -511,7 +516,11 @@ def parser():
 
 	##########
 
-	parser_classify = subparsers.add_parser('classify', help='classify reads', formatter_class=fc)
+	parser_classify = subparsers.add_parser('classify',
+			help='classify reads',
+			#description='Classify reads.',
+			formatter_class=fc,
+		)
 	parser_classify.add_argument(
 			'index_dir',
 			metavar='<index.dir>',
@@ -522,7 +531,7 @@ def parser():
 			'reads',
 			metavar='<reads.fq>',
 			type=str,
-			help='file with reads in FASTA or FASTQ [- for standard input]',
+			help='file with reads in FASTA or FASTQ (use - for standard input)',
 		)
 	parser_classify.add_argument(
 			'-k',
