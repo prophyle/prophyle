@@ -70,7 +70,7 @@ def _run_safe(command, output_fn=None, output_fo=None):
 	else:
 		out_fo=open(output_fn,"w+")
 
-	error_code=subprocess.call("/bin/bash -x -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+	error_code=subprocess.call("/bin/bash -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
 
 	out_fo.flush()
 
@@ -207,7 +207,7 @@ def download(library, library_dir):
 	if library=='bacteria':
 		if lib_missing:
 			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xvz']
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
 			_complete(d, 1)
 		_pseudo_fai(d)
@@ -215,9 +215,9 @@ def download(library, library_dir):
 	elif library=='viruses':
 		if lib_missing:
 			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xvz']
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xz']
 			_run_safe(cmd)
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xvz']
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
 			_complete(d, 1)
 		_pseudo_fai(d)
@@ -225,7 +225,7 @@ def download(library, library_dir):
 	elif library=='plasmids':
 		if lib_missing:
 			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xvz --strip 5']
+			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xz --strip 5']
 			_run_safe(cmd)
 			_complete(d, 1)
 		_pseudo_fai(d)
