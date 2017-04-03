@@ -30,8 +30,8 @@ merge_fastas="create_final_fasta.py"
 assign="assignment.py"
 
 DEFAULT_K=31
-#DEFAULT_THREADS=multiprocessing.cpu_count()
-DEFAULT_THREADS=1
+DEFAULT_THREADS=multiprocessing.cpu_count()
+#DEFAULT_THREADS=1
 DEFAULT_MEASURE='h1'
 DEFAULT_OUTPUT_FORMAT='sam'
 DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'prophyle')
@@ -190,7 +190,7 @@ def download(library, library_dir):
 	if library_dir is None:
 		d=os.path.join(os.path.expanduser("~/prophyle"),library)
 	else:
-		d=library_dir
+		d=os.path.join(library_dir,library)
 	#print('making',d, file=sys.stderr)
 	#os.makedirs(d, exist_ok=True)
 	_makedirs(d)
@@ -450,12 +450,12 @@ def parser():
 			help='genomic library {}'.format(LIBRARIES+['all']),
 		)
 	parser_download.add_argument(
-			'-g',
+			'-d',
 			metavar='DIR',
 			dest='home_dir',
 			type=str,
 			default=None,
-			help='directory with genomic sequences [~/prophyle/<library>]'.format(DEFAULT_HOME_DIR),
+			help='directory for the tree and the sequences [~/prophyle]'.format(DEFAULT_HOME_DIR),
 		)
 
 	##########
@@ -480,7 +480,7 @@ def parser():
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with genomic sequences (if different from the directory with the tree)',
+			help='directory with genomic sequences [directory of the tree]',
 			default=None,
 			#required=True,
 		)
@@ -489,7 +489,7 @@ def parser():
 			metavar='INT',
 			dest='threads',
 			type=int,
-			help='number of threads [{}]'.format(DEFAULT_THREADS),
+			help='number of threads [auto={}]'.format(DEFAULT_THREADS),
 			default=DEFAULT_THREADS,
 		)
 	parser_index.add_argument(
