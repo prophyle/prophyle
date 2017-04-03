@@ -184,8 +184,6 @@ def download(library, library_dir):
 		return
 	else:
 		assert library in LIBRARIES
-		nhx=os.path.join(newick_d,"{}.nw".format(library))
-		_test_files(nhx)
 
 	if library_dir is None:
 		d=os.path.join(os.path.expanduser("~/prophyle"),library)
@@ -199,9 +197,12 @@ def download(library, library_dir):
 
 	lib_missing=_missing_library(d)
 	if lib_missing:
-		new_nhx=d+".nw"
-		_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
-		shutil.copyfile(nhx, new_nhx)
+		for test_prefix in ["","test_"]:
+			nhx=os.path.join(newick_d,"{}{}.nw".format(test_prefix,library,))
+			new_nhx=d+".nw"
+			_test_files(nhx)
+			_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
+			shutil.copyfile(nhx, new_nhx)
 
 	# todo: http vs ftp
 	if library=='bacteria':
