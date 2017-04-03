@@ -13,6 +13,7 @@ import shutil
 import datetime
 import sys
 import argparse
+import textwrap
 
 from ete3 import Tree
 
@@ -45,31 +46,31 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 
 def assembly(input_files, output_files, intersection_file, count_file="/dev/null"):
 	assert(len(input_files)==len(output_files))
-	#logger.info('Starting assembly. Input files: {}. Output files: {}.'.format(input_files,output_files))
-	cmd =  (
-			"ifdef NONDEL\n"
-			"   CMD_ASM_OUT_{nid} = \n"
-			"else\n"
-			"   CMD_ASM_OUT_{nid} = -o {oo}\n"
-			"endif\n"
-			"\n"
-			"ifdef NONPROP\n"
-			"   CMD_ASM_{nid} = touch {x} {o}\n"
-			"else\n"
-			"   CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}\n"
-			"endif\n"
-			"\n"
-			"{x}: {i}\n"
-			"\t@echo starting propagation for $@\n"
-			"\t$(CMD_ASM_{nid})\n\n"
-		).format(
-			i=' '.join(input_files),
-			o=' '.join(output_files),
-			ii=' -i '.join(input_files),
-			oo=' -o '.join(output_files),
-			x=intersection_file,
-			c=count_file,
-			nid=intersection_file,
+	cmd =  textwrap.dedent("""\
+			ifdef NONDEL
+			CMD_ASM_OUT_{nid} =
+			else
+			CMD_ASM_OUT_{nid} = -o {oo}
+			endif
+			
+			ifdef NONPROP
+			CMD_ASM_{nid} = touch {x} {o}
+			else
+			CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
+			endif
+			
+			{x}: {i}
+			\t@echo starting propagation for $@
+			\t$(CMD_ASM_{nid})
+			""".format(
+				i=' '.join(input_files),
+				o=' '.join(output_files),
+				ii=' -i '.join(input_files),
+				oo=' -o '.join(output_files),
+				x=intersection_file,
+				c=count_file,
+				nid=intersection_file,
+			)
 		)
 	print(cmd)
 
@@ -113,7 +114,6 @@ class TreeIndex:
 				merge_fasta_files(fastas_fn,self.nonreduced_fasta_fn(node),is_leaf=True)
 
 		else:
-			#logger.info('BEGIN process non-leaf node "{}"'.format(self._node_debug(node)))
 			children=node.get_children()
 
 			# 1) process children
@@ -149,65 +149,73 @@ class TreeIndex:
 
 
 	def build_index(self,k,mask_repeats):
-		print()
-		print("include params.mk\n")
-		print()
-		print("PRG_ASM=prophyle-assembler")
-		print("PRG_DUST=dustmasker")
-		print()
-		print("$(info )")
-		print("$(info /------------------------------------------------------------------)")
-		print()
-		print("ifdef K")
-		print("   $(info | K-mer length:           $(K))")
-		print("else")
-		print("   $(error | K-mer length is not specified)")
-		print("endif")
-		print()
-		print(   "$(info | Assembler:              $(PRG_ASM))")
-		print()
-		print(   "$(info | DustMasker:             $(PRG_DUST))")
-		print()
-		print("ifdef MASKREP")
-		print("   $(info | Masking repeats:        On)")
-		print("   CMD_MASKING=$(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'")
-		print("else")
-		print("   $(info | Masking repeats:        Off)")
-		print("   CMD_MASKING=tee")
-		print("endif")
-		print()
-		print("ifdef NONPROP")
-		print("   $(info | K-mer propagation:      Off)")
-		print("else")
-		print("   $(info | K-mer propagation:      On)")
-		print("endif")
-		print()
-		print("ifdef NONDEL")
-		print("   $(info | K-mer propagation mode: Non-deletative)")
-		print("   REASM=1")
-		print("else")
-		print("   $(info | K-mer propagation mode: Deletative)")
-		print("endif")
-		print()
-		print("ifdef REASM")
-		print("   $(info | Re-assembling leaves:   On)")
-		print("   CMD_REASM=$(PRG_ASM) -i - -o -")
-		print("else")
-		print("   $(info | Re-assembling leaves:   Off)")
-		print("   CMD_REASM=tee")
-		print("endif")
-		print("$(info \------------------------------------------------------------------)")
-		print("$(info )")
-		print("")
-		print("")
+		print(textwrap.dedent("""\
+				include params.mk\n
+				
+				PRG_ASM=prophyle-assembler
+				PRG_DUST=dustmasker
+				
+				$(info )
+				$(info /------------------------------------------------------------------)
+				
+				ifdef K
+				   $(info | K-mer length:           $(K))
+				else
+				   $(error | K-mer length is not specified)
+				endif
+				
+				$(info | Assembler:              $(PRG_ASM))
+				
+				$(info | DustMasker:             $(PRG_DUST))
+				
+				ifdef MASKREP
+				$(info | Masking repeats:        On)
+				CMD_MASKING=$(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'
+				else
+				$(info | Masking repeats:        Off)
+				CMD_MASKING=tee
+				endif
+				
+				ifdef NONPROP
+				$(info | K-mer propagation:      Off)
+				else
+				$(info | K-mer propagation:      On)
+				endif
+				
+				ifdef NONDEL
+				$(info | K-mer propagation mode: Non-deletative)
+				REASM=1
+				else
+				$(info | K-mer propagation mode: Deletative)
+				endif
+				
+				ifdef REASM
+				$(info | Re-assembling leaves:   On)
+				CMD_REASM=$(PRG_ASM) -i - -o -
+				else
+				$(info | Re-assembling leaves:   Off)
+				CMD_REASM=tee
+				endif
+				$(info \------------------------------------------------------------------)
+				$(info )
+
+				all: {root_red}
+
+				{root_red}: {root_nonred}
+					ln -s $< $@
+
+				""".format(
+							root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
+							root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
+						)
+			))
 		#print("all: {}".format(
 		#    " ".join(
 		#        [self.nonreduced_fasta_fn(x) for x in self.tree.traverse()]
 		#        )
 		#    )
 		#)
-		print("all: {}".format(self.nonreduced_fasta_fn(self.tree.get_tree_root())))
-		#logger.info('Going to build index for k={}'.format(k))
+		print()
 		self.process_node(self.tree.get_tree_root())
 
 
@@ -260,11 +268,6 @@ def main():
 	output_dir_fn=args.output_dir_fn
 	library_dir_fn=args.library_dir_fn
 	r=args.r
-
-	#logger.info("Starting index construction")
-	#logger.info("       newick : {}".format(newick_fn))
-	#logger.info("   output dir : {}".format(output_dir_fn))
-	#logger.info("            k : {}".format(k))
 
 	ti=TreeIndex(
 			tree_newick_fn=newick_fn,
