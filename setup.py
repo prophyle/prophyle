@@ -89,11 +89,11 @@ setup(
 
 	entry_points={
 			'console_scripts': [
-			'prophyle = prophyle.prophyle:main',
-			'newick2makefile.py = prophyle.newick2makefile:main',
-			'create_final_fasta.py = prophyle.create_final_fasta:main',
-			'assignment.py = prophyle.assignment:main',
-		]
+				'prophyle = prophyle.prophyle:main',
+				'prophyle_propagation_makefile.py = prophyle.prophyle_propagation_makefile:main',
+				'prophyle_merge_fa.py = prophyle.prophyle_merge_fa:main',
+				'prophyle_assignment.py = prophyle.prophyle_assignment:main',
+			]
 	},
 
 	cmdclass={'build_ext': build_ext},
