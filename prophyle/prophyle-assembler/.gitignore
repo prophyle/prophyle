@@ -1,0 +1,10 @@
+prophyle-assembler
+*.o
+*.tsv
+
+intersect.fa
+out*
+
+*.build/
+*.xcodeproj/
+

@@ -1,9 +1,6 @@
 .PHONY: all clean
 
-SHELL=/bin/bash -o pipefail
-
-ASM=../../bin/prophyle-assembler
-F2K=../../bin/_fa_to_kmers.py -m a
+include ../conf.mk
 
 FA1=test_L.fa
 FA2=test_R.fa
