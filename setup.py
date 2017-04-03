@@ -18,24 +18,11 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 
-# Get version
+# Get the current version
 exec(open("prophyle/version.py").read())
-
-
-## Running make deprec
-#fake_ext = Extension(
-#	"prophyle.fake_extension",
-#	["prophyle/fake_extension.c"],
-#)
 
 class build_ext(_build_ext):
 	def run(self):
-		##
-		## Running make deprecated, reasons:
-		## - does not work with PIP
-		## - when executables present on list of package files, they get uploaded to PyPI
-		##
-		#subprocess.call('make -C prophyle', shell=True)
 		_build_ext.run(self)
 
 setup(
@@ -84,9 +71,6 @@ setup(
 		],
 	},
 
-	## Running make deprec
-	#ext_modules=[fake_ext],
-
 	entry_points={
 			'console_scripts': [
 				'prophyle = prophyle.prophyle:main',
@@ -95,6 +79,4 @@ setup(
 				'prophyle_assignment.py = prophyle.prophyle_assignment:main',
 			]
 	},
-
-	cmdclass={'build_ext': build_ext},
 )

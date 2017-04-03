@@ -41,7 +41,7 @@ def query(fa, fq, k, u=False, v=False, t=1):
 		params+=" -u"
 	cmd('"{prophyle_index}" query {params} -k {k} -t {t} "{fa}" "{fq}"'.format(prophyle_index=prophyle_index,fa=fa,fq=fq,k=k,t=t, params=params),stdout=sys.stdout)
 
-parser = argparse.ArgumentParser(description='One command exk matching.')
+parser = argparse.ArgumentParser(description='Single-command prophyle-index matching.')
 parser.add_argument(
 		'-k',
 		type=int,
