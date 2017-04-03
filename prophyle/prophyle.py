@@ -21,13 +21,13 @@ asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
 
 ## todo: decide about the path (execution from repo vs from package)
 #newick2makefile=os.path.join(c_d,"newick2makefile.py")
-newick2makefile="newick2makefile.py"
+newick2makefile="prophyle_propagation_makefile.py"
 
 test_newick=os.path.join(c_d,"test_newick_tree.py")
 ## todo: decide about the path (execution from repo vs from package)
-merge_fastas="create_final_fasta.py"
+merge_fastas="prophyle_merge_fa.py"
 ## todo: decide about the path (execution from repo vs from package)
-assign="assignment.py"
+assign="prophyle_assignment.py"
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
