@@ -198,8 +198,9 @@ def download(library, library_dir):
 	lib_missing=_missing_library(d)
 	if lib_missing:
 		for test_prefix in ["","test_"]:
-			nhx=os.path.join(newick_d,"{}{}.nw".format(test_prefix,library,))
-			new_nhx=d+".nw"
+			fn="{}{}.nw".format(test_prefix,library,)
+			nhx=os.path.join(newick_d,fn)
+			new_nhx=os.path.join(d,"..",fn)
 			_test_files(nhx)
 			_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
 			shutil.copyfile(nhx, new_nhx)
