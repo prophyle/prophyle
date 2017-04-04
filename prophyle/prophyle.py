@@ -48,8 +48,11 @@ def _test_files(*fns,test_nonzero=False):
 	"""Test if given files exist, and possibly if they are non-empty. If not, stop the program.
 
 	Args:
-		@*fns: Files.
-		@test_nonzero (bool): Test whether files are of non-null size.
+		*fns: Files.
+		test_nonzero (bool): Test whether files are of non-null size.
+
+	Raises:
+		AssertionError: A file does not exist or is of size 0.
 	"""
 	#print(fns)
 	for fn in fns:
@@ -61,7 +64,7 @@ def _test_newick(fn):
 	"""Test if given tree is valid for ProPhyle.
 	
 	Args:
-		@fn (str): Newick/NHX tree.
+		fn (str): Newick/NHX tree.
 	"""
 	_test_files(fn)
 	cmd=[test_newick, '-n', fn]
@@ -70,7 +73,10 @@ def _file_sizes(*fns):
 	"""Get file sizes in Bytes.
 
 	Args:
-		@fns (str): File names.
+		fns (str): File names.
+
+	Returns:
+		tuple(int): File sizes.
 	"""
 	return tuple( [os.stat(fn).st_size for fn in fns] )
 
@@ -151,7 +157,7 @@ def _makedirs(*ds):
 
 
 def _compile_prophyle_bin():
-	"""Compile ProPhyle binaries if they don't exist, yet.
+	"""Compile ProPhyle binaries if they don't exist yet.
 	"""
 	files_to_check=[
 			os.path.join(c_d,'prophyle-assembler','prophyle-assembler'),
@@ -244,6 +250,9 @@ def download(library, library_dir):
 	Args:
 		library (str): Library to download (bacteria / viruses / ...)
 		library_dir (str): Directory for the download.
+
+	Todo:
+		* Add support for alternative URLs (http / ftp, backup refseq sites, etc.).
 	"""
 
 	if library=="all":
@@ -317,6 +326,13 @@ def download(library, library_dir):
 ##################
 
 def _create_makefile(index_dir, k, library_dir):
+	"""Create a Makefile for k-mer propagation.
+
+	Args:
+		index_dir (str): Index directory.
+		k (int): K-mer size.
+		library_dir (library_dir): Library directory.
+	"""
 	_message('Creating Makefile for k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_makedirs(propagation_dir)
@@ -332,6 +348,12 @@ def _create_makefile(index_dir, k, library_dir):
 	_run_safe(command,makefile)
 
 def _propagate(index_dir,threads):
+	"""Run k-mer propagation.
+
+	Args:
+		index_dir (str): Index directory.
+		threads (int): Number of threads for Makefile.
+	"""
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
@@ -339,6 +361,12 @@ def _propagate(index_dir,threads):
 	_run_safe(command)
 
 def _merge_fastas(index_dir):
+	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+
 	_message('Generating index.fa')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	# todo: check files for all nodes exist and are of size > 0
@@ -349,37 +377,81 @@ def _merge_fastas(index_dir):
 	_touch(index_fa+".complete")
 
 def _fa2pac(fa_fn):
+	"""Run `bwa fa2pac` (FA => 2bit).
+
+	Args:
+		fa_fn (str): FASTA file.
+	"""
+
 	_message('Generating packed FASTA file')
 	_test_files(bwa, fa_fn)
 	command=[bwa, 'fa2pac', fa_fn, fa_fn]
 	_run_safe(command)
 
 def _pac2bwt(fa_fn):
+	"""Run `bwa pac2bwtgen` (2bit => BWT).
+
+	Args:
+		fa_fn (str): FASTA file.
+	"""
+
 	_message('Generating BWT')
 	_test_files(bwa, fa_fn+".pac")
 	command=[bwa, 'pac2bwtgen', fa_fn+".pac", fa_fn+".bwt"]
 	_run_safe(command)
 
 def _bwt2bwtocc(fa_fn):
+	"""Run `bwa bwtupdate` (BWT => BWT+OCC).
+
+	Args:
+		fa_fn (str): FASTA file.
+	"""
+
 	_message('Generating sampled OCC array')
 	_test_files(bwa, fa_fn+".bwt")
 	command=[bwa, 'bwtupdate', fa_fn+".bwt"]
 	_run_safe(command)
 
 def _bwtocc2sa(fa_fn):
+	"""Run `bwa bwt2sa` (BWT+OCC => SSA).
+
+	Args:
+		fa_fn (str): FASTA file.
+	"""
+
 	_message('Generating sampled SA')
 	_test_files(bwa, fa_fn+".bwt")
 	command=[bwa, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
 	_run_safe(command)
 
 def _bwtocc2klcp(fa_fn,k):
+	"""Create k-LCP `` (BWT => k-LCP).
+
+	Args:
+		fa_fn (str): FASTA file.
+		k (int): K-mer size.
+	"""
+
 	_message('Generating k-LCP array')
 	_test_files(ind, fa_fn+".bwt")
 	command=[ind, 'build', '-k', k, fa_fn]
 	_run_safe(command)
 
 def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=False):
+	"""Build a Prophyle index.
+
+	Args:
+		index_dir (str): Index directory.
+		threads (int): Number of threads in k-mer propagation.
+		newick_fn (str): Newick/NHX tree.
+		library_dir (str): Library directory.
+		klcp (bool): Generate klcp.
+	"""
+
+	assert isinstance(k, int)
+	assert isinstance(threads, int)
 	assert k>1
+	assert threads>0
 
 	_compile_prophyle_bin()
 
@@ -441,6 +513,22 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 #####################
 
 def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate,tie_lca):
+
+	"""Run Prophyle classification.
+
+	Args:
+		index_dir (str): Index directory.
+		fq_fn (str): Input reads.
+		k (int): K-mer size.
+		use_klcp (bool): Use rolling window.
+		out_format (str): Output format: sam / kraken.
+		mimic_kraken (bool): Mimic Kraken algorithm (compute LCA for each k-mer).
+		measure (str): Measure used for classification (h1 / h2 / c1 / c2).
+		annotate (bool): Annotate assignments (insert annotations from Newick to SAM).
+		tie_lca (bool): If multiple equally good assignments found, compute their LCA.
+	"""
+
+
 	_compile_prophyle_bin()
 	index_fa=os.path.join(index_dir, 'index.fa')
 	index_newick=os.path.join(index_dir, 'tree.newick')
