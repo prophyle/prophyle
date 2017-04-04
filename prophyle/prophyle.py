@@ -12,21 +12,22 @@ import textwrap
 from . import version
 
 c_d=os.path.dirname(os.path.realpath(__file__))
-newick_d=os.path.join(c_d,"trees")
+tree_d=os.path.join(c_d,"trees")
 
 #bin_dir=os.path.dirname(__file__)
 bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
 ind=os.path.join(c_d,"prophyle-index","prophyle-index")
 asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
 
-## todo: decide about the path (execution from repo vs from package)
+## todo: decide about the paths for programs (execution from repo vs from package)
 #newick2makefile=os.path.join(c_d,"newick2makefile.py")
-newick2makefile="prophyle_propagation_makefile.py"
+#gs.
+#newick2makefile="prophyle_propagation_makefile.py"
 
-test_newick=os.path.join(c_d,"test_newick_tree.py")
-## todo: decide about the path (execution from repo vs from package)
+
+newick2makefile="prophyle_propagation_makefile.py"
+test_tree="prophyle_test_tree.py"
 merge_fastas="prophyle_merge_fa.py"
-## todo: decide about the path (execution from repo vs from package)
 assign="prophyle_assignment.py"
 
 DEFAULT_K=31
@@ -58,14 +59,14 @@ def _test_files(*fns,test_nonzero=False):
 			assert _file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
 
 
-def _test_newick(fn):
+def _test_tree(fn):
 	"""Test if given tree is valid for ProPhyle.
 	
 	Args:
 		fn (str): Newick/NHX tree.
 	"""
 	_test_files(fn)
-	cmd=[test_newick, '-n', fn]
+	cmd=[test_tree, '-n', fn]
 
 
 def _file_sizes(*fns):
@@ -321,7 +322,7 @@ def download(library, library_dir):
 	if lib_missing:
 		for test_prefix in ["","test_"]:
 			fn="{}{}.nw".format(test_prefix,library,)
-			nhx=os.path.join(newick_d,fn)
+			nhx=os.path.join(tree_d,fn)
 			new_nhx=os.path.join(d,"..",fn)
 			_test_files(nhx)
 			_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
@@ -385,10 +386,10 @@ def _create_makefile(index_dir, k, library_dir):
 	_makedirs(propagation_dir)
 
 	makefile=os.path.join(propagation_dir,'Makefile')
-	newick_fn=os.path.join(index_dir,'tree.newick')
-	_test_newick(newick_fn)
-	#_test_files(newick2makefile, newick_fn)
-	command=[newick2makefile, '-n', newick_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
+	tree_fn=os.path.join(index_dir,'tree.nw')
+	_test_tree(tree_fn)
+	#_test_files(newick2makefile, tree_fn)
+	command=[newick2makefile, '-n', tree_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
 		f.write("K={}\n".format(k))
@@ -486,13 +487,14 @@ def _bwtocc2klcp(fa_fn,k):
 	command=[ind, 'build', '-k', k, fa_fn]
 	_run_safe(command)
 
-def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=False):
+def index(index_dir, threads, k, tree_fn, library_dir, klcp=True, ccontinue=False):
 	"""Build a Prophyle index.
 
 	Args:
 		index_dir (str): Index directory.
 		threads (int): Number of threads in k-mer propagation.
-		newick_fn (str): Newick/NHX tree.
+		k (int): K-mer size.
+		tree_fn (str): Newick/NHX tree.
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
 
@@ -514,9 +516,9 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 	#
 
 	# check files & dirs
-	_test_newick(newick_fn)
+	_test_tree(tree_fn)
 	index_fa=os.path.join(index_dir,'index.fa')
-	index_newick=os.path.join(index_dir,'tree.newick')
+	index_tree=os.path.join(index_dir,'tree.nw')
 	makefile_dir=os.path.join(index_dir,'propagation')
 	makefile=os.path.join(index_dir,'propagation','Makefile')
 
@@ -529,10 +531,10 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 		assert not os.path.isdir(index_dir)
 
 	# copy newick
-	if ccontinue and os.path.isfile(index_newick):
+	if ccontinue and os.path.isfile(index_tree):
 		_message('Skipping Newick copying, already exists')
 	else:
-		shutil.copy(newick_fn, index_newick)
+		shutil.copy(tree_fn, index_tree)
 
 	#
 	# 2) Create and run Makefile for propagation, merge FASTA files
@@ -600,9 +602,9 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 
 	_compile_prophyle_bin()
 	index_fa=os.path.join(index_dir, 'index.fa')
-	index_newick=os.path.join(index_dir, 'tree.newick')
+	index_tree=os.path.join(index_dir, 'tree.nw')
 
-	_test_newick(index_newick)
+	_test_tree(index_tree)
 	#_test_files(fq_fn,index_fa,ind,assign)
 	_test_files(fq_fn,index_fa,ind)
 
@@ -625,9 +627,9 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 		assert abs(bwt_s - 4*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
 
 	if mimic_kraken:
-		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_newick, '-m', 'h1', '-f', 'kraken', '-l', '-t']
+		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_tree, '-m', 'h1', '-f', 'kraken', '-l', '-t']
 	else:
-		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_newick, '-m', measure, '-f', out_format]
+		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_tree, '-m', measure, '-f', out_format]
 		if annotate:
 			cmd_assign+=['--annotate']
 		if tie_lca:
@@ -696,7 +698,7 @@ def parser():
 			#description='Build a ProPhyle index (i.e., propagate k-mers and construct a BWT-index with k-LCP).',
 			formatter_class=fc,
 		)
-	parser_index.add_argument('newick',
+	parser_index.add_argument('tree',
 			metavar='<tree.nw>',
 			type=str,
 			help='phylogenetic tree (in Newick/NHX)',
@@ -823,14 +825,14 @@ def main():
 
 		elif subcommand=="index":
 			if args.library_dir is None:
-				library_dir=os.path.dirname(args.newick)
+				library_dir=os.path.dirname(args.tree)
 			else:
 				library_dir=args.library_dir
 			index(
 					index_dir=args.index_dir,
 					threads=args.threads,
 					k=args.k,
-					newick_fn=args.newick,
+					tree_fn=args.tree,
 					library_dir=library_dir,
 					ccontinue=args.ccontinue,
 				)
