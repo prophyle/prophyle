@@ -39,9 +39,6 @@ DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'prophyle')
 LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
-# todo: add both FTP and HTTP variants
-#   http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
-#   ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
 
 
 def _test_files(*fns,test_nonzero=False):
@@ -49,10 +46,10 @@ def _test_files(*fns,test_nonzero=False):
 
 	Args:
 		*fns: Files.
-		test_nonzero (bool): Test whether files are of non-null size.
+		test_nonzero (bool): Test whether files have size greater than zero.
 
 	Raises:
-		AssertionError: A file does not exist or is of size 0.
+		AssertionError: File does not exist or it is empty.
 	"""
 	#print(fns)
 	for fn in fns:
@@ -95,7 +92,7 @@ def _run_safe(command, output_fn=None, output_fo=None):
 	else:
 		out_fo=open(output_fn,"w+")
 
-	error_code=subprocess.call("/bin/bash -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+	error_code=subprocess.call("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
 
 	out_fo.flush()
 
@@ -109,7 +106,6 @@ def _run_safe(command, output_fn=None, output_fo=None):
 		#print("Exited before finishing:", command_str, file=sys.stderr)
 	else:
 		_message("Unfinished, an error occurred (error code {}):".format(error_code), command_str)
-		# todo: maybe it will be better to throw an exception
 		raise RuntimeError("Command error.")
 
 
@@ -180,11 +176,11 @@ def _compile_prophyle_bin():
 
 
 def _existing_and_newer(fn0, fn):
-	"""Test whether file fn exists and is newer than fn0. Ensure that fn0 exists.
+	"""Test whether file fn exists and is newer than fn0. Raise an exception if fn0 does not exist.
 
 	Args:
 		fn0 (str): Old file.
-		fn (str): New file (to be generated from fn1).
+		fn (str): New file (to be generated from fn0).
 	"""
 
 	assert os.path.isfile(fn0), "Dependency '{}' does not exist".format(fn0)
@@ -202,29 +198,44 @@ def _existing_and_newer(fn0, fn):
 # PROPHYLE DOWNLOAD #
 #####################
 
-def _complete(d, i=1):
+def _mark_fn(d, i, name):
+	"""Create a mark name.
+
+	Args:
+		d (str): Directory.
+		i (int): Number of the step.
+		name (str): Name of the mark.
+	"""
+	if name is None:
+		return os.path.join(d,".complete.{}".format(i))
+	else:
+		return os.path.join(d,".complete.{}.{}".format(name,i))
+
+
+def _complete(d, i=1, name=None):
 	assert i>0
 	"""Create a mark file (an empty file to mark a finished step nb i).
 
 	Args:
 		d (str): Directory.
 		i (int): Number of the step.
+		name (str): Name of the mark.
 	"""
-	fn=os.path.join(d,".complete.{}".format(i))
-	_touch(fn)
+	_touch(_mark_fn(d, i, name))
 
  
-def _is_complete(d, i=1):
+def _is_complete(d, i=1, name=None):
 	"""Check whether a mark file i exists AND is newer than the mark file (i-1).
 
 	Args:
 		d (str): Directory.
-		i (int): Number of the step
+		i (int): Number of the step.
+		name (str): Name of the mark.
 	"""
 
 	assert i>0
-	fn=os.path.join(d,".complete.{}".format(i))
-	fn0=os.path.join(d,".complete.{}".format(i-1))
+	fn=_mark_fn(d,i, name)
+	fn0=fn=_mark_fn(d,i-1, name)
 
 	if i==1 and os.path.isfile(fn):
 		return True
@@ -233,6 +244,14 @@ def _is_complete(d, i=1):
 
 
 def _missing_library(d):
+	"""Check whether a mark file i exists AND is newer than the mark file (i-1).
+
+	Args:
+		d (str): Directory.
+		i (int): Number of the step.
+		name (str): Name of the mark.
+	"""
+
 	l=os.path.dirname(d)
 	_makedirs(d)
 	if _is_complete(d,1):
@@ -273,10 +292,12 @@ def download(library, library_dir):
 
 	Args:
 		library (str): Library to download (bacteria / viruses / ...)
-		library_dir (str): Directory for the download.
+		library_dir (str): Directory where download files will be downloaded.
 
 	Todo:
 		* Add support for alternative URLs (http / ftp, backup refseq sites, etc.).
+			* http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
+			* ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
 	"""
 
 	if library=="all":
@@ -306,7 +327,6 @@ def download(library, library_dir):
 			_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
 			shutil.copyfile(nhx, new_nhx)
 
-	# todo: http vs ftp
 	if library=='bacteria':
 		if lib_missing:
 			# fix when error appears
@@ -356,6 +376,9 @@ def _create_makefile(index_dir, k, library_dir):
 		index_dir (str): Index directory.
 		k (int): K-mer size.
 		library_dir (library_dir): Library directory.
+
+	Todo:
+		* Add checking of params.mk
 	"""
 	_message('Creating Makefile for k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
@@ -366,7 +389,7 @@ def _create_makefile(index_dir, k, library_dir):
 	_test_newick(newick_fn)
 	#_test_files(newick2makefile, newick_fn)
 	command=[newick2makefile, '-n', newick_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
-	# todo: add params.mk checking
+
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
 		f.write("K={}\n".format(k))
 	_run_safe(command,makefile)
@@ -389,11 +412,13 @@ def _merge_fastas(index_dir):
 
 	Args:
 		index_dir (str): Index directory.
+
+	Todo:
+		* check files for all nodes exist and are of size > 0
 	"""
 
 	_message('Generating index.fa')
 	propagation_dir=os.path.join(index_dir, 'propagation')
-	# todo: check files for all nodes exist and are of size > 0
 	index_fa=os.path.join(index_dir,"index.fa")
 	#_test_files(merge_fastas)
 	command=[merge_fastas, propagation_dir]
@@ -473,6 +498,8 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 
 	Todo:
 		* klcp in parallel with SA
+		* copy Newick only if it is newer
+
 	"""
 
 	assert isinstance(k, int)
@@ -500,8 +527,6 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 	else:
 		assert not os.path.isfile(index_dir)
 		assert not os.path.isdir(index_dir)
-
-	# TODO: copy Newick only if it is newer
 
 	# copy newick
 	if ccontinue and os.path.isfile(index_newick):
