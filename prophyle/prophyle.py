@@ -45,6 +45,12 @@ FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
 
 
 def _test_files(*fns,test_nonzero=False):
+	"""Test if given files exist, and possibly if they are non-empty. If not, stop the program.
+
+	Args:
+		@*fns: Files.
+		@test_nonzero (bool): Test whether files are of non-null size.
+	"""
 	#print(fns)
 	for fn in fns:
 		assert os.path.isfile(fn), 'File "{}" does not exist'.format(fn)
@@ -52,10 +58,20 @@ def _test_files(*fns,test_nonzero=False):
 			assert _file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
 
 def _test_newick(fn):
+	"""Test if given tree is valid for ProPhyle.
+	
+	Args:
+		@fn (str): Newick/NHX tree.
+	"""
 	_test_files(fn)
 	cmd=[test_newick, '-n', fn]
 
 def _file_sizes(*fns):
+	"""Get file sizes in Bytes.
+
+	Args:
+		@fns (str): File names.
+	"""
 	return tuple( [os.stat(fn).st_size for fn in fns] )
 
 def _run_safe(command, output_fn=None, output_fo=None):
@@ -88,11 +104,22 @@ def _run_safe(command, output_fn=None, output_fo=None):
 		sys.exit(error_code)
 
 def _message(*msg):
+	"""Print a ProPhyle message to stderr.
+
+	Args:
+		*msg: Message.
+	"""
+
 	dt=datetime.datetime.now()
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
 	print('[prophyle]', fdt, " ".join(msg), file=sys.stderr)
 
 def _touch(*fns):
+	"""Touch files.
+
+	Args:
+		*fns: Files.
+	"""
 	for fn in fns:
 		if os.path.exists(fn):
 			os.utime(fn, None)
@@ -101,18 +128,31 @@ def _touch(*fns):
 				pass
 
 def _rm(*fns):
+	"""Remove files (might not exists).
+
+	Args:
+		*fns: Files.
+	"""
 	for fn in fns:
 		try:
 			os.remove(fn)
 		except FileNotFoundError:
 			pass
 
-def _makedirs(d):
-	cmd=['mkdir', '-p', d]
-	_run_safe(cmd)
+def _makedirs(*ds):
+	"""Make dirs recursively.
+
+	Args:
+		*ds: Dirs to create.
+	"""
+	for d in ds:
+		cmd=['mkdir', '-p', d]
+		_run_safe(cmd)
 
 
 def _compile_prophyle_bin():
+	"""Compile ProPhyle binaries if they don't exist, yet.
+	"""
 	files_to_check=[
 			os.path.join(c_d,'prophyle-assembler','prophyle-assembler'),
 			os.path.join(c_d,'prophyle-index','prophyle-index'),
@@ -130,12 +170,26 @@ def _compile_prophyle_bin():
 # PROPHYLE DOWNLOAD #
 #####################
 
-def _complete(d, i):
+def _complete(d, i=1):
+	assert i>0
+	"""Create a mark file (an empty file to mark a finished step nb i).
+
+	Args:
+		d (str): Directory.
+		i (int): Number of the step.
+	"""
 	fn=os.path.join(d,".complete.{}".format(i))
 	_touch(fn)
 
-# .complete.i exists AND it is newere than .complete.(i-1)
-def _is_complete(d, i):
+# 
+def _is_complete(d, i=1):
+	"""Check whether a mark file i exists AND is newer than the mark file (i-1).
+
+	Args:
+		d (str): Directory.
+		i (int): Number of the step
+	"""
+
 	assert i>0
 	fn=os.path.join(d,".complete.{}".format(i))
 	fn0=os.path.join(d,".complete.{}".format(i-1))
@@ -161,6 +215,13 @@ def _missing_library(d):
 
 
 def _pseudo_fai(d):
+	"""Generate a psedudofai file for given directory (directory/*.fa => directory.fai).
+
+	Pseudofai format = TSV with 2 two columns: filename, sequence header (text after > in FASTA).
+
+	Args:
+		d (str): Directory.
+	"""
 	l=os.path.dirname(d)
 	pseudofai_fn=d+".pseudofai"
 	_makedirs(d)
@@ -178,6 +239,13 @@ def _pseudo_fai(d):
 		_complete(d, 2)
 
 def download(library, library_dir):
+	"""Create a library Download genomic library and copy the corresponding tree.
+
+	Args:
+		library (str): Library to download (bacteria / viruses / ...)
+		library_dir (str): Directory for the download.
+	"""
+
 	if library=="all":
 		for l in LIBRARIES:
 			download(l, library_dir)
@@ -310,7 +378,7 @@ def _bwtocc2klcp(fa_fn,k):
 	command=[ind, 'build', '-k', k, fa_fn]
 	_run_safe(command)
 
-def index(index_dir, threads, k, newick_fn, library_dir, cont=False, klcp=True, ccontinue=False):
+def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=False):
 	assert k>1
 
 	_compile_prophyle_bin()
