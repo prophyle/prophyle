@@ -60,6 +60,7 @@ def _test_files(*fns,test_nonzero=False):
 		if test_nonzero:
 			assert _file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
 
+
 def _test_newick(fn):
 	"""Test if given tree is valid for ProPhyle.
 	
@@ -68,6 +69,7 @@ def _test_newick(fn):
 	"""
 	_test_files(fn)
 	cmd=[test_newick, '-n', fn]
+
 
 def _file_sizes(*fns):
 	"""Get file sizes in Bytes.
@@ -79,6 +81,7 @@ def _file_sizes(*fns):
 		tuple(int): File sizes.
 	"""
 	return tuple( [os.stat(fn).st_size for fn in fns] )
+
 
 def _run_safe(command, output_fn=None, output_fo=None):
 	assert output_fn is None or output_fo is None
@@ -105,9 +108,10 @@ def _run_safe(command, output_fn=None, output_fo=None):
 		pass
 		#print("Exited before finishing:", command_str, file=sys.stderr)
 	else:
-		_message("Finished with error (error code {}):".format(error_code), command_str)
+		_message("Unfinished, an error occurred (error code {}):".format(error_code), command_str)
 		# todo: maybe it will be better to throw an exception
-		sys.exit(error_code)
+		raise RuntimeError("Command error.")
+
 
 def _message(*msg):
 	"""Print a ProPhyle message to stderr.
@@ -119,6 +123,7 @@ def _message(*msg):
 	dt=datetime.datetime.now()
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
 	print('[prophyle]', fdt, " ".join(msg), file=sys.stderr)
+
 
 def _touch(*fns):
 	"""Touch files.
@@ -133,6 +138,7 @@ def _touch(*fns):
 			with open(fn, 'a'):
 				pass
 
+
 def _rm(*fns):
 	"""Remove files (might not exists).
 
@@ -144,6 +150,7 @@ def _rm(*fns):
 			os.remove(fn)
 		except FileNotFoundError:
 			pass
+
 
 def _makedirs(*ds):
 	"""Make dirs recursively.
@@ -172,6 +179,25 @@ def _compile_prophyle_bin():
 			return
 
 
+def _existing_and_newer(fn0, fn):
+	"""Test whether file fn exists and is newer than fn0. Ensure that fn0 exists.
+
+	Args:
+		fn0 (str): Old file.
+		fn (str): New file (to be generated from fn1).
+	"""
+
+	assert os.path.isfile(fn0), "Dependency '{}' does not exist".format(fn0)
+
+	if not os.path.isfile(fn):
+		return False
+
+	if os.path.getmtime(fn0)<=os.path.getmtime(fn):
+		return True
+	else:
+		return False
+
+
 #####################
 # PROPHYLE DOWNLOAD #
 #####################
@@ -187,7 +213,7 @@ def _complete(d, i=1):
 	fn=os.path.join(d,".complete.{}".format(i))
 	_touch(fn)
 
-# 
+ 
 def _is_complete(d, i=1):
 	"""Check whether a mark file i exists AND is newer than the mark file (i-1).
 
@@ -200,14 +226,11 @@ def _is_complete(d, i=1):
 	fn=os.path.join(d,".complete.{}".format(i))
 	fn0=os.path.join(d,".complete.{}".format(i-1))
 
-	if not os.path.isfile(fn):
-		return False
-	if i==1:
-		return True
-	if os.path.isfile(fn0) and os.path.getmtime(fn0)<=os.path.getmtime(fn):
+	if i==1 and os.path.isfile(fn):
 		return True
 	else:
-		return False
+		return _existing_and_newer(fn0, fn)
+
 
 def _missing_library(d):
 	l=os.path.dirname(d)
@@ -243,6 +266,7 @@ def _pseudo_fai(d):
 
 		_run_safe(cmd, pseudofai_fn)
 		_complete(d, 2)
+
 
 def download(library, library_dir):
 	"""Create a library Download genomic library and copy the corresponding tree.
@@ -446,6 +470,9 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 		newick_fn (str): Newick/NHX tree.
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
+
+	Todo:
+		* klcp in parallel with SA
 	"""
 
 	assert isinstance(k, int)
@@ -454,6 +481,10 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 	assert threads>0
 
 	_compile_prophyle_bin()
+
+	#
+	# 1) Newick
+	#
 
 	# check files & dirs
 	_test_newick(newick_fn)
@@ -470,11 +501,17 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 		assert not os.path.isfile(index_dir)
 		assert not os.path.isdir(index_dir)
 
+	# TODO: copy Newick only if it is newer
+
 	# copy newick
 	if ccontinue and os.path.isfile(index_newick):
 		_message('Skipping Newick copying, already exists')
 	else:
 		shutil.copy(newick_fn, index_newick)
+
+	#
+	# 2) Create and run Makefile for propagation, merge FASTA files
+	#
 
 	# create Makefile & run Makefile & merge fastas
 	if ccontinue and os.path.isfile(index_fa+'.complete'):
@@ -485,7 +522,10 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 		_merge_fastas(index_dir)
 		_touch(index_fa+'.complete')
 
-	# bwa index & klcp
+	#
+	# 3) BWT + OCC
+	#
+
 	if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
 		_message('Skipping BWT construction, already exists')
 	else:
@@ -494,6 +534,10 @@ def index(index_dir, threads, k, newick_fn, library_dir, klcp=True, ccontinue=Fa
 		_pac2bwt(index_fa)
 		_bwt2bwtocc(index_fa)
 		_touch(index_fa+'.bwt.complete')
+
+	#
+	# 4) SSA + KLCP
+	#
 
 	if ccontinue and os.path.isfile(index_fa+'.sa'):
 		_message('Skipping SA construction, already exists')
