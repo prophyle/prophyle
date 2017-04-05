@@ -356,29 +356,26 @@ def download(library, library_dir):
 
 	if library=='bacteria':
 		if lib_missing:
-			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
 			_mark_complete(d, 1)
-		_pseudo_fai(d)
+		#_pseudo_fai(d)
 
 	elif library=='viruses':
 		if lib_missing:
-			# fix when error appears
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xz']
-			_run_safe(cmd)
+			#cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xz']
+			#_run_safe(cmd)
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
 			_mark_complete(d, 1)
-		_pseudo_fai(d)
+		#_pseudo_fai(d)
 
 	elif library=='plasmids':
 		if lib_missing:
-			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xz --strip 5']
 			_run_safe(cmd)
 			_mark_complete(d, 1)
-		_pseudo_fai(d)
+		#_pseudo_fai(d)
 
 	elif library=='hmp':
 		if lib_missing:
@@ -386,7 +383,7 @@ def download(library, library_dir):
 			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
 			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
 			_mark_complete(d, 1)
-		_pseudo_fai(d)
+		#_pseudo_fai(d)
 
 	else:
 		raise ValueError('Unknown library ""'.format(library))
