@@ -4,10 +4,24 @@
 
 	Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
-	Todo:
+Example:
+	Download sequences:
+	
+		$ prophyle download bacteria
+	
+	Create an index for k=10 and the small testing bacterial tree:
+	
+		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
+	
+	Classify some reads:
+
+		$ prophyle classify test_idx reads.fq > result.sam
+	
+Todo:
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
+	* automatic deduction of k-mer from the index (when possible)
 	* classificaton: support for c2, h2
 """
 
