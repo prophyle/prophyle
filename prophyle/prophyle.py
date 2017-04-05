@@ -877,7 +877,7 @@ def parser():
 			'-R',
 			dest='rolling_window',
 			action='store_false',
-			help='use restarted search for matching rather than rolling window',
+			help='use restarted search for matching rather than rolling window (slower, but k-LCP is not needed)',
 		)
 	parser_classify.add_argument(
 			'-m',
