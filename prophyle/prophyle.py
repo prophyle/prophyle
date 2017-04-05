@@ -174,8 +174,9 @@ def _makedirs(*ds):
 		*ds: Dirs to create.
 	"""
 	for d in ds:
-		cmd=['mkdir', '-p', d]
-		_run_safe(cmd)
+		if not os.path.isdir(d):
+			cmd=['mkdir', '-p', d]
+			_run_safe(cmd)
 
 
 def _compile_prophyle_bin():
@@ -256,13 +257,10 @@ def _is_complete(d, i=1, name=None):
 
 	assert i>0
 	fn=__mark_fn(d,i, name)
-	fn0=fn=__mark_fn(d,i-1, name)
+	fn0=__mark_fn(d,i-1, name)
 
 	if i==1:
-		if os.path.isfile(fn):
-			return True
-		else:
-			return False
+		return os.path.isfile(fn)
 	else:
 		return _existing_and_newer(fn0, fn)
 
@@ -525,7 +523,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_run_safe(command)
 
 
-def index(index_dir, threads, k, tree_fn, library_dir, klcp=True, force=False):
+def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 	"""Build a Prophyle index.
 
 	Args:
@@ -570,6 +568,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp=True, force=False):
 	#if not _existing_and_newer(tree_fn, index_tree):
 	if not _is_complete(index_dir, 1):
 		recompute=True
+
 
 	if recompute:
 		_message('Copying tree to the index dir')
@@ -904,6 +903,7 @@ def main():
 					library=args.library,
 					library_dir=args.home_dir,
 				)
+			_message('Downloading finished')
 
 		elif subcommand=="index":
 			if args.library_dir is None:
@@ -917,7 +917,9 @@ def main():
 					tree_fn=args.tree,
 					library_dir=library_dir,
 					force=args.force,
+					klcp=True,
 				)
+			_message('Index construction finished')
 
 		elif subcommand=="classify":
 			classify(
@@ -931,6 +933,7 @@ def main():
 					tie_lca=args.tie,
 					annotate=args.annotate,
 				)
+			_message('Classificaton finished')
 
 		else:
 			msg_lns=par.format_help().split("\n")[2:]
