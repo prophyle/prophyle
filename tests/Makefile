@@ -1,4 +1,4 @@
-SUBDIRS := $(wildcard test*/.)
+SUBDIRS := $(wildcard testA*/.)
 V=1
 
 .PHONY : all clean $(SUBDIRS)
@@ -16,4 +16,4 @@ $(SUBDIRS):
 clean:
 	@for a in $(SUBDIRS); do \
 		$(MAKE) -C $$a clean; \
-	done;	
+	done;
