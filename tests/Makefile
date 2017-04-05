@@ -1,11 +1,18 @@
-SUBDIRS := $(wildcard testA*/.)
+A = $(wildcard testA*/.)
+B = $(wildcard testB*/.)
+AB = $(A) $(B)
+
+.PHONY : all clean big $(AB) A B
+
 V=1
 
-.PHONY : all clean $(SUBDIRS)
+all: A
 
-all : $(SUBDIRS)
+A: $(A)
 
-$(SUBDIRS):
+B: $(B)
+
+$(AB):
 	@echo
 	@echo "========================================="
 	@echo "$@"
@@ -14,6 +21,6 @@ $(SUBDIRS):
 	$(MAKE) -C $@
 
 clean:
-	@for a in $(SUBDIRS); do \
+	@for a in $(AB); do \
 		$(MAKE) -C $$a clean; \
 	done;
