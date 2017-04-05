@@ -528,7 +528,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_run_safe(command)
 
 
-def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
+def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
 	"""Build a Prophyle index.
 
 	Args:
@@ -538,7 +538,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 		tree_fn (str): Newick/NHX tree.
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
-		force (bool): Rewrite everything.
+		force (bool): Rewrite files if they already exist.
 
 	Todo:
 		* klcp in parallel with SA
@@ -624,7 +624,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 
 	klcp_fn="{}.{}.klcp".format(index_fa,k)
 
-	if klcp:
+	if construct_klcp:
 
 		if not _is_complete(index_dir, 4):
 			#SA not computed yet => compute it in parallel with KLCP
@@ -655,7 +655,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 	# 5) KLCP (compute only KLCP)
 	#
 
-	if klcp:
+	if construct_klcp:
 		if not _is_complete(index_dir, 5):
 			recompute=True
 
@@ -671,7 +671,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 # PROPHYLE CLASSIFY #
 #####################
 
-def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate,tie_lca):
+def classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
 
 	"""Run Prophyle classification.
 
@@ -679,7 +679,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 		index_dir (str): Index directory.
 		fq_fn (str): Input reads.
 		k (int): K-mer size.
-		use_klcp (bool): Use rolling window.
+		use_rolling_window (bool): Use rolling window.
 		out_format (str): Output format: sam / kraken.
 		mimic_kraken (bool): Mimic Kraken algorithm (compute LCA for each k-mer).
 		measure (str): Measure used for classification (h1 / h2 / c1 / c2).
@@ -708,7 +708,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 	assert abs(bwt_s - 2*sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
 	assert abs(bwt_s - 2*pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
-	if use_klcp:
+	if use_rolling_window:
 		klcp_fn="{}.{}.klcp".format(index_fa,k)
 		_test_files(klcp_fn)
 		(klcp_s,)=_file_sizes(klcp_fn)
@@ -723,7 +723,7 @@ def classify(index_dir,fq_fn,k,use_klcp,out_format,mimic_kraken,measure,annotate
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-	cmd_query=[ind, 'query', '-k', k, '-u' if use_klcp else '', index_fa, fq_fn]
+	cmd_query=[ind, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, fq_fn]
 
 
 	#(['|', '|'] if mimic_kraken else ['|']) \
@@ -826,7 +826,13 @@ def parser():
 			'-F',
 			dest='force',
 			action='store_true',
-			help='rewrite everything',
+			help='rewrite index files if they already exist',
+		)
+	parser_index.add_argument(
+			'-K',
+			dest='klcp',
+			action='store_false',
+			help='skip k-LCP construction',
 		)
 
 	##########
@@ -857,10 +863,10 @@ def parser():
 			default=DEFAULT_K,
 		)
 	parser_classify.add_argument(
-			'-K',
-			dest='klcp',
+			'-R',
+			dest='rolling_window',
 			action='store_false',
-			help='do not use k-LCP',
+			help='use restarted search for matching rather than rolling window',
 		)
 	parser_classify.add_argument(
 			'-m',
@@ -924,7 +930,7 @@ def main():
 					tree_fn=args.tree,
 					library_dir=library_dir,
 					force=args.force,
-					klcp=True,
+					construct_klcp=args.klcp,
 				)
 			_message('Index construction finished')
 
@@ -933,7 +939,7 @@ def main():
 					index_dir=args.index_dir,
 					fq_fn=args.reads,
 					k=args.k,
-					use_klcp=args.klcp,
+					use_rolling_window=args.rolling_window,
 					out_format=args.oform,
 					mimic_kraken=args.mimic,
 					measure=args.measure,
