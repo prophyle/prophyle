@@ -18,6 +18,8 @@ def main():
 			action='store_true',
 			help='Non-deleting propagation',
 		)
+
+	verbose=False
 	
 	args = parser.parse_args()
 	
@@ -31,7 +33,8 @@ def main():
 	fa_fns=glob.glob("*.{}".format(suffix))
 	fa_fns.sort()
 	for fn in fa_fns:
-		print("Processing '{}'".format(fn), file=sys.stderr)
+		if verbose:
+			print("Processing '{}'".format(fn), file=sys.stderr)
 	
 		node=fn.replace("."+suffix,"")
 	
