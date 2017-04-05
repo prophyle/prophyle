@@ -1,15 +1,15 @@
-.PHONY: all test
+.PHONY: all test clean prophyle
 
-VERBOSE=1
+all: prophyle
 
-include prophyle/get_nb_jobs.mk
-
-all:
-	make -C prophyle
-	make -C library
-	make -C reads
+prophyle:
+	$(MAKE) -C prophyle
 
 test:
-	make -C prophyle
-	make -C tests clean
-	make -C tests
+	$(MAKE) -C prophyle
+	$(MAKE) -C tests clean
+	$(MAKE) -C tests
+
+clean:
+	$(MAKE) -C prophyle clean
+	$(MAKE) -C tests clean
