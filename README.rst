@@ -1,4 +1,4 @@
-ProPhyle - accurate and resource-frugal phylogeny-based metagenomic classification
+ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classification
 ==================================================================================
 
 
