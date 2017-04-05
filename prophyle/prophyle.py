@@ -5,8 +5,10 @@
 	Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
 	Todo:
-	*  _is_complete should be combined with a test of files: is_missing => remove mark
-	* automatically decide about paths for bwa, etc. (package vs. git repo)
+	* _is_complete should be combined with a test of files: is_missing => remove mark
+	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
+	* index: kmer annotation to the tree
+	* classificaton: support for c2, h2
 """
 
 
@@ -120,7 +122,7 @@ def _run_safe(command, output_fn=None, output_fo=None):
 		raise RuntimeError("Command error.")
 
 
-def _message(*msg):
+def _message(*msg, upper=False):
 	"""Print a ProPhyle message to stderr.
 
 	Args:
@@ -129,6 +131,9 @@ def _message(*msg):
 
 	dt=datetime.datetime.now()
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
+	if upper:
+		msg=map(str,msg)
+		msg=map(str.upper,msg)
 	print('[prophyle]', fdt, " ".join(msg), file=sys.stderr)
 
 
@@ -571,11 +576,11 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 
 
 	if recompute:
-		_message('Copying tree to the index dir')
+		_message('[1/5] Copying tree to the index dir', upper=True)
 		_cp_to_file(tree_fn, index_tree)
 		_mark_complete(index_dir, 1)
 	else:
-		_message('Tree already exists, skipping copying')
+		_message('[1/5] Tree already exists, skipping copying', upper=True)
 
 	#
 	# 2) Create and run Makefile for propagation, and merge FASTA files
@@ -586,13 +591,13 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 
 	if recompute:
 		# todo: check if something should be deleted (e.g., the propagation dir)
-		_message('Running k-mer propagation')
+		_message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir)
 		_propagate(index_dir, threads=threads)
 		_merge_fastas(index_dir)
 		_mark_complete(index_dir, 2)
 	else:
-		_message('K-mers have already been propagating, skipping propagation')
+		_message('[2/5] K-mers have already been propagating, skipping propagation', upper=True)
 
 	#
 	# 3) BWT + OCC
@@ -604,14 +609,14 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 	#if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
 
 	if recompute:
-		_message('Construction BWT+OCC')
+		_message('[3/5] Constructing BWT+OCC', upper=True)
 		_rm(index_fa+'.bwt',index_fa+'.bwt.complete')
 		_fa2pac(index_fa)
 		_pac2bwt(index_fa)
 		_bwt2bwtocc(index_fa)
 		_mark_complete(index_dir, 3)
 	else:
-		_message('BWT and OCC already exist, skipping their construction')
+		_message('[3/5] BWT and OCC already exist, skipping their construction', upper=True)
 
 	#
 	# 4) SA + 5) KLCP (compute SA + KLCP in parallel)
@@ -622,14 +627,16 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 	if klcp:
 
 		if not _is_complete(index_dir, 4):
-			if not _is_complete(index_dir, 5):
-				recompute=True
+			#SA not computed yet => compute it in parallel with KLCP
+			recompute=True
 
 		if recompute:
+			_message('[4/5],[5/5] Constructing SA + KLCP in parallel ', upper=True)
 			_bwtocc2sa_klcp(index_fa, k)
 			_mark_complete(index_dir, 4)
 			_mark_complete(index_dir, 5)
 			return
+
 	#
 	# 4) SA (compute only SA)
 	#
@@ -638,10 +645,10 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 		recompute=True
 
 	if recompute:
-		_message('Constructing SA')
+		_message('[4/5] Constructing SA', upper=True)
 		_bwtocc2sa(index_fa)
 	else:
-		_message('SA already exists, skipping its construction')
+		_message('[4/5] SA already exists, skipping its construction', upper=True)
 
 
 	#
@@ -653,11 +660,11 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp, force):
 			recompute=True
 
 		if recompute:
-			_message('Constructing k-LCP')
+			_message('[5/5] Constructing k-LCP', upper=True)
 			_bwtocc2klcp(index_fa,k)
 			_mark_complete(index_dir, 5)
 		else:
-			_message('k-LCP already exists, skipping its construction')
+			_message('[5/5] k-LCP already exists, skipping its construction', upper=True)
 
 
 #####################
