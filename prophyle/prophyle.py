@@ -1,5 +1,15 @@
 #! /usr/bin/env python3
 
+"""Main Prophyle file.
+
+	Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+	Todo:
+	*  _is_complete should be combined with a test of files: is_missing => remove mark
+	* automatically decide about paths for bwa, etc. (package vs. git repo)
+"""
+
+
 import argparse
 import datetime
 import multiprocessing
@@ -19,10 +29,10 @@ bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
 ind=os.path.join(c_d,"prophyle-index","prophyle-index")
 asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
 
-## todo: decide about the paths for programs (execution from repo vs from package)
-#newick2makefile=os.path.join(c_d,"newick2makefile.py")
-#gs.
-#newick2makefile="prophyle_propagation_makefile.py"
+## todo: decide about the paths for programs (execution from repo vs from package):
+#    newick2makefile=os.path.join(c_d,"newick2makefile.py")
+#     vs.
+#    newick2makefile="prophyle_propagation_makefile.py"
 
 
 newick2makefile="prophyle_propagation_makefile.py"
@@ -47,7 +57,7 @@ def _test_files(*fns,test_nonzero=False):
 
 	Args:
 		*fns: Files.
-		test_nonzero (bool): Test whether files have size greater than zero.
+		test_nonzero (bool): Test if files have size greater than zero.
 
 	Raises:
 		AssertionError: File does not exist or it is empty.
@@ -61,7 +71,7 @@ def _test_files(*fns,test_nonzero=False):
 
 def _test_tree(fn):
 	"""Test if given tree is valid for ProPhyle.
-	
+
 	Args:
 		fn (str): Newick/NHX tree.
 	"""
@@ -148,6 +158,14 @@ def _rm(*fns):
 		except FileNotFoundError:
 			pass
 
+def _cp_to_file(fn0, fn):
+	# keep rewriting attributes
+	shutil.copyfile(fn0, fn)
+
+def _cp_to_dir(fn0, d):
+	# keep rewriting attributes
+	shutil.copy(fn0, d)
+
 
 def _makedirs(*ds):
 	"""Make dirs recursively.
@@ -177,7 +195,7 @@ def _compile_prophyle_bin():
 
 
 def _existing_and_newer(fn0, fn):
-	"""Test whether file fn exists and is newer than fn0. Raise an exception if fn0 does not exist.
+	"""Test if file fn exists and is newer than fn0. Raise an exception if fn0 does not exist.
 
 	Args:
 		fn0 (str): Old file.
@@ -199,7 +217,7 @@ def _existing_and_newer(fn0, fn):
 # PROPHYLE DOWNLOAD #
 #####################
 
-def _mark_fn(d, i, name):
+def __mark_fn(d, i, name):
 	"""Create a mark name.
 
 	Args:
@@ -213,8 +231,7 @@ def _mark_fn(d, i, name):
 		return os.path.join(d,".complete.{}.{}".format(name,i))
 
 
-def _complete(d, i=1, name=None):
-	assert i>0
+def _mark_complete(d, i=1, name=None):
 	"""Create a mark file (an empty file to mark a finished step nb i).
 
 	Args:
@@ -222,11 +239,14 @@ def _complete(d, i=1, name=None):
 		i (int): Number of the step.
 		name (str): Name of the mark.
 	"""
-	_touch(_mark_fn(d, i, name))
+
+	assert i>0
+
+	_touch(__mark_fn(d, i, name))
 
  
 def _is_complete(d, i=1, name=None):
-	"""Check whether a mark file i exists AND is newer than the mark file (i-1).
+	"""Check if a mark file i exists AND is newer than the mark file (i-1).
 
 	Args:
 		d (str): Directory.
@@ -235,17 +255,20 @@ def _is_complete(d, i=1, name=None):
 	"""
 
 	assert i>0
-	fn=_mark_fn(d,i, name)
-	fn0=fn=_mark_fn(d,i-1, name)
+	fn=__mark_fn(d,i, name)
+	fn0=fn=__mark_fn(d,i-1, name)
 
-	if i==1 and os.path.isfile(fn):
-		return True
+	if i==1:
+		if os.path.isfile(fn):
+			return True
+		else:
+			return False
 	else:
 		return _existing_and_newer(fn0, fn)
 
 
 def _missing_library(d):
-	"""Check whether a mark file i exists AND is newer than the mark file (i-1).
+	"""Check if a mark file i exists AND is newer than the mark file (i-1). Create the library dir.
 
 	Args:
 		d (str): Directory.
@@ -285,7 +308,7 @@ def _pseudo_fai(d):
 			"|", 'sed', '"s/\:>/\t/"']
 
 		_run_safe(cmd, pseudofai_fn)
-		_complete(d, 2)
+		_mark_complete(d, 2)
 
 
 def download(library, library_dir):
@@ -326,14 +349,14 @@ def download(library, library_dir):
 			new_nhx=os.path.join(d,"..",fn)
 			_test_files(nhx)
 			_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
-			shutil.copyfile(nhx, new_nhx)
+			_cp_to_file(nhx, new_nhx)
 
 	if library=='bacteria':
 		if lib_missing:
 			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
-			_complete(d, 1)
+			_mark_complete(d, 1)
 		_pseudo_fai(d)
 
 	elif library=='viruses':
@@ -343,7 +366,7 @@ def download(library, library_dir):
 			_run_safe(cmd)
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
-			_complete(d, 1)
+			_mark_complete(d, 1)
 		_pseudo_fai(d)
 
 	elif library=='plasmids':
@@ -351,7 +374,7 @@ def download(library, library_dir):
 			# fix when error appears
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xz --strip 5']
 			_run_safe(cmd)
-			_complete(d, 1)
+			_mark_complete(d, 1)
 		_pseudo_fai(d)
 
 	elif library=='hmp':
@@ -359,7 +382,7 @@ def download(library, library_dir):
 			# fix when error appears
 			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
 			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
-			_complete(d, 1)
+			_mark_complete(d, 1)
 		_pseudo_fai(d)
 
 	else:
@@ -487,7 +510,22 @@ def _bwtocc2klcp(fa_fn,k):
 	command=[ind, 'build', '-k', k, fa_fn]
 	_run_safe(command)
 
-def index(index_dir, threads, k, tree_fn, library_dir, klcp=True, ccontinue=False):
+
+def _bwtocc2sa_klcp(fa_fn,k):
+	"""Create k-LCP `` (BWT => k-LCP).
+
+	Args:
+		fa_fn (str): FASTA file.
+		k (int): K-mer size.
+	"""
+
+	_message('Generating k-LCP array and SA in parallel')
+	_test_files(ind, fa_fn+".bwt")
+	command=[ind, 'build', '-s', '-k', k, fa_fn]
+	_run_safe(command)
+
+
+def index(index_dir, threads, k, tree_fn, library_dir, klcp=True, force=False):
 	"""Build a Prophyle index.
 
 	Args:
@@ -497,11 +535,12 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp=True, ccontinue=Fals
 		tree_fn (str): Newick/NHX tree.
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
+		force (bool): Rewrite everything.
 
 	Todo:
 		* klcp in parallel with SA
 		* copy Newick only if it is newer
-
+		* add update the tree with number of k-mers
 	"""
 
 	assert isinstance(k, int)
@@ -511,72 +550,115 @@ def index(index_dir, threads, k, tree_fn, library_dir, klcp=True, ccontinue=Fals
 
 	_compile_prophyle_bin()
 
-	#
-	# 1) Newick
-	#
 
-	# check files & dirs
-	_test_tree(tree_fn)
 	index_fa=os.path.join(index_dir,'index.fa')
 	index_tree=os.path.join(index_dir,'tree.nw')
 	makefile_dir=os.path.join(index_dir,'propagation')
 	makefile=os.path.join(index_dir,'propagation','Makefile')
 
+	# recompute = recompute everything from now on
+	# force==True => start to recompute everything from beginning
+	recompute=force
+
 	# make index dir
-	if ccontinue:
-		assert not os.path.isfile(index_dir)
-		_makedirs(index_dir)
-	else:
-		assert not os.path.isfile(index_dir)
-		assert not os.path.isdir(index_dir)
-
-	# copy newick
-	if ccontinue and os.path.isfile(index_tree):
-		_message('Skipping Newick copying, already exists')
-	else:
-		shutil.copy(tree_fn, index_tree)
+	_makedirs(index_dir)
 
 	#
-	# 2) Create and run Makefile for propagation, merge FASTA files
+	# 1) Newick
+	#
+	
+	#if not _existing_and_newer(tree_fn, index_tree):
+	if not _is_complete(index_dir, 1):
+		recompute=True
+
+	if recompute:
+		_message('Copying tree to the index dir')
+		_cp_to_file(tree_fn, index_tree)
+		_mark_complete(index_dir, 1)
+	else:
+		_message('Tree already exists, skipping copying')
+
+	#
+	# 2) Create and run Makefile for propagation, and merge FASTA files
 	#
 
-	# create Makefile & run Makefile & merge fastas
-	if ccontinue and os.path.isfile(index_fa+'.complete'):
-		_message('Skipping k-mer propagation, index.fa already exists')
-	else:
+	if not _is_complete(index_dir, 2):
+		recompute=True
+
+	if recompute:
+		# todo: check if something should be deleted (e.g., the propagation dir)
+		_message('Running k-mer propagation')
 		_create_makefile(index_dir, k, library_dir)
 		_propagate(index_dir, threads=threads)
 		_merge_fastas(index_dir)
-		_touch(index_fa+'.complete')
+		_mark_complete(index_dir, 2)
+	else:
+		_message('K-mers have already been propagating, skipping propagation')
 
 	#
 	# 3) BWT + OCC
 	#
 
-	if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
-		_message('Skipping BWT construction, already exists')
-	else:
+	if not _is_complete(index_dir, 3):
+		recompute=True
+
+	#if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
+
+	if recompute:
+		_message('Construction BWT+OCC')
 		_rm(index_fa+'.bwt',index_fa+'.bwt.complete')
 		_fa2pac(index_fa)
 		_pac2bwt(index_fa)
 		_bwt2bwtocc(index_fa)
-		_touch(index_fa+'.bwt.complete')
-
-	#
-	# 4) SSA + KLCP
-	#
-
-	if ccontinue and os.path.isfile(index_fa+'.sa'):
-		_message('Skipping SA construction, already exists')
+		_mark_complete(index_dir, 3)
 	else:
-		_bwtocc2sa(index_fa)
+		_message('BWT and OCC already exist, skipping their construction')
+
+	#
+	# 4) SA + 5) KLCP (compute SA + KLCP in parallel)
+	#
+
+	klcp_fn="{}.{}.klcp".format(index_fa,k)
 
 	if klcp:
-		klcp_fn="{}.{}.klcp".format(index_fa,k)
-		if ccontinue and os.path.isfile(klcp_fn):
-			_message('Skipping k-LCP construction, already exists')
-		else:
+
+		if not _is_complete(index_dir, 4):
+			if not _is_complete(index_dir, 5):
+				recompute=True
+
+		if recompute:
+			_bwtocc2sa_klcp(index_fa, k)
+			_mark_complete(index_dir, 4)
+			_mark_complete(index_dir, 5)
+			return
+	#
+	# 4) SA (compute only SA)
+	#
+
+	if not _is_complete(index_dir, 4):
+		recompute=True
+
+	if recompute:
+		_message('Constructing SA')
+		_bwtocc2sa(index_fa)
+	else:
+		_message('SA already exists, skipping its construction')
+
+
+	#
+	# 5) KLCP (compute only KLCP)
+	#
+
+	if klcp:
+		if not _is_complete(index_dir, 5):
+			recompute=True
+
+		if recompute:
+			_message('Constructing k-LCP')
 			_bwtocc2klcp(index_fa,k)
+			_mark_complete(index_dir, 5)
+		else:
+			_message('k-LCP already exists, skipping its construction')
 
 
 #####################
@@ -735,10 +817,10 @@ def parser():
 			default=DEFAULT_K,
 		)
 	parser_index.add_argument(
-			'-C',
-			dest='ccontinue',
+			'-F',
+			dest='force',
 			action='store_true',
-			help='continue with index construction (construct only missing parts)',
+			help='rewrite everything',
 		)
 
 	##########
@@ -834,7 +916,7 @@ def main():
 					k=args.k,
 					tree_fn=args.tree,
 					library_dir=library_dir,
-					ccontinue=args.ccontinue,
+					force=args.force,
 				)
 
 		elif subcommand=="classify":
