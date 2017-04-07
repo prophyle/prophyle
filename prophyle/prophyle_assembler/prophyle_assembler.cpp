@@ -21,7 +21,7 @@ typedef std::set<nkmer_t> set_t;
 const int32_t fasta_line_length=60;
 const int32_t max_contig_length=10000000;
 const int32_t max_allowed_kmer_length=sizeof(nkmer_t)*4;
-const int32_t default_k=31;
+//const int32_t default_k=31;
 
 static const uint8_t nt4_nt256[] = "ACGTN";
 
@@ -56,25 +56,32 @@ void print_help(){
 		"\n" <<
 		"Usage:    prophyle_assembler [options]\n" <<
 		"\n" <<
-		"Examples: prophyle_assembler -i f1.fa -i f2.fa -x fx.fa\n" <<
+		"Examples: prophyle_assembler -k 15 -i f1.fa -i f2.fa -x fx.fa\n" <<
 		"             - compute intersection of f1 and f2\n" <<
-		"          prophyle_assembler -i f1.fa -i f2.fa -x fx.fa -o g1.fa -o g2.fa\n" <<
+		"          prophyle_assembler -k 15 -i f1.fa -i f2.fa -x fx.fa -o g1.fa -o g2.fa\n" <<
 		"             - compute intersection of f1 and f2, and subtract it from them\n" <<
-		"          prophyle_assembler -i f1.fa -o g1.fa\n" <<
+		"          prophyle_assembler -k 15 -i f1.fa -o g1.fa\n" <<
 		"             - re-assemble f1 to g1\n" <<
 		"\n" <<
 		"Command-line parameters:\n" <<
+		" -k INT   K-mer size.\n" <<
 		" -i FILE  Input FASTA file (can be used multiple times).\n" <<
 		" -o FILE  Output FASTA file (if used, must be used as many times as -i).\n" <<
 		" -x FILE  Compute intersection, subtract it, save it.\n" <<
 		" -s FILE  Output file with k-mer statistics.\n" <<
-		" -k INT   K-mer size. [" << default_k << "]\n" <<
-		" -S       Silent mode\n" <<
+		//" -k INT   K-mer size. [" << default_k << "]\n" <<
+		" -S       Silent mode.\n" <<
 		"\n" <<
 		"Note that '-' can be used for standard input/output. \n" <<
 		std::endl;
 }
 
+void test_file(FILE *fo, std::string fn){
+	if(fo==nullptr){
+		std::cerr << "Error: file '" << fn << "' could not be open." << std::endl;
+		exit(1);
+	}
+}
 
 template<typename _nkmer_T>
 int32_t encode_forward(const char *kmers, const int32_t k, _nkmer_T &nkmer){
@@ -277,12 +284,13 @@ int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* 
 	kseq_t *seq;
 	int64_t l;
 
-	FILE *instream = NULL;
+	FILE *instream = nullptr;
 	if(fasta_fn=="-"){
 		instream = stdin;
 	}
 	else {
 		instream = fopen(fasta_fn.c_str(), "r");
+		test_file(instream, fasta_fn);
 	}
 	gzFile fp = gzdopen(fileno(instream), "r");
 	seq = kseq_init(fp);
@@ -394,12 +402,13 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats, 
 		fprintf(fstats,"%s\t%lu\n",fasta_fn.c_str(),set.size());
 	}
 
-	FILE *file;
+	FILE *file=nullptr;
 	if(fasta_fn=="-"){
 		file=stdout;
 	}
 	else{
 		file=fopen(fasta_fn.c_str(),"w+");
+		test_file(file, fasta_fn);
 	}
 	char kmer_str[max_allowed_kmer_length+1];
 	contig_t contig(k);
@@ -495,13 +504,13 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats, 
 
 int main (int argc, char* argv[])
 {
-	int32_t k=default_k;
+	int32_t k=-1;
 
 	std::string intersection_fn;
 	std::vector<std::string> in_fns;
 	std::vector<std::string> out_fns;
 	std::string stats_fn;
-	FILE *fstats=NULL;
+	FILE *fstats=nullptr;
 
 	if (argc<2){
 		print_help();
@@ -543,6 +552,7 @@ int main (int argc, char* argv[])
 				}
 				else {
 					fstats = fopen(stats_fn.c_str(), "w+");
+					test_file(fstats, stats_fn);
 				}
 
 				break;
@@ -563,6 +573,13 @@ int main (int argc, char* argv[])
 			}
 		}
 	}
+
+	if (k == -1){
+		print_help();
+		std::cerr << "K-mer size (-k) is required." << std::endl;
+		return EXIT_FAILURE;
+	}
+
 
 	if (k <= 1 || max_allowed_kmer_length<k){
 		std::cerr << "K-mer size must satisfy 1 < k <= " << max_allowed_kmer_length << "." << std::endl;
