@@ -581,8 +581,8 @@ int main (int argc, char* argv[])
 	}
 
 
-	if (k <= 1 || max_allowed_kmer_length<k){
-		std::cerr << "K-mer size must satisfy 1 < k <= " << max_allowed_kmer_length << "." << std::endl;
+	if (k <= 0 || max_allowed_kmer_length<k){
+		std::cerr << "K-mer size must satisfy 1 <= k <= " << max_allowed_kmer_length << "." << std::endl;
 		return EXIT_FAILURE;
 	}
 
