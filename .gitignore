@@ -1,3 +1,5 @@
+test_idx
+
 *.bak
 .snakemake
 .complete
