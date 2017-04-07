@@ -23,6 +23,7 @@ Todo:
 	* index: kmer annotation to the tree
 	* automatic deduction of k-mer from the index (when possible)
 	* classificaton: support for c2, h2
+	* check if prophyle_assembler & prophyle-index are newer than their source files
 """
 
 
@@ -43,7 +44,7 @@ tree_d=os.path.join(c_d,"trees")
 #bin_dir=os.path.dirname(__file__)
 bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
 ind=os.path.join(c_d,"prophyle-index","prophyle-index")
-asm=os.path.join(c_d,"prophyle-assembler","prophyle-assembler")
+asm=os.path.join(c_d,"prophyle_assembler","prophyle_assembler")
 
 ## todo: decide about the paths for programs (execution from repo vs from package):
 #    newick2makefile=os.path.join(c_d,"newick2makefile.py")
@@ -202,7 +203,7 @@ def _compile_prophyle_bin():
 	"""Compile ProPhyle binaries if they don't exist yet.
 	"""
 	files_to_check=[
-			os.path.join(c_d,'prophyle-assembler','prophyle-assembler'),
+			os.path.join(c_d,'prophyle_assembler','prophyle_assembler'),
 			os.path.join(c_d,'prophyle-index','prophyle-index'),
 			os.path.join(c_d,'prophyle-index','bwa','bwa'),
 		]

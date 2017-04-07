@@ -56,7 +56,7 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 			ifdef NONPROP
 			CMD_ASM_{nid} = touch {x} {o}
 			else
-			CMD_ASM_{nid} = $(PRG_ASM) -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
+			CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
 			endif
 			
 			{x}: {i}
@@ -152,7 +152,7 @@ class TreeIndex:
 		print(textwrap.dedent("""\
 				include params.mk\n
 				
-				PRG_ASM=prophyle-assembler
+				PRG_ASM=prophyle_assembler
 				PRG_DUST=dustmasker
 				
 				$(info )
@@ -191,7 +191,7 @@ class TreeIndex:
 				
 				ifdef REASM
 				$(info | Re-assembling leaves:   On)
-				CMD_REASM=$(PRG_ASM) -i - -o -
+				CMD_REASM=$(PRG_ASM) -S -i - -o -
 				else
 				$(info | Re-assembling leaves:   Off)
 				CMD_REASM=tee
