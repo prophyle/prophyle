@@ -69,6 +69,7 @@ void print_help(){
 		" -x FILE  Compute intersection, subtract it, save it.\n" <<
 		" -s FILE  Output file with k-mer statistics.\n" <<
 		" -k INT   K-mer size. [" << default_k << "]\n" <<
+		" -S       Silent mode\n" <<
 		"\n" <<
 		"Note that '-' can be used for standard input/output. \n" <<
 		std::endl;
@@ -156,13 +157,17 @@ void reverse_complement_in_place(std::string &kmer){
 }
 
 template<typename _set_T>
-void debug_print_kmer_set(_set_T &set, int k){
+void debug_print_kmer_set(_set_T &set, int k, bool verbose){
 	std::string kmer;
 	for(auto x: set){
 		decode_kmer(x, k, kmer);
-		std::cerr << x << " " << kmer << ";  ";
+		if(verbose){
+			std::cerr << x << " " << kmer << ";  ";
+		}
 	}
-	std::cerr<<std::endl;
+	if(verbose){
+		std::cerr<<std::endl;
+	}
 }
 
 
@@ -261,9 +266,11 @@ struct contig_t{
 
 //template<typename _nkmer_T, typename _set_T>
 template<typename _set_T>
-int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats){
+int kmers_from_fasta(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats,bool verbose){
 
-	std::cerr << "Loading " << fasta_fn << std::endl;
+	if (verbose){
+		std::cerr << "Loading " << fasta_fn << std::endl;
+	}
 
 	set.clear();
 
@@ -382,7 +389,7 @@ int32_t remove_subset(std::vector<_set_T> &sets, const _subset_T &subset){
 
 
 template<typename _set_T>
-int assemble(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats){
+int assemble(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats, bool verbose){
 	if(fstats){
 		fprintf(fstats,"%s\t%lu\n",fasta_fn.c_str(),set.size());
 	}
@@ -477,7 +484,9 @@ int assemble(const std::string &fasta_fn, _set_T &set, int32_t k, FILE* fstats){
 
 	fclose(file);
 
-	std::cerr << "   assembly finished (" << contig_id << " contigs)" << std::endl;
+	if(verbose){
+		std::cerr << "   assembly finished (" << contig_id << " contigs)" << std::endl;
+	}
 
 	return 0;
 
@@ -501,10 +510,11 @@ int main (int argc, char* argv[])
 
 	bool compute_intersection=false;
 	bool compute_output=false;
+	bool verbose=true;
 	int32_t no_sets=0;
 
 	int c;
-	while ((c = getopt(argc, (char *const *)argv, "hi:o:x:s:k:")) >= 0) {
+	while ((c = getopt(argc, (char *const *)argv, "hSi:o:x:s:k:")) >= 0) {
 		switch (c) {
 			case 'h': {
 				print_help();
@@ -534,6 +544,11 @@ int main (int argc, char* argv[])
 				else {
 					fstats = fopen(stats_fn.c_str(), "w+");
 				}
+
+				break;
+			}
+			case 'S': {
+				verbose=false;
 
 				break;
 			}
@@ -570,23 +585,27 @@ int main (int argc, char* argv[])
 
 	std::vector< std::unordered_set<nkmer_t> > full_sets(no_sets);
 
-	std::cerr << "=====================" << std::endl;
-	std::cerr << "1) Loading references" << std::endl;
-	std::cerr << "=====================" << std::endl;
+	if(verbose){
+		std::cerr << "=====================" << std::endl;
+		std::cerr << "1) Loading references" << std::endl;
+		std::cerr << "=====================" << std::endl;
+	}
 
 
 	std::vector<int32_t> in_sizes;
 	std::vector<int32_t> out_sizes;
 
 	for(int32_t i=0;i<no_sets;i++){
-		kmers_from_fasta(in_fns[i],full_sets[i],k,fstats);
+		kmers_from_fasta(in_fns[i],full_sets[i],k,fstats,verbose);
 		//debug_print_kmer_set(full_sets[i],k);
 		in_sizes.insert(in_sizes.end(),full_sets[i].size());
 	}
 
-	std::cerr << "===============" << std::endl;
-	std::cerr << "2) Intersecting" << std::endl;
-	std::cerr << "===============" << std::endl;
+	if(verbose){
+		std::cerr << "===============" << std::endl;
+		std::cerr << "2) Intersecting" << std::endl;
+		std::cerr << "===============" << std::endl;
+	}
 
 
 	std::unordered_set<nkmer_t> intersection;
@@ -594,13 +613,19 @@ int main (int argc, char* argv[])
 	int32_t intersection_size = 0;
 
 	if(compute_intersection){
-		std::cerr << "2.1) Computing intersection" << std::endl;
+		if (verbose){
+			std::cerr << "2.1) Computing intersection" << std::endl;
+		}
 
 		find_intersection(full_sets, intersection);
 		intersection_size  = intersection.size();
-		std::cerr << "   intersection size: " <<  intersection_size << std::endl;
+		if (verbose){
+			std::cerr << "   intersection size: " <<  intersection_size << std::endl;
+		}
 		if(compute_output){
-			std::cerr << "2.2) Removing this intersection from all kmer sets" << std::endl;
+			if (verbose){
+				std::cerr << "2.2) Removing this intersection from all kmer sets" << std::endl;
+			}
 			remove_subset(full_sets, intersection);
 		}
 	}
@@ -609,21 +634,25 @@ int main (int argc, char* argv[])
 		for (int32_t i=0;i<no_sets;i++){
 			out_sizes.insert(out_sizes.end(),full_sets[i].size());
 			assert(in_sizes[i]==out_sizes[i]+intersection_size);
-			std::cerr << in_sizes[i] << " " << out_sizes[i] << " ...inter:" << intersection_size << std::endl;
+			if (verbose){
+				std::cerr << in_sizes[i] << " " << out_sizes[i] << " ...inter:" << intersection_size << std::endl;
+			}
 		}
 	}
 
-	std::cerr << "=============" << std::endl;
-	std::cerr << "3) Assembling" << std::endl;
-	std::cerr << "=============" << std::endl;
+	if(verbose){
+		std::cerr << "=============" << std::endl;
+		std::cerr << "3) Assembling" << std::endl;
+		std::cerr << "=============" << std::endl;
+	}
 
 	if(compute_output){
 		for(int32_t i=0;i<static_cast<int32_t>(in_fns.size());i++){
-			assemble(out_fns[i],full_sets[i],k,fstats);
+			assemble(out_fns[i], full_sets[i], k, fstats, verbose);
 		}
 	}
 	if(compute_intersection){
-		assemble(intersection_fn,intersection,k,fstats);
+		assemble(intersection_fn, intersection, k, fstats, verbose);
 	}
 
 	if (fstats){
