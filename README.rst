@@ -31,7 +31,7 @@ Installation using Conda (recommended)
 Environment installation::
 
 	conda create -y --name prophyle -c etetoolkit -c bioconda \
-		python==3 ete3 bitarray samtools=1.3.1
+		python==3.6 ete3 bitarray samtools=1.3.1
 	source activate prophyle
 	pip install --upgrade prophyle
 
@@ -54,7 +54,6 @@ From Git::
 
 From PyPI to the current directory::
 
-	export PYTHONUSERBASE=`pwd`
 	pip install --user prophyle
 	export PYTHONUSERBASE=`pwd`
 	export PATH=$PATH:`pwd`/bin
