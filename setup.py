@@ -58,9 +58,9 @@ setup(
 		'prophyle': [
 			'Makefile',
 			'*.py',
-			'prophyle-assembler/*.cpp',
-			'prophyle-assembler/*.h',
-			'prophyle-assembler/Makefile',
+			'prophyle_assembler/*.cpp',
+			'prophyle_assembler/*.h',
+			'prophyle_assembler/Makefile',
 			'prophyle-index/*.c',
 			'prophyle-index/*.h',
 			'prophyle-index/Makefile',
