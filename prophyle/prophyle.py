@@ -109,6 +109,15 @@ def _file_sizes(*fns):
 
 
 def _run_safe(command, output_fn=None, output_fo=None):
+	"""Get file sizes in Bytes.
+
+	Args:
+		output_fn (str): Name of a file for storing the output.
+		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
+
+	Raises:
+		RuntimeError: Command exited with non-zero code.
+	"""
 	assert output_fn is None or output_fo is None
 	command_str=" ".join(map(lambda x: str(x),command))
 	_message("Running:", command_str)
