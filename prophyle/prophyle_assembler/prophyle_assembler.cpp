@@ -51,16 +51,16 @@ KSEQ_INIT(gzFile, gzread)
 void print_help(){
 	std::cerr <<
 		"\n" <<
-		"Program:  prophyle-assembler (greedy assembler for ProPhyle)\n" <<
+		"Program:  prophyle_assembler (greedy assembler for ProPhyle)\n" <<
 		"Contact:  Karel Brinda <karel.brinda@gmail.com>\n" <<
 		"\n" <<
-		"Usage:    prophyle-assembler [options]\n" <<
+		"Usage:    prophyle_assembler [options]\n" <<
 		"\n" <<
-		"Examples: prophyle-assembler -i f1.fa -i f2.fa -x fx.fa\n" <<
+		"Examples: prophyle_assembler -i f1.fa -i f2.fa -x fx.fa\n" <<
 		"             - compute intersection of f1 and f2\n" <<
-		"          prophyle-assembler -i f1.fa -i f2.fa -x fx.fa -o g1.fa -o g2.fa\n" <<
+		"          prophyle_assembler -i f1.fa -i f2.fa -x fx.fa -o g1.fa -o g2.fa\n" <<
 		"             - compute intersection of f1 and f2, and subtract it from them\n" <<
-		"          prophyle-assembler -i f1.fa -o g1.fa\n" <<
+		"          prophyle_assembler -i f1.fa -o g1.fa\n" <<
 		"             - re-assemble f1 to g1\n" <<
 		"\n" <<
 		"Command-line parameters:\n" <<
@@ -569,7 +569,7 @@ int main (int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (compute_output && (out_fns.size()!=no_sets)){
+	if (compute_output && (static_cast<int32_t>(out_fns.size())!=no_sets)){
 		std::cerr << "If -o is used, it must be used as many times as -i (" << no_sets << "!=" << out_fns.size() << ")." << std::endl;
 		return EXIT_FAILURE;
 	}

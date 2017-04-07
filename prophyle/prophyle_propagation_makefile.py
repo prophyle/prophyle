@@ -152,7 +152,7 @@ class TreeIndex:
 		print(textwrap.dedent("""\
 				include params.mk\n
 				
-				PRG_ASM=prophyle-assembler
+				PRG_ASM=prophyle_assembler
 				PRG_DUST=dustmasker
 				
 				$(info )
