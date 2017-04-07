@@ -23,6 +23,7 @@ Todo:
 	* index: kmer annotation to the tree
 	* automatic deduction of k-mer from the index (when possible)
 	* classificaton: support for c2, h2
+	* check if prophyle-assembler & prophyle-index are newer than their source files
 """
 
 
