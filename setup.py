@@ -50,7 +50,7 @@ setup(
 
 	keywords='metagenomics classification NGS',
 
-	packages = find_packages(),
+	packages = ["prophyle"],
 
 	install_requires=['ete3', 'numpy', 'wheel', 'six', 'scipy', 'bitarray'],
 
