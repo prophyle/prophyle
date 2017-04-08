@@ -2,7 +2,9 @@
 
 """Main Prophyle file.
 
-	Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
 
 Example:
 	Download sequences:
@@ -35,6 +37,8 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import glob
+import re
 
 from . import version
 
@@ -699,7 +703,7 @@ def classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measur
 	Args:
 		index_dir (str): Index directory.
 		fq_fn (str): Input reads.
-		k (int): K-mer size.
+		k (int): K-mer size (None => detect automatically).
 		use_rolling_window (bool): Use rolling window.
 		out_format (str): Output format: sam / kraken.
 		mimic_kraken (bool): Mimic Kraken algorithm (compute LCA for each k-mer).
@@ -713,9 +717,25 @@ def classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measur
 	index_fa=os.path.join(index_dir, 'index.fa')
 	index_tree=os.path.join(index_dir, 'tree.nw')
 
+	if k is None:
+		klcps=glob.glob(os.path.join(index_dir,"*.klcp"))
+
+		assert len(klcps)<2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
+		assert len(klcps)>0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
+		klcp=klcps[0]
+
+		re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
+		klcp_match=re_klcp.match(klcp)
+		k=klcp_match.group(1)
+		_message("Automatic detection of k-mer length: k={}".format(k))
+
 	_test_tree(index_tree)
 	#_test_files(fq_fn,index_fa,ind,assign)
-	_test_files(fq_fn,index_fa,ind)
+
+	if fq_fn!="-":
+		_test_files(fq_fn)
+
+	_test_files(index_fa,ind)
 
 	_test_files(
 			index_fa+'.bwt',
@@ -880,8 +900,8 @@ def parser():
 			dest='k',
 			metavar='INT',
 			type=int,
-			help='k-mer length [{}]'.format(DEFAULT_K),
-			default=DEFAULT_K,
+			help='k-mer length [detect automatically]',
+			default=None,
 		)
 	parser_classify.add_argument(
 			'-R',
