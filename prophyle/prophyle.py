@@ -23,7 +23,6 @@ Todo:
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
-	* automatic deduction of k-mer from the index (when possible)
 	* classificaton: support for c2, h2
 	* check if prophyle_assembler & prophyle-index are newer than their source files
 """
