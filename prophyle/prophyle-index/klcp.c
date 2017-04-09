@@ -237,7 +237,7 @@ void* construct_sa_parallel(void* data) {
 	return 0;
 }
 
-void exk_index_core(const char *prefix, const exk_opt_t *opt, int sa_intv) {
+void prophyle_index_build_core(const char *prefix, const prophyle_index_opt_t *opt, int sa_intv) {
 	bwt_t *bwt;
 	{ // load BWT
 		if ((bwt = bwa_idx_load_bwt_without_sa(prefix)) == 0) {

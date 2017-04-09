@@ -5,9 +5,9 @@ SHELL=/bin/bash -o pipefail
 
 .SECONDARY:
 
-M=../../bin/1step_match.py
-AK=../../bin/_all_kmers.py
-FK=../../bin/_fa_to_kmers.py
+M=../../prophyle/1step_match.py
+AK=../../prophyle/_all_kmers.py
+FK=../../prophyle/_fa_to_kmers.py
 
 FA=index.fa
 K=2 3 4 5 6 7 8

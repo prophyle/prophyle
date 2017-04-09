@@ -22,16 +22,16 @@ typedef struct {
 	int node;
 } bwt_position_t;
 
-	exk_opt_t *exk_init_opt();
+	prophyle_index_opt_t *prophyle_index_init_opt();
   bwa_seqio_t *bwa_seq_open(const char *fn);
   bwa_seqio_t *bwa_bam_open(const char *fn, int which);
   void bwa_seq_close(bwa_seqio_t *bs);
   void seq_reverse(int len, ubyte_t *seq, int is_comp);
   bwa_seq_t *bwa_read_seq(bwa_seqio_t *seq, int n_needed, int *n, int mode, int trim_qual);
 
-	void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt);
+	void bwa_prophyle_index_core(const char *prefix, const char *fn_fa, const prophyle_index_opt_t *opt);
 
-	void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs, const exk_opt_t *opt, klcp_t* klcp);
+	void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs, const prophyle_index_opt_t *opt, klcp_t* klcp);
 
 #ifdef __cplusplus
 }
