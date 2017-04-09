@@ -12,9 +12,9 @@ typedef struct {
 } klcp_t;
 
 void destroy_klcp(klcp_t* klcp);
+void klcp_dump(const char *fn, const klcp_t* klcp);
 klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length);
 void klcp_restore(const char *fn, klcp_t* klcp);
-void prophyle_index_build_core(const char *prefix, const prophyle_index_opt_t *opt, int sa_intv);
 uint64_t decrease_k(klcp_t* klcp, const uint64_t k);
 uint64_t increase_l(klcp_t* klcp, const uint64_t l);
 
