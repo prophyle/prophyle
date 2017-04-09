@@ -16,78 +16,75 @@ void destroy_klcp(klcp_t* klcp) {
 	free(klcp);
 }
 
-uint64_t decrease_k(klcp_t* klcp, const uint64_t k) {
-	int64_t new_k = (int64_t)k;
-  new_k = (int64_t)k - 1;
-  int stop = 0;
-  bitarray_block_t value = klcp->klcp->blocks[new_k / BITS_IN_BLOCK];
-	int64_t new_k_res = new_k % BITS_IN_BLOCK;
-  value = value >> (BITS_IN_BLOCK - 1 - new_k_res);
-  if (value == (1 << (new_k_res + 1)) - 1) {
-    new_k -= (new_k_res + 1);
+uint64_t decrease_sa_position(const klcp_t* klcp, uint64_t k) {
+	int64_t new_position = (int64_t)k - 1;
+  int new_position_found = 0;
+  bitarray_block_t value = klcp->klcp->blocks[new_position / BITS_IN_BLOCK];
+	int64_t new_position_res = new_position % BITS_IN_BLOCK;
+  value = value >> (BITS_IN_BLOCK - 1 - new_position_res);
+  if (value == (1 << (new_position_res + 1)) - 1) {
+    new_position -= (new_position_res + 1);
   } else {
-    new_k -= position_of_smallest_zero_bit[value];
-    stop = 1;
+    new_position -= position_of_smallest_zero_bit[value];
+    new_position_found = 1;
   }
-  if (!stop) {
-  	while (new_k >= 0) {
-  		bitarray_block_t value = klcp->klcp->blocks[new_k / BITS_IN_BLOCK];
+  if (!new_position_found) {
+  	while (new_position >= 0) {
+  		bitarray_block_t value = klcp->klcp->blocks[new_position / BITS_IN_BLOCK];
       if (value == MAX_BITARRAY_BLOCK_VALUE) {
-        new_k -= BITS_IN_BLOCK;
+        new_position -= BITS_IN_BLOCK;
       } else {
-        new_k -= position_of_smallest_zero_bit[value];
+        new_position -= position_of_smallest_zero_bit[value];
         break;
       }
     }
   }
-  new_k++;
-	return (uint64_t)new_k;
+  new_position++;
+	return (uint64_t)new_position;
 }
 
-uint64_t increase_l(klcp_t* klcp, const uint64_t l) {
-	int64_t new_l = (int64_t)l;
-  new_l = (int64_t)l;
-  int stop = 0;
-  bitarray_block_t value = klcp->klcp->blocks[new_l / BITS_IN_BLOCK];
-  int64_t shift = BITS_IN_BLOCK - new_l % BITS_IN_BLOCK;
+uint64_t increase_sa_position(const klcp_t* klcp, uint64_t l) {
+	int64_t new_position = (int64_t)l;
+  int new_position_found = 0;
+  bitarray_block_t value = klcp->klcp->blocks[new_position / BITS_IN_BLOCK];
+  int64_t shift = BITS_IN_BLOCK - new_position % BITS_IN_BLOCK;
   value = value & ((1 << shift) - 1);
   if (value == (1 << shift) - 1) {
-    new_l += shift;
+    new_position += shift;
   } else {
-    new_l += shift - 1 -
+    new_position += shift - 1 -
       position_of_biggest_zero_bit[(bitarray_block_t)((1 << BITS_IN_BLOCK) - (1 << shift) + value)];
-    stop = 1;
+    new_position_found = 1;
   }
-  if (!stop) {
-	   while (new_l < klcp->seq_len) {
-  		bitarray_block_t value = klcp->klcp->blocks[new_l / BITS_IN_BLOCK];
+  if (!new_position_found) {
+	   while (new_position < klcp->seq_len) {
+  		bitarray_block_t value = klcp->klcp->blocks[new_position / BITS_IN_BLOCK];
       if (value == MAX_BITARRAY_BLOCK_VALUE) {
-        new_l += BITS_IN_BLOCK;
+        new_position += BITS_IN_BLOCK;
       } else {
-        new_l += BITS_IN_BLOCK - 1 - position_of_biggest_zero_bit[value];//find_biggest_zero_index(value);
-        stop = 1;
+        new_position += BITS_IN_BLOCK - 1 - position_of_biggest_zero_bit[value];
+        new_position_found = 1;
         break;
       }
   	}
   }
-  if (new_l > klcp->seq_len) {
-    new_l = klcp->seq_len;
+  if (new_position > klcp->seq_len) {
+    new_position = klcp->seq_len;
   }
-	return (uint64_t)new_l;
+	return (uint64_t)new_position;
 }
 
-void construct_klcp_recursion(const bwt_t* bwt, bwtint_t k, bwtint_t l, int i, int kmer_length, klcp_t* klcp) {
+void construct_klcp_recursion(const bwt_t* bwt, bwtint_t k, bwtint_t l, int tree_depth, int kmer_length, klcp_t* klcp) {
 	if (k > l) {
 		return;
 	}
 	if (k == l) {
 		return;
 	}
-	if (i == kmer_length - 1) {
-		uint64_t t;
-		for(t = k; t < l; ++t) {
-			//klcp->klcp[t] = 1;
-			add_to_bitarray(klcp->klcp, t);
+	if (tree_depth == kmer_length - 1) {
+		uint64_t sa_position;
+		for(sa_position = k; sa_position < l; ++sa_position) {
+			add_to_bitarray(klcp->klcp, sa_position);
 		}
 		return;
 	}
@@ -95,24 +92,16 @@ void construct_klcp_recursion(const bwt_t* bwt, bwtint_t k, bwtint_t l, int i, i
 	bwtint_t new_k = 0;
 	bwtint_t new_l = 0;
 	bwt_2occ(bwt, k - 1, l, c, &new_k, &new_l);
-	new_k = bwt->L2[c] + new_k + 1;
-	new_l = bwt->L2[c] + new_l;
-	construct_klcp_recursion(bwt, new_k, new_l, i + 1, kmer_length, klcp);
+	construct_klcp_recursion(bwt, bwt->L2[c] + new_k + 1, bwt->L2[c] + new_l, tree_depth + 1, kmer_length, klcp);
 	c++;
 	bwt_2occ(bwt, k - 1, l, c, &new_k, &new_l);
-	new_k = bwt->L2[c] + new_k + 1;
-	new_l = bwt->L2[c] + new_l;
-	construct_klcp_recursion(bwt, new_k, new_l, i + 1, kmer_length, klcp);
+	construct_klcp_recursion(bwt, bwt->L2[c] + new_k + 1, bwt->L2[c] + new_l, tree_depth + 1, kmer_length, klcp);
 	c++;
 	bwt_2occ(bwt, k - 1, l, c, &new_k, &new_l);
-	new_k = bwt->L2[c] + new_k + 1;
-	new_l = bwt->L2[c] + new_l;
-	construct_klcp_recursion(bwt, new_k, new_l, i + 1, kmer_length, klcp);
+	construct_klcp_recursion(bwt, bwt->L2[c] + new_k + 1, bwt->L2[c] + new_l, tree_depth + 1, kmer_length, klcp);
 	c++;
 	bwt_2occ(bwt, k - 1, l, c, &new_k, &new_l);
-	new_k = bwt->L2[c] + new_k + 1;
-	new_l = bwt->L2[c] + new_l;
-	construct_klcp_recursion(bwt, new_k, new_l, i + 1, kmer_length, klcp);
+	construct_klcp_recursion(bwt, bwt->L2[c] + new_k + 1, bwt->L2[c] + new_l, tree_depth + 1, kmer_length, klcp);
 }
 
 void klcp_dump(const char *fn, const klcp_t* klcp)
@@ -140,9 +129,8 @@ static bwtint_t fread_fix(FILE *fp, bwtint_t size, void *a)
 int32_t find_smallest_zero_index(bitarray_block_t value) {
   int32_t position = 0;
   while (position < BITS_IN_BLOCK) {
-    if (value % 2 != 0) {
+    if ((value & (1 << position)) != 0) {
       position++;
-      value /= 2;
     } else {
       break;
     }
