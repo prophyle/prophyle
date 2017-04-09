@@ -20,11 +20,11 @@ int get_node_from_contig(int contig) {
   return contig_to_node[contig];
 }
 
-char* get_node_name(const int node) {
+char* get_node_name(int node) {
   return node_names[node];
 }
 
-int get_node_name_length(const int node) {
+int get_node_name_length(int node) {
   return node_name_lengths[node];
 }
 
@@ -51,5 +51,4 @@ void add_contig(char* contig, int contig_number) {
   } else {
     contig_to_node[contig_number] = nodes_count - 1;
   }
-  //fprintf(stderr, "contig = %d, nodes_count = %d\n", contig_number, nodes_count);
 }
