@@ -85,13 +85,13 @@ int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k,
 int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 															uint64_t* k, uint64_t* l,
 															uint64_t* decreased_k, uint64_t* increased_l,
-															int start_pos, klcp_t* klcp)
+															int start_pos, const klcp_t* klcp)
 {
 	bwtint_t ok, ol;
 	int i;
-	*k = decrease_k(klcp, *k);
+	*k = decrease_sa_position(klcp, *k);
 	*decreased_k = *k;
-	*l = increase_l(klcp, *l);
+	*l = increase_sa_position(klcp, *l);
 	*increased_l = *l;
 
 	//fprintf(stderr, "increased k = %d, l = %d\n", *k, *l);
