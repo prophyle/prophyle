@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <pthread.h>
 #include "utils.h"
 #include "klcp.h"
 
