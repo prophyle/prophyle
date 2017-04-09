@@ -1,5 +1,5 @@
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "bitarray.h"
 
 void destroy_bitarray(bitarray_t* array) {
