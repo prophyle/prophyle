@@ -3,35 +3,16 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include "prophyle_query.h"
-#include "bwtaln.h"
-#include "bwtgap.h"
-#include "utils.h"
 #include "bwa.h"
-#include "bwase.h"
-#include "kstring.h"
 #include "klcp.h"
 #include "bwa_utils.h"
-#include "contig_node_translator.h"
-
-#ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "0.0.1"
-#endif
-
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-#endif
-
-#ifdef USE_MALLOC_WRAPPERS
-#  include "malloc_wrap.h"
-#endif
 
 int prophyle_index_query(int argc, char *argv[])
 {
-	int c, opte = -1;
+	int c;
 	prophyle_index_opt_t *opt;
 	char *prefix;
 
@@ -49,10 +30,6 @@ int prophyle_index_query(int argc, char *argv[])
 		default: return 1;
 		}
 	}
-	if (opte > 0) {
-		opt->mode &= ~BWA_MODE_GAPE;
-	}
-
 	if (opt->output_old && opt->n_threads > 1) {
 		fprintf(stderr, "-v option can be used only with one thread (-t 1)\n");
 		return 1;
@@ -82,7 +59,8 @@ int prophyle_index_query(int argc, char *argv[])
 
 int prophyle_index_build(int argc, char *argv[])
 {
-	int c, opte = -1;	prophyle_index_opt_t *opt;
+	int c;
+	prophyle_index_opt_t *opt;
 	char *prefix;
 	opt = prophyle_index_init_opt();
 	int sa_intv = 32;
@@ -94,10 +72,6 @@ int prophyle_index_build(int argc, char *argv[])
 		default: return 1;
 		}
 	}
-	if (opte > 0) {
-		opt->mode &= ~BWA_MODE_GAPE;
-	}
-
 	if (optind + 1 > argc) {
 		fprintf(stderr, "\n");
 		fprintf(stderr, "Usage:   prophyle-index build <prefix>\n\n");
@@ -129,20 +103,11 @@ static int usage()
 
 int main(int argc, char *argv[])
 {
-	extern char *bwa_pg;
-	int i, ret = 0;
-	kstring_t pg = {0,0,0};
-	ksprintf(&pg, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s", PACKAGE_VERSION, argv[0]);
-	for (i = 1; i < argc; ++i) ksprintf(&pg, " %s", argv[i]);
-	bwa_pg = pg.s;
+	int ret = 0;
 	if (argc < 2) return usage();
 	if (strcmp(argv[1], "build") == 0) ret = prophyle_index_build(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "query") == 0) ret = prophyle_index_query(argc-1, argv+1);
 	else return usage();
 
-	err_fflush(stdout);
-	err_fclose(stdout);
-
-	free(bwa_pg);
 	return ret;
 }
