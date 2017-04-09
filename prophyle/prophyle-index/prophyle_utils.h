@@ -20,6 +20,6 @@ typedef struct {
 	char* log_file_name;
 
 	int construct_sa_parallel;
-} exk_opt_t;
+} prophyle_index_opt_t;
 
 #endif //

@@ -36,10 +36,10 @@
 #define MAX_STREAK_LENGTH 10000000
 #define MAX_SOFT_STREAK_LENGTH 9000000
 
-exk_opt_t *exk_init_opt()
+prophyle_index_opt_t *prophyle_index_init_opt()
 {
-	exk_opt_t *o;
-	o = (exk_opt_t*)calloc(1, sizeof(exk_opt_t));
+	prophyle_index_opt_t *o;
+	o = (prophyle_index_opt_t*)calloc(1, sizeof(prophyle_index_opt_t));
 	o->mode = BWA_MODE_GAPE | BWA_MODE_COMPREAD;
 	o->n_threads = 1;
 	o->trim_qual = 0;
@@ -317,7 +317,7 @@ typedef struct {
 typedef struct {
 	bwaidx_t* idx;
 	klcp_t* klcp;
-	const exk_opt_t *opt;
+	const prophyle_index_opt_t *opt;
 	bwa_seq_t *seqs;
 	prophyle_query_aux_t* aux_data;
 	int32_t seqs_cnt;
@@ -325,7 +325,7 @@ typedef struct {
 } prophyle_worker_t;
 
 prophyle_worker_t* prophyle_worker_init(bwaidx_t* idx, int32_t seqs_cnt, bwa_seq_t *seqs,
-		const exk_opt_t *opt, klcp_t* klcp) {
+		const prophyle_index_opt_t *opt, klcp_t* klcp) {
 	prophyle_worker_t* prophyle_worker_data = malloc(1 * sizeof(prophyle_worker_t));
 	prophyle_worker_data->idx = idx;
 	prophyle_worker_data->seqs = seqs;
@@ -405,7 +405,7 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 	prophyle_worker_t* prophyle_worker_data = (prophyle_worker_t*)data;
 	bwaidx_t* idx = prophyle_worker_data->idx;
 	bwa_seq_t seq = prophyle_worker_data->seqs[i];
-	const exk_opt_t* opt = prophyle_worker_data->opt;
+	const prophyle_index_opt_t* opt = prophyle_worker_data->opt;
 	klcp_t* klcp = prophyle_worker_data->klcp;
 	prophyle_query_aux_t aux_data = prophyle_worker_data->aux_data[tid];
 	char* current_streak = aux_data.current_streak;
@@ -550,7 +550,7 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 }
 
 void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
-								const exk_opt_t *opt, klcp_t* klcp)
+								const prophyle_index_opt_t *opt, klcp_t* klcp)
 {
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void *data, int n);
 	bwase_initialize();
@@ -581,7 +581,7 @@ void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	prophyle_worker_destroy(prophyle_worker_data);
 }
 
-void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt) {
+void bwa_prophyle_index_query_core(const char *prefix, const char *fn_fa, const prophyle_index_opt_t *opt) {
 	int n_seqs;
 	bwa_seq_t *seqs;
 	bwa_seqio_t *ks;
