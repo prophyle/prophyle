@@ -6,9 +6,6 @@
 #include <time.h>
 #include <stdint.h>
 #include <inttypes.h>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "prophyle_query.h"
 #include "bwtaln.h"
 #include "bwtgap.h"
@@ -78,7 +75,7 @@ int prophyle_index_query(int argc, char *argv[])
 		free(opt);
 		return 1;
 	}
-	bwa_prophyle_index_query_core(prefix, argv[optind+1], opt);
+	prophyle_index_query_core(prefix, argv[optind+1], opt);
 	free(opt); free(prefix);
 	return 0;
 }

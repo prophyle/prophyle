@@ -581,7 +581,7 @@ void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 	prophyle_worker_destroy(prophyle_worker_data);
 }
 
-void bwa_prophyle_index_query_core(const char *prefix, const char *fn_fa, const prophyle_index_opt_t *opt) {
+void prophyle_index_query_core(const char *prefix, const char *fn_fa, const prophyle_index_opt_t *opt) {
 	int n_seqs;
 	bwa_seq_t *seqs;
 	bwa_seqio_t *ks;
