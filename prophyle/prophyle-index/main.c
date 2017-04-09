@@ -7,7 +7,7 @@
 #include <inttypes.h>
 #include "prophyle_query.h"
 #include "bwa.h"
-#include "klcp.h"
+#include "prophyle_index_build.h"
 #include "bwa_utils.h"
 
 int prophyle_index_query(int argc, char *argv[])
