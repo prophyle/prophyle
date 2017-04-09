@@ -222,7 +222,7 @@ bwt_t* bwa_idx_load_bwt_without_sa(const char* hint)
 		return 0;
 	}
 	tmp = calloc(strlen(prefix) + 5, 1);
-	strcat(strcpy(tmp, prefix), ".bwt"); // FM-index
+	strcat(strcpy(tmp, prefix), ".bwt");
 	bwt = bwt_restore_bwt(tmp);
 	free(tmp); free(prefix);
 	return bwt;
