@@ -582,6 +582,8 @@ void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 }
 
 void prophyle_index_query_core(const char *prefix, const char *fn_fa, const prophyle_index_opt_t *opt) {
+	extern bwa_seqio_t *bwa_open_reads(int mode, const char *fn_fa);
+
 	int n_seqs;
 	bwa_seq_t *seqs;
 	bwa_seqio_t *ks;
@@ -622,7 +624,7 @@ void prophyle_index_query_core(const char *prefix, const char *fn_fa, const prop
 		free(fn);
 		fprintf(log_file, "klcp_loading\t%.2fs\n", realtime() - rtime);
 	}
-	ks = bwa_open_reads_new(opt->mode, fn_fa);
+	ks = bwa_open_reads(opt->mode, fn_fa);
 	float total_time = 0;
 	int64_t total_seqs = 0;
 	ctime = cputime(); rtime = realtime();
