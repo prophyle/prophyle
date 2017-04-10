@@ -74,6 +74,54 @@ LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
 
+LOG_FILE=None
+
+
+def _message(*msg, upper=False):
+	"""Print a ProPhyle message to stderr.
+
+	Args:
+		*msg: Message.
+	"""
+
+	global LOG_FILE
+
+	dt=datetime.datetime.now()
+	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
+
+	if upper:
+		msg=map(str,msg)
+		msg=map(str.upper,msg)
+
+	log_line='[prophyle] {} {}'.format(fdt, " ".join(msg))
+
+	print(log_line, file=sys.stderr)
+	if LOG_FILE is not None:
+		LOG_FILE.write(log_line)
+		LOG_FILE.write("\n")
+		LOG_FILE.flush()
+
+
+def _open_log(fn):
+	"""Open a log file.
+
+	Args:
+		fn (str): File name.
+	"""
+
+	global LOG_FILE
+	if fn is not None:
+		LOG_FILE=open(fn,"a+")
+
+
+def _close_log():
+	"""Close a log file.
+	"""
+
+	global LOG_FILE
+	if LOG_FILE is not None:
+		LOG_FILE.close()
+
 
 def _test_files(*fns,test_nonzero=False):
 	"""Test if given files exist, and possibly if they are non-empty. If not, stop the program.
@@ -150,21 +198,6 @@ def _run_safe(command, output_fn=None, output_fo=None):
 	else:
 		_message("Unfinished, an error occurred (error code {}):".format(error_code), command_str)
 		raise RuntimeError("Command error.")
-
-
-def _message(*msg, upper=False):
-	"""Print a ProPhyle message to stderr.
-
-	Args:
-		*msg: Message.
-	"""
-
-	dt=datetime.datetime.now()
-	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
-	if upper:
-		msg=map(str,msg)
-		msg=map(str.upper,msg)
-	print('[prophyle]', fdt, " ".join(msg), file=sys.stderr)
 
 
 def _touch(*fns):
@@ -845,6 +878,14 @@ def parser():
 			default=None,
 			help='directory for the tree and the sequences [~/prophyle]',
 		)
+	parser_download.add_argument(
+			'-l',
+			dest='log_fn',
+			metavar='STR',
+			type=str,
+			help='log file',
+			default=None,
+		)
 
 	##########
 
@@ -889,6 +930,14 @@ def parser():
 			type=int,
 			help='k-mer length [{}]'.format(DEFAULT_K),
 			default=DEFAULT_K,
+		)
+	parser_index.add_argument(
+			'-l',
+			dest='log_fn',
+			metavar='STR',
+			type=str,
+			help='log file',
+			default=None,
 		)
 	parser_index.add_argument(
 			'-F',
@@ -957,6 +1006,14 @@ def parser():
 			help='output format [{}]'.format(DEFAULT_OUTPUT_FORMAT),
 		)
 	parser_classify.add_argument(
+			'-l',
+			dest='log_fn',
+			metavar='STR',
+			type=str,
+			help='log file',
+			default=None,
+		)
+	parser_classify.add_argument(
 			'-A',
 			dest='annotate',
 			action='store_true',
@@ -986,17 +1043,20 @@ def main():
 		subcommand=args.subcommand
 
 		if subcommand=="download":
+			_open_log(args.log_fn)
 			prophyle_download(
 					library=args.library,
 					library_dir=args.home_dir,
 				)
 			_message('Downloading finished')
+			_close_log()
 
 		elif subcommand=="index":
 			if args.library_dir is None:
 				library_dir=os.path.dirname(args.tree[0])
 			else:
 				library_dir=args.library_dir
+			_open_log(args.log_fn)
 			prophyle_index(
 					index_dir=args.index_dir,
 					threads=args.threads,
@@ -1008,8 +1068,10 @@ def main():
 					no_prefixes=args.no_prefixes,
 				)
 			_message('Index construction finished')
+			_close_log()
 
 		elif subcommand=="classify":
+			_open_log(args.log_fn)
 			prophyle_classify(
 					index_dir=args.index_dir,
 					fq_fn=args.reads,
@@ -1022,6 +1084,7 @@ def main():
 					annotate=args.annotate,
 				)
 			_message('Classificaton finished')
+			_close_log()
 
 		else:
 			msg_lns=par.format_help().split("\n")[2:]
@@ -1036,6 +1099,12 @@ def main():
 		# pipe error (e.g., when head is used)
 		sys.stderr.close()
 		exit(0)
+
+	except KeyboardInterrupt:
+		_message("Error: Keyboard interrupt")
+		_close_log()
+		exit(1)
+
 
 if __name__ == "__main__":
 	main()
