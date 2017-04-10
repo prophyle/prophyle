@@ -1,5 +1,7 @@
 SHELL=/bin/bash -o pipefail
 
+.SECONDARY:
+
 PROP_DIR=../../prophyle
 
 ASM=$(PROP_DIR)/prophyle_assembler/prophyle_assembler

@@ -3,8 +3,6 @@
 
 include ../conf.mk
 
-.SECONDARY:
-
 FA=index.fa
 K=2 3 4 5 6 7 8
 
