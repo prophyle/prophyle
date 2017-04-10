@@ -1,10 +1,8 @@
 .PHONY: all clean
 
-SHELL=/bin/bash -o pipefail
+include ../conf.mk
 
 K=4
-NORM=../../bin/_fa_norm.py
-ASM=../../bin/prophyle-assembler
 
 .SECONDARY:
 
