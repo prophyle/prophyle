@@ -78,6 +78,7 @@ setup(
 				'prophyle_merge_fa.py = prophyle.prophyle_merge_fa:main',
 				'prophyle_test_tree.py = prophyle.prophyle_test_tree:main',
 				'prophyle_assignment.py = prophyle.prophyle_assignment:main',
+				'prophyle_merge_trees.py = prophyle.prophyle_merge_trees:main',
 			]
 	},
 )
