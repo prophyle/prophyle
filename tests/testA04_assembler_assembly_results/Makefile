@@ -4,8 +4,6 @@ include ../conf.mk
 
 K=4
 
-.SECONDARY:
-
 all:
 	$(ASM) -k $(K) -i input.fa -o _output_obtained.fa
 

@@ -10,9 +10,6 @@ K= 7 10
 diffs1 = $(addsuffix .txt, $(addprefix diff_L.k, $(K)))
 diffs2 = $(addsuffix .txt, $(addprefix diff_R.k, $(K)))
 
-
-.SECONDARY:
-
 all: $(diffs1) $(diffs2)
 	@for f in $^; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
 
