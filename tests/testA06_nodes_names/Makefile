@@ -21,4 +21,4 @@ all:
 	diff _present.txt _present_reported.txt
 
 clean:
-	rm -f _*.txt
+	rm -f _*.txt index.fa.*
