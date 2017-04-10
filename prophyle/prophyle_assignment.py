@@ -1,5 +1,18 @@
 #! /usr/bin/env python3
 
+"""Prophyle assignment algorithm (a prototype implementation, to be reimplemented in C).
+
+Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
+
+License: MIT
+
+Todo:
+	* Allow to use c2 and h2 (when k-mer annotations exist in the NHX tree)
+	* Add docstrings
+	* Synchronize options with prophyle.py
+
+"""
+
 import os
 import shutil
 import datetime
@@ -10,12 +23,10 @@ import itertools
 
 from ete3 import Tree
 
-
-
-import logging
-
 DEFAULT_FORMAT = 1
 
+# this should be longer than any possible read
+FAKE_CONTIG_LENGTH = 42424242
 
 def cigar_from_mask(mask):
 	c=[]
@@ -227,7 +238,7 @@ class Read:
 			if node.name!='':
 				print("@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
 						rname=node.name,
-						rlen=4242,
+						rlen=FAKE_CONTIG_LENGTH,
 						as_=as_,
 						ur=ur,
 						sp=sp,

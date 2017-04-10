@@ -4,6 +4,8 @@
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
+Licence: MIT
+
 Example:
 
 	Download sequences:
@@ -23,7 +25,6 @@ Todo:
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
-	* automatic deduction of k-mer from the index (when possible)
 	* classificaton: support for c2, h2
 	* check if prophyle_assembler & prophyle-index are newer than their source files
 """
@@ -37,6 +38,8 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import glob
+import re
 
 from . import version
 
@@ -112,6 +115,15 @@ def _file_sizes(*fns):
 
 
 def _run_safe(command, output_fn=None, output_fo=None):
+	"""Get file sizes in Bytes.
+
+	Args:
+		output_fn (str): Name of a file for storing the output.
+		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
+
+	Raises:
+		RuntimeError: Command exited with non-zero code.
+	"""
 	assert output_fn is None or output_fo is None
 	command_str=" ".join(map(lambda x: str(x),command))
 	_message("Running:", command_str)
@@ -717,7 +729,7 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 	Args:
 		index_dir (str): Index directory.
 		fq_fn (str): Input reads.
-		k (int): K-mer size.
+		k (int): K-mer size (None => detect automatically).
 		use_rolling_window (bool): Use rolling window.
 		out_format (str): Output format: sam / kraken.
 		mimic_kraken (bool): Mimic Kraken algorithm (compute LCA for each k-mer).
@@ -731,9 +743,25 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 	index_fa=os.path.join(index_dir, 'index.fa')
 	index_tree=os.path.join(index_dir, 'tree.nw')
 
+	if k is None:
+		klcps=glob.glob(os.path.join(index_dir,"*.klcp"))
+
+		assert len(klcps)<2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
+		assert len(klcps)>0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
+		klcp=klcps[0]
+
+		re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
+		klcp_match=re_klcp.match(klcp)
+		k=klcp_match.group(1)
+		_message("Automatic detection of k-mer length: k={}".format(k))
+
 	_test_tree(index_tree)
 	#_test_files(fq_fn,index_fa,ind,assign)
-	_test_files(fq_fn,index_fa,ind)
+
+	if fq_fn!="-":
+		_test_files(fq_fn)
+
+	_test_files(index_fa,ind)
 
 	_test_files(
 			index_fa+'.bwt',
@@ -905,8 +933,8 @@ def parser():
 			dest='k',
 			metavar='INT',
 			type=int,
-			help='k-mer length [{}]'.format(DEFAULT_K),
-			default=DEFAULT_K,
+			help='k-mer length [detect automatically]',
+			default=None,
 		)
 	parser_classify.add_argument(
 			'-R',
