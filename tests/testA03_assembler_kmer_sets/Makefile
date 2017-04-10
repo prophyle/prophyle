@@ -32,19 +32,19 @@ _join_R.k%.txt: _intersect.k%.txt _out_R.k%.txt
 	sort -m $^ > $@
 
 _intersect.k%.txt: _intersect.k%.fa
-	$(F2K) -i $< -k $* > $@
+	$(F2K) -m a -i $< -k $* > $@
 
 _out_L.k%.txt: _out_L.k%.fa
-	$(F2K) -i $< -k $* > $@
+	$(F2K) -m a -i $< -k $* > $@
 
 _out_R.k%.txt: _out_R.k%.fa
-	$(F2K) -i $< -k $* > $@
+	$(F2K) -m a -i $< -k $* > $@
 
-_inp_L.k%.txt: $(FA1)
-	$(F2K) -i $< -k $* > $@
+_inp_L.k%.txt:
+	$(F2K) -m a -i $(FA1) -k $* > $@
 
-_inp_R.k%.txt: $(FA2)
-	$(F2K) -i $< -k $* > $@
+_inp_R.k%.txt:
+	$(F2K) -m a -i $(FA2) -k $* > $@
 
-_out_L.k%.fa _out_R.k%.fa _intersect.k%.fa: $(FA1) $(FA2)
+_out_L.k%.fa _out_R.k%.fa _intersect.k%.fa:
 	$(ASM) -k $* -i $(FA1) -i $(FA2) -o _out_L.k$*.fa -o _out_R.k$*.fa -x _intersect.k$*.fa
