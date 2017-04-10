@@ -4,8 +4,6 @@
 
 	Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
-Todo:
-	* Add an option for adding prefixes to node names (e.g., name => tree1:name).
 """
 
 import os
@@ -17,15 +15,25 @@ from ete3 import Tree
 DEFAULT_FORMAT = 1
 
 
-def merge_trees(input_trees, output_tree, verbose):
+def add_prefix(tree, prefix):
+	for node in tree.traverse("postorder"):
+		node.name="{}-{}".format(prefix, node.name)
+	return tree
+
+def merge_trees(input_trees, output_tree, verbose, add_prefixes):
 	t = Tree(
 			name="merge_root",
 		)
 
-	for x in input_trees:
+	if len(input_trees)==1:
+		add_prefixes=False
+
+	for i,x in enumerate(input_trees,1):
 		if verbose:
 			print("Loading '{}'".format(x), file=sys.stderr)
 		tree_to_add=Tree(x, format=DEFAULT_FORMAT)
+		if add_prefixes:
+			tree_to_add=add_prefix(tree_to_add, i)
 		t.add_child(tree_to_add)
 
 	if verbose:
@@ -53,10 +61,16 @@ def parse_args():
 				help='output trees',
 			)
 
-		parser.add_argument('-v',
+		parser.add_argument('-V',
 				help='verbose',
 				dest='verbose',
 				action='store_true',
+			)
+
+		parser.add_argument('-P',
+				help='do not add prefixes to node names',
+				dest='add_prefixes',
+				action='store_false',
 			)
 
 		args = parser.parse_args()
@@ -69,6 +83,7 @@ def main():
 			input_trees=args.in_tree,
 			output_tree=args.out_tree,
 			verbose=args.verbose,
+			add_prefixes=args.add_prefixes,
 		)
 
 
