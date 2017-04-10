@@ -18,4 +18,4 @@ all:
 	diff _obtained.txt exp_results.txt
 
 clean:
-	rm -f _*.txt
+	rm -f _*.txt index.fa.*
