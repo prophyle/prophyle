@@ -19,6 +19,7 @@ Example:
 		$ prophyle classify test_idx reads.fq > result.sam
 	
 Todo:
+	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
@@ -450,7 +451,7 @@ def _propagate(index_dir,threads):
 	_run_safe(command)
 
 
-def _merge_trees(in_trees, out_tree):
+def _merge_trees(in_trees, out_tree, no_prefixes):
 	"""Merge input trees into a single tree.
 
 	Args:
@@ -461,6 +462,8 @@ def _merge_trees(in_trees, out_tree):
 	_message('Generating index tree')
 	_test_files(*in_trees)
 	command=[merge_trees] + in_trees + [out_tree]
+	if no_prefixes:
+		command += ['-P']
 	_run_safe(command)
 
 
@@ -563,7 +566,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_run_safe(command)
 
 
-def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes):
 	"""Build a Prophyle index.
 
 	Args:
@@ -574,6 +577,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
 		force (bool): Rewrite files if they already exist.
+		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 
 	Todo:
 		* klcp in parallel with SA
@@ -612,7 +616,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 	if recompute:
 		_message('[1/5] Copying/merging trees', upper=True)
-		_merge_trees(trees_fn, index_tree)
+		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes)
 		_mark_complete(index_dir, 1)
 	else:
 		_message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -865,6 +869,12 @@ def parser():
 			help='rewrite index files if they already exist',
 		)
 	parser_index.add_argument(
+			'-P',
+			dest='no_prefixes',
+			action='store_true',
+			help='do not add prefixes to node names when multiple trees are used',
+		)
+	parser_index.add_argument(
 			'-K',
 			dest='klcp',
 			action='store_false',
@@ -967,6 +977,7 @@ def main():
 					library_dir=library_dir,
 					force=args.force,
 					construct_klcp=args.klcp,
+					no_prefixes=args.no_prefixes,
 				)
 			_message('Index construction finished')
 
