@@ -7,19 +7,21 @@ Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 Licence: MIT
 
 Example:
+
 	Download sequences:
 	
 		$ prophyle download bacteria
 	
 	Create an index for k=10 and the small testing bacterial tree:
 	
-		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
+		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw ~/prophyle/test_viruses.nw test_idx
 	
 	Classify some reads:
 
 		$ prophyle classify test_idx reads.fq > result.sam
 	
 Todo:
+	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
@@ -58,6 +60,7 @@ asm=os.path.join(c_d,"prophyle_assembler","prophyle_assembler")
 newick2makefile="prophyle_propagation_makefile.py"
 test_tree="prophyle_test_tree.py"
 merge_fastas="prophyle_merge_fa.py"
+merge_trees="prophyle_merge_trees.py"
 assign="prophyle_assignment.py"
 
 DEFAULT_K=31
@@ -341,7 +344,7 @@ def _pseudo_fai(d):
 		_mark_complete(d, 2)
 
 
-def download(library, library_dir):
+def prophyle_download(library, library_dir):
 	"""Create a library Download genomic library and copy the corresponding tree.
 
 	Args:
@@ -445,6 +448,7 @@ def _create_makefile(index_dir, k, library_dir):
 		f.write("K={}\n".format(k))
 	_run_safe(command,makefile)
 
+
 def _propagate(index_dir,threads):
 	"""Run k-mer propagation.
 
@@ -457,6 +461,23 @@ def _propagate(index_dir,threads):
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
 	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(asm)]
 	_run_safe(command)
+
+
+def _merge_trees(in_trees, out_tree, no_prefixes):
+	"""Merge input trees into a single tree.
+
+	Args:
+		in_trees (list of str): Input NHX trees.
+		out_tree (str): Output NHX tree.
+	"""
+
+	_message('Generating index tree')
+	_test_files(*in_trees)
+	command=[merge_trees] + in_trees + [out_tree]
+	if no_prefixes:
+		command += ['-P']
+	_run_safe(command)
+
 
 def _merge_fastas(index_dir):
 	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
@@ -476,6 +497,7 @@ def _merge_fastas(index_dir):
 	_run_safe(command, index_fa)
 	_touch(index_fa+".complete")
 
+
 def _fa2pac(fa_fn):
 	"""Run `bwa fa2pac` (FA => 2bit).
 
@@ -487,6 +509,7 @@ def _fa2pac(fa_fn):
 	_test_files(bwa, fa_fn)
 	command=[bwa, 'fa2pac', fa_fn, fa_fn]
 	_run_safe(command)
+
 
 def _pac2bwt(fa_fn):
 	"""Run `bwa pac2bwtgen` (2bit => BWT).
@@ -500,6 +523,7 @@ def _pac2bwt(fa_fn):
 	command=[bwa, 'pac2bwtgen', fa_fn+".pac", fa_fn+".bwt"]
 	_run_safe(command)
 
+
 def _bwt2bwtocc(fa_fn):
 	"""Run `bwa bwtupdate` (BWT => BWT+OCC).
 
@@ -512,6 +536,7 @@ def _bwt2bwtocc(fa_fn):
 	command=[bwa, 'bwtupdate', fa_fn+".bwt"]
 	_run_safe(command)
 
+
 def _bwtocc2sa(fa_fn):
 	"""Run `bwa bwt2sa` (BWT+OCC => SSA).
 
@@ -523,6 +548,7 @@ def _bwtocc2sa(fa_fn):
 	_test_files(bwa, fa_fn+".bwt")
 	command=[bwa, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
 	_run_safe(command)
+
 
 def _bwtocc2klcp(fa_fn,k):
 	"""Create k-LCP `` (BWT => k-LCP).
@@ -552,7 +578,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_run_safe(command)
 
 
-def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes):
 	"""Build a Prophyle index.
 
 	Args:
@@ -563,6 +589,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
 		force (bool): Rewrite files if they already exist.
+		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 
 	Todo:
 		* klcp in parallel with SA
@@ -600,8 +627,8 @@ def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
 
 
 	if recompute:
-		_message('[1/5] Copying tree to the index dir', upper=True)
-		_cp_to_file(tree_fn, index_tree)
+		_message('[1/5] Copying/merging trees', upper=True)
+		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes)
 		_mark_complete(index_dir, 1)
 	else:
 		_message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -695,7 +722,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
 # PROPHYLE CLASSIFY #
 #####################
 
-def classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
 
 	"""Run Prophyle classification.
 
@@ -829,6 +856,7 @@ def parser():
 	parser_index.add_argument('tree',
 			metavar='<tree.nw>',
 			type=str,
+			nargs='+',
 			help='phylogenetic tree (in Newick/NHX)',
 		)
 	parser_index.add_argument(
@@ -842,7 +870,7 @@ def parser():
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with the library sequences [directory of the tree]',
+			help='directory with the library sequences [directory of the first tree]',
 			default=None,
 			#required=True,
 		)
@@ -867,6 +895,12 @@ def parser():
 			dest='force',
 			action='store_true',
 			help='rewrite index files if they already exist',
+		)
+	parser_index.add_argument(
+			'-P',
+			dest='no_prefixes',
+			action='store_true',
+			help='do not add prefixes to node names when multiple trees are used',
 		)
 	parser_index.add_argument(
 			'-K',
@@ -952,7 +986,7 @@ def main():
 		subcommand=args.subcommand
 
 		if subcommand=="download":
-			download(
+			prophyle_download(
 					library=args.library,
 					library_dir=args.home_dir,
 				)
@@ -960,22 +994,23 @@ def main():
 
 		elif subcommand=="index":
 			if args.library_dir is None:
-				library_dir=os.path.dirname(args.tree)
+				library_dir=os.path.dirname(args.tree[0])
 			else:
 				library_dir=args.library_dir
-			index(
+			prophyle_index(
 					index_dir=args.index_dir,
 					threads=args.threads,
 					k=args.k,
-					tree_fn=args.tree,
+					trees_fn=args.tree,
 					library_dir=library_dir,
 					force=args.force,
 					construct_klcp=args.klcp,
+					no_prefixes=args.no_prefixes,
 				)
 			_message('Index construction finished')
 
 		elif subcommand=="classify":
-			classify(
+			prophyle_classify(
 					index_dir=args.index_dir,
 					fq_fn=args.reads,
 					k=args.k,
