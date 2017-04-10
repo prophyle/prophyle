@@ -1,4 +1,4 @@
-SHELL=/bin/bash -o pipefail
+SHELL=/bin/bash -e -u -o pipefail
 
 .SECONDARY:
 
