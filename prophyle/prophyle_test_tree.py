@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
 
 
-	tree=Tree(newick_fn,format=1)
+	tree=Tree(newick_fn,format=DEFAULT_FORMAT)
 
 	if p:
 		print(tree.get_ascii(show_internal=True))
