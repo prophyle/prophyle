@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-F2K=../../bin/_fa_to_kmers.py -k 2 -i fasta.fa
+include ../conf.mk
 
 all: gen_a.txt gen_c.txt gen_r.txt gen_f.txt
 	diff exp_a.txt gen_a.txt
@@ -9,7 +9,8 @@ all: gen_a.txt gen_c.txt gen_r.txt gen_f.txt
 	diff exp_r.txt gen_r.txt
 
 gen_%.txt:
-	$(F2K) -m $* > $@
+	$(F2K) -k 2 -i fasta.fa -m $* > $@
 
 clean:
 	rm -f gen*.txt
+
