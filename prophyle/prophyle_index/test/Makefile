@@ -2,7 +2,7 @@
 
 
 test: testref.fa.bwt
-	../prophyle-index -a 2 testref.fa query.fa
+	../prophyle_index -a 2 testref.fa query.fa
 
 testref.fa.bwt: testref.fa
 	bwa index testref.fa

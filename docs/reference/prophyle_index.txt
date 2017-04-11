@@ -1,7 +1,7 @@
-$ prophyle-index -h
+$ prophyle_index -h
 
-Program: prophyle-index (alignment of k-mers)
-Usage:   prophyle-index command [options]
+Program: prophyle_index (alignment of k-mers)
+Usage:   prophyle_index command [options]
 
 Command: index         construct klcp array
 Command: match         match k-mers
