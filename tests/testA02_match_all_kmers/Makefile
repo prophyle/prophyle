@@ -3,7 +3,6 @@
 
 include ../conf.mk
 
-FA=index.fa
 K=2 3 4 5 6 7 8
 
 diffs = $(addsuffix .txt, $(addprefix diff., $(K)))

@@ -2,19 +2,19 @@
 
 include ../conf.mk
 
-FQ=../simulation_bacteria.1000.fq
+K=12
 
 all:
-	$(1STEP) -k 12 -u -t 1 index.fa $(FQ) > _obtained.txt
+	$(1STEP) -k $(K) -u -t 1 $(FA) $(FQ) > _obtained.txt
 	diff _obtained.txt exp_results.txt
 
-	$(IND) query -k 12 -u -t 2 index.fa $(FQ) > _obtained.txt
+	$(IND) query -k $(K) -u -t 2 $(FA) $(FQ) > _obtained.txt
 	diff _obtained.txt exp_results.txt
 
-	$(IND) query -k 12 -u -t 4 index.fa $(FQ) > _obtained.txt
+	$(IND) query -k $(K) -u -t 4 $(FA) $(FQ) > _obtained.txt
 	diff _obtained.txt exp_results.txt
 
-	$(IND) query -k 12 -u -t 10 index.fa $(FQ) > _obtained.txt
+	$(IND) query -k $(K) -u -t 10 $(FA) $(FQ) > _obtained.txt
 	diff _obtained.txt exp_results.txt
 
 clean:
