@@ -1044,6 +1044,7 @@ def main():
 
 		if subcommand=="download":
 			_open_log(args.log_fn)
+			_message('Downloading started')
 			prophyle_download(
 					library=args.library,
 					library_dir=args.home_dir,
@@ -1057,6 +1058,7 @@ def main():
 			else:
 				library_dir=args.library_dir
 			_open_log(args.log_fn)
+			_message('Index construction started')
 			prophyle_index(
 					index_dir=args.index_dir,
 					threads=args.threads,
@@ -1072,6 +1074,7 @@ def main():
 
 		elif subcommand=="classify":
 			_open_log(args.log_fn)
+			_message('Classification started')
 			prophyle_classify(
 					index_dir=args.index_dir,
 					fq_fn=args.reads,
