@@ -1,15 +1,8 @@
 .PHONY: all clean
-.NOTPARALLEL: exk_output*
+.NOTPARALLEL: prophyle_index_output*
 
-SHELL=/bin/bash -o pipefail
+include ../conf.mk
 
-.SECONDARY:
-
-M=../../bin/1step_match.py
-AK=../../bin/_all_kmers.py
-FK=../../bin/_fa_to_kmers.py
-
-FA=index.fa
 K=2 3 4 5 6 7 8
 
 diffs = $(addsuffix .txt, $(addprefix diff., $(K)))
@@ -26,14 +19,14 @@ kmers_all.%.fq:
 kmers_all.%.txt:
 	$(AK) -k $* -f txt > $@
 
-exk_output.%.txt: kmers_all.%.fq
-	$(M) -v -k $* $(FA) $< > $@
+prophyle_index_output.%.txt: kmers_all.%.fq
+	$(1STEP) -v -k $* $(FA) $< > $@
 
-kmers_matched.%.txt: exk_output.%.txt
+kmers_matched.%.txt: prophyle_index_output.%.txt
 	cat $< | (grep -B 1 '^[1-9]' || true) | (grep "#" || true) | sed 's/\#//' | sort > $@
 
 kmers_expected.%.txt: $(FA)
-	$(FK) -i $< -k $* > $@
+	$(F2K) -i $< -k $* > $@
 
 diff.%.txt: kmers_expected.%.txt kmers_matched.%.txt
 	diff $^ | tee $@
