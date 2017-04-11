@@ -2,7 +2,6 @@
 
 include ../conf.mk
 
-FA=index.fa
 K=10
 diffs = $(wildcard ./diff*.txt)
 
