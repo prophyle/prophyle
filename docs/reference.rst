@@ -36,17 +36,17 @@ Other programs
 	.. include:: reference/prophyle_assembler.txt
 		:code: text
 
-``prophyle-index`` (list of subcommands)
+``prophyle_index`` (list of subcommands)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	.. include:: reference/prophyle_index.txt
 		:code: text
 
-``prophyle-index build``
+``prophyle_index build``
 ^^^^^^^^^^^^^^^^^^^^^^^^
 .. include:: reference/prophyle_index_build.txt
 	:code: text
 
-``prophyle-index query``
+``prophyle_index query``
 ^^^^^^^^^^^^^^^^^^^^^^^^
 .. include:: reference/prophyle_index_query.txt
 	:code: text

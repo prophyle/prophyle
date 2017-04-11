@@ -1,6 +1,6 @@
-$ prophyle-index build -h
+$ prophyle_index build -h
 
-Usage:   prophyle-index build <prefix>
+Usage:   prophyle_index build <prefix>
 
 Options:  -k INT    length of k-mer
           -s        construct klcp and sa in parallel

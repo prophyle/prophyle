@@ -1,6 +1,6 @@
-$ prophyle-index query -h
+$ prophyle_index query -h
 
-Usage:   prophyle-index query [options] <prefix> <in.fq>
+Usage:   prophyle_index query [options] <prefix> <in.fq>
 
 Options: -k INT    length of k-mer
          -u        use klcp for matching
