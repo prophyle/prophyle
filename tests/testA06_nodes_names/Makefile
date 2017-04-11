@@ -15,7 +15,7 @@ all:
 
 	# test if reported contigs are correct
 	cat _prophyle_index_output.txt | ./extract_reported_contigs.py | sort | uniq | grep -v "^0$$" > _reported.txt
-	cat index.fa | sed "s/@/	/" | awk '{print $$1}' | sort | uniq > _present.txt
+	cat index.fa | sed "s/@/	/" | sed 's/^>//g' | awk '{print $$1}' | sort | uniq > _present.txt
 
 	cat _present.txt _reported.txt | sort | uniq > _present_reported.txt
 	diff _present.txt _present_reported.txt
