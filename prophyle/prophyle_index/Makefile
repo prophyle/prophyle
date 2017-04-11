@@ -5,7 +5,7 @@ WRAP_MALLOC=-DUSE_MALLOC_WRAPPERS
 AR=			ar
 DFLAGS=		-DHAVE_PTHREAD $(WRAP_MALLOC)
 
-PROG=prophyle-index
+PROG=prophyle_index
 
 AOBJS2=	\
 			bwa/bwashm.o \

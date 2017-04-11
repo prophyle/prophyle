@@ -37,7 +37,7 @@ int prophyle_index_query(int argc, char *argv[])
 
 	if (optind + 2 > argc) {
 		fprintf(stderr, "\n");
-		fprintf(stderr, "Usage:   prophyle-index query [options] <prefix> <in.fq>\n\n");
+		fprintf(stderr, "Usage:   prophyle_index query [options] <prefix> <in.fq>\n\n");
 		fprintf(stderr, "Options: -k INT    length of k-mer\n");
 		fprintf(stderr, "         -u        use klcp for querying\n");
 		fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
@@ -74,7 +74,7 @@ int prophyle_index_build(int argc, char *argv[])
 	}
 	if (optind + 1 > argc) {
 		fprintf(stderr, "\n");
-		fprintf(stderr, "Usage:   prophyle-index build <prefix>\n\n");
+		fprintf(stderr, "Usage:   prophyle_index build <prefix>\n\n");
 		fprintf(stderr, "Options:  -k INT    length of k-mer\n");
 		fprintf(stderr, "          -s        construct klcp and sa in parallel\n");
 		fprintf(stderr, "          -i        sampling distance for SA\n");
@@ -93,8 +93,8 @@ int prophyle_index_build(int argc, char *argv[])
 static int usage()
 {
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Program: prophyle-index (alignment of k-mers)\n");
-	fprintf(stderr, "Usage:   prophyle-index command [options]\n\n");
+	fprintf(stderr, "Program: prophyle_index (alignment of k-mers)\n");
+	fprintf(stderr, "Usage:   prophyle_index command [options]\n\n");
 	fprintf(stderr, "Command: build         construct index\n");
 	fprintf(stderr, "Command: query         query reads against index\n");
 	fprintf(stderr, "\n");
