@@ -6,8 +6,8 @@ import sys
 import os
 
 script_dir=os.path.dirname(os.path.realpath(__file__))
-bwa=os.path.join(script_dir,"prophyle-index","bwa","bwa")
-prophyle_index=os.path.join(script_dir,"prophyle-index","prophyle-index")
+bwa=os.path.join(script_dir,"prophyle_index","bwa","bwa")
+prophyle_index=os.path.join(script_dir,"prophyle_index","prophyle_index")
 
 def cmd(command,stdout=sys.stderr,stderr=sys.stderr):
 	print(file=sys.stderr)
@@ -41,7 +41,7 @@ def query(fa, fq, k, u=False, v=False, t=1):
 		params+=" -u"
 	cmd('"{prophyle_index}" query {params} -k {k} -t {t} "{fa}" "{fq}"'.format(prophyle_index=prophyle_index,fa=fa,fq=fq,k=k,t=t, params=params),stdout=sys.stdout)
 
-parser = argparse.ArgumentParser(description='Single-command prophyle-index matching.')
+parser = argparse.ArgumentParser(description='Single-command prophyle_index matching.')
 parser.add_argument(
 		'-k',
 		type=int,
