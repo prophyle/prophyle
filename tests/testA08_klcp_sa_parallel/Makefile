@@ -1,19 +1,17 @@
 .PHONY: all clean
 
-BWA=../../bin/bwa
-PROPHYLE_INDEX=../../bin/prophyle-index
+include ../conf.mk
 
-FA=index.fa
 K=10
 diffs = $(wildcard ./diff*.txt)
 
 all: 
 	$(BWA) index $(FA) $(FQ) 
-	$(PROPHYLE_INDEX) build -k $(K) $(FA) $(FQ)
+	$(IND) build -k $(K) $(FA) $(FQ)
 	mv $(FA).sa $(FA).sa.separate
 	mv $(FA).$(K).klcp $(FA).$(K).klcp.separate
 
-	$(PROPHYLE_INDEX) build -s -k $(K) $(FA) 
+	$(IND) build -s -k $(K) $(FA) 
 
 	cmp $(FA).sa $(FA).sa.separate > diff_sa.txt
 	cmp $(FA).$(K).klcp $(FA).$(K).klcp.separate > diff_klcp.txt

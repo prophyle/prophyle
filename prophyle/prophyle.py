@@ -2,28 +2,31 @@
 
 """Main Prophyle file.
 
-	Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
 
 Example:
+
 	Download sequences:
 	
 		$ prophyle download bacteria
 	
 	Create an index for k=10 and the small testing bacterial tree:
 	
-		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
+		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw ~/prophyle/test_viruses.nw test_idx
 	
 	Classify some reads:
 
 		$ prophyle classify test_idx reads.fq > result.sam
 	
 Todo:
+	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
-	* automatic deduction of k-mer from the index (when possible)
 	* classificaton: support for c2, h2
-	* check if prophyle_assembler & prophyle-index are newer than their source files
+	* check if prophyle_assembler & prophyle_index are newer than their source files
 """
 
 
@@ -35,6 +38,8 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import glob
+import re
 
 from . import version
 
@@ -42,8 +47,8 @@ c_d=os.path.dirname(os.path.realpath(__file__))
 tree_d=os.path.join(c_d,"trees")
 
 #bin_dir=os.path.dirname(__file__)
-bwa=os.path.join(c_d,"prophyle-index","bwa","bwa")
-ind=os.path.join(c_d,"prophyle-index","prophyle-index")
+bwa=os.path.join(c_d,"prophyle_index","bwa","bwa")
+ind=os.path.join(c_d,"prophyle_index","prophyle_index")
 asm=os.path.join(c_d,"prophyle_assembler","prophyle_assembler")
 
 ## todo: decide about the paths for programs (execution from repo vs from package):
@@ -55,6 +60,7 @@ asm=os.path.join(c_d,"prophyle_assembler","prophyle_assembler")
 newick2makefile="prophyle_propagation_makefile.py"
 test_tree="prophyle_test_tree.py"
 merge_fastas="prophyle_merge_fa.py"
+merge_trees="prophyle_merge_trees.py"
 assign="prophyle_assignment.py"
 
 DEFAULT_K=31
@@ -67,6 +73,54 @@ DEFAULT_HOME_DIR=os.path.join(os.path.expanduser('~'),'prophyle')
 LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
+
+LOG_FILE=None
+
+
+def _message(*msg, upper=False):
+	"""Print a ProPhyle message to stderr.
+
+	Args:
+		*msg: Message.
+	"""
+
+	global LOG_FILE
+
+	dt=datetime.datetime.now()
+	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
+
+	if upper:
+		msg=map(str,msg)
+		msg=map(str.upper,msg)
+
+	log_line='[prophyle] {} {}'.format(fdt, " ".join(msg))
+
+	print(log_line, file=sys.stderr)
+	if LOG_FILE is not None:
+		LOG_FILE.write(log_line)
+		LOG_FILE.write("\n")
+		LOG_FILE.flush()
+
+
+def _open_log(fn):
+	"""Open a log file.
+
+	Args:
+		fn (str): File name.
+	"""
+
+	global LOG_FILE
+	if fn is not None:
+		LOG_FILE=open(fn,"a+")
+
+
+def _close_log():
+	"""Close a log file.
+	"""
+
+	global LOG_FILE
+	if LOG_FILE is not None:
+		LOG_FILE.close()
 
 
 def _test_files(*fns,test_nonzero=False):
@@ -109,6 +163,15 @@ def _file_sizes(*fns):
 
 
 def _run_safe(command, output_fn=None, output_fo=None):
+	"""Get file sizes in Bytes.
+
+	Args:
+		output_fn (str): Name of a file for storing the output.
+		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
+
+	Raises:
+		RuntimeError: Command exited with non-zero code.
+	"""
 	assert output_fn is None or output_fo is None
 	command_str=" ".join(map(lambda x: str(x),command))
 	_message("Running:", command_str)
@@ -135,21 +198,6 @@ def _run_safe(command, output_fn=None, output_fo=None):
 	else:
 		_message("Unfinished, an error occurred (error code {}):".format(error_code), command_str)
 		raise RuntimeError("Command error.")
-
-
-def _message(*msg, upper=False):
-	"""Print a ProPhyle message to stderr.
-
-	Args:
-		*msg: Message.
-	"""
-
-	dt=datetime.datetime.now()
-	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
-	if upper:
-		msg=map(str,msg)
-		msg=map(str.upper,msg)
-	print('[prophyle]', fdt, " ".join(msg), file=sys.stderr)
 
 
 def _touch(*fns):
@@ -204,8 +252,8 @@ def _compile_prophyle_bin():
 	"""
 	files_to_check=[
 			os.path.join(c_d,'prophyle_assembler','prophyle_assembler'),
-			os.path.join(c_d,'prophyle-index','prophyle-index'),
-			os.path.join(c_d,'prophyle-index','bwa','bwa'),
+			os.path.join(c_d,'prophyle_index','prophyle_index'),
+			os.path.join(c_d,'prophyle_index','bwa','bwa'),
 		]
 	for x in files_to_check:
 		if not os.path.isfile(x):
@@ -329,7 +377,7 @@ def _pseudo_fai(d):
 		_mark_complete(d, 2)
 
 
-def download(library, library_dir):
+def prophyle_download(library, library_dir):
 	"""Create a library Download genomic library and copy the corresponding tree.
 
 	Args:
@@ -433,6 +481,7 @@ def _create_makefile(index_dir, k, library_dir):
 		f.write("K={}\n".format(k))
 	_run_safe(command,makefile)
 
+
 def _propagate(index_dir,threads):
 	"""Run k-mer propagation.
 
@@ -445,6 +494,23 @@ def _propagate(index_dir,threads):
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
 	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(asm)]
 	_run_safe(command)
+
+
+def _merge_trees(in_trees, out_tree, no_prefixes):
+	"""Merge input trees into a single tree.
+
+	Args:
+		in_trees (list of str): Input NHX trees.
+		out_tree (str): Output NHX tree.
+	"""
+
+	_message('Generating index tree')
+	_test_files(*in_trees)
+	command=[merge_trees] + in_trees + [out_tree]
+	if no_prefixes:
+		command += ['-P']
+	_run_safe(command)
+
 
 def _merge_fastas(index_dir):
 	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
@@ -464,6 +530,7 @@ def _merge_fastas(index_dir):
 	_run_safe(command, index_fa)
 	_touch(index_fa+".complete")
 
+
 def _fa2pac(fa_fn):
 	"""Run `bwa fa2pac` (FA => 2bit).
 
@@ -475,6 +542,7 @@ def _fa2pac(fa_fn):
 	_test_files(bwa, fa_fn)
 	command=[bwa, 'fa2pac', fa_fn, fa_fn]
 	_run_safe(command)
+
 
 def _pac2bwt(fa_fn):
 	"""Run `bwa pac2bwtgen` (2bit => BWT).
@@ -488,6 +556,7 @@ def _pac2bwt(fa_fn):
 	command=[bwa, 'pac2bwtgen', fa_fn+".pac", fa_fn+".bwt"]
 	_run_safe(command)
 
+
 def _bwt2bwtocc(fa_fn):
 	"""Run `bwa bwtupdate` (BWT => BWT+OCC).
 
@@ -500,6 +569,7 @@ def _bwt2bwtocc(fa_fn):
 	command=[bwa, 'bwtupdate', fa_fn+".bwt"]
 	_run_safe(command)
 
+
 def _bwtocc2sa(fa_fn):
 	"""Run `bwa bwt2sa` (BWT+OCC => SSA).
 
@@ -511,6 +581,7 @@ def _bwtocc2sa(fa_fn):
 	_test_files(bwa, fa_fn+".bwt")
 	command=[bwa, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
 	_run_safe(command)
+
 
 def _bwtocc2klcp(fa_fn,k):
 	"""Create k-LCP `` (BWT => k-LCP).
@@ -540,7 +611,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_run_safe(command)
 
 
-def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes):
 	"""Build a Prophyle index.
 
 	Args:
@@ -551,6 +622,7 @@ def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
 		force (bool): Rewrite files if they already exist.
+		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 
 	Todo:
 		* klcp in parallel with SA
@@ -588,8 +660,8 @@ def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
 
 
 	if recompute:
-		_message('[1/5] Copying tree to the index dir', upper=True)
-		_cp_to_file(tree_fn, index_tree)
+		_message('[1/5] Copying/merging trees', upper=True)
+		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes)
 		_mark_complete(index_dir, 1)
 	else:
 		_message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -683,14 +755,14 @@ def index(index_dir, threads, k, tree_fn, library_dir, construct_klcp, force):
 # PROPHYLE CLASSIFY #
 #####################
 
-def classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
 
 	"""Run Prophyle classification.
 
 	Args:
 		index_dir (str): Index directory.
 		fq_fn (str): Input reads.
-		k (int): K-mer size.
+		k (int): K-mer size (None => detect automatically).
 		use_rolling_window (bool): Use rolling window.
 		out_format (str): Output format: sam / kraken.
 		mimic_kraken (bool): Mimic Kraken algorithm (compute LCA for each k-mer).
@@ -704,9 +776,25 @@ def classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measur
 	index_fa=os.path.join(index_dir, 'index.fa')
 	index_tree=os.path.join(index_dir, 'tree.nw')
 
+	if k is None:
+		klcps=glob.glob(os.path.join(index_dir,"*.klcp"))
+
+		assert len(klcps)<2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
+		assert len(klcps)>0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
+		klcp=klcps[0]
+
+		re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
+		klcp_match=re_klcp.match(klcp)
+		k=klcp_match.group(1)
+		_message("Automatic detection of k-mer length: k={}".format(k))
+
 	_test_tree(index_tree)
 	#_test_files(fq_fn,index_fa,ind,assign)
-	_test_files(fq_fn,index_fa,ind)
+
+	if fq_fn!="-":
+		_test_files(fq_fn)
+
+	_test_files(index_fa,ind)
 
 	_test_files(
 			index_fa+'.bwt',
@@ -790,6 +878,14 @@ def parser():
 			default=None,
 			help='directory for the tree and the sequences [~/prophyle]',
 		)
+	parser_download.add_argument(
+			'-l',
+			dest='log_fn',
+			metavar='STR',
+			type=str,
+			help='log file',
+			default=None,
+		)
 
 	##########
 
@@ -801,6 +897,7 @@ def parser():
 	parser_index.add_argument('tree',
 			metavar='<tree.nw>',
 			type=str,
+			nargs='+',
 			help='phylogenetic tree (in Newick/NHX)',
 		)
 	parser_index.add_argument(
@@ -814,7 +911,7 @@ def parser():
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with the library sequences [directory of the tree]',
+			help='directory with the library sequences [directory of the first tree]',
 			default=None,
 			#required=True,
 		)
@@ -835,10 +932,24 @@ def parser():
 			default=DEFAULT_K,
 		)
 	parser_index.add_argument(
+			'-l',
+			dest='log_fn',
+			metavar='STR',
+			type=str,
+			help='log file',
+			default=None,
+		)
+	parser_index.add_argument(
 			'-F',
 			dest='force',
 			action='store_true',
 			help='rewrite index files if they already exist',
+		)
+	parser_index.add_argument(
+			'-P',
+			dest='no_prefixes',
+			action='store_true',
+			help='do not add prefixes to node names when multiple trees are used',
 		)
 	parser_index.add_argument(
 			'-K',
@@ -871,8 +982,8 @@ def parser():
 			dest='k',
 			metavar='INT',
 			type=int,
-			help='k-mer length [{}]'.format(DEFAULT_K),
-			default=DEFAULT_K,
+			help='k-mer length [detect automatically]',
+			default=None,
 		)
 	parser_classify.add_argument(
 			'-R',
@@ -893,6 +1004,14 @@ def parser():
 			choices=['kraken','sam'],
 			default=DEFAULT_OUTPUT_FORMAT,
 			help='output format [{}]'.format(DEFAULT_OUTPUT_FORMAT),
+		)
+	parser_classify.add_argument(
+			'-l',
+			dest='log_fn',
+			metavar='STR',
+			type=str,
+			help='log file',
+			default=None,
 		)
 	parser_classify.add_argument(
 			'-A',
@@ -924,30 +1043,39 @@ def main():
 		subcommand=args.subcommand
 
 		if subcommand=="download":
-			download(
+			_open_log(args.log_fn)
+			_message('Downloading started')
+			prophyle_download(
 					library=args.library,
 					library_dir=args.home_dir,
 				)
 			_message('Downloading finished')
+			_close_log()
 
 		elif subcommand=="index":
 			if args.library_dir is None:
-				library_dir=os.path.dirname(args.tree)
+				library_dir=os.path.dirname(args.tree[0])
 			else:
 				library_dir=args.library_dir
-			index(
+			_open_log(args.log_fn)
+			_message('Index construction started')
+			prophyle_index(
 					index_dir=args.index_dir,
 					threads=args.threads,
 					k=args.k,
-					tree_fn=args.tree,
+					trees_fn=args.tree,
 					library_dir=library_dir,
 					force=args.force,
 					construct_klcp=args.klcp,
+					no_prefixes=args.no_prefixes,
 				)
 			_message('Index construction finished')
+			_close_log()
 
 		elif subcommand=="classify":
-			classify(
+			_open_log(args.log_fn)
+			_message('Classification started')
+			prophyle_classify(
 					index_dir=args.index_dir,
 					fq_fn=args.reads,
 					k=args.k,
@@ -959,6 +1087,7 @@ def main():
 					annotate=args.annotate,
 				)
 			_message('Classificaton finished')
+			_close_log()
 
 		else:
 			msg_lns=par.format_help().split("\n")[2:]
@@ -973,6 +1102,12 @@ def main():
 		# pipe error (e.g., when head is used)
 		sys.stderr.close()
 		exit(0)
+
+	except KeyboardInterrupt:
+		_message("Error: Keyboard interrupt")
+		_close_log()
+		exit(1)
+
 
 if __name__ == "__main__":
 	main()

@@ -50,7 +50,7 @@ setup(
 
 	keywords='metagenomics classification NGS',
 
-	packages = find_packages(),
+	packages = ["prophyle"],
 
 	install_requires=['ete3', 'numpy', 'wheel', 'six', 'scipy', 'bitarray'],
 
@@ -61,12 +61,12 @@ setup(
 			'prophyle_assembler/*.cpp',
 			'prophyle_assembler/*.h',
 			'prophyle_assembler/Makefile',
-			'prophyle-index/*.c',
-			'prophyle-index/*.h',
-			'prophyle-index/Makefile',
-			'prophyle-index/bwa/*.c',
-			'prophyle-index/bwa/*.h',
-			'prophyle-index/bwa/Makefile',
+			'prophyle_index/*.c',
+			'prophyle_index/*.h',
+			'prophyle_index/Makefile',
+			'prophyle_index/bwa/*.c',
+			'prophyle_index/bwa/*.h',
+			'prophyle_index/bwa/Makefile',
 			'trees/*.nw',
 		],
 	},
@@ -78,6 +78,7 @@ setup(
 				'prophyle_merge_fa.py = prophyle.prophyle_merge_fa:main',
 				'prophyle_test_tree.py = prophyle.prophyle_test_tree:main',
 				'prophyle_assignment.py = prophyle.prophyle_assignment:main',
+				'prophyle_merge_trees.py = prophyle.prophyle_merge_trees:main',
 			]
 	},
 )
