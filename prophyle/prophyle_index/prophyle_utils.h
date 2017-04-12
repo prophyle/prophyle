@@ -1,3 +1,9 @@
+/*
+	Structure for prophyle_index options.
+	Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+	Licence: MIT
+*/
+
 #ifndef PROPHYLE_UTILS_H
 #define PROPHYLE_UTILS_H
 
