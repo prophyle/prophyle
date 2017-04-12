@@ -1,3 +1,9 @@
+/*
+  Simple bitarray implementation.
+  Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+  Licence: MIT
+*/
+
 #include<stdio.h>
 #include<stdlib.h>
 #include <stdint.h>
