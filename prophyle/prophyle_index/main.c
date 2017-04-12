@@ -1,3 +1,14 @@
+/*
+	prophyle_index main file, implements build and query commands.
+	Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+	Licence: MIT
+	Examples:
+		build prophyle index for k = 20, suffix array and klcp simultaneously:
+			prophyle_index build -k 20 -s index.fa
+		query reads for k=20 using rolling window search with 10 threads, writing output in results.txt:
+			prophyle_index query -u -k 20 -t 10 index.fa reads.fq > results.txt
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>

@@ -1,3 +1,9 @@
+/*
+  Correspondance between contig_id in BWA and node_name in taxonomic tree.
+  Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+  Licence: MIT
+*/
+
 #ifndef CONTIG_NODE_TRANSLATOR_H
 #define CONTIG_NODE_TRANSLATOR_H
 

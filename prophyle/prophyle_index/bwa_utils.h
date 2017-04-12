@@ -1,3 +1,9 @@
+/*
+  Methods to load/destroy only necessary BWA structures.
+  Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+  Licence: MIT
+*/
+
 #ifndef BWAUTILS_H
 #define BWAUTILS_H
 

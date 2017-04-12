@@ -1,3 +1,9 @@
+/*
+  KLCP data structure block-based implementation.
+  Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+  Licence: MIT
+*/
+
 #ifndef KLCP_H
 #define KLCP_H
 

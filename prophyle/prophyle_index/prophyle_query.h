@@ -1,3 +1,9 @@
+/*
+	prophyle_index query command implementation.
+	Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+	Licence: MIT
+*/
+
 #ifndef PROPHYLE_QUERY_H
 #define PROPHYLE_QUERY_H
 
