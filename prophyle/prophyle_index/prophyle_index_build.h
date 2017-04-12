@@ -1,3 +1,9 @@
+/*
+  prophyle_index build command high-level implementation.
+  Author: Kamil Salikhov <salikhov.kamil@gmail.com>
+  Licence: MIT
+*/
+
 #ifndef PROPHYLE_INDEX_BUILD_H
 #define PROPHYLE_INDEX_BUILD_H
 
