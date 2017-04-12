@@ -406,8 +406,7 @@ void process_sequence(void* data, int i, int tid) {
 					shift_positions_by_one(idx, positions_cnt, aux_data.positions, opt->kmer_length, k, l);
 				} else {
 					aux_data.rids_computations++;
-					positions_cnt = get_positions(idx, aux_data.positions, opt->kmer_length,
-						k, l);
+					positions_cnt = get_positions(idx, aux_data.positions, opt->kmer_length, k, l);
 				}
 				nodes_cnt = get_nodes_from_positions(idx, opt->kmer_length,
 					positions_cnt, aux_data.positions, seen_nodes, &seen_nodes_marks, opt->skip_positions_on_border);
@@ -436,7 +435,6 @@ void process_sequence(void* data, int i, int tid) {
 				is_ambiguous_streak, &is_first_streak);
 		}
 		if (opt->output) {
-			//fprintf(stdout, "\n");
 			size_t all_streaks_length = strlen(all_streaks);
 			prophyle_worker->output[i] = malloc((all_streaks_length + 1) * sizeof(char));
 			strncpy(prophyle_worker->output[i], all_streaks, all_streaks_length + 1);
@@ -444,8 +442,8 @@ void process_sequence(void* data, int i, int tid) {
 	}
 }
 
-void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
-								const prophyle_index_opt_t* opt, klcp_t* klcp)
+void process_sequences(const bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
+	const prophyle_index_opt_t* opt, const klcp_t* klcp)
 {
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void* data, int n);
 	bwase_initialize();
@@ -465,7 +463,6 @@ void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
 			}
 			fprintf(stdout, "\n");
 		}
-
 		free(seq->name); free(seq->seq); free(seq->rseq); free(seq->qual);
 		seq->name = 0; seq->seq = seq->rseq = seq->qual = 0;
 	}
@@ -522,7 +519,7 @@ void prophyle_index_query_core(const char* prefix, const char* fn_fa, const prop
 	int64_t total_kmers_count = 0;
 	fprintf(stderr, "number of threads = %d\n", opt->n_threads);
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
-		bwa_cal_sa(idx, n_seqs, seqs, opt, klcp);
+		process_sequences(idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
 		for (i = 0; i < n_seqs; ++i) {
 			int seq_kmers_count = seqs[i].len - opt->kmer_length + 1;
@@ -543,10 +540,6 @@ void prophyle_index_query_core(const char* prefix, const char* fn_fa, const prop
 		fprintf(log_file, "rpm\t%" PRId64 "\n", (int64_t)(round(total_seqs * 60.0 / total_time)));
 		fprintf(log_file, "kpm\t%" PRId64 "\n", (int64_t)(round(total_kmers_count * 60.0 / total_time)));
 	}
-	//fprintf(stderr, "tot_seqs = %d\n", tot_seqs);
-	//fprintf(stderr, "overall_increase = %llu\n", overall_increase);
-	//fprintf(stderr, "increase per k-mer = %lf\n", 1.0 * overall_increase / (tot_seqs * (seq_len - opt->kmer_length + 1)));
-
 	if (opt->need_log) {
 		fclose(log_file);
 	}
