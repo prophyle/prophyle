@@ -3,7 +3,7 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 
 
 .. image:: https://travis-ci.org/karel-brinda/prophyle.svg?branch=master
-	:target: https://travis-ci.org/karel-brinda/prophyle
+    :target: https://travis-ci.org/karel-brinda/prophyle
 
 ProPhyle is a metagenomic classifier based on BWT-index and phylogenetic trees,
 whose indexing strategy is based on the bottom-up propagation of genomes' k-mers in the tree,
