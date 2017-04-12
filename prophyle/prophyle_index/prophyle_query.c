@@ -1,17 +1,7 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <stdint.h>
 #include <inttypes.h>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "prophyle_query.h"
-#include "bwtaln.h"
-#include "bwtgap.h"
 #include "utils.h"
 #include "bwa.h"
 #include "bwase.h"
@@ -20,48 +10,16 @@
 #include "bwa_utils.h"
 #include "contig_node_translator.h"
 
-#ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "0.0.1"
-#endif
-
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-#endif
-
-#ifdef USE_MALLOC_WRAPPERS
-#  include "malloc_wrap.h"
-#endif
-
 #define MAX_POSSIBLE_SA_POSITIONS 1000000
 #define MAX_STREAK_LENGTH 10000000
 #define MAX_SOFT_STREAK_LENGTH 9000000
 
-prophyle_index_opt_t *prophyle_index_init_opt()
-{
-	prophyle_index_opt_t *o;
-	o = (prophyle_index_opt_t*)calloc(1, sizeof(prophyle_index_opt_t));
-	o->mode = BWA_MODE_GAPE | BWA_MODE_COMPREAD;
-	o->n_threads = 1;
-	o->trim_qual = 0;
-	o->kmer_length = 14;
-	o->use_klcp = 0;
-	o->output = 1;
-	o->output_read_qual = 0;
-	o->output_old = 0;
-	o->skip_positions_on_border = 1;
-	o->construct_sa_parallel = 0;
-	o->need_log = 0;
-	o->log_file_name = NULL;
-	return o;
-}
-
-int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k, uint64_t* l, int start_pos)
+int calculate_sa_interval(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k, uint64_t* l, int start_pos)
 {
 	bwtint_t ok, ol;
 	int i;
-	*k = 0; *l = bwt->seq_len;
-
-	//fprintf(stderr, "start k = %d, l = %d\n", *k, *l);
+	*k = 0;
+	*l = bwt->seq_len;
 	for (i = start_pos; i < start_pos + len; ++i) {
 		ubyte_t c = str[i];
 		if (c > 3) {
@@ -73,16 +31,15 @@ int bwt_cal_sa_coord(const bwt_t *bwt, int len, const ubyte_t *str, uint64_t* k,
 			bwt_2occ(bwt, *k - 1, *l, c, &ok, &ol);
 			*k = bwt->L2[c] + ok + 1;
 			*l = bwt->L2[c] + ol;
-			//fprintf(stderr, "after i = %d character, cur k = %d, l = %d\n", i, *k, *l);
 		}
-		if (*k > *l) { // then restart
+		if (*k > *l) {
 			return i - start_pos;
 		}
 	}
 	return len;
 }
 
-int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
+int calculate_sa_interval_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 															uint64_t* k, uint64_t* l,
 															uint64_t* decreased_k, uint64_t* increased_l,
 															int start_pos, const klcp_t* klcp)
@@ -93,10 +50,6 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 	*decreased_k = *k;
 	*l = increase_sa_position(klcp, *l);
 	*increased_l = *l;
-
-	//fprintf(stderr, "increased k = %d, l = %d\n", *k, *l);
-
-	//fprintf(stderr, "start k = %d, l = %d\n", *k, *l);
 	for (i = start_pos; i < start_pos + len; ++i) {
 		ubyte_t c = str[i];
 		if (c > 3) { // then restart
@@ -108,9 +61,8 @@ int bwt_cal_sa_coord_continue(const bwt_t *bwt, int len, const ubyte_t *str,
 			bwt_2occ(bwt, *k - 1, *l, c, &ok, &ol);
 			*k = bwt->L2[c] + ok + 1;
 			*l = bwt->L2[c] + ol;
-			//fprintf(stderr, "after i = %d character, cur k = %d, l = %d\n", i, *k, *l);
 		}
-		if (*k > *l) { // then restart
+		if (*k > *l) {
 			return i - start_pos;
 		}
 	}
@@ -130,15 +82,11 @@ size_t get_positions(const bwaidx_t* idx, bwt_position_t* positions, const int q
 		positions[t - k].position = pos;
 		positions[t - k].strand = strand;
 		positions[t - k].rid = -1;
-		//fprintf(stdout, "%llu(%d) ", (*positions)[t - k], strand);
 	}
-	//fprintf(stdout, "\n");
 	return (l - k + 1 < MAX_POSSIBLE_SA_POSITIONS ? l - k + 1 : MAX_POSSIBLE_SA_POSITIONS);
 }
 
 int position_on_border(const bwaidx_t* idx, bwt_position_t* position, int query_length) {
-	//fprintf(stdout, "%llu %d %llu\n", position->position, query_length, idx->bns->l_pac);
-	//fprintf(stdout, "%d %d\n", position->rid, idx->bns->n_seqs);
 	return (position->position + query_length > idx->bns->l_pac
 		|| (position->rid + 1 < idx->bns->n_seqs && position->position + query_length > idx->bns->anns[position->rid + 1].offset)
 		|| position->position < idx->bns->anns[position->rid].offset);
@@ -164,7 +112,6 @@ size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 	int i;
 	for(i = 0; i < positions_cnt; ++i) {
 		uint64_t pos = positions[i].position;
-		//fprintf(stdout, "%llu\n", pos);
 		if (pos == (uint64_t)-1) {
 			continue;
 		}
@@ -176,8 +123,6 @@ size_t get_nodes_from_positions(const bwaidx_t* idx, const int query_length,
 		int node = get_node_from_contig(rid);
 		positions[i].node = node;
 		int seen = (*seen_nodes_marks)[node];
-		//fprintf(stdout, "position = %llu, rid = %d, offset[rid] = %llu, offset[rid + 1] = %llu\n",
-		// 	pos, rid, idx->bns->anns[rid].offset, idx->bns->anns[rid + 1].offset);
 		if (!seen && node != -1 && (!skip_positions_on_border || !position_on_border(idx, &(positions[i]), query_length))) {
 			seen_nodes[nodes_cnt] = node;
 			++nodes_cnt;
@@ -487,14 +432,14 @@ void prophyle_process_sequence(void* data, int i, int tid) {
 			if (start_pos == 0) {
 				k = 0;
 				l = 0;
-				bwt_cal_sa_coord(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
+				calculate_sa_interval(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
 			} else {
 				if (opt->use_klcp && k <= l) {
-					bwt_cal_sa_coord_continue(bwt, 1, seq.seq, &k, &l, &decreased_k, &increased_l, start_pos + opt->kmer_length - 1, klcp);
+					calculate_sa_interval_continue(bwt, 1, seq.seq, &k, &l, &decreased_k, &increased_l, start_pos + opt->kmer_length - 1, klcp);
 				} else {
 					k = 0;
 					l = 0;
-					bwt_cal_sa_coord(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
+					calculate_sa_interval(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
 				}
 			}
 			//fprintf(stderr, "start_pos = %d\n", start_pos);
@@ -575,14 +520,12 @@ void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs,
 		free(seq->name); free(seq->seq); free(seq->rseq); free(seq->qual);
 		seq->name = 0; seq->seq = seq->rseq = seq->qual = 0;
 	}
-	// write combining results
-	// fprintf(stderr, "rids computed: %d\n", rids_computations);
-	// fprintf(stderr, "rids used previous: %d\n", using_prev_rids);
 	prophyle_worker_destroy(prophyle_worker_data);
 }
 
 void prophyle_index_query_core(const char *prefix, const char *fn_fa, const prophyle_index_opt_t *opt) {
-	extern bwa_seqio_t *bwa_open_reads(int mode, const char *fn_fa);
+	extern bwa_seqio_t* bwa_open_reads(int mode, const char *fn_fa);
+	extern bwa_seq_t* bwa_read_seq(bwa_seqio_t *bs, int n_needed, int *n, int mode, int trim_qual);
 
 	int n_seqs;
 	bwa_seq_t *seqs;
@@ -604,7 +547,6 @@ void prophyle_index_query_core(const char *prefix, const char *fn_fa, const prop
 	// If fa2pac was called only for doubled string, then set bns->l_pac = bwt->seq_len, as it is for forward-only string
 	idx->bns->l_pac = idx->bwt->seq_len / 2;
 
-	fprintf(stderr, "BWA loaded\n");
 	bwa_destroy_unused_fields(idx);
 
 	double ctime, rtime;
