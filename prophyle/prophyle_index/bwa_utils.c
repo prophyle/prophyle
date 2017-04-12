@@ -129,7 +129,7 @@ bntseq_t* bns_restore_partial(const char* prefix)
 	bns = bns_restore_core_partial(ann_filename, amb_filename, pac_filename);
 	if (bns == 0) return 0;
 	if ((fp = fopen(strcat(strcpy(alt_filename, prefix), ".alt"), "r")) != 0) { // read .alt file if present
-		fprintf(stderr, "[%s]: .alt file is present, something may work wrong!\n", __func__);
+		fprintf(stderr, "[prophyle_index:%s] .alt file is present, something may work wrong!\n", __func__);
 		char str[1024];
 		khash_t(str)* h;
 		int c, i, absent;
@@ -165,7 +165,7 @@ bwt_t* bwa_idx_load_bwt_with_time(const char* hint, int need_log, FILE* log_file
 	bwt_t* bwt;
 	prefix = bwa_idx_infer_prefix(hint);
 	if (prefix == 0) {
-		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		if (bwa_verbose >= 1) fprintf(stderr, "[prophyle_index:%s] fail to locate the index files\n", __func__);
 		return 0;
 	}
 	clock_t t = clock();
@@ -187,12 +187,11 @@ bwt_t* bwa_idx_load_bwt_with_time(const char* hint, int need_log, FILE* log_file
 
 bwaidx_t* bwa_idx_load_partial(const char* hint, int which, int need_log, FILE* log_file)
 {
-	fprintf(stderr, "Own bwa idx loading..\n");
 	bwaidx_t* idx;
 	char* prefix;
 	prefix = bwa_idx_infer_prefix(hint);
 	if (prefix == 0) {
-		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		if (bwa_verbose >= 1) fprintf(stderr, "[prophyle_index::%s] fail to locate the index files\n", __func__);
 		return 0;
 	}
 	idx = calloc(1, sizeof(bwaidx_t));
@@ -218,7 +217,7 @@ bwt_t* bwa_idx_load_bwt_without_sa(const char* hint)
 	bwt_t* bwt;
 	prefix = bwa_idx_infer_prefix(hint);
 	if (prefix == 0) {
-		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		if (bwa_verbose >= 1) fprintf(stderr, "[prophyle_index::%s] fail to locate the index files\n", __func__);
 		return 0;
 	}
 	tmp = calloc(strlen(prefix) + 5, 1);
