@@ -18,8 +18,6 @@ int calculate_sa_interval(const bwt_t* bwt, int len, const ubyte_t* str, uint64_
 {
 	bwtint_t ok, ol;
 	int i;
-	*k = 0;
-	*l = bwt->seq_len;
 	for (i = start_pos; i < start_pos + len; ++i) {
 		ubyte_t c = str[i];
 		if (c > 3) {
@@ -39,34 +37,23 @@ int calculate_sa_interval(const bwt_t* bwt, int len, const ubyte_t* str, uint64_
 	return len;
 }
 
+int calculate_sa_interval_restart(const bwt_t* bwt, int len, const ubyte_t* str, uint64_t* k, uint64_t* l, int start_pos)
+{
+	*k = 0;
+	*l = bwt->seq_len;
+	return calculate_sa_interval(bwt, len, str, k, l, start_pos);
+}
+
 int calculate_sa_interval_continue(const bwt_t* bwt, int len, const ubyte_t* str,
 															uint64_t* k, uint64_t* l,
 															uint64_t* decreased_k, uint64_t* increased_l,
 															int start_pos, const klcp_t* klcp)
 {
-	bwtint_t ok, ol;
-	int i;
 	*k = decrease_sa_position(klcp, *k);
 	*decreased_k = *k;
 	*l = increase_sa_position(klcp, *l);
 	*increased_l = *l;
-	for (i = start_pos; i < start_pos + len; ++i) {
-		ubyte_t c = str[i];
-		if (c > 3) { // then restart
-			*k = 1;
-			*l = 0;
-			return i - start_pos;
-		}
-		if (c < 4) {
-			bwt_2occ(bwt, *k - 1, *l, c, &ok, &ol);
-			*k = bwt->L2[c] + ok + 1;
-			*l = bwt->L2[c] + ol;
-		}
-		if (*k > *l) {
-			return i - start_pos;
-		}
-	}
-	return len;
+	return calculate_sa_interval(bwt, len, str, k, l, start_pos);
 }
 
 size_t get_positions(const bwaidx_t* idx, bwt_position_t* positions, const int query_length,
@@ -160,8 +147,8 @@ void strncat_with_check(char* str, char* str_to_append, int* str_length,
 }
 
 void construct_streaks(char** all_streaks, char** current_streak, int* seen_nodes, int nodes_cnt, int streak_size,
-	int is_ambiguous_streak, int is_first_streak) {
-	if (is_first_streak) {
+	int is_ambiguous_streak, int* is_first_streak) {
+	if (*is_first_streak) {
 		*all_streaks[0] = '\0';
 	}
 	*current_streak[0] = '\0';
@@ -182,7 +169,7 @@ void construct_streaks(char** all_streaks, char** current_streak, int* seen_node
 	}
 	sprintf(*current_streak + strlen(*current_streak), "%d", streak_size);
 	current_streak_approximate_length += 3;
-	if (is_first_streak) {
+	if (*is_first_streak) {
 		if (current_streak_approximate_length <= MAX_STREAK_LENGTH) {
 			strcpy(*all_streaks, *current_streak);
 		} else {
@@ -195,6 +182,7 @@ void construct_streaks(char** all_streaks, char** current_streak, int* seen_node
 		*all_streaks = *current_streak;
 		*current_streak = tmp;
 	}
+	*is_first_streak = 0;
 }
 
 void print_streaks(char* streaks) {
@@ -370,15 +358,12 @@ void process_sequence(void* data, int i, int tid) {
 			int end_pos = start_pos + opt->kmer_length - 1;
 			if (opt->output) {
 				if (start_pos > 0 && seq.seq[end_pos] > 3) {
-						last_ambiguous_index = end_pos;
+					last_ambiguous_index = end_pos;
 				}
 				if (end_pos - last_ambiguous_index < opt->kmer_length) {
 					if (!is_ambiguous_streak) {
 						construct_streaks(&all_streaks, &current_streak, prev_seen_nodes, prev_nodes_count, current_streak_size,
-							is_ambiguous_streak, is_first_streak);
-						if (is_first_streak) {
-							is_first_streak = 0;
-						}
+							is_ambiguous_streak, &is_first_streak);
 						is_ambiguous_streak = 1;
 						current_streak_size = 1;
 					} else {
@@ -389,10 +374,7 @@ void process_sequence(void* data, int i, int tid) {
 				} else {
 					if (is_ambiguous_streak && current_streak_size > 0) {
 						construct_streaks(&all_streaks, &current_streak, prev_seen_nodes, prev_nodes_count, current_streak_size,
-							is_ambiguous_streak, is_first_streak);
-						if (is_first_streak) {
-							is_first_streak = 0;
-						}
+							is_ambiguous_streak, &is_first_streak);
 						is_ambiguous_streak = 0;
 						current_streak_size = 0;
 					}
@@ -406,19 +388,16 @@ void process_sequence(void* data, int i, int tid) {
 			if (start_pos == 0) {
 				k = 0;
 				l = 0;
-				calculate_sa_interval(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
+				calculate_sa_interval_restart(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
 			} else {
 				if (opt->use_klcp && k <= l) {
 					calculate_sa_interval_continue(bwt, 1, seq.seq, &k, &l, &decreased_k, &increased_l, start_pos + opt->kmer_length - 1, klcp);
 				} else {
 					k = 0;
 					l = 0;
-					calculate_sa_interval(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
+					calculate_sa_interval_restart(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
 				}
 			}
-			//fprintf(stderr, "start_pos = %d\n", start_pos);
-			//fprintf(stderr, "found k = %llu, l = %llu\n", k, l);
-			// fprintf(stderr, "prev k = %llu, prev l = %llu\n", prev_k, prev_l);
 			int nodes_cnt = 0;
 			if (k <= l) {
 				if (prev_l - prev_k == l - k
@@ -440,10 +419,7 @@ void process_sequence(void* data, int i, int tid) {
 					current_streak_size++;
 				} else {
 					construct_streaks(&all_streaks, &current_streak, prev_seen_nodes, prev_nodes_count, current_streak_size,
-						is_ambiguous_streak, is_first_streak);
-					if (is_first_streak) {
-						is_first_streak = 0;
-					}
+						is_ambiguous_streak, &is_first_streak);
 					current_streak_size = 1;
 				}
 			}
@@ -457,7 +433,7 @@ void process_sequence(void* data, int i, int tid) {
 		}
 		if (current_streak_size > 0) {
 			construct_streaks(&all_streaks, &current_streak, prev_seen_nodes, prev_nodes_count, current_streak_size,
-				is_ambiguous_streak, is_first_streak);
+				is_ambiguous_streak, &is_first_streak);
 		}
 		if (opt->output) {
 			//fprintf(stdout, "\n");
