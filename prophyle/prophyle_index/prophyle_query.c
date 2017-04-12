@@ -61,7 +61,8 @@ size_t get_positions(const bwaidx_t* idx, bwt_position_t* positions, const int q
 	uint64_t t;
 	for(t = k; t <= l; ++t) {
 		if (t - k >= MAX_POSSIBLE_SA_POSITIONS) {
-			fprintf(stderr, "translation from SA-pos to seq-pos is truncated, too many (%llu) positions\n", l - k + 1);
+			fprintf(stderr, "[prophyle_index:%s] translation from SA-pos to seq-pos is truncated, too many (%llu) positions\n",
+				__func__, l - k + 1);
 			break;
 		}
 		int strand;
@@ -136,7 +137,8 @@ void output_old(int* seen_nodes, const int nodes_cnt) {
 void strncat_with_check(char* str, char* str_to_append, int* str_length,
 	int str_to_append_length, int length_limit) {
 	if (*str_length >= length_limit) {
-		fprintf(stderr, "too long output string, more than %d symbols\n", length_limit);
+		fprintf(stderr, "[prophyle_index:%s] too long output string, more than %d symbols\n",
+			__func__, length_limit);
 	} else {
 		strncat(str, str_to_append, length_limit - str_to_append_length);
 		*str_length += str_to_append_length;
@@ -485,7 +487,7 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 	}
 
 	if ((idx = bwa_idx_load_partial(prefix, BWA_IDX_ALL, opt->need_log, log_file)) == 0) {
-		fprintf(stderr, "Couldn't load idx from %s\n", prefix);
+		fprintf(stderr, "[prophyle_index:%s] Couldn't load idx from %s\n", __func__, prefix);
 		return;
 	}
 
@@ -528,8 +530,8 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 		bwa_free_read_seq(n_seqs, seqs);
 	}
 	total_time = realtime() - rtime;
-	fprintf(stderr, "match time: %.2f sec\n", total_time);
-	fprintf(stderr, "[M::%s] Processed %llu reads in %.3f CPU sec, %.3f real sec\n", __func__, total_seqs, cputime() - ctime, realtime() - rtime);
+	fprintf(stderr, "[prophyle_index:%s] match time: %.2f sec\n", __func__, total_time);
+	fprintf(stderr, "[prophyle_index::%s] Processed %llu reads in %.3f CPU sec, %.3f real sec\n", __func__, total_seqs, cputime() - ctime, realtime() - rtime);
 
 	if (opt->need_log) {
 		fprintf(log_file, "matching_time\t%.2fs\n", total_time);

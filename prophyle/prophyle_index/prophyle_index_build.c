@@ -24,12 +24,11 @@ void* construct_klcp_parallel(void* data) {
 void* construct_sa_parallel(void* data) {
 	klcp_data_t* klcp_data = (klcp_data_t*)data;
 	bwt_cal_sa(klcp_data->bwt, klcp_data->sa_intv);
-	fprintf(stderr, "sa calculated\n");
 	char* fn = malloc((strlen(klcp_data->prefix) + 10) * sizeof(char));
   strcpy(fn, klcp_data->prefix);
   strcat(fn, ".sa");
 	bwt_dump_sa(fn, klcp_data->bwt);
-	fprintf(stderr, "sa dumped");
+	fprintf(stderr, "[prophyle_index:%s] SA dumped\n", __func__);
 	return 0;
 }
 
@@ -37,7 +36,7 @@ void build_index(const char *prefix, const prophyle_index_opt_t *opt, int sa_int
 	bwt_t *bwt;
 	{
 		if ((bwt = bwa_idx_load_bwt_without_sa(prefix)) == 0) {
-			fprintf(stderr, "Couldn't load idx from %s\n", prefix);
+			fprintf(stderr, "[prophyle_index:%s] Couldn't load idx from %s\n", __func__, prefix);
 			return;
 		}
 	}
@@ -52,18 +51,17 @@ void build_index(const char *prefix, const prophyle_index_opt_t *opt, int sa_int
 		pthread_t tid[2];
 		int status_klcp = pthread_create(&tid[0], NULL, construct_klcp_parallel, (void*)klcp_data);
 		int status_sa = pthread_create(&tid[1], NULL, construct_sa_parallel, (void*)klcp_data);
-		xassert(!status_klcp, "error while creating thread for klcp parallel construction, try construction separate from sa\n");
-		xassert(!status_sa, "error while creating thread for sa parallel construction, try construction separate from klcp\n");
-	  fprintf(stderr, "parallel construction of klcp and sa started\n");
+		xassert(!status_klcp, "[prophyle_index] error while creating thread for klcp parallel construction, try construction separate from sa\n");
+		xassert(!status_sa, "[prophyle_index] error while creating thread for sa parallel construction, try construction separate from klcp\n");
+	  fprintf(stderr, "[prophyle_index] parallel construction of klcp and sa started\n");
 		int status_addr_klcp = pthread_join(tid[0], (void**)&status_addr_klcp);
 		int status_addr_sa = pthread_join(tid[1], (void**)&status_addr_sa);
-		xassert(!status_addr_klcp, "error while klcp parallel construction, try construction separate from sa\n");
-		xassert(!status_addr_sa, "error sa parallel construction, try construction separate from klcp\n");
+		xassert(!status_addr_klcp, "[prophyle_index] error while klcp parallel construction, try construction separate from sa\n");
+		xassert(!status_addr_sa, "[prophyle_index] error sa parallel construction, try construction separate from klcp\n");
 		klcp = klcp_data->klcp;
 	} else {
 		klcp = construct_klcp(bwt, opt->kmer_length);
 	}
-  fprintf(stdout, "klcp constructed\n");
   char* fn = malloc((strlen(prefix) + 10) * sizeof(char));
   strcpy(fn, prefix);
   strcat(fn, ".");
@@ -72,7 +70,7 @@ void build_index(const char *prefix, const prophyle_index_opt_t *opt, int sa_int
   strcat(fn, kmer_length_str);
   strcat(fn, ".klcp");
 	klcp_dump(fn, klcp);
-  fprintf(stdout, "klcp dumped\n");
+  fprintf(stdout, "[prophyle_index:%s] klcp dumped\n", __func__);
 	if (opt->construct_sa_parallel) {
 		bwt_destroy(bwt);
 	} else {

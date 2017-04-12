@@ -159,7 +159,6 @@ void klcp_restore(const char *fn, klcp_t* klcp)
 	klcp->klcp->blocks = (bitarray_block_t*)calloc(klcp->klcp->capacity, sizeof(bitarray_block_t));
 	fread_fix(fp, sizeof(bitarray_block_t) * klcp->klcp->capacity, klcp->klcp->blocks);
 	err_fclose(fp);
-	fprintf(stderr, "klcp was read\n");
   uint64_t i;
   for(i = 0; i <= MAX_BITARRAY_BLOCK_VALUE; ++i) {
     position_of_smallest_zero_bit[i] = find_smallest_zero_index((bitarray_block_t)i);
@@ -179,6 +178,6 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 		klcp->klcp->blocks[i] = 0;
 	}
 	construct_klcp_recursion(bwt, (bwtint_t)0, (bwtint_t)n, 0, kmer_length, klcp);
-	fprintf(stdout, "\n[%s]  time: %.3f sec; CPU: %.3f sec\n", __func__, realtime() - t_real, cputime());
+	fprintf(stdout, "\n[prophyle_index:%s]  time: %.3f sec; CPU: %.3f sec\n", __func__, realtime() - t_real, cputime());
 	return klcp;
 }
