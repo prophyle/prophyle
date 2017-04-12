@@ -1,5 +1,5 @@
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "bitarray.h"
 
 void destroy_bitarray(bitarray_t* array) {
@@ -29,9 +29,4 @@ void delete_from_bitarray(bitarray_t* array, uint64_t value)
 {
 	array->blocks[value / BITS_IN_BLOCK] =
     array->blocks[value / BITS_IN_BLOCK] & ~(1 << (BITS_IN_BLOCK - 1 - value % BITS_IN_BLOCK));
-}
-
-int is_member(bitarray_t* array, uint64_t value)
-{
-	return (array->blocks[value / BITS_IN_BLOCK] & (1 << (BITS_IN_BLOCK - 1 - value % BITS_IN_BLOCK)));
 }
