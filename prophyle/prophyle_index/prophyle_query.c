@@ -469,7 +469,7 @@ void process_sequences(const bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
 	prophyle_worker_destroy(prophyle_worker);
 }
 
-void prophyle_index_query_core(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt) {
+void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt) {
 	extern bwa_seqio_t* bwa_open_reads(int mode, const char* fn_fa);
 	extern bwa_seq_t* bwa_read_seq(bwa_seqio_t* bs, int n_needed, int* n, int mode, int trim_qual);
 
@@ -517,7 +517,6 @@ void prophyle_index_query_core(const char* prefix, const char* fn_fa, const prop
 	int64_t total_seqs = 0;
 	ctime = cputime(); rtime = realtime();
 	int64_t total_kmers_count = 0;
-	fprintf(stderr, "number of threads = %d\n", opt->n_threads);
 	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
 		process_sequences(idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
@@ -543,7 +542,6 @@ void prophyle_index_query_core(const char* prefix, const char* fn_fa, const prop
 	if (opt->need_log) {
 		fclose(log_file);
 	}
-	// destroy
 	if (opt->use_klcp) {
 		destroy_klcp(klcp);
 	} else {

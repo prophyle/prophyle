@@ -36,6 +36,6 @@ typedef struct {
 	char** output;
 } prophyle_worker_t;
 
-void prophyle_index_query_core(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt);
+void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt);
 
 #endif //PROPHYLE_QUERY_H

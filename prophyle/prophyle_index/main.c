@@ -52,7 +52,7 @@ int prophyle_index_query(int argc, char *argv[])
 		free(opt);
 		return 1;
 	}
-	prophyle_index_query_core(prefix, argv[optind+1], opt);
+	query(prefix, argv[optind+1], opt);
 	free(opt); free(prefix);
 	return 0;
 }
@@ -85,7 +85,7 @@ int prophyle_index_build(int argc, char *argv[])
 		fprintf(stderr, "[%s] fail to locate the index %s\n", __func__, argv[optind]);
 		return 1;
 	}
-	prophyle_index_build_core(prefix, opt, sa_intv);
+	build_index(prefix, opt, sa_intv);
 	free(prefix);
 	return 0;
 }
