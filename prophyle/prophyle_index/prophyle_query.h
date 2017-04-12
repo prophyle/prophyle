@@ -1,5 +1,5 @@
-#ifndef BWTEXK_H
-#define BWTEXK_H
+#ifndef PROPHYLE_QUERY_H
+#define PROPHYLE_QUERY_H
 
 #include <stdint.h>
 #include "bwt.h"
@@ -8,13 +8,6 @@
 #include "klcp.h"
 #include "prophyle_utils.h"
 
-struct __bwa_seqio_t;
-typedef struct __bwa_seqio_t bwa_seqio_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
 	uint64_t position;
 	int strand;
@@ -22,19 +15,27 @@ typedef struct {
 	int node;
 } bwt_position_t;
 
-	exk_opt_t *exk_init_opt();
-  bwa_seqio_t *bwa_seq_open(const char *fn);
-  bwa_seqio_t *bwa_bam_open(const char *fn, int which);
-  void bwa_seq_close(bwa_seqio_t *bs);
-  void seq_reverse(int len, ubyte_t *seq, int is_comp);
-  bwa_seq_t *bwa_read_seq(bwa_seqio_t *seq, int n_needed, int *n, int mode, int trim_qual);
+typedef struct {
+	bwt_position_t* positions;
+	char* all_streaks;
+	char* current_streak;
+	int32_t* seen_nodes;
+	int32_t* prev_seen_nodes;
+	int8_t* seen_nodes_marks;
+	int rids_computations;
+	int using_prev_rids;
+} prophyle_query_aux_t;
 
-	void bwa_exk_core(const char *prefix, const char *fn_fa, const exk_opt_t *opt);
+typedef struct {
+	const bwaidx_t* idx;
+	const klcp_t* klcp;
+	const prophyle_index_opt_t* opt;
+	const bwa_seq_t* seqs;
+	prophyle_query_aux_t* aux_data;
+	int32_t seqs_cnt;
+	char** output;
+} prophyle_worker_t;
 
-	void bwa_cal_sa(bwaidx_t* idx, int n_seqs, bwa_seq_t *seqs, const exk_opt_t *opt, klcp_t* klcp);
+void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif //PROPHYLE_QUERY_H

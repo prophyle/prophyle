@@ -1,39 +1,16 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <stdint.h>
 #include <errno.h>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include "bwtaln.h"
-#include "bwtgap.h"
 #include "utils.h"
 #include "bwa.h"
-#include "bwase.h"
 #include "kstring.h"
 #include "prophyle_utils.h"
 #include "khash.h"
 #include "contig_node_translator.h"
 
 KHASH_MAP_INIT_STR(str, int)
-
-bwa_seqio_t *bwa_open_reads_new(int mode, const char *fn_fa)
-{
-	bwa_seqio_t *ks;
-	if (mode & BWA_MODE_BAM) { // open BAM
-		int which = 0;
-		if (mode & BWA_MODE_BAM_SE) which |= 4;
-		if (mode & BWA_MODE_BAM_READ1) which |= 1;
-		if (mode & BWA_MODE_BAM_READ2) which |= 2;
-		if (which == 0) which = 7; // then read all reads
-		ks = bwa_bam_open(fn_fa, which);
-	} else ks = bwa_seq_open(fn_fa);
-	return ks;
-}
 
 void bwa_destroy_unused_fields(bwaidx_t* idx) {
 	int64_t i;
@@ -46,7 +23,7 @@ void bwa_destroy_unused_fields(bwaidx_t* idx) {
 	}
 }
 
-void bns_destroy_without_names_and_annos(bntseq_t* bns) {
+void bns_destroy_without_names_and_anno(bntseq_t* bns) {
 	if (bns == 0) return;
 	else {
 		if (bns->fp_pac) err_fclose(bns->fp_pac);
@@ -56,13 +33,12 @@ void bns_destroy_without_names_and_annos(bntseq_t* bns) {
 	}
 }
 
-void bwa_idx_destroy_without_bns_name_and_anno(bwaidx_t *idx)
+void bwa_idx_destroy_without_bns_name_and_anno(bwaidx_t* idx)
 {
 	if (idx == 0) return;
 	if (idx->mem == 0) {
 		if (idx->bwt) bwt_destroy(idx->bwt);
-		if (idx->bns) bns_destroy_without_names_and_annos(idx->bns);
-		//if (idx->pac) free(idx->pac);
+		if (idx->bns) bns_destroy_without_names_and_anno(idx->bns);
 	} else {
 		free(idx->bwt); free(idx->bns->anns); free(idx->bns);
 		if (!idx->is_shm) free(idx->mem);
@@ -70,12 +46,12 @@ void bwa_idx_destroy_without_bns_name_and_anno(bwaidx_t *idx)
 	free(idx);
 }
 
-bntseq_t *bns_restore_core_partial(const char *ann_filename, const char* amb_filename, const char* pac_filename)
+bntseq_t* bns_restore_core_partial(const char* ann_filename, const char* amb_filename, const char* pac_filename)
 {
 	char str[8192];
-	FILE *fp;
-	const char *fname;
-	bntseq_t *bns;
+	FILE* fp;
+	const char* fname;
+	bntseq_t* bns;
 	long long xx;
 	int i;
 	int scanres;
@@ -87,16 +63,14 @@ bntseq_t *bns_restore_core_partial(const char *ann_filename, const char* amb_fil
 		bns->l_pac = xx;
 		bns->anns = (bntann1_t*)calloc(bns->n_seqs, sizeof(bntann1_t));
 		for (i = 0; i < bns->n_seqs; ++i) {
-			bntann1_t *p = bns->anns + i;
-			char *q = str;
+			bntann1_t* p = bns->anns + i;
+			char* q = str;
 			int c;
 			// read gi and sequence name
 			scanres = fscanf(fp, "%u%s", &p->gi, str);
 			if (scanres != 2) goto badread;
 
 			add_contig(str, i);
-			// fill name
-			//p->name = strdup(str);
 
 			// read fasta comments
 			while (q - str < sizeof(str) - 1 && (c = fgetc(fp)) != '\n' && c != EOF) *q++ = c;
@@ -106,10 +80,6 @@ bntseq_t *bns_restore_core_partial(const char *ann_filename, const char* amb_fil
 				goto badread;
 			}
 			*q = 0;
-
-			// fill anno
-			// if (q - str > 1 && strcmp(str, " (null)") != 0) p->anno = strdup(str + 1); // skip leading space
-			// else p->anno = strdup("");
 
 			// read the rest
 			scanres = fscanf(fp, "%lld%d%d", &xx, &p->len, &p->n_ambs);
@@ -128,7 +98,7 @@ bntseq_t *bns_restore_core_partial(const char *ann_filename, const char* amb_fil
 		xassert(l_pac == bns->l_pac && n_seqs == bns->n_seqs, "inconsistent .ann and .amb files.");
 		bns->ambs = bns->n_holes? (bntamb1_t*)calloc(bns->n_holes, sizeof(bntamb1_t)) : 0;
 		for (i = 0; i < bns->n_holes; ++i) {
-			bntamb1_t *p = bns->ambs + i;
+			bntamb1_t* p = bns->ambs + i;
 			scanres = fscanf(fp, "%lld%d%s", &xx, &p->len, str);
 			if (scanres != 3) goto badread;
 			p->offset = xx;
@@ -141,27 +111,27 @@ bntseq_t *bns_restore_core_partial(const char *ann_filename, const char* amb_fil
 	}
 	return bns;
 
- badread:
+badread:
 	if (EOF == scanres) {
 		err_fatal(__func__, "Error reading %s : %s\n", fname, ferror(fp) ? strerror(errno) : "Unexpected end of file");
 	}
 	err_fatal(__func__, "Parse error reading %s\n", fname);
 }
 
-bntseq_t *bns_restore_partial(const char *prefix)
+bntseq_t* bns_restore_partial(const char* prefix)
 {
 	char ann_filename[1024], amb_filename[1024], pac_filename[1024], alt_filename[1024];
-	FILE *fp;
-	bntseq_t *bns;
+	FILE* fp;
+	bntseq_t* bns;
 	strcat(strcpy(ann_filename, prefix), ".ann");
 	strcat(strcpy(amb_filename, prefix), ".amb");
 	strcat(strcpy(pac_filename, prefix), ".pac");
 	bns = bns_restore_core_partial(ann_filename, amb_filename, pac_filename);
 	if (bns == 0) return 0;
 	if ((fp = fopen(strcat(strcpy(alt_filename, prefix), ".alt"), "r")) != 0) { // read .alt file if present
-		fprintf(stderr, "[%s]: .alt file is present, something may work wrong!\n", __func__);
+		fprintf(stderr, "[prophyle_index:%s] .alt file is present, something may work wrong!\n", __func__);
 		char str[1024];
-		khash_t(str) *h;
+		khash_t(str)* h;
 		int c, i, absent;
 		khint_t k;
 		h = kh_init(str);
@@ -188,24 +158,25 @@ bntseq_t *bns_restore_partial(const char *prefix)
 	return bns;
 }
 
-bwt_t *bwa_idx_load_bwt_with_time(const char *hint, int need_log, FILE* log_file)
+bwt_t* bwa_idx_load_bwt_with_time(const char* hint, int need_log, FILE* log_file)
 {
-	char *tmp, *prefix;
-	bwt_t *bwt;
+	char* tmp;
+	char* prefix;
+	bwt_t* bwt;
 	prefix = bwa_idx_infer_prefix(hint);
 	if (prefix == 0) {
-		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		if (bwa_verbose >= 1) fprintf(stderr, "[prophyle_index:%s] fail to locate the index files\n", __func__);
 		return 0;
 	}
 	clock_t t = clock();
 	tmp = calloc(strlen(prefix) + 5, 1);
-	strcat(strcpy(tmp, prefix), ".bwt"); // FM-index
+	strcat(strcpy(tmp, prefix), ".bwt");
 	bwt = bwt_restore_bwt(tmp);
 	if (need_log) {
 		fprintf(log_file, "bwt_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
 	}
 	t = clock();
-	strcat(strcpy(tmp, prefix), ".sa");  // partial suffix array (SA)
+	strcat(strcpy(tmp, prefix), ".sa");
 	bwt_restore_sa(tmp, bwt);
 	if (need_log) {
 		fprintf(log_file, "sa_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
@@ -214,14 +185,13 @@ bwt_t *bwa_idx_load_bwt_with_time(const char *hint, int need_log, FILE* log_file
 	return bwt;
 }
 
-bwaidx_t *bwa_idx_load_partial(const char *hint, int which, int need_log, FILE* log_file)
+bwaidx_t* bwa_idx_load_partial(const char* hint, int which, int need_log, FILE* log_file)
 {
-	fprintf(stderr, "Own bwa idx loading..\n");
-	bwaidx_t *idx;
-	char *prefix;
+	bwaidx_t* idx;
+	char* prefix;
 	prefix = bwa_idx_infer_prefix(hint);
 	if (prefix == 0) {
-		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		if (bwa_verbose >= 1) fprintf(stderr, "[prophyle_index::%s] fail to locate the index files\n", __func__);
 		return 0;
 	}
 	idx = calloc(1, sizeof(bwaidx_t));
@@ -235,77 +205,29 @@ bwaidx_t *bwa_idx_load_partial(const char *hint, int which, int need_log, FILE* 
 		if (need_log) {
 			fprintf(log_file, "bns_loading\t%.2fs\n", (float)(clock() - t) / CLOCKS_PER_SEC);
 		}
-		//if (bwa_verbose >= 3)
-			//fprintf(stderr, "[M::%s] read %d ALT contigs\n", __func__, c);
-
-		// if (which & BWA_IDX_PAC) {
-		// 	idx->pac = calloc(idx->bns->l_pac/4+1, 1);
-		// 	err_fread_noeof(idx->pac, 1, idx->bns->l_pac/4+1, idx->bns->fp_pac); // concatenated 2-bit encoded sequence
-		// 	err_fclose(idx->bns->fp_pac);
-		// 	idx->bns->fp_pac = 0;
-		// }
 	}
 	free(prefix);
 	return idx;
 }
 
-void bwt_restore_sa_partial(const char *fn, bwt_t *bwt)
+bwt_t* bwa_idx_load_bwt_without_sa(const char* hint)
 {
-	char skipped[256];
-	FILE *fp;
-	bwtint_t primary;
-
-	fp = xopen(fn, "rb");
-	err_fread_noeof(&primary, sizeof(bwtint_t), 1, fp);
-	xassert(primary == bwt->primary, "SA-BWT inconsistency: primary is not the same.");
-	err_fread_noeof(skipped, sizeof(bwtint_t), 4, fp); // skip
-	err_fread_noeof(&bwt->sa_intv, sizeof(bwtint_t), 1, fp);
-	err_fread_noeof(&primary, sizeof(bwtint_t), 1, fp);
-	xassert(primary == bwt->seq_len, "SA-BWT inconsistency: seq_len is not the same.");
-
-	bwt->n_sa = (bwt->seq_len + bwt->sa_intv) / bwt->sa_intv;
-	// bwt->sa = (bwtint_t*)calloc(bwt->n_sa, sizeof(bwtint_t));
-	// bwt->sa[0] = -1;
-	//
-	// fread_fix(fp, sizeof(bwtint_t) * (bwt->n_sa - 1), bwt->sa + 1);
-	err_fclose(fp);
-}
-
-bwt_t *bwa_idx_load_bwt_sa_partial(const char *hint)
-{
-	char *tmp, *prefix;
-	bwt_t *bwt;
+	char* tmp;
+	char* prefix;
+	bwt_t* bwt;
 	prefix = bwa_idx_infer_prefix(hint);
 	if (prefix == 0) {
-		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
+		if (bwa_verbose >= 1) fprintf(stderr, "[prophyle_index::%s] fail to locate the index files\n", __func__);
 		return 0;
 	}
 	tmp = calloc(strlen(prefix) + 5, 1);
-	strcat(strcpy(tmp, prefix), ".bwt"); // FM-index
-	bwt = bwt_restore_bwt(tmp);
-	strcat(strcpy(tmp, prefix), ".sa");  // partial suffix array (SA)
-	bwt_restore_sa_partial(tmp, bwt);
-	free(tmp); free(prefix);
-	return bwt;
-}
-
-bwt_t *bwa_idx_load_bwt_without_sa(const char *hint)
-{
-	char *tmp, *prefix;
-	bwt_t *bwt;
-	prefix = bwa_idx_infer_prefix(hint);
-	if (prefix == 0) {
-		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to locate the index files\n", __func__);
-		return 0;
-	}
-	tmp = calloc(strlen(prefix) + 5, 1);
-	strcat(strcpy(tmp, prefix), ".bwt"); // FM-index
+	strcat(strcpy(tmp, prefix), ".bwt");
 	bwt = bwt_restore_bwt(tmp);
 	free(tmp); free(prefix);
 	return bwt;
 }
 
-void bwt_destroy_without_sa(bwt_t *bwt)
+void bwt_destroy_without_sa(bwt_t* bwt)
 {
 	if (bwt == 0) return;
 	free(bwt->bwt);

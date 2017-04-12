@@ -15,21 +15,23 @@ static int contigs_count = 0;
 
 int get_node_from_contig(int contig) {
   if (contig < 0 || contig >= contigs_count) {
-    fprintf(stderr, "contig %d is outside of range [%d, %d]\n", contig, 0, contigs_count - 1);
+    fprintf(stderr, "[prophyle_index:%s] contig %d is outside of range [%d, %d]\n",
+      __func__, contig, 0, contigs_count - 1);
   }
   return contig_to_node[contig];
 }
 
-char* get_node_name(const int node) {
+char* get_node_name(int node) {
   return node_names[node];
 }
 
-int get_node_name_length(const int node) {
+int get_node_name_length(int node) {
   return node_name_lengths[node];
 }
 
 void add_contig(char* contig, int contig_number) {
-  xassert(contigs_count < MAX_CONTIGS_COUNT, "there are more than MAX_CONTIGS_COUNT contigs, try to increase MAX_CONTIGS_COUNT in contig_node_translator.c\n");
+  xassert(contigs_count < MAX_CONTIGS_COUNT,
+    "[prophyle_index] there are more than MAX_CONTIGS_COUNT contigs, try to increase MAX_CONTIGS_COUNT in contig_node_translator.c\n");
   contigs_count++;
   const char* ch = strchr(contig, '@');
   int index = 0;
@@ -43,7 +45,8 @@ void add_contig(char* contig, int contig_number) {
     char* node_name = malloc((index + 1) * sizeof(char));
     memcpy(node_name, contig, index);
     node_name[index] = '\0';
-    xassert(nodes_count < MAX_NODES_COUNT, "there are more than MAX_NODES_COUNT nodes, try to increase MAX_NODES_COUNT in contig_node_translator.c\n");
+    xassert(nodes_count < MAX_NODES_COUNT,
+      "[prophyle_index] there are more than MAX_NODES_COUNT nodes, try to increase MAX_NODES_COUNT in contig_node_translator.c\n");
     node_names[nodes_count] = node_name;
     node_name_lengths[nodes_count] = strlen(node_name);
     contig_to_node[contig_number] = nodes_count;
@@ -51,5 +54,4 @@ void add_contig(char* contig, int contig_number) {
   } else {
     contig_to_node[contig_number] = nodes_count - 1;
   }
-  //fprintf(stderr, "contig = %d, nodes_count = %d\n", contig_number, nodes_count);
 }
