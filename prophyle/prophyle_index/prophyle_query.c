@@ -471,7 +471,6 @@ void process_sequences(const bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
 
 void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt) {
 	extern bwa_seqio_t* bwa_open_reads(int mode, const char* fn_fa);
-	extern bwa_seq_t* bwa_read_seq(bwa_seqio_t* bs, int n_needed, int* n, int mode, int trim_qual);
 
 	int n_seqs;
 	bwa_seq_t* seqs;
