@@ -15,6 +15,27 @@ typedef struct {
 	int node;
 } bwt_position_t;
 
+typedef struct {
+	bwt_position_t* positions;
+	char* all_streaks;
+	char* current_streak;
+	int32_t* seen_nodes;
+	int32_t* prev_seen_nodes;
+	int8_t* seen_nodes_marks;
+	int rids_computations;
+	int using_prev_rids;
+} prophyle_query_aux_t;
+
+typedef struct {
+	const bwaidx_t* idx;
+	const klcp_t* klcp;
+	const prophyle_index_opt_t* opt;
+	const bwa_seq_t* seqs;
+	prophyle_query_aux_t* aux_data;
+	int32_t seqs_cnt;
+	char** output;
+} prophyle_worker_t;
+
 void prophyle_index_query_core(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt);
 
 #endif //PROPHYLE_QUERY_H
