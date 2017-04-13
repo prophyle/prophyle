@@ -52,7 +52,7 @@ setup(
 
 	packages = ["prophyle"],
 
-	install_requires=['ete3', 'numpy', 'wheel', 'six', 'scipy', 'bitarray'],
+	install_requires=['ete3', 'wheel', 'bitarray'],
 
 	package_data={
 		'prophyle': [
