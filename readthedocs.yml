@@ -1,0 +1,4 @@
+name: read-the-docs
+type: sphinx
+python:
+  version: 3.6
