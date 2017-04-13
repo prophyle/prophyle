@@ -6,8 +6,8 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 	:target: https://travis-ci.org/karel-brinda/prophyle
 
 ProPhyle is a metagenomic classifier based on BWT-index and phylogenetic trees.
-The indexing strategy is based on the bottom-up propagation of k-mers in the tree,
-assembling contigs at each node and matching using a standard full-text search.
+Its indexing strategy uses a bottom-up propagation of k-mers in the tree,
+assembling contigs at each node, and matching using a standard full-text search.
 The analysis of shared k-mers between NGS reads and the genomes in the index determines
 which nodes are the best candidates for their classification.
 
@@ -64,15 +64,21 @@ Environment activation::
 Examples
 ^^^^^^^^
 
-Quick example (small k, subsampled bacterial database)::
+Quick test (small k, subsampled bacterial database)::
 
 	prophyle download bacteria
 	prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
 	prophyle classify test_idx reads.fq > result.sam
 
-
-Quick example (k=31, full bacterial database)::
+Bacterial database (k=31)::
 
 	prophyle download bacteria
-	prophyle index -k 31 ~/prophyle/bacteria.nw test_idx
-	prophyle classify test_idx reads.fq > result.sam
+	prophyle index -k 31 ~/prophyle/bacteria.nw idx_bac
+	prophyle classify idx_bac reads.fq > result.sam
+
+Bacterial and viral database (k=31)::
+
+	prophyle download bacteria
+	prophyle download viruses
+	prophyle index -k 31 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw idx_bac_vir
+	prophyle classify idx_bac_vir reads.fq > result.sam
