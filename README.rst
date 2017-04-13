@@ -45,16 +45,12 @@ From PyPI to the current directory::
 	export PATH=$PATH:`pwd`/bin
 
 
-Installation using Conda
-^^^^^^^^^^^^^^^^^^^^^^^^
+Installation using Bioconda
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Environment installation::
 
-	conda create -y --name prophyle -c etetoolkit -c bioconda \
-		python==3.6 ete3 bitarray samtools=1.3.1
-	source activate prophyle
-	pip install --upgrade prophyle
-
+	conda create-c bioconda -n prophyle prophyle
 
 Environment activation::
 
