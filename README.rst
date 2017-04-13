@@ -50,7 +50,7 @@ Installation using Bioconda
 
 Environment installation::
 
-	conda create-c bioconda -n prophyle prophyle
+	conda create -c bioconda -n prophyle prophyle
 
 Environment activation::
 
