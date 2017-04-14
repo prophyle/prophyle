@@ -45,25 +45,25 @@ import time
 
 from . import version
 
-c_d=os.path.dirname(os.path.realpath(__file__))
-tree_d=os.path.join(c_d,"trees")
+C_D=os.path.dirname(os.path.realpath(__file__))
+TREE_D=os.path.join(C_D,"trees")
 
 #bin_dir=os.path.dirname(__file__)
-bwa=os.path.join(c_d,"prophyle_index","bwa","bwa")
-ind=os.path.join(c_d,"prophyle_index","prophyle_index")
-asm=os.path.join(c_d,"prophyle_assembler","prophyle_assembler")
+BWA=os.path.join(C_D,"prophyle_index","BWA","bwa")
+IND=os.path.join(C_D,"prophyle_index","prophyle_index")
+ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
 ## todo: decide about the paths for programs (execution from repo vs from package):
-#    newick2makefile=os.path.join(c_d,"newick2makefile.py")
+#    NEWICK2MAKEFILE=os.path.join(C_D,"newick2makefile.py")
 #     vs.
-#    newick2makefile="prophyle_propagation_makefile.py"
+#    NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
 
 
-newick2makefile="prophyle_propagation_makefile.py"
-test_tree="prophyle_test_tree.py"
-merge_fastas="prophyle_merge_fa.py"
-merge_trees="prophyle_merge_trees.py"
-assign="prophyle_assignment.py"
+NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
+TEST_TREE="prophyle_test_tree.py"
+MERGE_FASTAS="prophyle_merge_fa.py"
+MERGE_TREES="prophyle_merge_trees.py"
+ASSIGN="prophyle_assignment.py"
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -150,7 +150,7 @@ def _test_tree(fn):
 		fn (str): Newick/NHX tree.
 	"""
 	_test_files(fn)
-	cmd=[test_tree, '-n', fn]
+	cmd=[TEST_TREE, '-n', fn]
 
 
 def _file_sizes(*fns):
@@ -279,7 +279,7 @@ def _makedirs(*ds):
 def _compile_prophyle_bin():
 	"""Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
 	"""
-	command=["make","-C",c_d]
+	command=["make","-C",C_D]
 	_run_safe(command, output_fo=sys.stderr)
 
 
@@ -429,7 +429,7 @@ def prophyle_download(library, library_dir):
 	if lib_missing:
 		for test_prefix in ["","test_"]:
 			fn="{}{}.nw".format(test_prefix,library,)
-			nhx=os.path.join(tree_d,fn)
+			nhx=os.path.join(TREE_D,fn)
 			new_nhx=os.path.join(d,"..",fn)
 			_test_files(nhx)
 			_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
@@ -492,8 +492,8 @@ def _create_makefile(index_dir, k, library_dir):
 	makefile=os.path.join(propagation_dir,'Makefile')
 	tree_fn=os.path.join(index_dir,'tree.nw')
 	_test_tree(tree_fn)
-	#_test_files(newick2makefile, tree_fn)
-	command=[newick2makefile, '-n', tree_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
+	#_test_files(NEWICK2MAKEFILE, tree_fn)
+	command=[NEWICK2MAKEFILE, '-n', tree_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
 		f.write("K={}\n".format(k))
@@ -510,7 +510,7 @@ def _propagate(index_dir,threads):
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
-	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(asm)]
+	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(ASM)]
 	_run_safe(command)
 
 
@@ -525,7 +525,7 @@ def _merge_trees(in_trees, out_tree, no_prefixes):
 
 	_message('Generating index tree')
 	_test_files(*in_trees)
-	command=[merge_trees] + in_trees + [out_tree]
+	command=[MERGE_TREES] + in_trees + [out_tree]
 	if no_prefixes:
 		command += ['-P']
 	_run_safe(command)
@@ -544,8 +544,8 @@ def _merge_fastas(index_dir):
 	_message('Generating index.fa')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	index_fa=os.path.join(index_dir,"index.fa")
-	#_test_files(merge_fastas)
-	command=[merge_fastas, propagation_dir]
+	#_test_files(MERGE_FASTAS)
+	command=[MERGE_FASTAS, propagation_dir]
 	_run_safe(command, index_fa)
 	_touch(index_fa+".complete")
 
@@ -558,8 +558,8 @@ def _fa2pac(fa_fn):
 	"""
 
 	_message('Generating packed FASTA file')
-	_test_files(bwa, fa_fn)
-	command=[bwa, 'fa2pac', fa_fn, fa_fn]
+	_test_files(BWA, fa_fn)
+	command=[BWA, 'fa2pac', fa_fn, fa_fn]
 	_run_safe(command)
 
 
@@ -571,8 +571,8 @@ def _pac2bwt(fa_fn):
 	"""
 
 	_message('Generating BWT')
-	_test_files(bwa, fa_fn+".pac")
-	command=[bwa, 'pac2bwtgen', fa_fn+".pac", fa_fn+".bwt"]
+	_test_files(BWA, fa_fn+".pac")
+	command=[BWA, 'pac2bwtgen', fa_fn+".pac", fa_fn+".bwt"]
 	_run_safe(command)
 
 
@@ -584,8 +584,8 @@ def _bwt2bwtocc(fa_fn):
 	"""
 
 	_message('Generating sampled OCC array')
-	_test_files(bwa, fa_fn+".bwt")
-	command=[bwa, 'bwtupdate', fa_fn+".bwt"]
+	_test_files(BWA, fa_fn+".bwt")
+	command=[BWA, 'bwtupdate', fa_fn+".bwt"]
 	_run_safe(command)
 
 
@@ -597,8 +597,8 @@ def _bwtocc2sa(fa_fn):
 	"""
 
 	_message('Generating sampled SA')
-	_test_files(bwa, fa_fn+".bwt")
-	command=[bwa, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
+	_test_files(BWA, fa_fn+".bwt")
+	command=[BWA, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
 	_run_safe(command)
 
 
@@ -611,8 +611,8 @@ def _bwtocc2klcp(fa_fn,k):
 	"""
 
 	_message('Generating k-LCP array')
-	_test_files(ind, fa_fn+".bwt")
-	command=[ind, 'build', '-k', k, fa_fn]
+	_test_files(IND, fa_fn+".bwt")
+	command=[IND, 'build', '-k', k, fa_fn]
 	_run_safe(command)
 
 
@@ -625,8 +625,8 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	"""
 
 	_message('Generating k-LCP array and SA in parallel')
-	_test_files(ind, fa_fn+".bwt")
-	command=[ind, 'build', '-s', '-k', k, fa_fn]
+	_test_files(IND, fa_fn+".bwt")
+	command=[IND, 'build', '-s', '-k', k, fa_fn]
 	_run_safe(command)
 
 
@@ -808,12 +808,12 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		_message("Automatic detection of k-mer length: k={}".format(k))
 
 	_test_tree(index_tree)
-	#_test_files(fq_fn,index_fa,ind,assign)
+	#_test_files(fq_fn,index_fa,IND,ASSIGN)
 
 	if fq_fn!="-":
 		_test_files(fq_fn)
 
-	_test_files(index_fa,ind)
+	_test_files(index_fa,IND)
 
 	_test_files(
 			index_fa+'.bwt',
@@ -834,15 +834,15 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		assert abs(bwt_s - 4*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
 
 	if mimic_kraken:
-		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_tree, '-m', 'h1', '-f', 'kraken', '-l', '-t']
+		cmd_assign=[ASSIGN, '-i', '-', '-k', k, '-n', index_tree, '-m', 'h1', '-f', 'kraken', '-l', '-t']
 	else:
-		cmd_assign=[assign, '-i', '-', '-k', k, '-n', index_tree, '-m', measure, '-f', out_format]
+		cmd_assign=[ASSIGN, '-i', '-', '-k', k, '-n', index_tree, '-m', measure, '-f', out_format]
 		if annotate:
 			cmd_assign+=['--annotate']
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-	cmd_query=[ind, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, fq_fn]
+	cmd_query=[IND, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, fq_fn]
 
 
 	#(['|', '|'] if mimic_kraken else ['|']) \
