@@ -76,7 +76,7 @@ LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
 
-LOG_FILE=None
+log_file=None
 
 
 def _message(*msg, upper=False):
@@ -87,7 +87,7 @@ def _message(*msg, upper=False):
 		upper (bool): Transform text to upper cases.
 	"""
 
-	global LOG_FILE
+	global log_file
 
 	dt=datetime.datetime.now()
 	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -99,10 +99,10 @@ def _message(*msg, upper=False):
 	log_line='[prophyle] {} {}'.format(fdt, " ".join(msg))
 
 	print(log_line, file=sys.stderr)
-	if LOG_FILE is not None:
-		LOG_FILE.write(log_line)
-		LOG_FILE.write("\n")
-		LOG_FILE.flush()
+	if log_file is not None:
+		log_file.write(log_line)
+		log_file.write("\n")
+		log_file.flush()
 
 
 def _open_log(fn):
@@ -112,18 +112,18 @@ def _open_log(fn):
 		fn (str): File name.
 	"""
 
-	global LOG_FILE
+	global log_file
 	if fn is not None:
-		LOG_FILE=open(fn,"a+")
+		log_file=open(fn,"a+")
 
 
 def _close_log():
 	"""Close a log file.
 	"""
 
-	global LOG_FILE
-	if LOG_FILE is not None:
-		LOG_FILE.close()
+	global log_file
+	if log_file is not None:
+		log_file.close()
 
 
 def _test_files(*fns,test_nonzero=False):
