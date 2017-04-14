@@ -261,19 +261,43 @@ def _makedirs(*ds):
 
 
 def _compile_prophyle_bin():
-	"""Compile ProPhyle binaries if they don't exist yet.
+	"""Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
 	"""
-	files_to_check=[
+	binaries=[
 			os.path.join(c_d,'prophyle_assembler','prophyle_assembler'),
 			os.path.join(c_d,'prophyle_index','prophyle_index'),
 			os.path.join(c_d,'prophyle_index','bwa','bwa'),
 		]
-	for x in files_to_check:
+
+	missing=False
+	outdated=False
+
+	binaries_oldest_timestamp=0
+
+	for x in binaries:
 		if not os.path.isfile(x):
-			_message("Binaries are missing, going to compile them")
-			command=["make","-C",c_d]
-			_run_safe(command, output_fo=sys.stderr)
-			return
+			missing=True
+
+	if not missing:
+		sources=[]
+		sources+=glob.glob(os.path.join(c_d,"**","*.c"),recursive=True)
+		sources+=glob.glob(os.path.join(c_d,"**","*.h"),recursive=True)
+		sources+=glob.glob(os.path.join(c_d,"**","*.cpp"),recursive=True)
+		sources+=glob.glob(os.path.join(c_d,"**","Makefile"),recursive=True)
+
+		sources_newest_timestamp=max([os.path.getmtime(x) for x in sources])
+		binaries_oldest_timestamp=min([os.path.getmtime(x) for x in binaries])
+
+		print(sources, binaries_oldest_timestamp, sources_newest_timestamp)
+		print(binaries)
+
+		if sources_newest_timestamp>binaries_oldest_timestamp:
+			outdated=True
+
+	if missing or outdated:
+		_message("Binaries are {}, going to compile them".format("missing" if missing else "outdated"))
+		command=["make","-C",c_d]
+		_run_safe(command, output_fo=sys.stderr)
 
 
 def _existing_and_newer(fn0, fn):
