@@ -40,6 +40,8 @@ import sys
 import textwrap
 import glob
 import re
+import psutil
+import time
 
 from . import version
 
@@ -183,20 +185,31 @@ def _run_safe(command, output_fn=None, output_fo=None):
 	else:
 		out_fo=open(output_fn,"w+")
 
-	error_code=subprocess.call("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+	p=subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+	ps_p = psutil.Process(p.pid)
+
+	max_rss = 0
+	error_code=None
+	while error_code is None:
+		try:
+			max_rss=max(max_rss, ps_p.memory_info().rss)
+		except psutil.ZombieProcess:
+			pass
+		# wait 0.02 s
+		time.sleep(0.02)
+		error_code=p.poll()
 
 	out_fo.flush()
+
+	mem_mb=round(max_rss/(1024*1024.0), 1)
 
 	if output_fn is not None:
 		out_fo.close()
 
-	if error_code==0:
-		_message("Finished:", command_str)
-	elif error_code==141:
-		pass
-		#print("Exited before finishing:", command_str, file=sys.stderr)
+	if error_code==0 or error_code==141:
+		_message("Finished ({} MB used): {}".format(mem_mb, command_str))
 	else:
-		_message("Unfinished, an error occurred (error code {}):".format(error_code), command_str)
+		_message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
 		raise RuntimeError("Command error.")
 
 
