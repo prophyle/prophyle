@@ -84,6 +84,7 @@ def _message(*msg, upper=False):
 
 	Args:
 		*msg: Message.
+		upper (bool): Transform text to upper cases.
 	"""
 
 	global LOG_FILE
@@ -168,6 +169,7 @@ def _run_safe(command, output_fn=None, output_fo=None):
 	"""Get file sizes in Bytes.
 
 	Args:
+		command (list of str): Command to execute.
 		output_fn (str): Name of a file for storing the output.
 		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
 
@@ -240,10 +242,24 @@ def _rm(*fns):
 			pass
 
 def _cp_to_file(fn0, fn):
+	"""Copy file to file.
+
+	Args:
+		fn0 (str): Source file.
+		fn (str): Target file.
+	"""
+
 	# keep rewriting attributes
 	shutil.copyfile(fn0, fn)
 
 def _cp_to_dir(fn0, d):
+	"""Copy file to dir.
+
+	Args:
+		fn0 (str): Source file.
+		d (str): Target dir.
+	"""
+
 	# keep rewriting attributes
 	shutil.copy(fn0, d)
 
@@ -338,12 +354,10 @@ def _is_complete(d, i=1, name=None):
 
 
 def _missing_library(d):
-	"""Check if a mark file i exists AND is newer than the mark file (i-1). Create the library dir.
+	"""Check if library has been already downloaded.
 
 	Args:
 		d (str): Directory.
-		i (int): Number of the step.
-		name (str): Name of the mark.
 	"""
 
 	l=os.path.dirname(d)
@@ -506,6 +520,7 @@ def _merge_trees(in_trees, out_tree, no_prefixes):
 	Args:
 		in_trees (list of str): Input NHX trees.
 		out_tree (str): Output NHX tree.
+		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 	"""
 
 	_message('Generating index tree')
