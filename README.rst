@@ -6,7 +6,7 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 	:target: https://travis-ci.org/karel-brinda/prophyle
 
 .. image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square
-	:target: http://bioconda.github.io/recipes/prophyle/README.html
+	:target: https://anaconda.org/bioconda/prophyle
 
 .. image:: https://badge.fury.io/py/prophyle.svg
     :target: https://badge.fury.io/py/prophyle
