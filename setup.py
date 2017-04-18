@@ -1,7 +1,6 @@
 import setuptools
 
 import os
-import subprocess
 import sys
 
 if sys.version_info < (3,2):
