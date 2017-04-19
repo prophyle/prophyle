@@ -1,11 +1,6 @@
-from setuptools import setup
-from setuptools import Extension
-from setuptools import find_packages
-
-from distutils.command.build_ext import build_ext as _build_ext
+import setuptools
 
 import os
-import subprocess
 import sys
 
 if sys.version_info < (3,2):
@@ -21,11 +16,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 # Get the current version
 exec(open("prophyle/version.py").read())
 
-class build_ext(_build_ext):
-	def run(self):
-		_build_ext.run(self)
-
-setup(
+setuptools.setup(
 	name='prophyle',
 
 	version=VERSION,
@@ -52,7 +43,7 @@ setup(
 
 	packages = ["prophyle"],
 
-	install_requires=['ete3', 'wheel', 'bitarray'],
+	install_requires=['ete3', 'wheel', 'bitarray', 'psutil'],
 
 	package_data={
 		'prophyle': [
