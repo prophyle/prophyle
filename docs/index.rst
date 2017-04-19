@@ -1,3 +1,4 @@
+
 ProPhyle manual
 ===============
 
@@ -27,6 +28,13 @@ Table of contents
 .. :ref:`other_information`
  	FAQs and supplementary information about ProPhyle.
 
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+	:caption: ProPhyle Manual
+	:maxdepth: 4
+	:hidden:
+	:name: mastertoc
+
+	introduction
+	tutorials/index
+	reference
