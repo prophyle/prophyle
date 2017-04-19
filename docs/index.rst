@@ -37,4 +37,4 @@ Table of contents
 
 	introduction
 	tutorials/index
-	reference
+	reference/index
