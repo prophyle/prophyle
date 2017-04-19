@@ -1,20 +1,25 @@
-$ prophyle-assembler -h
+$ prophyle_assembler -h
 
-Program:  prophyle-assembler (greedy assembler for ProPhyle)
+
+Program:  prophyle_assembler (greedy assembler for ProPhyle)
 Contact:  Karel Brinda <karel.brinda@gmail.com>
 
-Usage:    prophyle-assembler [options]
+Usage:    prophyle_assembler [options]
 
-Examples: prophyle-assembler -i f1.fa -i f2.fa -x fx.fa
+Examples: prophyle_assembler -k 15 -i f1.fa -i f2.fa -x fx.fa
              - compute intersection of f1 and f2
-          prophyle-assembler -i f1.fa -i f2.fa -x fx.fa -o g1.fa -o g2.fa
+          prophyle_assembler -k 15 -i f1.fa -i f2.fa -x fx.fa -o g1.fa -o g2.fa
              - compute intersection of f1 and f2, and subtract it from them
-          prophyle-assembler -i f1.fa -o g1.fa
+          prophyle_assembler -k 15 -i f1.fa -o g1.fa
              - re-assemble f1 to g1
 
 Command-line parameters:
+ -k INT   K-mer size.
  -i FILE  Input FASTA file (can be used multiple times).
  -o FILE  Output FASTA file (if used, must be used as many times as -i).
  -x FILE  Compute intersection, subtract it, save it.
  -s FILE  Output file with k-mer statistics.
- -k INT   K-mer size. [31]
+ -S       Silent mode.
+
+Note that '-' can be used for standard input/output. 
+
