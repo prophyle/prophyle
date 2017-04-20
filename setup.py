@@ -70,6 +70,7 @@ setuptools.setup(
 				'prophyle_test_tree.py = prophyle.prophyle_test_tree:main',
 				'prophyle_assignment.py = prophyle.prophyle_assignment:main',
 				'prophyle_merge_trees.py = prophyle.prophyle_merge_trees:main',
+				'prophyle_ncbi_tree.py = prophyle.prophyle_ncbi_tree:main',
 			]
 	},
 )
