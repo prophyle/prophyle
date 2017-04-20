@@ -59,7 +59,7 @@ def enrich_tree(
 
 		nname=node.name
 
-		# todo: nodes with name="" should not exist
+		# TODO: nodes with name="" should not exist
 
 		assert nname != "", "There is a node without any name ('')"
 
