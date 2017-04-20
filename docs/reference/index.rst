@@ -10,22 +10,22 @@ Main program
 
 ``prophyle`` (list of subcommands)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/main.txt
+	.. include:: main.txt
 		:code: text
 
 ``prophyle download``
 ^^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/download.txt
+	.. include:: download.txt
 		:code: text
 
 ``prophyle index``
 ^^^^^^^^^^^^^^^^^^
-	.. include:: reference/index.txt
+	.. include:: index.txt
 		:code: text
 
 ``prophyle classify``
 ^^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/classify.txt
+	.. include:: classify.txt
 		:code: text
 
 Other programs
@@ -33,25 +33,25 @@ Other programs
 
 ``prophyle-assembler``
 ^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/prophyle_assembler.txt
+	.. include:: prophyle_assembler.txt
 		:code: text
 
 ``prophyle_index`` (list of subcommands)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/prophyle_index.txt
+	.. include:: prophyle_index.txt
 		:code: text
 
 ``prophyle_index build``
 ^^^^^^^^^^^^^^^^^^^^^^^^
-.. include:: reference/prophyle_index_build.txt
+.. include:: prophyle_index_build.txt
 	:code: text
 
 ``prophyle_index query``
 ^^^^^^^^^^^^^^^^^^^^^^^^
-.. include:: reference/prophyle_index_query.txt
+.. include:: prophyle_index_query.txt
 	:code: text
 
 ``prophyle-assignment``
 ^^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/prophyle_assignment.txt
+	.. include:: prophyle_assignment.txt
 		:code: text

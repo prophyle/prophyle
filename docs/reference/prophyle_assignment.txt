@@ -1,7 +1,7 @@
-$ prophyle-assignment -h
+$ prophyle_assignment.py -h
 
-usage: assignment.py [-h] -i INPUT_FILE -k K -n str [-f {kraken,sam}]
-                     [-m {h1,c1}] [-l] [-a] [-t] [-d]
+usage: prophyle_assignment.py [-h] -i INPUT_FILE -k K -n str [-f {kraken,sam}]
+                              [-m {h1,c1}] [-l] [-a] [-t] [-d]
 
 Implementation of assignment algorithm
 
