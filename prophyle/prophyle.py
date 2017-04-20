@@ -20,7 +20,7 @@ Example:
 
 		$ prophyle classify test_idx reads.fq > result.sam
 	
-Todo:
+TODO:
 	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
@@ -53,7 +53,7 @@ BWA=os.path.join(C_D,"prophyle_index","BWA","bwa")
 IND=os.path.join(C_D,"prophyle_index","prophyle_index")
 ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
-## todo: decide about the paths for programs (execution from repo vs from package):
+## TODO: decide about the paths for programs (execution from repo vs from package):
 #    NEWICK2MAKEFILE=os.path.join(C_D,"newick2makefile.py")
 #     vs.
 #    NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
@@ -402,7 +402,7 @@ def prophyle_download(library, library_dir):
 		library (str): Library to download (bacteria / viruses / ...)
 		library_dir (str): Directory where download files will be downloaded.
 
-	Todo:
+	TODO:
 		* Add support for alternative URLs (http / ftp, backup refseq sites, etc.).
 			* http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
 			* ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
@@ -482,7 +482,7 @@ def _create_makefile(index_dir, k, library_dir):
 		k (int): K-mer size.
 		library_dir (library_dir): Library directory.
 
-	Todo:
+	TODO:
 		* Add checking of params.mk
 	"""
 	_message('Creating Makefile for k-mer propagation')
@@ -537,7 +537,7 @@ def _merge_fastas(index_dir):
 	Args:
 		index_dir (str): Index directory.
 
-	Todo:
+	TODO:
 		* check files for all nodes exist and are of size > 0
 	"""
 
@@ -643,7 +643,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		force (bool): Rewrite files if they already exist.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 
-	Todo:
+	TODO:
 		* klcp in parallel with SA
 		* copy Newick only if it is newer
 		* add update the tree with number of k-mers
@@ -693,7 +693,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		recompute=True
 
 	if recompute:
-		# todo: check if something should be deleted (e.g., the propagation dir)
+		# TODO: check if something should be deleted (e.g., the propagation dir)
 		_message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir)
 		_propagate(index_dir, threads=threads)
