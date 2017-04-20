@@ -1,14 +1,10 @@
 #! /usr/bin/env python3
 
-"""Build taxonomic tree for genomic libraries using etetoolkit
+"""Build taxonomic tree for genomic libraries using etetoolkit.
 
-ETE 3: Reconstruction, analysis and visualization of phylogenomic data.
-Jaime Huerta-Cepas, Francois Serra and Peer Bork.
-Mol Biol Evol 2016; doi: 10.1093/molbev/msw046
+Author: Simone Pignotti <pignottisimone@gmail.com>
 
-http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html
-
-	Author: Simone Pignotti <pignottisimone@gmail.com>
+Licence: MIT
 
 Todo:
 	* use NCBI eutils to translate accesion numbers to TaxID
@@ -25,7 +21,7 @@ import argparse
 from ete3 import Tree, NCBITaxa
 
 desc="""\
-	Program: prophyle_ncbitree
+	Program: prophyle_ncbi_tree
 
 	Build a taxonomic tree in the New Hampshire newick format #1 for NCBI sequences
 """
@@ -61,7 +57,7 @@ def acquire_sequences(library_dir, log):
 							pass
 					except:
 						if log:
-							print('[prophyle_ncbitree] ERROR: Sequence \"' + seqname +
+							print('[prophyle_ncbi_tree] ERROR: Sequence \"' + seqname +
 								'\" in file \"' + rel_fn + '\" not acquired', file=log)
 						skipped += 1
 						pass
@@ -92,7 +88,7 @@ def assign_sequences(taxid_map_f, seqs, log):
 			assigned += 1
 		except KeyError:
 			if log:
-				print('[prophyle_ncbitree] ERROR: TaxID not found for sequence '
+				print('[prophyle_ncbi_tree] ERROR: TaxID not found for sequence '
 						+ acc, file=log)
 			skipped += 1
 			pass
@@ -114,7 +110,7 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 			taxid_not_found = int(e.args[0])
 			taxa.remove(taxid_not_found)
 			if log:
-				print('[prophyle_ncbitree] ERROR: TaxID ' + str(taxid_not_found) +
+				print('[prophyle_ncbi_tree] ERROR: TaxID ' + str(taxid_not_found) +
 						' not found in ETE DB (try updating it)', file=log)
 			pass
 
@@ -124,7 +120,7 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 		for node in t.traverse('postorder'):
 			if not node.is_leaf() and node.taxid in taxa:
 				internal_with_fasta += len([acc for acc in taxa2acc[node.taxid] if acc in seqs.keys()])
-		print('[prophyle_ncbitree] ' + str(internal_with_fasta) + ' sequences' +
+		print('[prophyle_ncbi_tree] ' + str(internal_with_fasta) + ' sequences' +
 				' ignored because associated to internal node (see issue #153)', file=log)
 	leaves_taxa = [leaf.taxid for leaf in t if leaf.taxid in taxa2acc]
 	t = ncbi.get_topology(leaves_taxa, intermediate_nodes=False)
@@ -184,26 +180,26 @@ def main_fun(library_dir, output_f, taxid_map, red_factor, root, log_file):
 
 	seqs, acquired, skipped = acquire_sequences(library_dir, log_file)
 
-	print('[prophyle_ncbitree] Acquired ' + str(acquired) +
+	print('[prophyle_ncbi_tree] Acquired ' + str(acquired) +
 				' sequences (' + str(skipped) + ' skipped)', file=sys.stderr)
 	if log_file:
-		print('[prophyle_ncbitree] Acquired ' + str(acquired) +
+		print('[prophyle_ncbi_tree] Acquired ' + str(acquired) +
 					' sequences (' + str(skipped) + ' skipped)',file=log_file)
 
 	taxa2seqid, assigned, skipped = assign_sequences(taxid_map, seqs, log_file)
 
-	print('[prophyle_ncbitree] TaxID assigned to ' + str(assigned) +
+	print('[prophyle_ncbi_tree] TaxID assigned to ' + str(assigned) +
 				' sequences (' + str(skipped) + ' skipped)', file=sys.stderr)
 	if log_file:
-		print('[prophyle_ncbitree] TaxID assigned to ' + str(assigned) +
+		print('[prophyle_ncbi_tree] TaxID assigned to ' + str(assigned) +
 					' sequences (' + str(skipped) + ' skipped)', file=log_file)
 
 	tax_tree, seq_count, node_count = build_tree(seqs, taxa2seqid, red_factor, root, log_file)
 
-	print('[prophyle_ncbitree] Built taxonomic tree for ' + str(seq_count) +
+	print('[prophyle_ncbi_tree] Built taxonomic tree for ' + str(seq_count) +
 				' sequences (' + str(node_count) + ' nodes)', file=sys.stderr)
 	if log_file:
-		print('[prophyle_ncbitree] Built taxonomic tree for ' + str(seq_count) +
+		print('[prophyle_ncbi_tree] Built taxonomic tree for ' + str(seq_count) +
 					' sequences (' + str(node_count) + ' nodes)', file=log_file)
 
 	tax_tree.write(features = ['name', 'accession', 'taxid', 'sci_name',
@@ -214,7 +210,7 @@ def main_fun(library_dir, output_f, taxid_map, red_factor, root, log_file):
 					format_root_node = True,
 outfile = output_f)
 
-if __name__ == '__main__':
+def main():
 
 	parser = argparse.ArgumentParser(
 		description=desc)
@@ -253,3 +249,6 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 
 	main_fun(args.library_dir, args.output_file, args.taxid_map_file, args.red_factor, args.root, args.log_file)
+
+if __name__ == '__main__':
+	main()
