@@ -886,6 +886,7 @@ def parser():
 	parser_download.add_argument(
 			'library',
 			metavar='<library>',
+			nargs='+',
 			choices=LIBRARIES+['all'],
 			help='genomic library {}'.format(LIBRARIES+['all']),
 		)
@@ -1063,12 +1064,13 @@ def main():
 
 		if subcommand=="download":
 			_open_log(args.log_fn)
-			_message('Downloading started')
-			prophyle_download(
-					library=args.library,
-					library_dir=args.home_dir,
-				)
-			_message('Downloading finished')
+			for single_lib in args.library:
+				_message('Downloading "{}" started'.format(single_lib))
+				prophyle_download(
+						library=single_lib,
+						library_dir=args.home_dir,
+					)
+				_message('Downloading "{}" finished'.format(single_lib))
 			_close_log()
 
 		elif subcommand=="index":
