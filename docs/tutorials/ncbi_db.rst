@@ -18,7 +18,7 @@ Download sequences from NCBI
 		cut -f 1,2 ftpselection.tsv >acc2taxid.tsv
 
 * Download selected sequences using ``parallel --gnu -j 24 -a ftpfilepaths.tsv wget``. Number of jobs (``-j`` option) should be changed according to the number of	available cores and bandwidth.
-* Extract them using ``parallel --gnu -j 24 -a ftpfilepaths gunzip {/}``
+* Extract them using ``parallel --gnu -j 24 -a ftpfilepaths.tsv gunzip {/}``
 * Create a `fasta index <http://www.htslib.org/doc/faidx.html>`_ for each file using ``find . -name '*.fna' | parallel --no-notice --verbose samtools faidx {}``
 
 
@@ -27,8 +27,8 @@ Build a tree
 
 Build a taxonomic tree for the downloaded sequences using::
 
-  prophyle_homedir/prophyle/prophyle_ncbitree.py <library_subdir> <output_file>\
-		acc2taxid.tsv -l <log_file>
+  prophyle_homedir/prophyle/prophyle_ncbitree.py <library_subdir> <output_file> \
+		-t acc2taxid.tsv -l <log_file>
 
 Taxonomic identifiers are assigned to the sequences first, and then the tree is
 built using `ETE Toolkit <http://etetoolkit.org/>`_ and saved with newick format
