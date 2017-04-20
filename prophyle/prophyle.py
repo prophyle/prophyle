@@ -395,7 +395,7 @@ def _pseudo_fai(d):
 		_mark_complete(d, 2)
 
 
-def prophyle_download(library, library_dir):
+def prophyle_download(library, library_dir, force=False):
 	"""Create a library Download genomic library and copy the corresponding tree.
 
 	Args:
@@ -410,7 +410,7 @@ def prophyle_download(library, library_dir):
 
 	if library=="all":
 		for l in LIBRARIES:
-			download(l, library_dir)
+			download(l, library_dir, force)
 		return
 	else:
 		assert library in LIBRARIES
@@ -426,7 +426,7 @@ def prophyle_download(library, library_dir):
 	_message("Checking library '{}' in '{}'".format(library,d))
 
 	lib_missing=_missing_library(d)
-	if lib_missing:
+	if lib_missing or force:
 		for test_prefix in ["","test_"]:
 			fn="{}{}.nw".format(test_prefix,library,)
 			nhx=os.path.join(TREE_D,fn)
@@ -436,14 +436,14 @@ def prophyle_download(library, library_dir):
 			_cp_to_file(nhx, new_nhx)
 
 	if library=='bacteria':
-		if lib_missing:
+		if lib_missing or force:
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='viruses':
-		if lib_missing:
+		if lib_missing or force:
 			#cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xz']
 			#_run_safe(cmd)
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xz']
@@ -452,14 +452,14 @@ def prophyle_download(library, library_dir):
 		#_pseudo_fai(d)
 
 	elif library=='plasmids':
-		if lib_missing:
+		if lib_missing or force:
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xz --strip 5']
 			_run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='hmp':
-		if lib_missing:
+		if lib_missing or force:
 			# fix when error appears
 			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
 			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
@@ -906,6 +906,12 @@ def parser():
 			help='log file',
 			default=None,
 		)
+	parser_download.add_argument(
+			'-F',
+			dest='force',
+			action='store_true',
+			help='rewrite library files if they already exist',
+		)
 
 	##########
 
@@ -1069,6 +1075,7 @@ def main():
 				prophyle_download(
 						library=single_lib,
 						library_dir=args.home_dir,
+						force=args.force,
 					)
 				_message('Downloading "{}" finished'.format(single_lib))
 			_close_log()
