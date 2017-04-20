@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 
-# prophyle (main program)
+set -e -f -o pipefail
+
+cd $(dirname $0)
 
 for x in main download index classify ; do
 	fn="$x.txt"

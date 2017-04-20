@@ -83,7 +83,6 @@ Bacterial database (k=31)::
 
 Bacterial and viral database (k=31)::
 
-	prophyle download bacteria
-	prophyle download viruses
+	prophyle download bacteria viruses
 	prophyle index -k 31 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw idx_bac_vir
 	prophyle classify idx_bac_vir reads.fq > result.sam
