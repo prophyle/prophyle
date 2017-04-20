@@ -117,8 +117,16 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 				print('[prophyle_ncbitree] ERROR: TaxID ' + str(taxid_not_found) +
 						' not found in ETE DB (try updating it)', file=log)
 			pass
-	# Ignore internal nodes with fasta associated till we find a solution for it
-	leaves_taxa = [leaf.taxid for leaf in t if leaf.taxid in taxa2seqid]
+
+	# [Issue #153] Ignore internal nodes with fasta associated till we find a solution for it
+	if log:
+		internal_with_fasta = 0
+		for node in t.traverse('postorder'):
+			if not node.is_leaf() and node.taxid in taxa:
+				internal_with_fasta += len([acc for acc in taxa2acc[node.taxid] if acc in seqs.keys()])
+		print('[prophyle_ncbitree] ' + str(internal_with_fasta) + ' sequences' +
+				' ignored because associated to internal node (see issue #153)', file=log)
+	leaves_taxa = [leaf.taxid for leaf in t if leaf.taxid in taxa2acc]
 	t = ncbi.get_topology(leaves_taxa, intermediate_nodes=False)
 
 	if red_factor:
@@ -138,34 +146,35 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 		t = ncbi.get_topology(taxa_to_keep, intermediate_nodes=False)
 
 	node_count = len(t.get_descendants())+1
-	digits = len(str(node_count))
-	new_id = 1
 	seq_count = 0
 
 	for node in t.traverse('postorder'):
-		node.name = ('n' + ('0'*(digits-len(str(new_id)))) + str(new_id))
-		new_id += 1
+		node.name = node.taxid
 		if node.is_leaf():
 			first = True
 			for acc in taxa2acc[node.taxid]:
-				s = seqs[acc]
-				if first:
-					accession = '@'.join([acc] * (s['offset'].count('@')+1))
-					fastapath = s['fn']
-					base_len = s['seqlen']
-					infasta_offset = s['offset']
-					first = False
-				else:
-					accession += ('@'+acc)*(s['offset'].count('@')+1)
-					fastapath += '@' + s['fn']
-					base_len += '@' + s['seqlen']
-					infasta_offset += '@' + s['offset']
-				seq_count += 1
+				try:
+					s = seqs[acc]
+					if first:
+						accession = '@'.join([acc] * (s['offset'].count('@')+1))
+						fastapath = s['fn']
+						base_len = s['seqlen']
+						infasta_offset = s['offset']
+						first = False
+					else:
+						accession += ('@'+acc)*(s['offset'].count('@')+1)
+						fastapath += '@' + s['fn']
+						base_len += '@' + s['seqlen']
+						infasta_offset += '@' + s['offset']
+					seq_count += 1
+				except KeyError:
+					pass
 			node.add_features(fastapath = fastapath, base_len = base_len,
 							infasta_offset = infasta_offset, accession = accession)
 
 	if not hasattr(t,'taxid'):
 		t.add_features(taxid = 0)
+	t.name = t.taxid
 
 	return t, seq_count, node_count
 
@@ -181,7 +190,7 @@ def main_fun(library_dir, output_f, taxid_map, red_factor, root, log_file):
 		print('[prophyle_ncbitree] Acquired ' + str(acquired) +
 					' sequences (' + str(skipped) + ' skipped)',file=log_file)
 
-	taxa2seqid, assigned, skipped = assign_sequences(seqs, taxid_map, log_file)
+	taxa2seqid, assigned, skipped = assign_sequences(taxid_map, seqs, log_file)
 
 	print('[prophyle_ncbitree] TaxID assigned to ' + str(assigned) +
 				' sequences (' + str(skipped) + ' skipped)', file=sys.stderr)
