@@ -1,14 +1,19 @@
 $ prophyle index -h
 
-usage: prophyle index [-h] -t FILE -g DIR [-j INT] [-k INT] [-C] <index.dir>
+usage: prophyle index [-h] [-g DIR] [-j INT] [-k INT] [-l STR] [-F] [-P] [-K]
+                      <tree.nw> [<tree.nw> ...] <index.dir>
 
 positional arguments:
+  <tree.nw>    phylogenetic tree (in Newick/NHX)
   <index.dir>  index directory (will be created)
 
 optional arguments:
   -h, --help   show this help message and exit
-  -t FILE      phylogenetic tree (in Newick/NHX)
-  -g DIR       directory with genomic sequences
-  -j INT       number of threads [1]
+  -g DIR       directory with the library sequences [directory of the first
+               tree]
+  -j INT       number of threads [auto (4)]
   -k INT       k-mer length [31]
-  -C           continue with index construction (construct only missing parts)
+  -l STR       log file
+  -F           rewrite index files if they already exist
+  -P           do not add prefixes to node names when multiple trees are used
+  -K           skip k-LCP construction

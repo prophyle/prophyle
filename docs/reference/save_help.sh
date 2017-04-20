@@ -1,5 +1,9 @@
 #! /usr/bin/env bash
 
+set -e -f -o pipefail
+
+cd $(dirname $0)
+
 for x in main download index classify ; do
 	fn="$x.txt"
 	echo "$fn"

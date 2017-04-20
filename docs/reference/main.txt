@@ -3,7 +3,7 @@ $ prophyle  -h
 usage: prophyle [-h]  ...
 
 Program: prophyle (phylogeny-based metagenomic classification)
-Version: 0.1.0.16
+Version: 0.1.0.32
 Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
          Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
 
@@ -14,6 +14,6 @@ optional arguments:
 
 subcommands:
   
-    download  download genomes
+    download  download a genomic database
     index     build index
     classify  classify reads
