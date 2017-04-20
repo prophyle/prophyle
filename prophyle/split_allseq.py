@@ -8,7 +8,7 @@
 Example:
 	$ split_allseq.py <input.fa> <output_dir>
 
-Todo:
+TODO:
 	* support infasta_offset and base_len (already included in the trees) for index construction
 """
 
