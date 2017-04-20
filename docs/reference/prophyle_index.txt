@@ -3,5 +3,5 @@ $ prophyle_index -h
 Program: prophyle_index (alignment of k-mers)
 Usage:   prophyle_index command [options]
 
-Command: index         construct klcp array
-Command: match         match k-mers
+Command: build         construct index
+Command: query         query reads against index
