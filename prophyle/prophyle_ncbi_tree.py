@@ -6,9 +6,12 @@ Author: Simone Pignotti <pignottisimone@gmail.com>
 
 Licence: MIT
 
-Todo:
+TODO(Simone):
 	* use NCBI eutils to translate accesion numbers to TaxID
 	* find solution for internal nodes with fasta file associated
+TODO(Karel):
+	* add a unit test
+	* unify cli interface with the main prophyle program (parameters, etc.)
 """
 
 #! /usr/bin/env python3
