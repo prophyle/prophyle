@@ -150,7 +150,7 @@ def _test_tree(fn):
 		fn (str): Newick/NHX tree.
 	"""
 	_test_files(fn)
-	cmd=[TEST_TREE, '-n', fn]
+	cmd=[TEST_TREE, fn]
 
 
 def _file_sizes(*fns):

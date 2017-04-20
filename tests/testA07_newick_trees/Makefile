@@ -10,4 +10,4 @@ clean:
 
 $(TREES):
 	@echo $@
-	$(TEST_NEWICK) -n ./trees/$@
+	$(TEST_NEWICK) ./trees/$@
