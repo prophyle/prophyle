@@ -56,7 +56,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 	if is_leaf:
 		cmd =  (
 				"{o}: {i}\n" +
-				"\tcat $^ | $(CMD_MASKING) | $(CMD_REASM) > $@\n\n"
+				"\tcat $^ $(CMD_MASKING) $(CMD_REASM) > $@\n\n"
 			).format(
 				i=' \\\n\t\t'.join(input_files),
 				o=output_file,
@@ -243,10 +243,10 @@ class TreeIndex:
 				
 				ifdef MASKREP
 				$(info | Masking repeats:        On)
-				CMD_MASKING=$(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'
+				CMD_MASKING= | $(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'
 				else
 				$(info | Masking repeats:        Off)
-				CMD_MASKING=tee
+				CMD_MASKING=
 				endif
 				
 				ifdef NONPROP
@@ -264,10 +264,10 @@ class TreeIndex:
 				
 				ifdef REASM
 				$(info | Re-assembling leaves:   On)
-				CMD_REASM=$(PRG_ASM) -S -i - -o -
+				CMD_REASM= | $(PRG_ASM) -S -i - -o -
 				else
 				$(info | Re-assembling leaves:   Off)
-				CMD_REASM=tee
+				CMD_REASM=
 				endif
 				$(info \------------------------------------------------------------------)
 				$(info )
