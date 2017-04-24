@@ -474,13 +474,14 @@ def prophyle_download(library, library_dir, force=False):
 # PROPHYLE INDEX #
 ##################
 
-def _create_makefile(index_dir, k, library_dir):
+def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	"""Create a Makefile for k-mer propagation.
 
 	Args:
 		index_dir (str): Index directory.
 		k (int): K-mer size.
 		library_dir (library_dir): Library directory.
+		mask_repeats (bool): Mask repeats using DustMasker.
 
 	TODO:
 		* Add checking of params.mk
@@ -493,10 +494,13 @@ def _create_makefile(index_dir, k, library_dir):
 	tree_fn=os.path.join(index_dir,'tree.nw')
 	_test_tree(tree_fn)
 	#_test_files(NEWICK2MAKEFILE, tree_fn)
-	command=[NEWICK2MAKEFILE, '-n', tree_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
+	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './']
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
+		f.write("PRG_ASM={}\n".format(ASM))
 		f.write("K={}\n".format(k))
+		if  mask_repeats:
+			f.write("MASKREP=1\n")
 	_run_safe(command,makefile)
 
 
@@ -510,7 +514,7 @@ def _propagate(index_dir,threads):
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
-	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(ASM)]
+	command=['make', '-j', threads, '-C', propagation_dir, 'V=1']
 	_run_safe(command)
 
 
@@ -630,7 +634,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_run_safe(command)
 
 
-def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats):
 	"""Build a Prophyle index.
 
 	Args:
@@ -642,6 +646,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		klcp (bool): Generate klcp.
 		force (bool): Rewrite files if they already exist.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
+		mask_repeats (bool): Mask repeats using DustMasker.
 
 	TODO:
 		* klcp in parallel with SA
@@ -695,7 +700,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	if recompute:
 		# TODO: check if something should be deleted (e.g., the propagation dir)
 		_message('[2/5] Running k-mer propagation', upper=True)
-		_create_makefile(index_dir, k, library_dir)
+		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_merge_fastas(index_dir)
 		_mark_complete(index_dir, 2)
@@ -972,6 +977,12 @@ def parser():
 			help='rewrite index files if they already exist',
 		)
 	parser_index.add_argument(
+			'-M',
+			action='store_true',
+			dest='mask_repeats',
+			help='mask repeats/low complexity regions (using DustMasker)',
+		)
+	parser_index.add_argument(
 			'-P',
 			dest='no_prefixes',
 			action='store_true',
@@ -1096,6 +1107,7 @@ def main():
 					force=args.force,
 					construct_klcp=args.klcp,
 					no_prefixes=args.no_prefixes,
+					mask_repeats=args.mask_repeats,
 				)
 			_message('Index construction finished')
 			_close_log()
