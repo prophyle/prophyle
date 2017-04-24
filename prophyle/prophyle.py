@@ -493,7 +493,7 @@ def _create_makefile(index_dir, k, library_dir):
 	tree_fn=os.path.join(index_dir,'tree.nw')
 	_test_tree(tree_fn)
 	#_test_files(NEWICK2MAKEFILE, tree_fn)
-	command=[NEWICK2MAKEFILE, '-n', tree_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
+	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './']
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
 		f.write("K={}\n".format(k))

@@ -294,14 +294,12 @@ class TreeIndex:
 
 
 def main():
-	parser = argparse.ArgumentParser(description='Create Makefile for ProPhyle k-mer propagation.')
+	parser = argparse.ArgumentParser(description='Create Makefile for parallelized ProPhyle k-mer propagation.')
 	parser.add_argument(
-			'-n','--newick-tree',
+			'newick_fn',
 			type=str,
-			metavar='str',
-			dest='newick_fn',
-			required=True,
-			help='Taxonomic tree (Newick).',
+			metavar='<tree.nw>',
+			help='Taxonomic tree (in Newick/NHX).',
 		)
 	parser.add_argument(
 			'-k',
@@ -312,23 +310,18 @@ def main():
 			help='K-mer length k.',
 		)
 	parser.add_argument(
-			'-o','--output-dir',
-			type=str,
-			metavar='str',
-			dest='output_dir_fn',
-			required=True,
-			help='Output directory (for index).',
-		)
-	parser.add_argument(
-			'-l','--library-dir',
-			type=str,
-			metavar='str',
-			dest='library_dir_fn',
-			required=True,
+			'library_dir_fn',
+			metavar='<library.dir>',
 			help='Directory with the library.',
 		)
 	parser.add_argument(
-			'-r','--mask-repeats',
+			'output_dir_fn',
+			type=str,
+			metavar='<output.dir>',
+			help='Output directory for the index.',
+		)
+	parser.add_argument(
+			'-R',
 			action='store_true',
 			dest='r',
 			help='Mask repeats.',
