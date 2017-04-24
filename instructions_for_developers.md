@@ -1,4 +1,4 @@
-# Instruction for ProPhyle developers
+# Instructions for ProPhyle developers
 
 ## CLI
 
