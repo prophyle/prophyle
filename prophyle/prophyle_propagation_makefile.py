@@ -1,12 +1,27 @@
 #! /usr/bin/env python3
 
+"""Create a Makefile for ProPhyle k-mer propagation.
+
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
+
+Example:
+
+	prophyle_propagation_makefile
+
+
+Propagation parameters (in the Makefile, can be changed through CL):
+	* NONPROP: no k-mer propagation (sequences for leaves only)
+	* REASM: re-assemble sequences in leaves
+	* NONDEL: non-deletative propagation, implies REASM
+	* MASKREP: mask repeats in leaves
+
+
+TODO:
+	* Check passing parameters and default paths to programs (e.g., prophyle_assembler).
 """
-	Parameters:
-		- NONPROP: no k-mer propagation (sequences for leaves only)
-		- REASM: re-assemble sequences in leaves
-		- NONDEL: non-deletative propagation, implies REASM
-		- MASKREP: mask repeats in leaves
-"""
+
 
 import os
 import shutil
@@ -19,11 +34,23 @@ from ete3 import Tree
 
 DEFAULT_FORMAT = 1
 
+
 def size_in_mb(file_fn):
+	"""Get file size in megabytes.
+
+	Args:
+		file_fn (str): File name.
+	"""
 	return os.path.getsize(file_fn)/(1024**2)
 
+
 def merge_fasta_files(input_files,output_file,is_leaf):
-	"""Merge files, remove empty lines.
+	"""Print Makefile lines for merging FASTA files and removing empty lines.
+
+	Args:
+		input_files (list of str): List of input files.
+		output_file (str): Output file.
+		is_leaf (str): Is a leaf (i.e., copying must be done).
 	"""
 
 	if is_leaf:
@@ -44,7 +71,17 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 				)
 	print(cmd)
 
+
 def assembly(input_files, output_files, intersection_file, count_file="/dev/null"):
+	"""Print Makefile lines for running prophyle_assembler.
+
+	Args:
+		input_files (list of str): List of input files.
+		output_files (list of str): List of output files.
+		intersection_file (str): File with intersection.
+		count_file (str): File with count statistics.
+	"""
+
 	assert(len(input_files)==len(output_files))
 	cmd =  textwrap.dedent("""\
 			ifdef NONDEL
@@ -76,10 +113,19 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 
 
 class TreeIndex:
+	"""Main class for k-mer propagation.
+	"""
 
-	def __init__(self,tree_newick_fn,index_dir,library_dir,format=DEFAULT_FORMAT):
+	def __init__(self,tree_newick_fn,index_dir,library_dir):
+		"""Init the class.
+
+		Args:
+			tree_newick_fn (str): Tree file name.
+			index_dir (str): Directory of the index.
+			library_dir (str): Directory with FASTA files.
+		"""
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=Tree(tree_newick_fn,format=format)
+		self.tree=Tree(tree_newick_fn,format=DEFAULT_FORMAT)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
 		self.index_dir=index_dir
 		self.library_dir=library_dir
@@ -95,15 +141,35 @@ class TreeIndex:
 			return "{}".format(node.name)
 
 	def nonreduced_fasta_fn(self,node):
+		"""Get name of the full FASTA file.
+
+		Args:
+			node: Node of the tree.
+		"""
 		return os.path.join(self.index_dir,node.name+".full.fa")
 
 	def reduced_fasta_fn(self,node):
+		"""Get name of the reduced FASTA file.
+
+		Args:
+			node: Node of the tree.
+		"""
 		return os.path.join(self.index_dir,node.name+".reduced.fa")
 
 	def count_fn(self,node):
+		"""Get FASTA name of the file with k-mer counts.
+
+		Args:
+			node: Node of the tree.
+		"""
 		return os.path.join(self.index_dir,node.name+".count.tsv")
 
 	def process_node(self,node):
+		"""Recursive function for treating an individual node of the tree.
+
+		Args:
+			node: Node of the tree.
+		"""
 
 		if node.is_leaf():
 
@@ -149,6 +215,14 @@ class TreeIndex:
 
 
 	def build_index(self,k,mask_repeats):
+		"""Print Makefile for the tree.
+
+		Args:
+			k (int): K-mer size.
+			mask_repeats (bool): Mask repeats using DustMasker.
+		"""
+
+
 		print(textwrap.dedent("""\
 				include params.mk\n
 				
@@ -220,7 +294,7 @@ class TreeIndex:
 
 
 def main():
-	parser = argparse.ArgumentParser(description='Build index.')
+	parser = argparse.ArgumentParser(description='Create Makefile for ProPhyle k-mer propagation.')
 	parser.add_argument(
 			'-n','--newick-tree',
 			type=str,
