@@ -21,6 +21,45 @@
 #include "prophyle_index_build.h"
 #include "bwa_utils.h"
 
+static int usage()
+{
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Program: prophyle_index (alignment of k-mers)\n");
+	fprintf(stderr, "Contact: Kamil Salikhov <kamil.salikhov@univ-mlv.fr>\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Usage:   prophyle_index command [options]\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Command: build     construct index\n");
+	fprintf(stderr, "         query     query reads against index\n");
+	fprintf(stderr, "\n");
+	return 1;
+}
+
+static int usage_build(){
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Usage:   prophyle_index build <prefix>\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Options: -k INT    length of k-mer\n");
+	fprintf(stderr, "         -s        construct k-LCP and SA in parallel\n");
+	fprintf(stderr, "         -i        sampling distance for SA\n");
+	fprintf(stderr, "\n");
+	return 1;
+}
+
+static int usage_query(int threads){
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Usage:   prophyle_index query [options] <prefix> <in.fq>\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Options: -k INT    length of k-mer\n");
+	fprintf(stderr, "         -u        use k-LCP for querying\n");
+	fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
+	fprintf(stderr, "         -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output\n");
+	fprintf(stderr, "         -l STR    log file name to output statistics\n");
+	fprintf(stderr, "         -t INT    number of threads [%d]\n", threads);
+	fprintf(stderr, "\n");
+	return 1;
+}
+
 int prophyle_index_query(int argc, char *argv[])
 {
 	int c;
@@ -47,15 +86,7 @@ int prophyle_index_query(int argc, char *argv[])
 	}
 
 	if (optind + 2 > argc) {
-		fprintf(stderr, "\n");
-		fprintf(stderr, "[prophyle_index] Usage:   prophyle_index query [options] <prefix> <in.fq>\n\n");
-		fprintf(stderr, "[prophyle_index] Options: -k INT    length of k-mer\n");
-		fprintf(stderr, "[prophyle_index]          -u        use klcp for querying\n");
-		fprintf(stderr, "[prophyle_index]          -v        output set of chromosomes for every k-mer\n");
-		fprintf(stderr, "[prophyle_index]          -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output\n");
-		fprintf(stderr, "[prophyle_index]          -l char*  log file name to output statistics\n");
-		fprintf(stderr, "[prophyle_index]          -t INT    number of threads [%d]\n", opt->n_threads);
-		fprintf(stderr, "[prophyle_index] \n");
+		usage_query(opt->n_threads);
 		return 1;
 	}
 	if ((prefix = bwa_idx_infer_prefix(argv[optind])) == 0) {
@@ -84,12 +115,7 @@ int prophyle_index_build(int argc, char *argv[])
 		}
 	}
 	if (optind + 1 > argc) {
-		fprintf(stderr, "[prophyle_index]\n");
-		fprintf(stderr, "[prophyle_index] Usage:   prophyle_index build <prefix>\n\n");
-		fprintf(stderr, "[prophyle_index] Options:  -k INT    length of k-mer\n");
-		fprintf(stderr, "[prophyle_index]           -s        construct klcp and sa in parallel\n");
-		fprintf(stderr, "[prophyle_index]           -i        sampling distance for SA\n");
-    fprintf(stderr, "\n");
+		usage_build();
 		return 1;
 	}
 	if ((prefix = bwa_idx_infer_prefix(argv[optind])) == 0) {
@@ -99,17 +125,6 @@ int prophyle_index_build(int argc, char *argv[])
 	build_index(prefix, opt, sa_intv);
 	free(prefix);
 	return 0;
-}
-
-static int usage()
-{
-	fprintf(stderr, "\n");
-	fprintf(stderr, "[prophyle_index] Program: prophyle_index (alignment of k-mers)\n");
-	fprintf(stderr, "[prophyle_index] Usage:   prophyle_index command [options]\n\n");
-	fprintf(stderr, "[prophyle_index] Command: build         construct index\n");
-	fprintf(stderr, "[prophyle_index] Command: query         query reads against index\n");
-	fprintf(stderr, "[prophyle_index] \n");
-	return 1;
 }
 
 int main(int argc, char *argv[])
