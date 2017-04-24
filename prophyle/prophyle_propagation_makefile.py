@@ -35,13 +35,22 @@ from ete3 import Tree
 DEFAULT_FORMAT = 1
 
 
-def size_in_mb(file_fn):
-	"""Get file size in megabytes.
+def _compl(fn):
+	"""Get complete marker file name.
 
 	Args:
-		file_fn (str): File name.
+		fn (str): Original file name.
 	"""
-	return os.path.getsize(file_fn)/(1024**2)
+	return fn+".complete"
+
+
+def _compl_l(fns):
+	"""Get complete marker file names.
+
+	Args:
+		fns (list of str): Original file names.
+	"""
+	return [_compl(x) for x in fns]
 
 
 def merge_fasta_files(input_files,output_file,is_leaf):
@@ -54,21 +63,32 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 	"""
 
 	if is_leaf:
-		cmd =  (
-				"{o}: {i}\n" +
-				"\tcat $^ $(CMD_MASKING) $(CMD_REASM) > $@\n\n"
-			).format(
-				i=' \\\n\t\t'.join(input_files),
+		cmd = textwrap.dedent("""\
+
+				{ocompl}: {i}
+					cat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
+					touch $@
+
+			""".format(
+				i=' '.join(input_files),
 				o=output_file,
-			)
+				ocompl=_compl(output_file),
+			))
 	else:
-		cmd =  (
-					"{o}: {i}\n" +
-					"\tcat $^ > $@\n\n"
-				).format(
-					i=' \\\n\t\t'.join(input_files),
-					o=output_file,
-				)
+
+		cmd = textwrap.dedent("""\
+
+				{ocompl}: {icompl}
+					cat {i} > {o}
+					touch $@
+
+			""".format(
+				i=' '.join(input_files),
+				icomp=' '.join(_compl_l(input_files)),
+				o=output_file,
+				ocomp=_compl(output_file),
+			))
+
 	print(cmd)
 
 
@@ -85,26 +105,28 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 	assert(len(input_files)==len(output_files))
 	cmd =  textwrap.dedent("""\
 			ifdef NONDEL
-			CMD_ASM_OUT_{nid} =
+			   CMD_ASM_OUT_{nid} =
 			else
-			CMD_ASM_OUT_{nid} = -o {oo}
+			   CMD_ASM_OUT_{nid} = -o {oo}
 			endif
 			
 			ifdef NONPROP
-			CMD_ASM_{nid} = touch {x} {o}
+			   CMD_ASM_{nid} = touch {x} {o}
 			else
-			CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
+			   CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
 			endif
 			
-			{x}: {i}
-			\t@echo starting propagation for $@
-			\t$(CMD_ASM_{nid})
+			{xcompl}: {icompl}
+				@echo starting propagation for $@
+				$(CMD_ASM_{nid})
+				touch $@
 			""".format(
-				i=' '.join(input_files),
+				icompl=' '.join(_compl_l(input_files)),
 				o=' '.join(output_files),
 				ii=' -i '.join(input_files),
 				oo=' -o '.join(output_files),
 				x=intersection_file,
+				xcompl=_compl(intersection_file),
 				c=count_file,
 				nid=intersection_file,
 			)
@@ -242,44 +264,47 @@ class TreeIndex:
 				$(info | DustMasker:             $(PRG_DUST))
 				
 				ifdef MASKREP
-				$(info | Masking repeats:        On)
-				CMD_MASKING= | $(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'
+				   $(info | Masking repeats:        On)
+				   CMD_MASKING= | $(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'
 				else
-				$(info | Masking repeats:        Off)
-				CMD_MASKING=
+				   $(info | Masking repeats:        Off)
+				   CMD_MASKING=
 				endif
 				
 				ifdef NONPROP
-				$(info | K-mer propagation:      Off)
+				   $(info | K-mer propagation:      Off)
 				else
-				$(info | K-mer propagation:      On)
+				   $(info | K-mer propagation:      On)
 				endif
 				
 				ifdef NONDEL
-				$(info | K-mer propagation mode: Non-deletative)
-				REASM=1
+				   $(info | K-mer propagation mode: Non-deletative)
+				   REASM=1
 				else
-				$(info | K-mer propagation mode: Deletative)
+				   $(info | K-mer propagation mode: Deletative)
 				endif
 				
 				ifdef REASM
-				$(info | Re-assembling leaves:   On)
-				CMD_REASM= | $(PRG_ASM) -S -i - -o -
+				   $(info | Re-assembling leaves:   On)
+				   CMD_REASM= | $(PRG_ASM) -S -i - -o -
 				else
-				$(info | Re-assembling leaves:   Off)
-				CMD_REASM=
+				   $(info | Re-assembling leaves:   Off)
+				   CMD_REASM=
 				endif
 				$(info \------------------------------------------------------------------)
 				$(info )
 
-				all: {root_red}
+				all: {root_red_compl}
 
-				{root_red}: {root_nonred}
-					ln -s $< $@
+				{root_red_compl}: {root_nonred_compl}
+					ln -s {root_nonred} {root_red}
+					touch $@
 
 				""".format(
 							root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
+							root_nonred_compl=_compl(self.nonreduced_fasta_fn(self.tree.get_tree_root())),
 							root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
+							root_red_compl=_compl(self.reduced_fasta_fn(self.tree.get_tree_root())),
 						)
 			))
 		#print("all: {}".format(
