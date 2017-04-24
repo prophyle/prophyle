@@ -246,9 +246,15 @@ class TreeIndex:
 
 		print(textwrap.dedent("""\
 				include params.mk\n
+
+				.PHONY: all clean
+
+				SHELL=/usr/bin/env bash
+				.SHELLFLAGS = -euf -o pipefail
+
 				
-				PRG_ASM=prophyle_assembler
-				PRG_DUST=dustmasker
+				PRG_ASM?=prophyle_assembler
+				PRG_DUST?=dustmasker
 				
 				$(info )
 				$(info /------------------------------------------------------------------)
@@ -295,6 +301,9 @@ class TreeIndex:
 				$(info )
 
 				all: {root_red_compl}
+
+				clean:
+					rm -f *.complete *.fa *.tsv
 
 				{root_red_compl}: {root_nonred_compl}
 					ln -s {root_nonred} {root_red}

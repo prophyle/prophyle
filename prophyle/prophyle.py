@@ -497,6 +497,7 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './']
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
+		f.write("PRG_ASM={}\n".format(ASM))
 		f.write("K={}\n".format(k))
 		if  mask_repeats:
 			f.write("MASKREP=1\n")
@@ -513,7 +514,7 @@ def _propagate(index_dir,threads):
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
-	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(ASM)]
+	command=['make', '-j', threads, '-C', propagation_dir, 'V=1']
 	_run_safe(command)
 
 
