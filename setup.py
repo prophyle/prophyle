@@ -34,16 +34,19 @@ setuptools.setup(
 
 	classifiers=[
 		'Development Status :: 4 - Beta',
-		'Topic :: Scientific/Engineering :: Bio-Informatics',
 		'Programming Language :: Python :: 3 :: Only',
+		'Operating System :: Unix',
+		'Environment :: Console',
 		'License :: OSI Approved :: MIT License',
+		'Intended Audience :: Science/Research',
+		'Topic :: Scientific/Engineering :: Bio-Informatics',
 	],
 
 	keywords='metagenomics classification NGS',
 
 	packages = ["prophyle"],
 
-	install_requires=['ete3', 'wheel', 'bitarray', 'psutil'],
+	install_requires=['ete3', 'wheel', 'bitarray', 'psutil', 'argparse'],
 
 	package_data={
 		'prophyle': [
