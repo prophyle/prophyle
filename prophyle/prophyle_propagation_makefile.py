@@ -214,12 +214,11 @@ class TreeIndex:
 			assembly(input_files,output_files,intersection_file,count_file)
 
 
-	def build_index(self,k,mask_repeats):
+	def build_index(self,k):
 		"""Print Makefile for the tree.
 
 		Args:
 			k (int): K-mer size.
-			mask_repeats (bool): Mask repeats using DustMasker.
 		"""
 
 
@@ -307,24 +306,18 @@ def main():
 			metavar='int',
 			dest='k',
 			required=True,
-			help='K-mer length k.',
+			help='k-mer length',
 		)
 	parser.add_argument(
 			'library_dir_fn',
 			metavar='<library.dir>',
-			help='Directory with the library.',
+			help='directory with the library',
 		)
 	parser.add_argument(
 			'output_dir_fn',
 			type=str,
 			metavar='<output.dir>',
-			help='Output directory for the index.',
-		)
-	parser.add_argument(
-			'-R',
-			action='store_true',
-			dest='r',
-			help='Mask repeats.',
+			help='output directory for the index',
 		)
 
 	args = parser.parse_args()
@@ -334,7 +327,6 @@ def main():
 	newick_fn=args.newick_fn
 	output_dir_fn=args.output_dir_fn
 	library_dir_fn=args.library_dir_fn
-	r=args.r
 
 	ti=TreeIndex(
 			tree_newick_fn=newick_fn,
@@ -343,7 +335,6 @@ def main():
 		)
 	ti.build_index(
 			k=k,
-			mask_repeats=r,
 		)
 
 
