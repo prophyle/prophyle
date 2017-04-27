@@ -31,8 +31,9 @@ Compared to other state-of-the-arts classifiers, ProPhyle provides several uniqu
 * **Low memory requirements.** Compared to Kraken, ProPhyle has 9x smaller memory footprint for index construction and 5x smaller footprint for querying.
 * **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic tree or multiple trees.
 * **Standard bioinformatics formats.** Newick/NHX is used for representing phylogenetic trees and SAM for reporting the assignments.
-* **Lossless indexing of k-mers.** ProPhyle stores a list of *all* genomes containing a *k*-mer, therefore, it is
-  be more accurate when similar genomes are indexed (e.g, with phylogenetic trees for a single species).
+* **Lossless k-mer indexing.** ProPhyle stores a list of *all* genomes containing a *k*-mer.
+  It can be, therefore, accurate even with trees containing similar genomes
+  (e.g, phylogenetic trees for a single species).
 
 For information about how to use ProPhyle, see the main `ProPhyle documentation <http://prophyle.rtfd.io>`_.
 
