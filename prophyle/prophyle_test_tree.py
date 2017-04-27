@@ -1,5 +1,16 @@
 #! /usr/bin/env python3
 
+"""Test whether given trees are valid for Prophyle.
+
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
+
+Example:
+
+	$ prophyle_test_tree.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw
+"""
+
 import os
 import sys
 import argparse
@@ -11,7 +22,7 @@ import logging
 DEFAULT_FORMAT = 1
 
 
-def verify_newick_tree(newick):
+def verify_newick_tree(tree):
 
 	node_names=set()
 
@@ -65,33 +76,36 @@ def verify_newick_tree(newick):
 		sys.exit(1)
 
 
-if __name__ == "__main__":
-
+def main():
 	parser = argparse.ArgumentParser(description='Verify a Newick tree')
 
-	parser.add_argument('-n', '--newick-tree',
+	parser.add_argument('tree',
+			metavar='<tree.nw>',
 			type=str,
-			metavar='str',
-			required=True,
-			dest='newick_fn',
-			help='newick tree',
+			nargs='+',
+			help='phylogenetic tree (in Newick/NHX)',
 		)
+
 
 	parser.add_argument('-p', '--print-tree',
 			action='store_true',
 			dest='printt',
-			help='print the newick tree',
+			help='print the tree',
 		)
 
 	args = parser.parse_args()
-	newick_fn=args.newick_fn
+	tree_fns=args.tree
 	p=args.printt
 
 
+	for tree_fn in tree_fns:
+		tree=Tree(tree_fn,format=DEFAULT_FORMAT)
 
-	tree=Tree(newick_fn,format=DEFAULT_FORMAT)
+		if p:
+			print(tree.get_ascii(show_internal=True))
 
-	if p:
-		print(tree.get_ascii(show_internal=True))
+		verify_newick_tree(tree)
 
-	verify_newick_tree(tree)
+
+if __name__ == "__main__":
+	main ()

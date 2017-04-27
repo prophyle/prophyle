@@ -2,7 +2,7 @@
 
 """Merge ProPhyle Newick/NHX trees.
 
-	Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
 """
 
@@ -19,6 +19,7 @@ def add_prefix(tree, prefix):
 	for node in tree.traverse("postorder"):
 		node.name="{}-{}".format(prefix, node.name)
 	return tree
+
 
 def merge_trees(input_trees, output_tree, verbose, add_prefixes):
 	t = Tree(
@@ -39,9 +40,14 @@ def merge_trees(input_trees, output_tree, verbose, add_prefixes):
 	if verbose:
 		print("Writing to '{}'".format(output_tree), file=sys.stderr)
 
+	# make saving newick reproducible
+	features=set()
+	for n in t.traverse():
+		features|=n.features
+
 	t.write(
 			outfile=output_tree,
-			features=[],
+			features=sorted(features),
 			format=DEFAULT_FORMAT,
 			format_root_node=True,
 		)

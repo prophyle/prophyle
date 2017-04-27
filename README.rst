@@ -56,4 +56,3 @@ Quick example
 4. Classify your reads: ::
 
 	$ prophyle classify test_idx reads.fq > result.sam
-

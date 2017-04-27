@@ -1,6 +1,6 @@
 $ prophyle download -h
 
-usage: prophyle download [-h] [-d DIR] [-l STR] <library>
+usage: prophyle download [-h] [-d DIR] [-l STR] [-F] <library> [<library> ...]
 
 positional arguments:
   <library>   genomic library ['bacteria', 'viruses', 'plasmids', 'hmp',
@@ -10,3 +10,4 @@ optional arguments:
   -h, --help  show this help message and exit
   -d DIR      directory for the tree and the sequences [~/prophyle]
   -l STR      log file
+  -F          rewrite library files if they already exist
