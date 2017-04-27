@@ -40,18 +40,18 @@ For information about how to use ProPhyle, see the main `ProPhyle documentation 
 Quick example
 -------------
 
-Create a Bioconda environment with ProPhyle and activate it: ::
+1. Create a Bioconda environment with ProPhyle and activate it: ::
 
         $ conda create -c bioconda -n prophyle prophyle
         $ source activate prophyle
 
-To quickly test ProPhyle functionality, download the bacterial database, and create an index
+2. To quickly test ProPhyle functionality, download the bacterial database, and create an index
 with *k*-mer legth 12 and a subset of bacterial genomes: ::
 
         $ prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
 	$ prophyle download bacteria
 
-Classify your reads: ::
+3. Classify your reads: ::
 
 	prophyle classify test_idx reads.fq > result.sam
 
