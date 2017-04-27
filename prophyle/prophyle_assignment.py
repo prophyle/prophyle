@@ -6,7 +6,7 @@ Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
 License: MIT
 
-Todo:
+TODO:
 	* Allow to use c2 and h2 (when k-mer annotations exist in the NHX tree)
 	* Add docstrings
 	* Synchronize options with prophyle.py

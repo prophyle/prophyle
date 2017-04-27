@@ -9,18 +9,18 @@ Licence: MIT
 Example:
 
 	Download sequences:
-	
+
 		$ prophyle download bacteria
-	
+
 	Create an index for k=10 and the small testing bacterial tree:
-	
+
 		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw ~/prophyle/test_viruses.nw test_idx
-	
+
 	Classify some reads:
 
 		$ prophyle classify test_idx reads.fq > result.sam
-	
-Todo:
+
+TODO:
 	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
@@ -53,7 +53,7 @@ BWA=os.path.join(C_D,"prophyle_index","BWA","bwa")
 IND=os.path.join(C_D,"prophyle_index","prophyle_index")
 ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
-## todo: decide about the paths for programs (execution from repo vs from package):
+## TODO: decide about the paths for programs (execution from repo vs from package):
 #    NEWICK2MAKEFILE=os.path.join(C_D,"newick2makefile.py")
 #     vs.
 #    NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
@@ -150,7 +150,7 @@ def _test_tree(fn):
 		fn (str): Newick/NHX tree.
 	"""
 	_test_files(fn)
-	cmd=[TEST_TREE, '-n', fn]
+	cmd=[TEST_TREE, fn]
 
 
 def _file_sizes(*fns):
@@ -333,7 +333,7 @@ def _mark_complete(d, i=1, name=None):
 
 	_touch(__mark_fn(d, i, name))
 
- 
+
 def _is_complete(d, i=1, name=None):
 	"""Check if a mark file i exists AND is newer than the mark file (i-1).
 
@@ -395,14 +395,14 @@ def _pseudo_fai(d):
 		_mark_complete(d, 2)
 
 
-def prophyle_download(library, library_dir):
+def prophyle_download(library, library_dir, force=False):
 	"""Create a library Download genomic library and copy the corresponding tree.
 
 	Args:
 		library (str): Library to download (bacteria / viruses / ...)
 		library_dir (str): Directory where download files will be downloaded.
 
-	Todo:
+	TODO:
 		* Add support for alternative URLs (http / ftp, backup refseq sites, etc.).
 			* http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
 			* ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
@@ -410,7 +410,7 @@ def prophyle_download(library, library_dir):
 
 	if library=="all":
 		for l in LIBRARIES:
-			download(l, library_dir)
+			download(l, library_dir, force)
 		return
 	else:
 		assert library in LIBRARIES
@@ -426,7 +426,7 @@ def prophyle_download(library, library_dir):
 	_message("Checking library '{}' in '{}'".format(library,d))
 
 	lib_missing=_missing_library(d)
-	if lib_missing:
+	if lib_missing or force:
 		for test_prefix in ["","test_"]:
 			fn="{}{}.nw".format(test_prefix,library,)
 			nhx=os.path.join(TREE_D,fn)
@@ -436,14 +436,14 @@ def prophyle_download(library, library_dir):
 			_cp_to_file(nhx, new_nhx)
 
 	if library=='bacteria':
-		if lib_missing:
+		if lib_missing or force:
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xz']
 			_run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='viruses':
-		if lib_missing:
+		if lib_missing or force:
 			#cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xz']
 			#_run_safe(cmd)
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xz']
@@ -452,14 +452,14 @@ def prophyle_download(library, library_dir):
 		#_pseudo_fai(d)
 
 	elif library=='plasmids':
-		if lib_missing:
+		if lib_missing or force:
 			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xz --strip 5']
 			_run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='hmp':
-		if lib_missing:
+		if lib_missing or force:
 			# fix when error appears
 			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
 			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
@@ -474,15 +474,16 @@ def prophyle_download(library, library_dir):
 # PROPHYLE INDEX #
 ##################
 
-def _create_makefile(index_dir, k, library_dir):
+def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	"""Create a Makefile for k-mer propagation.
 
 	Args:
 		index_dir (str): Index directory.
 		k (int): K-mer size.
 		library_dir (library_dir): Library directory.
+		mask_repeats (bool): Mask repeats using DustMasker.
 
-	Todo:
+	TODO:
 		* Add checking of params.mk
 	"""
 	_message('Creating Makefile for k-mer propagation')
@@ -493,10 +494,13 @@ def _create_makefile(index_dir, k, library_dir):
 	tree_fn=os.path.join(index_dir,'tree.nw')
 	_test_tree(tree_fn)
 	#_test_files(NEWICK2MAKEFILE, tree_fn)
-	command=[NEWICK2MAKEFILE, '-n', tree_fn, '-k', k, '-o', './', '-l', os.path.abspath(library_dir)]
+	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './']
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
+		f.write("PRG_ASM={}\n".format(ASM))
 		f.write("K={}\n".format(k))
+		if  mask_repeats:
+			f.write("MASKREP=1\n")
 	_run_safe(command,makefile)
 
 
@@ -510,7 +514,7 @@ def _propagate(index_dir,threads):
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
-	command=['make', '-j', threads, '-C', propagation_dir, 'V=1', "PRG_ASM={}".format(ASM)]
+	command=['make', '-j', threads, '-C', propagation_dir, 'V=1']
 	_run_safe(command)
 
 
@@ -537,7 +541,7 @@ def _merge_fastas(index_dir):
 	Args:
 		index_dir (str): Index directory.
 
-	Todo:
+	TODO:
 		* check files for all nodes exist and are of size > 0
 	"""
 
@@ -630,7 +634,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_run_safe(command)
 
 
-def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats):
 	"""Build a Prophyle index.
 
 	Args:
@@ -642,8 +646,9 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		klcp (bool): Generate klcp.
 		force (bool): Rewrite files if they already exist.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
+		mask_repeats (bool): Mask repeats using DustMasker.
 
-	Todo:
+	TODO:
 		* klcp in parallel with SA
 		* copy Newick only if it is newer
 		* add update the tree with number of k-mers
@@ -672,7 +677,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	#
 	# 1) Newick
 	#
-	
+
 	#if not _existing_and_newer(tree_fn, index_tree):
 	if not _is_complete(index_dir, 1):
 		recompute=True
@@ -693,9 +698,9 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		recompute=True
 
 	if recompute:
-		# todo: check if something should be deleted (e.g., the propagation dir)
+		# TODO: check if something should be deleted (e.g., the propagation dir)
 		_message('[2/5] Running k-mer propagation', upper=True)
-		_create_makefile(index_dir, k, library_dir)
+		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_merge_fastas(index_dir)
 		_mark_complete(index_dir, 2)
@@ -886,6 +891,7 @@ def parser():
 	parser_download.add_argument(
 			'library',
 			metavar='<library>',
+			nargs='+',
 			choices=LIBRARIES+['all'],
 			help='genomic library {}'.format(LIBRARIES+['all']),
 		)
@@ -904,6 +910,12 @@ def parser():
 			type=str,
 			help='log file',
 			default=None,
+		)
+	parser_download.add_argument(
+			'-F',
+			dest='force',
+			action='store_true',
+			help='rewrite library files if they already exist',
 		)
 
 	##########
@@ -965,6 +977,12 @@ def parser():
 			help='rewrite index files if they already exist',
 		)
 	parser_index.add_argument(
+			'-M',
+			action='store_true',
+			dest='mask_repeats',
+			help='mask repeats/low complexity regions (using DustMasker)',
+		)
+	parser_index.add_argument(
 			'-P',
 			dest='no_prefixes',
 			action='store_true',
@@ -1001,7 +1019,7 @@ def parser():
 			dest='k',
 			metavar='INT',
 			type=int,
-			help='k-mer length [detect automatically]',
+			help='k-mer length [detect automatically from the index]',
 			default=None,
 		)
 	parser_classify.add_argument(
@@ -1048,7 +1066,8 @@ def parser():
 			'-M',
 			dest='mimic',
 			action='store_true',
-			help='mimic Kraken algorithm and output (for debugging purposes)',
+			#help='mimic Kraken algorithm and output (for debugging purposes)',
+			help=argparse.SUPPRESS,
 		)
 
 	##########
@@ -1063,12 +1082,14 @@ def main():
 
 		if subcommand=="download":
 			_open_log(args.log_fn)
-			_message('Downloading started')
-			prophyle_download(
-					library=args.library,
-					library_dir=args.home_dir,
-				)
-			_message('Downloading finished')
+			for single_lib in args.library:
+				_message('Downloading "{}" started'.format(single_lib))
+				prophyle_download(
+						library=single_lib,
+						library_dir=args.home_dir,
+						force=args.force,
+					)
+				_message('Downloading "{}" finished'.format(single_lib))
 			_close_log()
 
 		elif subcommand=="index":
@@ -1087,6 +1108,7 @@ def main():
 					force=args.force,
 					construct_klcp=args.klcp,
 					no_prefixes=args.no_prefixes,
+					mask_repeats=args.mask_repeats,
 				)
 			_message('Index construction finished')
 			_close_log()
