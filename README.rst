@@ -51,7 +51,7 @@ Quick example
 
 3. To quickly test ProPhyle functionality, create an index for a subset of this database with *k*-mer length 12: ::
 
-        $ prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
+        $ prophyle index -k 12 ~/prophyle/test_bacteria.nw test_idx
 
 4. Classify your reads: ::
 
