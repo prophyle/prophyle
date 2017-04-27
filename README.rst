@@ -7,83 +7,50 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 
 .. image:: https://readthedocs.org/projects/prophyle/badge/?version=latest
 	:target: http://prophyle.rtfd.org
-	
+
 .. image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square
 	:target: https://anaconda.org/bioconda/prophyle
 
 .. image:: https://badge.fury.io/py/prophyle.svg
     :target: https://badge.fury.io/py/prophyle
 
-ProPhyle is a metagenomic classifier based on BWT-index and phylogenetic trees.
-Its indexing strategy uses a bottom-up propagation of k-mers in the tree,
-assembling contigs at each node, and matching using a standard full-text search.
-The analysis of shared k-mers between NGS reads and the genomes in the index determines
+
+Introduction
+------------
+
+ProPhyle is a *k*-mer based metagenomic classifier using Burrows-Wheeler Transform.
+Its indexing strategy relies on a bottom-up propagation of *k*-mers in the tree,
+assembling contigs at each node, and matching using a standard full-text search using BWT-index.
+The analysis of shared *k*-mers between NGS reads and the genomes in the index determines
 which nodes are the best candidates for their classification.
+More information about the indexing scheme
+can be found in our `poster <http://brinda.cz/publications/2017_prophyle_hsph_poster_day.pdf>`_.
 
-More information can be found in our `poster <http://brinda.cz/publications/2017_cmda_prophyle.pdf>`_.
+Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
 
+* **Low memory requirements.** Compared to Kraken, ProPhyle has 9x smaller memory footprint for index construction and 5x smaller footprint for querying.
+* **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic tree or multiple trees.
+* **Standard bioinformatics formats.** Newick/NHX is used for representing phylogenetic trees and SAM for reporting the assignments.
+* **Lossless indexing of k-mers.** ProPhyle stores a list of *all* genomes containing a *k*-mer, therefore, it is
+  be more accurate when similar genomes are indexed (e.g, with phylogenetic trees for a single species).
 
-Getting started
----------------
+For information about how to use ProPhyle, see the main `ProPhyle documentation <http://prophyle.rtfd.io>`_.
 
-Prerequisities
-^^^^^^^^^^^^^^
+Quick example
+-------------
 
-* GCC 4.8+
-* ZLib
-* Python 3 with ete3 library
-* SamTools
+Create a Bioconda environment with ProPhyle and activate it: ::
 
+        $ conda create -c bioconda -n prophyle prophyle
+        $ source activate prophyle
 
+To quickly test ProPhyle functionality, download the bacterial database, and create an index
+with *k*-mer legth 12 and a subset of bacterial genomes: ::
 
-Installation using PIP
-^^^^^^^^^^^^^^^^^^^^^^
+        $ prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
+	$ prophyle download bacteria
 
-From PyPI::
+Classify your reads: ::
 
-	pip install --upgrade prophyle
-
-From Git::
-
-	pip install --upgrade git+https://github.com/karel-brinda/prophyle
-
-From PyPI to the current directory::
-
-	pip install --user prophyle
-	export PYTHONUSERBASE=`pwd`
-	export PATH=$PATH:`pwd`/bin
-
-
-Installation using Bioconda
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Environment installation::
-
-	conda create -c bioconda -n prophyle prophyle
-
-Environment activation::
-
-	source activate prophyle
-
-
-Examples
-^^^^^^^^
-
-Quick test (small k, subsampled bacterial database)::
-
-	prophyle download bacteria
-	prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
 	prophyle classify test_idx reads.fq > result.sam
 
-Bacterial database (k=31)::
-
-	prophyle download bacteria
-	prophyle index -k 31 ~/prophyle/bacteria.nw idx_bac
-	prophyle classify idx_bac reads.fq > result.sam
-
-Bacterial and viral database (k=31)::
-
-	prophyle download bacteria
-	prophyle download viruses
-	prophyle index -k 31 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw idx_bac_vir
-	prophyle classify idx_bac_vir reads.fq > result.sam
