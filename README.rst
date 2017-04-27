@@ -29,7 +29,7 @@ can be found in our `poster <http://brinda.cz/publications/2017_prophyle_hsph_po
 Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
 
 * **Low memory requirements.** Compared to Kraken, ProPhyle has 9x smaller memory footprint for index construction and 5x smaller footprint for querying.
-* **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic tree or multiple trees.
+* **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic tree or even multiple trees.
 * **Standard bioinformatics formats.** Newick/NHX is used for representing phylogenetic trees and SAM for reporting the assignments.
 * **Lossless k-mer indexing.** ProPhyle stores a list of *all* genomes containing a *k*-mer.
   It can be, therefore, accurate even with trees containing similar genomes
@@ -49,11 +49,11 @@ Quick example
 
         $ prophyle download bacteria
 
-2. To quickly test ProPhyle functionality, create an index for a subset of this database with *k*-mer length 12: ::
+3. To quickly test ProPhyle functionality, create an index for a subset of this database with *k*-mer length 12: ::
 
         $ prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
 
-3. Classify your reads: ::
+4. Classify your reads: ::
 
 	$ prophyle classify test_idx reads.fq > result.sam
 
