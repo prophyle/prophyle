@@ -9,17 +9,17 @@ Licence: MIT
 Example:
 
 	Download sequences:
-	
+
 		$ prophyle download bacteria
-	
+
 	Create an index for k=10 and the small testing bacterial tree:
-	
+
 		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw ~/prophyle/test_viruses.nw test_idx
-	
+
 	Classify some reads:
 
 		$ prophyle classify test_idx reads.fq > result.sam
-	
+
 TODO:
 	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
@@ -333,7 +333,7 @@ def _mark_complete(d, i=1, name=None):
 
 	_touch(__mark_fn(d, i, name))
 
- 
+
 def _is_complete(d, i=1, name=None):
 	"""Check if a mark file i exists AND is newer than the mark file (i-1).
 
@@ -677,7 +677,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	#
 	# 1) Newick
 	#
-	
+
 	#if not _existing_and_newer(tree_fn, index_tree):
 	if not _is_complete(index_dir, 1):
 		recompute=True
@@ -1019,7 +1019,7 @@ def parser():
 			dest='k',
 			metavar='INT',
 			type=int,
-			help='k-mer length [detect automatically]',
+			help='k-mer length [detect automatically from the index]',
 			default=None,
 		)
 	parser_classify.add_argument(
@@ -1066,7 +1066,8 @@ def parser():
 			'-M',
 			dest='mimic',
 			action='store_true',
-			help='mimic Kraken algorithm and output (for debugging purposes)',
+			#help='mimic Kraken algorithm and output (for debugging purposes)',
+			help=argparse.SUPPRESS,
 		)
 
 	##########
