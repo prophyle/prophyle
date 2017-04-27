@@ -28,9 +28,9 @@ can be found in our `poster <http://brinda.cz/publications/2017_prophyle_hsph_po
 
 Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
 
-* **Low memory requirements.** Compared to Kraken, ProPhyle has 9x smaller memory footprint for index construction and 5x smaller footprint for querying.
+* **Low memory requirements.** Compared to `Kraken <https://ccb.jhu.edu/software/kraken/>`, ProPhyle has 9x smaller memory footprint for index construction and 5x smaller footprint for querying.
 * **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic tree or even multiple trees.
-* **Standard bioinformatics formats.** Newick/NHX is used for representing phylogenetic trees and SAM for reporting the assignments.
+* **Standard bioinformatics formats.** `Newick/NHX <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_ is used for representing phylogenetic trees and `SAM <https://samtools.github.io/hts-specs/SAMv1.pdf>`_ for reporting the assignments.
 * **Lossless k-mer indexing.** ProPhyle stores a list of *all* genomes containing a *k*-mer.
   It can be, therefore, accurate even with trees containing similar genomes
   (e.g, phylogenetic trees for a single species).
