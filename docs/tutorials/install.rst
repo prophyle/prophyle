@@ -3,14 +3,16 @@
 Installation
 ============
 
-
 Prerequisities
 --------------
 
+ProPhyle is written in Python and C++. It is distributed as a Python package
+and all C++ auxiliary programs are compiled upon the first execution of the main program.
+ProPhyle requires the following dependencies:
+
+* Python 3 with ETE3
 * GCC 4.8+
 * ZLib
-* Python 3 with ete3 library
-* SamTools
 
 
 Using Conda (recommended)
@@ -46,8 +48,8 @@ From PyPI to the current directory::
 Quick test
 ----------
 
-(small k, subsampled bacterial database)::
+To quickly test if ProPhyle has been installed correctly, you can
+create a small index with a small k-mer length::
 
 	prophyle download bacteria
 	prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
-	prophyle classify test_idx reads.fq > result.sam
