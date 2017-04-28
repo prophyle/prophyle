@@ -803,6 +803,12 @@ def parser():
 		Usage:   prophyle <command> [options]
 	""".format(V=version.VERSION)
 	parser = MyParser(formatter_class=argparse.RawDescriptionHelpFormatter,description=textwrap.dedent(desc))
+
+	parser.add_argument('-v', '--version',
+			action='version',
+			version='%(prog)s {}'.format(version.VERSION),
+		)
+
 	subparsers = parser.add_subparsers(help="",description=argparse.SUPPRESS,dest='subcommand',metavar="")
 	fc=lambda prog: argparse.HelpFormatter(prog,max_help_position=27)
 
@@ -1089,7 +1095,7 @@ def main():
 
 		else:
 			msg_lns=par.format_help().split("\n")[2:]
-			msg_lns=[x for x in msg_lns if x.find("optional arguments")==-1 and x.find("show this help")==-1]
+			msg_lns=[x for x in msg_lns if x.find("optional arguments")==-1 and x.find("--")==-1]
 			msg="\n".join(msg_lns)
 			msg=msg.replace("\n\n",'\n').replace("subcommands:\n","Command:").replace("Usage","\nUsage")
 			print(file=sys.stderr)
