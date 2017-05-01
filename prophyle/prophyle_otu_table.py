@@ -110,6 +110,11 @@ def create_otu_tables(tree, input_file, target_ranks, field, log):
 			if anc_rank in target_ranks:
 				tree_ranked_ancestors[node_taxid][anc_rank] = anc_taxid
 
+	tree_ranks['0'] = Rank.NO_RANK
+	tree_ranked_ancestors['0'] = {}
+	tree_ranks['*'] = Rank.NO_RANK
+	tree_ranked_ancestors['*'] = {}
+
 	for line in input_file:
 		taxid = line.split('\t')[taxid_field].strip()
 		rank = tree_ranks[taxid]
