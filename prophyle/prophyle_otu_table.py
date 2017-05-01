@@ -94,14 +94,12 @@ def create_otu_tables(tree, input_file, target_ranks, field, log):
 	# for each node n, tree_ranked_ancestors[n.taxid][r] is its ancestor at rank r
 	taxa = [str(n.taxid) for n in tree.traverse('postorder')]
 	tree_ranked_ancestors = {t:{} for t in taxa}
-	tree_ranks = {}
 
 	otu_tables = {r:Counter() for r in target_ranks}
 
 	for node in tree.traverse("postorder"):
 		node_taxid = str(node.taxid)
 		node_rank = str2rank.get(node.rank,Rank.NO_RANK)
-		tree_ranks[node_taxid] = node_rank
 		if node_rank in target_ranks:
 			tree_ranked_ancestors[node_taxid][node_rank] = node_taxid
 		for anc in node.get_ancestors():
@@ -110,20 +108,17 @@ def create_otu_tables(tree, input_file, target_ranks, field, log):
 			if anc_rank in target_ranks:
 				tree_ranked_ancestors[node_taxid][anc_rank] = anc_taxid
 
-	tree_ranks['0'] = Rank.NO_RANK
 	tree_ranked_ancestors['0'] = {}
-	tree_ranks['*'] = Rank.NO_RANK
 	tree_ranked_ancestors['*'] = {}
 
 	for line in input_file:
 		taxid = line.split('\t')[taxid_field].strip()
-		rank = tree_ranks[taxid]
 		try:
 			for r,t in tree_ranked_ancestors[taxid].items():
 				otu_tables[r][t] += 1
 		except KeyError:
-			print('[prophyle_otu_table] Taxid ' + taxid +
-						' is not in the tree', file=log)
+			print('[prophyle_otu_table] Error: ignored taxid ' + taxid +
+						' (not in the tree)', file=log)
 			pass
 
 	return otu_tables
