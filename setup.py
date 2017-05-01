@@ -46,7 +46,12 @@ setuptools.setup(
 
 	packages = ["prophyle"],
 
-	install_requires=['ete3', 'wheel', 'bitarray', 'psutil', 'argparse'],
+	install_requires=[
+			'ete3',
+			'wheel',
+			'bitarray',
+			'psutil',
+		],
 
 	package_data={
 		'prophyle': [
