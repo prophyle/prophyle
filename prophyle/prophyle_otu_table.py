@@ -130,7 +130,7 @@ def create_otu_tables(tree, input_file, target_ranks, field, log):
 
 def write_tables(otu_tables, output_prefix, log):
 	rank2str = {v:k for k,v in str2rank.items()}
-	for rank, counter in otu_tables.items():
+	for rank, counter in otu_tables.most_common():
 		with open(output_prefix+'_'+rank2str[rank]+'.tsv', 'w') as out_f:
 			for taxid, count in counter.items():
 				print(taxid+'\t'+str(count),file=out_f)
