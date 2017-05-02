@@ -83,19 +83,25 @@ def build_complete_tree(tree, log):
 				print('[prophyle_otu_table] ERROR: TaxID ' + str(taxid_not_found) +
 						' not found in ETE DB (try updating it)', file=log)
 			pass
-	# for node in complete_tree.traverse('postorder'):
-	# 	node.name = node.taxid
+
 	return complete_tree
 
-def create_otu_tables(tree, input_file, target_ranks, field, log):
+def create_otu_tables(tree, input_files, target_ranks, field, log):
 
 	# index starts from 0
 	taxid_field = field - 1
 	# for each node n, tree_ranked_ancestors[n.taxid][r] is its ancestor at rank r
 	taxa = [str(n.taxid) for n in tree.traverse('postorder')]
 	tree_ranked_ancestors = {t:{} for t in taxa}
-
-	otu_tables = {r:Counter() for r in target_ranks}
+	otu_rank_taxacount = {r:Counter() for r in target_ranks}
+	otu_tables = {}
+	for r in target_ranks:
+		for f in input_files:
+			try:
+				otu_tables[r][f] = Counter()
+			except KeyError:
+				otu_tables[r] = {}
+				otu_tables[r][f] = Counter()
 
 	for node in tree.traverse("postorder"):
 		node_taxid = str(node.taxid)
@@ -110,25 +116,38 @@ def create_otu_tables(tree, input_file, target_ranks, field, log):
 
 	tree_ranked_ancestors['0'] = {}
 	tree_ranked_ancestors['*'] = {}
+	already_ignored = set()
 
-	for line in input_file:
-		taxid = line.split('\t')[taxid_field].strip()
-		try:
-			for r,t in tree_ranked_ancestors[taxid].items():
-				otu_tables[r][t] += 1
-		except KeyError:
-			print('[prophyle_otu_table] Error: ignored taxid ' + taxid +
-						' (not in the tree)', file=log)
-			pass
+	for f in input_files:
+		with open(f, 'r') as in_f:
+			for line in in_f:
+				taxid = line.split('\t')[taxid_field].strip()
+				try:
+					for r,t in tree_ranked_ancestors[taxid].items():
+						otu_tables[r][f][t] += 1
+						otu_rank_taxacount[r][t] += 1
+				except KeyError:
+					if taxid not in already_ignored:
+						print('[prophyle_otu_table] Error: ignored taxid ' + taxid +
+									' (not in the tree)', file=log)
+						already_ignored.add(taxid)
+					pass
 
-	return otu_tables
+	return otu_tables, otu_rank_taxacount
 
-def write_tables(otu_tables, output_prefix, log):
+def write_tables(otu_tables, otu_rank_taxacount, output_prefix, input_files, log):
 	rank2str = {v:k for k,v in str2rank.items()}
-	for rank, counter in otu_tables.items():
+
+	out_string = '\t'+'\t'.join(input_files)
+
+	for rank, taxa_count in otu_rank_taxacount.items():
 		with open(output_prefix+'_'+rank2str[rank]+'.tsv', 'w') as out_f:
-			for taxid, count in counter.most_common():
-				print(taxid+'\t'+str(count),file=out_f)
+			rank_out_string = out_string
+			for taxid, _ in taxa_count.most_common():
+				rank_out_string += '\n' + taxid
+				for f in input_files:
+					rank_out_string += '\t' + str(otu_tables[rank][f][taxid])
+			out_f.write(rank_out_string)
 
 def main():
 
@@ -143,16 +162,15 @@ def main():
 						type = str,
 						metavar = '<output_prefix>',
 						help = 'prefix for output files (one per rank, each with suffix \"_rank.tsv\")')
-	parser.add_argument('input_file',
-						nargs='?',
-						type = argparse.FileType('r'),
-						default = sys.stdin,
-						help = 'input file (output of prophyle classify) [stdin]')
+	parser.add_argument('input_files',
+						nargs='+',
+						help = 'input files (outputs of prophyle classify)')
 	parser.add_argument('-r', '--ranks',
 						type = str,
 						default = 'species,genus,family,phylum,class,order,kingdom',
 						dest = 'target_ranks',
-						help = 'ranks to build the OTU table for [species,genus,family,phylum,class,order,kingdom]')
+						help = 'comma separated list of ranks to build the OTU table for '
+						 		'[species,genus,family,phylum,class,order,kingdom]')
 	parser.add_argument('-f','--field',
 						type = int,
 						default = 3,
@@ -166,7 +184,6 @@ def main():
 						help = 'log file [stderr]')
 
 	args = parser.parse_args()
-	unknown_ranks = set()
 	target_ranks = []
 
 	try:
@@ -179,9 +196,9 @@ def main():
 	target_ranks = [str2rank[r] for r in map(str.strip, str_ranks)]
 
 	complete_tree = build_complete_tree(args.tree, args.log_file)
-	otu_tables = create_otu_tables(complete_tree, args.input_file,
+	otu_tables, otu_rank_taxacount = create_otu_tables(complete_tree, args.input_files,
 									target_ranks, args.field, args.log_file)
-	write_tables(otu_tables, args.output_prefix, args.log_file)
+	write_tables(otu_tables, otu_rank_taxacount, args.output_prefix, args.input_files, args.log_file)
 
 if __name__ == '__main__':
 	main()
