@@ -70,7 +70,7 @@ def build_complete_tree(tree, log):
 	"""
 	ncbi = NCBITaxa()
 	original_tree = Tree(tree, format=1)
-	taxa = [l.taxid for l in original_tree]
+	taxa = [n.taxid for n in original_tree.traverse('postorder')]
 	built = False
 	while not built:
 		try:
