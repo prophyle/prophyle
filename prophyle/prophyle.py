@@ -49,7 +49,7 @@ C_D=os.path.dirname(os.path.realpath(__file__))
 TREE_D=os.path.join(C_D,"trees")
 
 #bin_dir=os.path.dirname(__file__)
-BWA=os.path.join(C_D,"prophyle_index","BWA","bwa")
+BWA=os.path.join(C_D,"prophyle_index","bwa","bwa")
 IND=os.path.join(C_D,"prophyle_index","prophyle_index")
 ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
