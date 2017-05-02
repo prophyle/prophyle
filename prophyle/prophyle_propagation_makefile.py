@@ -109,13 +109,13 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 			else
 			   CMD_ASM_OUT_{nid} = -o {oo}
 			endif
-			
+
 			ifdef NONPROP
 			   CMD_ASM_{nid} = touch {x} {o}
 			else
 			   CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
 			endif
-			
+
 			{xcompl}: {icompl}
 				@echo starting propagation for $@
 				$(CMD_ASM_{nid})
@@ -250,25 +250,25 @@ class TreeIndex:
 				.PHONY: all clean
 
 				SHELL=/usr/bin/env bash
-				.SHELLFLAGS = -euf -o pipefail
+				.SHELLFLAGS = -eufc -o pipefail
 
-				
+
 				PRG_ASM?=prophyle_assembler
 				PRG_DUST?=dustmasker
-				
+
 				$(info )
 				$(info /------------------------------------------------------------------)
-				
+
 				ifdef K
 				   $(info | K-mer length:           $(K))
 				else
 				   $(error | K-mer length is not specified)
 				endif
-				
+
 				$(info | Assembler:              $(PRG_ASM))
-				
+
 				$(info | DustMasker:             $(PRG_DUST))
-				
+
 				ifdef MASKREP
 				   $(info | Masking repeats:        On)
 				   CMD_MASKING= | $(PRG_DUST) -infmt fasta -outfmt fasta | sed '/^>/! s/[^AGCT]/N/g'
@@ -276,20 +276,20 @@ class TreeIndex:
 				   $(info | Masking repeats:        Off)
 				   CMD_MASKING=
 				endif
-				
+
 				ifdef NONPROP
 				   $(info | K-mer propagation:      Off)
 				else
 				   $(info | K-mer propagation:      On)
 				endif
-				
+
 				ifdef NONDEL
 				   $(info | K-mer propagation mode: Non-deletative)
 				   REASM=1
 				else
 				   $(info | K-mer propagation mode: Deletative)
 				endif
-				
+
 				ifdef REASM
 				   $(info | Re-assembling leaves:   On)
 				   CMD_REASM= | $(PRG_ASM) -S -i - -o -
