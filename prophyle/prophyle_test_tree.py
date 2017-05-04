@@ -49,8 +49,8 @@ def verify_newick_tree(tree):
 			if rname in existing_names:
 				duplicates.append(rname)
 				error=True
-			if "_" in rname:
-				underscored_names.add(underscored_names)
+			if "@" in rname:
+				underscored_names.add(rname)
 				error=True
 			existing_names.add(rname)
 
@@ -58,7 +58,7 @@ def verify_newick_tree(tree):
 	duplicates.sort()
 
 	if error:
-		print("Error",file=sys.stderr)
+		print("Error:",file=sys.stderr)
 
 	if without_name>0:
 		print("{} nodes without name".format(without_name),file=sys.stderr)
@@ -70,7 +70,7 @@ def verify_newick_tree(tree):
 		print("{} node(s) with a duplicate name: {}".format(len(duplicates), ", ".join(duplicates)),file=sys.stderr)
 
 	if len(underscored_names)>0:
-		print("{} node(s) with a name containing '_': {}".format(len(underscored_names), ", ".join(underscored_names)),file=sys.stderr)
+		print("{} node(s) with a name containing '@': {}".format(len(underscored_names), ", ".join(underscored_names)),file=sys.stderr)
 
 	if error:
 		sys.exit(1)
