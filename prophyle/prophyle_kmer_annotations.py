@@ -82,6 +82,9 @@ def enrich_tree(
 	for n in tree.traverse():
 		features|=n.features
 
+	# otherwise some names stored twice – also as a special attribute
+	features.remove("name")
+
 	# regularly update
 	tree.write(
 			format=1,
