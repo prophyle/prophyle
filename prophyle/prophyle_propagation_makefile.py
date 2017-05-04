@@ -89,6 +89,9 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 				ocomp=_compl(output_file),
 			))
 
+	print("#")
+	print("# Merging FASTA files:", output_file)
+	print("#")
 	print(cmd)
 
 
@@ -102,7 +105,9 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 		count_file (str): File with count statistics.
 	"""
 
-	assert(len(input_files)==len(output_files))
+	assert len(input_files)==len(output_files)
+	#assert intersection_file not in input_files
+	#print(intersection_file, input_files,file=sys.stderr)
 	cmd =  textwrap.dedent("""\
 			ifdef NONDEL
 			   CMD_ASM_OUT_{nid} =
@@ -131,6 +136,9 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 				nid=intersection_file,
 			)
 		)
+	print("#")
+	print("# Assembling FASTA file:", intersection_file)
+	print("#")
 	print(cmd)
 
 
@@ -207,6 +215,7 @@ class TreeIndex:
 			# 1) process children
 			for child in children:
 				self.process_node(child)
+				#print(child.name, "processed",file=sys.stderr)
 
 			# 2) k-mer propagation & assembly
 			input_files=[self.nonreduced_fasta_fn(x) for x in children]
@@ -233,6 +242,8 @@ class TreeIndex:
 
 			# 2b) several children
 			#else:
+			#print(node,file=sys.stderr)
+			#assert intersection_file not in input_files, (node.name, [x.name for x in node.get_children()])
 			assembly(input_files,output_files,intersection_file,count_file)
 
 

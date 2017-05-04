@@ -4,6 +4,12 @@
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
+Licence: MIT
+
+Examples:
+
+		$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw
+		$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw
 """
 
 import os
@@ -32,7 +38,10 @@ def merge_trees(input_trees, output_tree, verbose, add_prefixes):
 	for i,x in enumerate(input_trees,1):
 		if verbose:
 			print("Loading '{}'".format(x), file=sys.stderr)
-		tree_to_add=Tree(x, format=DEFAULT_FORMAT)
+		tree_fn,_,root_name=x.partition("@")
+		tree_to_add=Tree(tree_fn, format=DEFAULT_FORMAT)
+		if root_name!='':
+			tree_to_add=tree_to_add&root_name
 		if add_prefixes:
 			tree_to_add=add_prefix(tree_to_add, i)
 		t.add_child(tree_to_add)
@@ -45,6 +54,9 @@ def merge_trees(input_trees, output_tree, verbose, add_prefixes):
 	for n in t.traverse():
 		features|=n.features
 
+	# otherwise some names stored twice – also as a special attribute
+	features.remove("name")
+
 	t.write(
 			outfile=output_tree,
 			features=sorted(features),
@@ -54,17 +66,27 @@ def merge_trees(input_trees, output_tree, verbose, add_prefixes):
 
 
 def parse_args():
-		parser = argparse.ArgumentParser(description='Merge multiple Prophyle trees')
+		parser = argparse.ArgumentParser(
+				description="\n".join(
+					[
+						'Merge multiple Prophyle trees. Specific subtrees might be extracted before merging. Examples:',
+						'\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw',
+						'\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw'
+					]),
+				formatter_class=argparse.RawTextHelpFormatter,
+			)
 
 		parser.add_argument('in_tree',
+				metavar='<in_tree.nw{@node_name}>',
 				type=str,
-				help='input trees',
+				help='input tree',
 				nargs='+',
 			)
 
 		parser.add_argument('out_tree',
+				metavar='<out_tree.nw>',
 				type=str,
-				help='output trees',
+				help='output tree',
 			)
 
 		parser.add_argument('-V',

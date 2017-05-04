@@ -1,18 +1,19 @@
 #! /usr/bin/env python3
 
+"""Incorporate information about k-mer counts at individual nodes into a ProPhyle NHX tree.
+
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
+"""
+
+
 import os
 import re
 import sys
 import argparse
 
-from subprocess import Popen, PIPE
-
 from ete3 import Tree
-
-#FEATURES=["lineage", "named_lineage", "seqname", "dist", "name",
-#	"support", "taxid", "rank", "base_len", "fastapath",
-#	"sci_name", "infasta_offset", "gi",
-#	'kmers_full','kmers_reduced']
 
 
 def load_nb_kmers(tsv_fn):
@@ -36,10 +37,12 @@ def load_nb_kmers(tsv_fn):
 				nname=m.group(1)
 
 				try:
-					assert counts[cat][nname]==count, "Different k-mer sizes reported for the same node '{}', probably a bug of prophyle-assembler".format(nname)
+					assert counts[cat][nname]==count, "Different k-mer sizes reported for the same node '{}', probably a bug of prophyle_assembler".format(nname)
 				except KeyError:
 					counts[cat][nname]=count
+
 	return counts
+
 
 def enrich_tree(
 		inp_tree_fn,
@@ -47,19 +50,13 @@ def enrich_tree(
 		count_tb,
 	):
 
-
 	tree=Tree(inp_tree_fn,format=1)
 
-	# compute k-mer counts
-	#print(sorted(count_tb["full"].keys()))
-	#print(sorted(count_tb["reduced"].keys()))
 	for node in tree.traverse("preorder"):
 		node.del_feature('kmers_full')
 		node.del_feature('kmers_reduced')
 
 		nname=node.name
-
-		# TODO: nodes with name="" should not exist
 
 		assert nname != "", "There is a node without any name ('')"
 
@@ -79,54 +76,44 @@ def enrich_tree(
 		assert 0<=node.kmers_reduced
 		assert node.kmers_reduced<=node.kmers_full
 
+
+	# make saving newick reproducible
+	features=set()
+	for n in tree.traverse():
+		features|=n.features
+
+	# otherwise some names stored twice – also as a special attribute
+	features.remove("name")
+
 	# regularly update
 	tree.write(
 			format=1,
-			features=[],
+			features=sorted(features),
 			outfile=out_tree_fn,
 			format_root_node=True,
 		)
 
-if __name__ == "__main__":
 
+def main():
 	parser = argparse.ArgumentParser(description='Build index.')
-	parser.add_argument(
-			'-i','--inp-tree',
+	parser.add_argument('tree',
+			metavar='<in-tree.nw>',
 			type=str,
-			metavar='str',
-			dest='inp_tree_fn',
-			required=True,
-			help='Input taxonomic tree (Newick).',
+			help='input phylogenetic tree (in Newick/NHX)',
 		)
-	parser.add_argument(
-			'-o','--out-tree',
+	parser.add_argument('counts_fn',
+			metavar='<counts.tsv>',
 			type=str,
-			metavar='str',
-			dest='out_tree_fn',
-			required=True,
-			help='Output taxonomic tree (Newick).',
-		)
-	#parser.add_argument(
-	#		'-k',
-	#		type=int,
-	#		metavar='int',
-	#		dest='k',
-	#		required=True,
-	#		help='K-mer length k.',
-	#	)
-	parser.add_argument(
-			'-c','--counts',
-			type=str,
-			metavar='str',
-			dest='counts_fn',
-			required=True,
 			help='TSV file with counts produced during index propagation.',
+		)
+	parser.add_argument('out_tree_fn',
+			metavar='<out-tree.nw>',
+			type=str,
+			help='output phylogenetic tree (in Newick/NHX)',
 		)
 
 	args = parser.parse_args()
 
-	#k=args.k
-	#assert k>0
 	inp_tree_fn=args.inp_tree_fn
 	out_tree_fn=args.out_tree_fn
 	counts_fn=args.counts_fn
@@ -134,9 +121,11 @@ if __name__ == "__main__":
 	count_tb=load_nb_kmers(counts_fn)
 
 	enrich_tree(
-		#k=k,
 		inp_tree_fn=inp_tree_fn,
 		out_tree_fn=out_tree_fn,
 		count_tb=count_tb,
 	)
-	
+
+
+if __name__ == "__main__":
+	main()
