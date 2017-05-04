@@ -347,7 +347,7 @@ void process_sequence(void* data, int i, int tid) {
 	if (start_pos + opt->kmer_length > seq.len) {
 		if (opt->output) {
 			prophyle_worker->output[i] = malloc(5 * sizeof(char));
-			strncpy(prophyle_worker->output[i], "0:0\n", 5);
+			strncpy(prophyle_worker->output[i], "0:0", 5);
 		}
 	} else {
 		int index = 0;
