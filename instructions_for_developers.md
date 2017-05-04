@@ -16,3 +16,8 @@
 
 * A-tests (small) are run on Travis. B-tests (big) are run only locally (they are too long to be tested after each commit).
 * Every program should (ideally) have a unit test.
+
+## Packaged Python scripts
+
+* Scripts used by prophyle should be named prophyle\_\*
+* Auxiliary scripts (e.g., those used only in the tests) should not be included in the ProPhyle package

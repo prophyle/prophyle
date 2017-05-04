@@ -410,7 +410,7 @@ def prophyle_download(library, library_dir, force=False):
 
 	if library=="all":
 		for l in LIBRARIES:
-			download(l, library_dir, force)
+			prophyle_download(l, library_dir, force)
 		return
 	else:
 		assert library in LIBRARIES
