@@ -54,6 +54,9 @@ def merge_trees(input_trees, output_tree, verbose, add_prefixes):
 	for n in t.traverse():
 		features|=n.features
 
+	# otherwise some names stored twice – also as a special attribute
+	features.remove("name")
+
 	t.write(
 			outfile=output_tree,
 			features=sorted(features),
