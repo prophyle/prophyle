@@ -79,10 +79,16 @@ def enrich_tree(
 		assert 0<=node.kmers_reduced
 		assert node.kmers_reduced<=node.kmers_full
 
+
+	# make saving newick reproducible
+	features=set()
+	for n in tree.traverse():
+		features|=n.features
+
 	# regularly update
 	tree.write(
 			format=1,
-			features=[],
+			features=sorted(features),
 			outfile=out_tree_fn,
 			format_root_node=True,
 		)
