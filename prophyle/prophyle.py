@@ -26,7 +26,6 @@ TODO:
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
 	* classificaton: support for c2, h2
-	* check if prophyle_assembler & prophyle_index are newer than their source files
 """
 
 
