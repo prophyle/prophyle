@@ -41,8 +41,11 @@ import glob
 import re
 import psutil
 import time
+import itertools
 
 from . import version
+
+MEMORY_MEASURE_SLEEP=0.3
 
 C_D=os.path.dirname(os.path.realpath(__file__))
 TREE_D=os.path.join(C_D,"trees")
@@ -187,17 +190,22 @@ def _run_safe(command, output_fn=None, output_fo=None):
 		out_fo=open(output_fn,"w+")
 
 	p=subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
-	ps_p = psutil.Process(p.pid)
+	main_prc = psutil.Process(p.pid)
 
 	max_rss = 0
 	error_code=None
 	while error_code is None:
+		rss=0
 		try:
-			max_rss=max(max_rss, ps_p.memory_info().rss)
+			prcs=[main_prc]+list(itertools.chain(main_prc.children(recursive=True)))
+			print([x.memory_info().rss/(1024*1024) for x in prcs])
+			for prc in prcs:
+				rss+=prc.memory_info().rss
 		except psutil.ZombieProcess:
 			pass
+		max_rss=max(max_rss, rss)
 		# wait 0.02 s
-		time.sleep(0.02)
+		time.sleep(MEMORY_MEASURE_SLEEP)
 		error_code=p.poll()
 
 	out_fo.flush()
