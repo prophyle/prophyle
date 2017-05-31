@@ -9,13 +9,31 @@ Licence: MIT
 
 import sys
 import argparse
+import bz2
+import gzip
 from itertools import islice
 
 desc="""\
 	Program: prophyle_paired_reads
 
-	Merge paired end fastq files
+	Merge paired end fastq files, eventually compressed with gzip or bz2
 """
+
+magic_dict = {
+	b'\x1f\x8b\x08': lambda x: gzip.open(x, 'rt'),
+	b'\x42\x5a\x68': lambda x: bz2.open(x, 'rt'),
+}
+
+def open_any_file(filename):
+	# Initialise to default open function
+	max_len = max(len(x) for x in magic_dict)
+	with open(filename, 'rb') as f:
+		file_start = f.read(max_len)
+		f.seek(0)
+	for magic, open_func in magic_dict.items():
+		if file_start.startswith(magic):
+			return open_func(filename)
+	return open(filename, 'rt')
 
 def merge_fastas(fastq_1, fastq_2, output_file, log_file):
 
@@ -47,7 +65,7 @@ def merge_fastas(fastq_1, fastq_2, output_file, log_file):
 			sys.exit(1)
 		out_read = id_1 + '\n' +\
 					next_read_1[1].strip() + 'N' + next_read_2[1].strip() + '\n' +\
-		 			next_read_1[2].strip() + '\n' +\
+					next_read_1[2].strip() + '\n' +\
 					next_read_1[3].strip() + ':' + next_read_2[3].strip() + '\n'
 		output_file.write(out_read)
 		i += 4
@@ -59,20 +77,17 @@ def main():
 		description=desc)
 
 	parser.add_argument('fastq_1',
-						type = argparse.FileType('r'),
-						default = sys.stdin,
-						help = 'first read file in the fastq format [stdin]')
+						type = str,
+						help = '1st fastq file')
 	parser.add_argument('fastq_2',
-						type = argparse.FileType('r'),
-						default = sys.stdin,
-						help = 'second read file in the fastq format [stdin]')
+						type = str,
+						help = '2nd fastq file')
 	parser.add_argument('-o', '--output-file',
 						type=argparse.FileType('w'),
 						default = sys.stdout,
 						metavar = 'output_file',
 						dest = 'output_file',
 						help = 'output file [stdout]')
-
 	parser.add_argument('-l', '--log',
 						type=argparse.FileType('w'),
 						default = sys.stderr,
@@ -81,7 +96,11 @@ def main():
 						help = 'log file [stderr]')
 
 	args = parser.parse_args()
-	merge_fastas(args.fastq_1, args.fastq_2, args.output_file, args.log_file)
+	fastq_1 = open_any_file(args.fastq_1)
+	fastq_2 = open_any_file(args.fastq_1)
+	merge_fastas(fastq_1, fastq_2, args.output_file, args.log_file)
+	fastq_1.close()
+	fastq_2.close()
 
 if __name__ == '__main__':
 	main()
