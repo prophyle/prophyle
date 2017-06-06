@@ -75,7 +75,7 @@ setuptools.setup(
 				'prophyle = prophyle.prophyle:main',
 				'prophyle_propagation_makefile.py = prophyle.prophyle_propagation_makefile:main',
 				'prophyle_merge_fa.py = prophyle.prophyle_merge_fa:main',
-				'prophyle_test_tree.py = prophyle.prophyle_test_tree:main',
+				'prophyle_validate_tree.py = prophyle.prophyle_validate_tree:main',
 				'prophyle_assignment.py = prophyle.prophyle_assignment:main',
 				'prophyle_merge_trees.py = prophyle.prophyle_merge_trees:main',
 				'prophyle_ncbi_tree.py = prophyle.prophyle_ncbi_tree:main',
