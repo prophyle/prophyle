@@ -115,6 +115,8 @@ def _open_log(fn):
 
 	global log_file
 	if fn is not None:
+		d=os.path.dirname(fn)
+		_makedirs(d)
 		log_file=open(fn,"a+")
 
 
@@ -1057,7 +1059,7 @@ def parser():
 			dest='log_fn',
 			metavar='STR',
 			type=str,
-			help='log file',
+			help='log file [<index.dir>/log.txt]',
 			default=None,
 		)
 	parser_index.add_argument(
@@ -1193,6 +1195,10 @@ def main():
 				library_dir=os.path.dirname(args.tree[0])
 			else:
 				library_dir=args.library_dir
+
+			if args.log_fn is None:
+				args.log_fn = os.path.join(args.index_dir, "log.txt")
+
 			_open_log(args.log_fn)
 			_message('Index construction started')
 			prophyle_index(
@@ -1211,6 +1217,9 @@ def main():
 			_close_log()
 
 		elif subcommand=="classify":
+			#if args.log_fn is None:
+			#	args.log_fn = os.path.join(args.index_dir, "log.txt")
+
 			_open_log(args.log_fn)
 			_message('Classification started')
 			prophyle_classify(
