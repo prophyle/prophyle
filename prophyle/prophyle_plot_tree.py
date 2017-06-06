@@ -86,7 +86,7 @@ def main():
 			metavar='str',
 			dest='attribute_name',
 			type=str,
-			help='Attribute to print with each node (e.g., sci_name)',
+			help='attribute to print with each node (e.g., sci_name)',
 			default='name',
 		)
 
