@@ -581,14 +581,26 @@ def _merge_trees(in_trees, out_tree, no_prefixes):
 		)
 
 
+def _remove_tmp_propagation_files(index_dir):
+	"""Run k-mer propagation.
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+	_message('Removing temporary files')
+	propagation_dir=os.path.join(index_dir, 'propagation')
+
+	command=['make', '-C', propagation_dir, 'clean', '> /dev/null']
+	_run_safe(
+			command,
+		)
+
+
 def _merge_fastas(index_dir):
 	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
 
 	Args:
 		index_dir (str): Index directory.
-
-	TODO:
-		* check files for all nodes exist and are of size > 0
 	"""
 
 	_message('Generating index.fa')
@@ -709,7 +721,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 		)
 
 
-def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files):
 	"""Build a Prophyle index.
 
 	Args:
@@ -722,11 +734,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		force (bool): Rewrite files if they already exist.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 		mask_repeats (bool): Mask repeats using DustMasker.
-
-	TODO:
-		* klcp in parallel with SA
-		* copy Newick only if it is newer
-		* add update the tree with number of k-mers
+		keep_tmp_files (bool): Keep temporary files from k-mer propagation.
 	"""
 
 	assert isinstance(k, int)
@@ -783,6 +791,8 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_merge_fastas(index_dir)
+		if not keep_tmp_files:
+			_remove_tmp_propagation_files(index_dir)
 		_mark_complete(index_dir, 2)
 	else:
 		_message('[2/5] K-mers have already been propagating, skipping propagation', upper=True)
@@ -1074,6 +1084,12 @@ def parser():
 			action='store_false',
 			help='skip k-LCP construction',
 		)
+	parser_index.add_argument(
+			'-T',
+			dest='keep_tmp_files',
+			action='store_true',
+			help='keep temporary files from k-mer propagation',
+		)
 
 	##########
 
@@ -1189,6 +1205,7 @@ def main():
 					construct_klcp=args.klcp,
 					no_prefixes=args.no_prefixes,
 					mask_repeats=args.mask_repeats,
+					keep_tmp_files=args.keep_tmp_files,
 				)
 			_message('Index construction finished')
 			_close_log()
