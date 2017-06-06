@@ -41,6 +41,7 @@ import glob
 import re
 import psutil
 import time
+import hashlib
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
@@ -127,6 +128,27 @@ def _close_log():
 	global log_file
 	if log_file is not None:
 		log_file.close()
+
+
+def _file_md5 (fn, block_size=2**20):
+	md5 = hashlib.md5()
+	with open(fn, 'rb') as f:
+		while True:
+			data = f.read(block_size)
+			if not data:
+				break
+			md5.update(data)
+	return md5.hexdigest()
+
+
+def _log_file_md5 (fn, remark=None):
+	md5=_file_md5(fn)
+	_message("File {}{} has md5 checksum {}".format(
+			os.path.basename(fn),
+			" ({})".format(remark) if remark is not None else "",
+			md5,
+		)
+	)
 
 
 def _test_files(*fns,test_nonzero=False):
@@ -532,6 +554,7 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 		if  mask_repeats:
 			f.write("MASKREP=1\n")
 	_run_safe(command,output_fn=makefile)
+	_log_file_md5(makefile)
 
 
 def _propagate(index_dir, threads):
@@ -581,6 +604,7 @@ def _merge_trees(in_trees, out_tree, no_prefixes):
 			err_msg="The main tree could not be generated.",
 			thr_exc=False,
 		)
+	_log_file_md5(out_tree)
 
 
 def _remove_tmp_propagation_files(index_dir):
@@ -617,6 +641,7 @@ def _merge_fastas(index_dir):
 			thr_exc=True,
 		)
 	_touch(index_fa+".complete")
+	_log_file_md5(index_fa)
 
 
 def _fa2pac(fa_fn):
@@ -634,6 +659,7 @@ def _fa2pac(fa_fn):
 			err_msg="Packaged file could not be created.",
 			thr_exc=True,
 		)
+	_log_file_md5(fa_fn+".pac")
 
 
 def _pac2bwt(fa_fn):
@@ -651,6 +677,7 @@ def _pac2bwt(fa_fn):
 			err_msg="Burrows-Wheeler Transform could not be computed.",
 			thr_exc=True,
 		)
+	_log_file_md5(fa_fn+".bwt", remark="without OCC")
 
 
 def _bwt2bwtocc(fa_fn):
@@ -668,23 +695,25 @@ def _bwt2bwtocc(fa_fn):
 			err_msg="OCC array could not be computed.",
 			thr_exc=True,
 		)
+	_log_file_md5(fa_fn+".bwt", remark="with OCC")
 
 
 def _bwtocc2sa(fa_fn):
-	"""Run `bwa bwt2sa` (BWT+OCC => SSA).
+	"""Run `bwa bwt2sa` (BWT+, remark="with OCC"OCC => SSA).
 
 	Args:
 		fa_fn (str): FASTA file.
 	"""
 
 	_message('Generating sampled SA')
-	_test_files(BWA, fa_fn+".bwt")
+	_test_files(BWA, fa_fn+".bwt", remark="with OCC")
 	command=[BWA, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
 	_run_safe(
 			command,
 			err_msg="Sampled Suffix Array computation failed.",
 			thr_exc=True,
 		)
+	_log_file_md5(fa_fn+".sa")
 
 
 def _bwtocc2klcp(fa_fn,k):
@@ -703,6 +732,8 @@ def _bwtocc2klcp(fa_fn,k):
 			err_msg="k-Longest Common Prefix array construction failed.",
 			thr_exc=True,
 		)
+	_log_file_md5("{}.{}.klcp".format(fa_fn,k))
+
 
 
 def _bwtocc2sa_klcp(fa_fn,k):
@@ -721,6 +752,8 @@ def _bwtocc2sa_klcp(fa_fn,k):
 			err_msg="Parallel construction of k-Longest Common Prefix array and Sampled Suffix Array failed.",
 			thr_exc=True,
 		)
+	_log_file_md5(fa_fn+".sa")
+	_log_file_md5("{}.{}.klcp".format(fa_fn,k))
 
 
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files):
