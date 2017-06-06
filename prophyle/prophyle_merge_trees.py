@@ -16,7 +16,7 @@ import os
 import sys
 import argparse
 
-from ete3 import Tree
+import ete3
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
@@ -29,7 +29,7 @@ def add_prefix(tree, prefix):
 
 
 def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes):
-	t = Tree(
+	t = ete3.Tree(
 			name="merge_root",
 		)
 
