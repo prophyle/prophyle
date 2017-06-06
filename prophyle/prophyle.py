@@ -25,7 +25,7 @@ TODO:
 	* _is_complete should be combined with a test of files: is_missing => remove mark
 	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
-	* classificaton: support for c2, h2
+	* classification: support for c2, h2
 """
 
 
@@ -1129,7 +1129,7 @@ def main():
 					tie_lca=args.tie,
 					annotate=args.annotate,
 				)
-			_message('Classificaton finished')
+			_message('Classification finished')
 			_close_log()
 
 		else:
