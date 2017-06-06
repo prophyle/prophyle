@@ -8,7 +8,7 @@ Licence: MIT
 
 Example:
 
-	$ prophyle_test_tree.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw
+	$ prophyle_validate_tree.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw
 """
 
 import os
