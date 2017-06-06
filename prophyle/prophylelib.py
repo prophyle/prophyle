@@ -49,7 +49,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 	error=False
 
 	existing_names=[]
-	underscored_names=[]
+	names_with_separator=[]
 
 	without_name=[]
 	empty_name=[]
@@ -72,7 +72,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 				duplicates.append((i,nname))
 				error=True
 			if "@" in nname:
-				underscored_names.append((i,nname))
+				names_with_separator.append((i,nname))
 				error=True
 			existing_names.append((i,nname))
 
@@ -94,7 +94,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 		_error_report(without_name, "without name")
 		_error_report(empty_name, "with empty name")
 		_error_report(duplicates, "with a duplicate name")
-		_error_report(underscored_names, "with a name containing '_'")
+		_error_report(names_with_separator, "with a name containing '@'")
 
 	if throw_exceptions:
 		if error:
