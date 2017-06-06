@@ -42,7 +42,9 @@ import re
 import psutil
 import time
 
-from . import version
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
+import version
 
 C_D=os.path.dirname(os.path.realpath(__file__))
 TREE_D=os.path.join(C_D,"trees")
@@ -148,9 +150,8 @@ def _test_tree(fn):
 	Args:
 		fn (str): Newick/NHX tree.
 	"""
-	_test_files(fn)
-	cmd=[TEST_TREE, fn]
-	_run_safe(cmd)
+	tree=pro.load_nhx_tree(fn, validate=False)
+	assert pro.validate_prophyle_nhx_tree(tree, verbose=False, throw_exceptions=False, output=sys.stderr)
 
 
 def _file_sizes(*fns):
@@ -687,6 +688,9 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 	if recompute:
 		_message('[1/5] Copying/merging trees', upper=True)
+		for tree_fn in trees_fn:
+			tree=pro.load_nhx_tree(tree_fn)
+			pro.validate_prophyle_nhx_tree(tree)
 		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes)
 		_mark_complete(index_dir, 1)
 	else:
