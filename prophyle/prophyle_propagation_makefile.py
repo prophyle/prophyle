@@ -52,13 +52,14 @@ def _compl_l(fns):
 	return [_compl(x) for x in fns]
 
 
-def merge_fasta_files(input_files,output_file,is_leaf):
+def merge_fasta_files(input_files, output_file, is_leaf, nhx_file=None):
 	"""Print Makefile lines for merging FASTA files and removing empty lines.
 
 	Args:
 		input_files (list of str): List of input files.
 		output_file (str): Output file.
 		is_leaf (str): Is a leaf (i.e., copying must be done).
+		nhx_file (str): File with the tree (for including in rule dependencies).
 	"""
 
 	if is_leaf:
@@ -77,7 +78,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 
 		cmd = textwrap.dedent("""\
 
-				{ocompl}: {icompl}
+				{ocompl}: {icompl} {nhx}
 					cat {i} > {o}
 					touch $@
 
@@ -86,6 +87,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 				icomp=' '.join(_compl_l(input_files)),
 				o=output_file,
 				ocomp=_compl(output_file),
+				nhx=nhx_file if nhx_file is not None else "",
 			))
 
 	print("#")
@@ -94,7 +96,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 	print(cmd)
 
 
-def assembly(input_files, output_files, intersection_file, count_file="/dev/null"):
+def assembly(input_files, output_files, intersection_file, count_file="/dev/null", nhx_file=None):
 	"""Print Makefile lines for running prophyle_assembler.
 
 	Args:
@@ -102,6 +104,7 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 		output_files (list of str): List of output files.
 		intersection_file (str): File with intersection.
 		count_file (str): File with count statistics.
+		nhx_file (str): File with the tree (for including in rule dependencies).
 	"""
 
 	assert len(input_files)==len(output_files)
@@ -120,7 +123,7 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 			   CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
 			endif
 
-			{xcompl}: {icompl}
+			{xcompl}: {icompl} {nhx}
 				@echo starting propagation for $@
 				$(CMD_ASM_{nid})
 				touch $@
@@ -133,6 +136,7 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 				xcompl=_compl(intersection_file),
 				c=count_file,
 				nid=intersection_file,
+				nhx=nhx_file if nhx_file is not None else "",
 			)
 		)
 	print("#")
