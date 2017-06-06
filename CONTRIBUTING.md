@@ -1,4 +1,4 @@
-# Instructions for ProPhyle developers
+# ProPhyle – Contributing Guidelines
 
 ## ProPhyle subcommands
 
