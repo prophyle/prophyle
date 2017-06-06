@@ -166,18 +166,23 @@ def _file_sizes(*fns):
 	return tuple( [os.stat(fn).st_size for fn in fns] )
 
 
-def _run_safe(command, output_fn=None, output_fo=None):
+def _run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True):
 	"""Get file sizes in Bytes.
 
 	Args:
 		command (list of str): Command to execute.
 		output_fn (str): Name of a file for storing the output.
 		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
+		error_msg (str): Error message if the command fails.
+		thr_exc (bool): Through exception if the command fails. error_msg or thr_exc must be set.
 
 	Raises:
-		RuntimeError: Command exited with non-zero code.
+		RuntimeError: Command exited with a non-zero code.
 	"""
+
 	assert output_fn is None or output_fo is None
+	assert err_msg is not None or thr_exc
+
 	command_str=" ".join(map(lambda x: str(x),command))
 	_message("Running:", command_str)
 	if output_fn is None:
@@ -213,7 +218,14 @@ def _run_safe(command, output_fn=None, output_fo=None):
 		_message("Finished ({} MB used): {}".format(mem_mb, command_str))
 	else:
 		_message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
-		raise RuntimeError("Command error.")
+
+		if err_msg is not None:
+			print('Error: {}'.format(err_msg), file=sys.stderr)
+
+		if thr_exc:
+			raise RuntimeError("A command failed, see messages above.")
+
+		sys.exit(1)
 
 
 def _touch(*fns):
@@ -394,7 +406,7 @@ def _pseudo_fai(d):
 			'find', d, '-name', "'*.fa'", "-o", "-name", "'*.ffn'", "-o", "-name", "'*.fna'", "-exec", "grep", "-H", '">"', "{}", "\\;",
 			"|", 'sed', '"s/\:>/\t/"']
 
-		_run_safe(cmd, pseudofai_fn)
+		_run_safe(cmd, output_fn=pseudofai_fn)
 		_mark_complete(d, 2)
 
 
@@ -504,10 +516,10 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 		f.write("K={}\n".format(k))
 		if  mask_repeats:
 			f.write("MASKREP=1\n")
-	_run_safe(command,makefile)
+	_run_safe(command,output_fn=makefile)
 
 
-def _propagate(index_dir,threads):
+def _propagate(index_dir, threads):
 	"""Run k-mer propagation.
 
 	Args:
@@ -517,8 +529,22 @@ def _propagate(index_dir,threads):
 	_message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
+
+	# test if input files for propagation exist
+	command=['make', '-C', propagation_dir, '-n', '-s', '>', '/dev/null']
+	_run_safe(
+			command,
+			err_msg="Some FASTA files needed for k-mer propagation are probably missing. See messages above.",
+			thr_exc=False,
+		)
+
+	# run propagation
 	command=['make', '-j', threads, '-C', propagation_dir, 'V=1']
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="K-mer propagation has not been finished because of an error. See messages above.",
+			thr_exc=False,
+		)
 
 
 def _merge_trees(in_trees, out_tree, no_prefixes):
@@ -535,7 +561,11 @@ def _merge_trees(in_trees, out_tree, no_prefixes):
 	command=[MERGE_TREES] + in_trees + [out_tree]
 	if no_prefixes:
 		command += ['-P']
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="The main tree could not be generated.",
+			thr_exc=False,
+		)
 
 
 def _merge_fastas(index_dir):
@@ -553,7 +583,12 @@ def _merge_fastas(index_dir):
 	index_fa=os.path.join(index_dir,"index.fa")
 	#_test_files(MERGE_FASTAS)
 	command=[MERGE_FASTAS, propagation_dir]
-	_run_safe(command, index_fa)
+	_run_safe(
+			command,
+			output_fn=index_fa,
+			err_msg="Main ProPhyle FASTA file could not be generated",
+			thr_exc=True,
+		)
 	_touch(index_fa+".complete")
 
 
@@ -567,7 +602,11 @@ def _fa2pac(fa_fn):
 	_message('Generating packed FASTA file')
 	_test_files(BWA, fa_fn)
 	command=[BWA, 'fa2pac', fa_fn, fa_fn]
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="Packaged file could not be created.",
+			thr_exc=True,
+		)
 
 
 def _pac2bwt(fa_fn):
@@ -580,7 +619,11 @@ def _pac2bwt(fa_fn):
 	_message('Generating BWT')
 	_test_files(BWA, fa_fn+".pac")
 	command=[BWA, 'pac2bwtgen', fa_fn+".pac", fa_fn+".bwt"]
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="Burrows-Wheeler Transform could not be computed.",
+			thr_exc=True,
+		)
 
 
 def _bwt2bwtocc(fa_fn):
@@ -593,7 +636,11 @@ def _bwt2bwtocc(fa_fn):
 	_message('Generating sampled OCC array')
 	_test_files(BWA, fa_fn+".bwt")
 	command=[BWA, 'bwtupdate', fa_fn+".bwt"]
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="OCC array could not be computed.",
+			thr_exc=True,
+		)
 
 
 def _bwtocc2sa(fa_fn):
@@ -606,7 +653,11 @@ def _bwtocc2sa(fa_fn):
 	_message('Generating sampled SA')
 	_test_files(BWA, fa_fn+".bwt")
 	command=[BWA, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="Sampled Suffix Array computation failed.",
+			thr_exc=True,
+		)
 
 
 def _bwtocc2klcp(fa_fn,k):
@@ -620,7 +671,11 @@ def _bwtocc2klcp(fa_fn,k):
 	_message('Generating k-LCP array')
 	_test_files(IND, fa_fn+".bwt")
 	command=[IND, 'build', '-k', k, fa_fn]
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="k-Longest Common Prefix array construction failed.",
+			thr_exc=True,
+		)
 
 
 def _bwtocc2sa_klcp(fa_fn,k):
@@ -634,7 +689,11 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_message('Generating k-LCP array and SA in parallel')
 	_test_files(IND, fa_fn+".bwt")
 	command=[IND, 'build', '-s', '-k', k, fa_fn]
-	_run_safe(command)
+	_run_safe(
+			command,
+			err_msg="Parallel construction of k-Longest Common Prefix array and Sampled Suffix Array failed.",
+			thr_exc=True,
+		)
 
 
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats):
@@ -662,7 +721,10 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	assert k>1
 	assert threads>0
 
-	_compile_prophyle_bin()
+	try:
+		_compile_prophyle_bin()
+	except RuntimeError:
+		print("Warning: ProPhyle executables could not be compiled or recompiled.", file=sys.stderr)
 
 
 	index_fa=os.path.join(index_dir,'index.fa')
