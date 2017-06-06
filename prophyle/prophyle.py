@@ -150,6 +150,7 @@ def _test_tree(fn):
 	"""
 	_test_files(fn)
 	cmd=[TEST_TREE, fn]
+	_run_safe(cmd)
 
 
 def _file_sizes(*fns):
@@ -240,6 +241,7 @@ def _rm(*fns):
 		except FileNotFoundError:
 			pass
 
+
 def _cp_to_file(fn0, fn):
 	"""Copy file to file.
 
@@ -250,6 +252,7 @@ def _cp_to_file(fn0, fn):
 
 	# keep rewriting attributes
 	shutil.copyfile(fn0, fn)
+
 
 def _cp_to_dir(fn0, d):
 	"""Copy file to dir.
