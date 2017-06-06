@@ -317,6 +317,19 @@ def _existing_and_newer(fn0, fn):
 		return False
 
 
+def _existing_and_newer_list(fn0_l, fn):
+	"""Test if file fn exists and is newer than all files from fn0_l. Raise an exception if some fn0 file does not exist.
+
+	Args:
+		fn0 (str): Old file.
+		fn (str): New file (to be generated from fn0).
+	"""
+
+	rs=[_existing_and_newer(fn0, fn) for fn0 in fn0_l]
+	some_false=False in rs
+	return not some_false
+
+
 #####################
 # PROPHYLE DOWNLOAD #
 #####################
@@ -743,8 +756,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	# 1) Newick
 	#
 
-	#if not _existing_and_newer(tree_fn, index_tree):
-	if not _is_complete(index_dir, 1):
+	if not _is_complete(index_dir, 1) or not _existing_and_newer_list(trees_fn, index_tree):
 		recompute=True
 
 
