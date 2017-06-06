@@ -7,8 +7,10 @@ Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 Licence: MIT
 """
 
+
 import sys
 import ete3
+
 
 def load_nhx_tree(nhx_fn, validate=True):
 	tree=ete3.Tree(
@@ -41,8 +43,7 @@ def save_nhx_tree(tree, nhx_fn):
 	)
 
 
-def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output_file=sys.stderr):
-
+def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output=sys.stderr):
 	node_names=set()
 
 	error=False
@@ -80,20 +81,20 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
 	def _error_report(node_list, message):
 		if len(node_list)>0:
-			print("   * {} nodes {}: {}".format(
+			print("   * {} node(s) {}: {}".format(
 					len(node_list),
 					message,
 					_format_node_list(node_list),
-				),file=output_file)
+				),file=output)
 
 	if verbose:
 		if error:
-			print("Error",file=output_file)
+			print("Errors:".format(),file=output)
 
 		_error_report(without_name, "without name")
 		_error_report(empty_name, "with empty name")
 		_error_report(duplicates, "with a duplicate name")
-		_error_report(underscored_names, "a name containing '_'")
+		_error_report(underscored_names, "with a name containing '_'")
 
 	if throw_exceptions:
 		if error:
@@ -103,3 +104,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 		return False
 	else:
 		return True
+
+if __name__ == "__main__":
+	sys.exit(1)
+
