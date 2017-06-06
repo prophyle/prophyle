@@ -30,9 +30,8 @@ import sys
 import argparse
 import textwrap
 
-from ete3 import Tree
-
-DEFAULT_FORMAT = 1
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
 
 
 def _compl(fn):
@@ -155,7 +154,7 @@ class TreeIndex:
 			library_dir (str): Directory with FASTA files.
 		"""
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=Tree(tree_newick_fn,format=DEFAULT_FORMAT)
+		self.tree=pro.load_nhx_tree(tree_newick_fn)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
 		self.index_dir=index_dir
 		self.library_dir=library_dir
