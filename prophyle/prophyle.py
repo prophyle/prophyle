@@ -61,7 +61,7 @@ ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
 
 NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
-TEST_TREE="prophyle_test_tree.py"
+TEST_TREE="prophyle_validate_tree.py"
 MERGE_FASTAS="prophyle_merge_fa.py"
 MERGE_TREES="prophyle_merge_trees.py"
 ASSIGN="prophyle_assignment.py"
