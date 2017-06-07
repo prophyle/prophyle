@@ -393,9 +393,7 @@ def _remove_tmp_propagation_files(index_dir):
 	propagation_dir=os.path.join(index_dir, 'propagation')
 
 	command=['make', '-C', propagation_dir, 'clean', '>', '/dev/null']
-	pro.run_safe(
-			command,
-		)
+	pro.run_safe(command)
 
 
 def _merge_fastas(index_dir):
@@ -600,9 +598,11 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		_merge_fastas(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
+		else:
+			pro.message('Keeping temporary files')
 		_mark_complete(index_dir, 2)
 	else:
-		pro.message('[2/5] K-mers have already been propagating, skipping propagation', upper=True)
+		pro.message('[2/5] K-mers have already been propagated, skipping propagation', upper=True)
 
 	#
 	# 3) BWT + OCC
