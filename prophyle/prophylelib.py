@@ -7,15 +7,39 @@ Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 Licence: MIT
 """
 
-
-import sys
-import ete3
 import datetime
-import time
-import subprocess
+import ete3
+import os
 import psutil
+import shutil
+import subprocess
+import sys
+import time
 
 log_file=None
+
+
+def open_log(fn):
+	"""Open a log file.
+
+	Args:
+		fn (str): File name.
+	"""
+
+	global log_file
+	if fn is not None:
+		d=os.path.dirname(fn)
+		makedirs(d)
+		log_file=open(fn,"a+")
+
+
+def close_log():
+	"""Close a log file.
+	"""
+
+	global log_file
+	if log_file is not None:
+		log_file.close()
 
 
 def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True):
@@ -44,7 +68,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 		command_safe.append(part)
 
 	command_str=" ".join(command_safe)
-	_message("Running:", command_str)
+	message("Running:", command_str)
 	if output_fn is None:
 		if output_fo is None:
 			out_fo=sys.stdout
@@ -79,9 +103,9 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 		out_fo.close()
 
 	if error_code==0 or error_code==141:
-		_message("Finished ({} MB used): {}".format(mem_mb, command_str))
+		message("Finished ({} MB used): {}".format(mem_mb, command_str))
 	else:
-		_message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
+		message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
 
 		if err_msg is not None:
 			print('Error: {}'.format(err_msg), file=sys.stderr)
@@ -92,7 +116,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 		sys.exit(1)
 
 
-def _message(*msg, upper=False, only_log=False):
+def message(*msg, upper=False, only_log=False):
 	"""Print a ProPhyle message to stderr.
 
 	Args:
@@ -212,6 +236,131 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 		return False
 	else:
 		return True
+
+
+def file_sizes(*fns):
+	"""Get file sizes in Bytes.
+
+	Args:
+		fns (str): File names.
+
+	Returns:
+		tuple(int): File sizes.
+	"""
+	return tuple( [os.stat(fn).st_size for fn in fns] )
+
+
+def touch(*fns):
+	"""Touch files.
+
+	Args:
+		*fns: Files.
+	"""
+	for fn in fns:
+		if os.path.exists(fn):
+			os.utime(fn, None)
+		else:
+			with open(fn, 'a'):
+				pass
+
+
+def rm(*fns):
+	"""Remove files (might not exists).
+
+	Args:
+		*fns: Files.
+	"""
+	for fn in fns:
+		try:
+			os.remove(fn)
+		except FileNotFoundError:
+			pass
+
+
+def cp_to_file(fn0, fn):
+	"""Copy file to file.
+
+	Args:
+		fn0 (str): Source file.
+		fn (str): Target file.
+	"""
+
+	# keep rewriting attributes
+	shutil.copyfile(fn0, fn)
+
+
+def cp_to_dir(fn0, d):
+	"""Copy file to dir.
+
+	Args:
+		fn0 (str): Source file.
+		d (str): Target dir.
+	"""
+
+	# keep rewriting attributes
+	shutil.copy(fn0, d)
+
+
+def makedirs(*ds):
+	"""Make dirs recursively.
+
+	Args:
+		*ds: Dirs to create.
+	"""
+	for d in ds:
+		if not os.path.isdir(d):
+			cmd=['mkdir', '-p', d]
+			run_safe(cmd)
+
+
+def existing_and_newer(fn0, fn):
+	"""Test if file fn exists and is newer than fn0. Raise an exception if fn0 does not exist.
+
+	Args:
+		fn0 (str): Old file.
+		fn (str): New file (to be generated from fn0).
+	"""
+
+	assert os.path.isfile(fn0), "Dependency '{}' does not exist".format(fn0)
+
+	if not os.path.isfile(fn):
+		return False
+
+	if os.path.getmtime(fn0)<=os.path.getmtime(fn):
+		return True
+	else:
+		return False
+
+
+def existing_and_newer_list(fn0_l, fn):
+	"""Test if file fn exists and is newer than all files from fn0_l. Raise an exception if some fn0 file does not exist.
+
+	Args:
+		fn0 (str): Old file.
+		fn (str): New file (to be generated from fn0).
+	"""
+
+	rs=[existing_and_newer(fn0, fn) for fn0 in fn0_l]
+	some_false=False in rs
+	return not some_false
+
+
+def test_files(*fns,test_nonzero=False):
+	"""Test if given files exist, and possibly if they are non-empty. If not, stop the program.
+
+	Args:
+		*fns: Files.
+		test_nonzero (bool): Test if files have size greater than zero.
+
+	Raises:
+		AssertionError: File does not exist or it is empty.
+	"""
+	#print(fns)
+	for fn in fns:
+		assert os.path.isfile(fn), 'File "{}" does not exist'.format(fn)
+		if test_nonzero:
+			assert file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
+
 
 if __name__ == "__main__":
 	sys.exit(1)
