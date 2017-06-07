@@ -17,3 +17,8 @@ NORM=$(PROP_DIR)/_fa_norm.py
 
 FQ=../simulation_bacteria.1000.fq
 FA=index.fa
+
+d=$(shell pwd)
+$(info )
+$(info Directory: $(d))
+$(info )
