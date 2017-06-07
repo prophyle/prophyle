@@ -1,3 +1,5 @@
+# see https://github.com/pypa/sampleproject
+
 import setuptools
 
 import os
