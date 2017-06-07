@@ -218,7 +218,15 @@ def _run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=Tru
 	assert output_fn is None or output_fo is None
 	assert err_msg is not None or thr_exc
 
-	command_str=" ".join(map(lambda x: str(x),command))
+	command_safe = []
+
+	for part in command:
+		part=str(part)
+		if " " in part:
+			part='"{}"'.format(part)
+	command_safe.append(part)
+
+	command_str=" ".join(command_safe)
 	_message("Running:", command_str)
 	if output_fn is None:
 		if output_fo is None:
