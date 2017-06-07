@@ -47,25 +47,36 @@ sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
 import version
 
-C_D=os.path.dirname(os.path.realpath(__file__))
+#C_D=os.path.dirname(os.path.realpath(__file__))
+GITDIR=os.path.basename(sys.argv[0])[-3:]==".py"
+C_D=os.path.abspath(os.path.dirname(sys.argv[0]))
+
+print(GITDIR)
+print(C_D)
+#sys.exit()
+
+
 TREE_D=os.path.join(C_D,"trees")
 
-#bin_dir=os.path.dirname(__file__)
 BWA=os.path.join(C_D,"prophyle_index","bwa","bwa")
 IND=os.path.join(C_D,"prophyle_index","prophyle_index")
 ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
-## TODO: decide about the paths for programs (execution from repo vs from package):
-#    NEWICK2MAKEFILE=os.path.join(C_D,"newick2makefile.py")
-#     vs.
-#    NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
+# git
+if GITDIR:
+	NEWICK2MAKEFILE=os.path.join(C_D,"prophyle_propagation_makefile.py")
+	TEST_TREE=os.path.join(C_D,"prophyle_validate_tree.py")
+	MERGE_FASTAS=os.path.join(C_D,"prophyle_merge_fa.py")
+	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
+	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
 
-
-NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
-TEST_TREE="prophyle_validate_tree.py"
-MERGE_FASTAS="prophyle_merge_fa.py"
-MERGE_TREES="prophyle_merge_trees.py"
-ASSIGN="prophyle_assignment.py"
+# package
+else:
+	NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
+	TEST_TREE="prophyle_validate_tree.py"
+	MERGE_FASTAS="prophyle_merge_fa.py"
+	MERGE_TREES="prophyle_merge_trees.py"
+	ASSIGN="prophyle_assignment.py"
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
