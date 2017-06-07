@@ -265,23 +265,23 @@ def prophyle_download(library, library_dir, force=False):
 
 	if library=='bacteria':
 		if lib_missing or force:
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xz']
+			cmd=['cd', d, '&&','curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz', '|', 'tar', 'xz']
 			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='viruses':
 		if lib_missing or force:
-			#cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xz']
+			#cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz', '|', 'tar', 'xz']
 			#pro.run_safe(cmd)
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xz']
+			cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz', '|', 'tar', 'xz']
 			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='plasmids':
 		if lib_missing or force:
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xz --strip 5']
+			cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz', '|', 'tar', 'xz', '--strip', '5']
 			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
@@ -289,13 +289,13 @@ def prophyle_download(library, library_dir, force=False):
 	elif library=='hmp':
 		if lib_missing or force:
 			# fix when error appears
-			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
+			cmd=['cd', d, '&&', 'curl', 'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|', 'bzip2', '-d']
 			pro.run_safe(cmd,os.path.join(d,"all_seqs.fa"))
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	else:
-		raise ValueError('Unknown library ""'.format(library))
+		raise ValueError('Unknown library "{}"'.format(library))
 
 
 ##################
@@ -348,7 +348,7 @@ def _propagate(index_dir, threads):
 	command=['make', '-C', propagation_dir, '-n', '-s', '>', '/dev/null']
 	pro.run_safe(
 			command,
-			err_msg="Some FASTA files needed for k-mer propagation are probably missing. See messages above.",
+			err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
 			thr_exc=False,
 		)
 
