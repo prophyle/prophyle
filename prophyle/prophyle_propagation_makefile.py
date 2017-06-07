@@ -259,7 +259,7 @@ class TreeIndex:
 
 				.PHONY: all clean
 
-				SHELL=/usr/bin/env bash -eufc -o pipefail
+				SHELL=/usr/bin/env bash -euc -o pipefail
 
 				PRG_ASM?=prophyle_assembler
 				PRG_DUST?=dustmasker
@@ -311,7 +311,9 @@ class TreeIndex:
 				all: {root_red_compl}
 
 				clean:
-					rm -f *.complete *.fa *.tsv
+					rm -f *.complete
+					rm -f *.fa
+					rm -f *.tsv
 
 				{root_red_compl}: {root_nonred_compl}
 					ln -s {root_nonred} {root_red}
