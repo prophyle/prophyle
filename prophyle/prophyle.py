@@ -47,7 +47,10 @@ import version
 
 #C_D=os.path.dirname(os.path.realpath(__file__))
 GITDIR=os.path.basename(sys.argv[0])[-3:]==".py"
-C_D=os.path.abspath(os.path.dirname(sys.argv[0]))
+if GITDIR:
+	C_D=os.path.abspath(os.path.dirname(sys.argv[0]))
+else:
+	C_D=os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 TREE_D=os.path.join(C_D,"trees")
 
