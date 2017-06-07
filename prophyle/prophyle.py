@@ -23,7 +23,6 @@ Example:
 TODO:
 	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
-	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
 	* classification: support for c2, h2
 """
@@ -87,12 +86,13 @@ FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
 log_file=None
 
 
-def _message(*msg, upper=False):
+def _message(*msg, upper=False, only_log=False):
 	"""Print a ProPhyle message to stderr.
 
 	Args:
 		*msg: Message.
 		upper (bool): Transform text to upper cases.
+		only_log (bool): Don't print the message to screen (i.e., it would be only logged).
 	"""
 
 	global log_file
@@ -106,7 +106,8 @@ def _message(*msg, upper=False):
 
 	log_line='[prophyle] {} {}'.format(fdt, " ".join(msg))
 
-	print(log_line, file=sys.stderr)
+	if not only_log:
+		print(log_line, file=sys.stderr)
 	if log_file is not None:
 		log_file.write(log_line)
 		log_file.write("\n")
@@ -149,12 +150,12 @@ def _file_md5 (fn, block_size=2**20):
 
 def _log_file_md5 (fn, remark=None):
 	md5=_file_md5(fn)
-	_message("File {}{} has md5 checksum {}".format(
+	m="File {}{} has md5 checksum {}".format(
 			os.path.basename(fn),
 			" ({})".format(remark) if remark is not None else "",
 			md5,
 		)
-	)
+	_message(m, only_log=True)
 
 
 def _test_files(*fns,test_nonzero=False):
