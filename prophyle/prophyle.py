@@ -361,6 +361,21 @@ def _propagate(index_dir, threads):
 		)
 
 
+def _kmer_stats(index_dir):
+	"""Create a file with k-mer statistics.
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+	propagation_dir=os.path.join(index_dir, 'propagation')
+	command=["cat", propagation_dir+"/*.count.tsv", "|", "grep", "-v", "^#", "|", "sort", "|", "uniq", ">", os.path.join(index_dir, "index.fa.kmers.tsv") ]
+	pro.run_safe(
+			command,
+			err_msg="A file with k-mer statistics could not be created.",
+			thr_exc=False,
+		)
+
+
 def _merge_trees(in_trees, out_tree, no_prefixes):
 	"""Merge input trees into a single tree.
 
@@ -596,6 +611,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_merge_fastas(index_dir)
+		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
 		else:
