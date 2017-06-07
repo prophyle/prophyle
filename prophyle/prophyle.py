@@ -198,7 +198,7 @@ def _file_sizes(*fns):
 
 
 def _run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True):
-	"""Get file sizes in Bytes.
+	"""Run a shell command safely.
 
 	Args:
 		command (list of str): Command to execute.
