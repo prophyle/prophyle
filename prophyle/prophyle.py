@@ -27,7 +27,6 @@ TODO:
 	* classification: support for c2, h2
 """
 
-
 import argparse
 import datetime
 import multiprocessing
@@ -333,8 +332,16 @@ def _makedirs(*ds):
 def _compile_prophyle_bin():
 	"""Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
 	"""
-	command=["make","-C",C_D]
-	_run_safe(command, output_fo=sys.stderr)
+
+	try:
+		command=["make","-C",C_D]
+		_run_safe(command, output_fo=sys.stderr)
+	except RuntimeError:
+		if not os.path.isfile(IND) or not os.path.isfile(ASM):
+			print("Error: ProPhyle executables could not be compiled. Please, the command '{}' manually.".format(" ".join(command)), file=sys.stderr)
+			sys.exit(1)
+		else:
+			print("Warning: ProPhyle executables could not be recompiled. Going to use the old ones.", file=sys.stderr)
 
 
 def _existing_and_newer(fn0, fn):
@@ -792,11 +799,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	assert k>1
 	assert threads>0
 
-	try:
-		_compile_prophyle_bin()
-	except RuntimeError:
-		print("Warning: ProPhyle executables could not be compiled or recompiled.", file=sys.stderr)
-
+	_compile_prophyle_bin()
 
 	index_fa=os.path.join(index_dir,'index.fa')
 	index_tree=os.path.join(index_dir,'tree.nw')
