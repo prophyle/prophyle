@@ -51,11 +51,6 @@ import version
 GITDIR=os.path.basename(sys.argv[0])[-3:]==".py"
 C_D=os.path.abspath(os.path.dirname(sys.argv[0]))
 
-print(GITDIR)
-print(C_D)
-#sys.exit()
-
-
 TREE_D=os.path.join(C_D,"trees")
 
 BWA=os.path.join(C_D,"prophyle_index","bwa","bwa")
@@ -224,7 +219,7 @@ def _run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=Tru
 		part=str(part)
 		if " " in part:
 			part='"{}"'.format(part)
-	command_safe.append(part)
+		command_safe.append(part)
 
 	command_str=" ".join(command_safe)
 	_message("Running:", command_str)
@@ -568,7 +563,7 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './']
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
-		f.write("PRG_ASM={}\n".format(ASM))
+		f.write('PRG_ASM="{}"\n'.format(ASM))
 		f.write("K={}\n".format(k))
 		if  mask_repeats:
 			f.write("MASKREP=1\n")
@@ -635,7 +630,7 @@ def _remove_tmp_propagation_files(index_dir):
 	_message('Removing temporary files')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 
-	command=['make', '-C', propagation_dir, 'clean', '> /dev/null']
+	command=['make', '-C', propagation_dir, 'clean', '>', '/dev/null']
 	_run_safe(
 			command,
 		)

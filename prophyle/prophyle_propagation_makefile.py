@@ -16,10 +16,6 @@ Propagation parameters (in the Makefile, can be changed through CL):
 	* REASM: re-assemble sequences in leaves
 	* NONDEL: non-deletative propagation, implies REASM
 	* MASKREP: mask repeats in leaves
-
-
-TODO:
-	* Check passing parameters and default paths to programs (e.g., prophyle_assembler).
 """
 
 
@@ -263,9 +259,7 @@ class TreeIndex:
 
 				.PHONY: all clean
 
-				SHELL=/usr/bin/env bash
-				.SHELLFLAGS = -eufc -o pipefail
-
+				SHELL=/usr/bin/env bash -eufc -o pipefail
 
 				PRG_ASM?=prophyle_assembler
 				PRG_DUST?=dustmasker
