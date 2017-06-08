@@ -1,9 +1,17 @@
 #! /usr/bin/env python3
 
+"""Create the main index FASTA file and move sequencing from singletons down.
+
+Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
+
+License: MIT
+"""
+
 import sys
 import os
 import glob
 import argparse
+
 
 def main():
 	parser = argparse.ArgumentParser(description='Merge FASTA files')
@@ -43,9 +51,10 @@ def main():
 				if len(x)==0:
 					continue
 				if x[0]==">":
-					print (">{}@{}".format(node,x[1:]),end="")
+					print (">{}@{}".format(node,x[1:]), end="")
 				else:
-					print(x,end="")
+					print (x, end="")
+
 
 if __name__ == "__main__":
 	main()
