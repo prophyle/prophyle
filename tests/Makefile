@@ -2,7 +2,7 @@ A = $(wildcard testA*/.)
 B = $(wildcard testB*/.)
 AB = $(A) $(B)
 
-.PHONY : all clean big $(AB) A B
+.PHONY : all clean big $(AB) A B src
 
 V=1
 
@@ -12,13 +12,16 @@ A: $(A)
 
 B: $(B)
 
-$(AB):
+$(AB): src
 	@echo
 	@echo "========================================="
 	@echo "$@"
 	@echo "========================================="
 	@echo
 	$(MAKE) -C $@
+
+src:
+	$(MAKE) -C ../prophyle
 
 clean:
 	@for a in $(AB); do \
