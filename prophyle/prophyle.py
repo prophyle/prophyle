@@ -56,7 +56,7 @@ ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 if GITDIR:
 	NEWICK2MAKEFILE=os.path.join(C_D,"prophyle_propagation_makefile.py")
 	TEST_TREE=os.path.join(C_D,"prophyle_validate_tree.py")
-	MERGE_FASTAS=os.path.join(C_D,"prophyle_merge_fa.py")
+	MERGE_FASTAS=os.path.join(C_D,"prophyle_propagation_postprocessing.py")
 	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
 	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
 
@@ -64,7 +64,7 @@ if GITDIR:
 else:
 	NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
 	TEST_TREE="prophyle_validate_tree.py"
-	MERGE_FASTAS="prophyle_merge_fa.py"
+	MERGE_FASTAS="prophyle_propagation_postprocessing.py"
 	MERGE_TREES="prophyle_merge_trees.py"
 	ASSIGN="prophyle_assignment.py"
 
