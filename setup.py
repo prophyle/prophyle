@@ -80,6 +80,7 @@ setuptools.setup(
 			'prophyle_kmer_annotations.py = prophyle.prophyle_kmer_annotations:main',
 			'prophyle_merge_trees.py = prophyle.prophyle_merge_trees:main',
 			'prophyle_ncbi_tree.py = prophyle.prophyle_ncbi_tree:main',
+			'prophyle_plot_tree.py = prophyle.prophyle_plot_tree:main',
 			'prophyle_propagation_makefile.py = prophyle.prophyle_propagation_makefile:main',
 			'prophyle_propagation_postprocessing.py = prophyle.prophyle_propagation_postprocessing:main',
 			'prophyle_test_tree.py = prophyle.prophyle_test_tree:main',
