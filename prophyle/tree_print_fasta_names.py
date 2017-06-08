@@ -5,15 +5,16 @@ import shutil
 import datetime
 import sys
 
-from ete3 import Tree
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
 
-DEFAULT_FORMAT = 1
 
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,format=DEFAULT_FORMAT):
+	def __init__(self,tree_newick_fn):
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=Tree(tree_newick_fn,format=format)
+		self.tree=pro.load_nhx_tree(tree_newick_fn)
+
 
 	def process_node(self,node):
 		if node.is_leaf():
