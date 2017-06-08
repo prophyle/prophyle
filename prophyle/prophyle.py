@@ -28,11 +28,9 @@ TODO:
 """
 
 import argparse
-import glob
 import hashlib
 import multiprocessing
 import os
-import re
 import sys
 import textwrap
 import time
@@ -692,7 +690,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate, tie_lca):
 
 	"""Run Prophyle classification.
 
@@ -714,15 +712,7 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 	index_tree=os.path.join(index_dir, 'tree.nw')
 
 	if k is None:
-		klcps=glob.glob(os.path.join(index_dir,"*.klcp"))
-
-		assert len(klcps)<2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
-		assert len(klcps)>0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
-		klcp=klcps[0]
-
-		re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
-		klcp_match=re_klcp.match(klcp)
-		k=klcp_match.group(1)
+		k=pro.detect_k_from_index(index_dir)
 		pro.message("Automatic detection of k-mer length: k={}".format(k))
 
 	_test_tree(index_tree)
