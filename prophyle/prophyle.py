@@ -374,18 +374,22 @@ def _kmer_stats(index_dir):
 		)
 
 
-def _merge_trees(in_trees, out_tree, no_prefixes):
+def _merge_trees(in_trees, out_tree, no_prefixes, sampling_rate):
 	"""Merge input trees into a single tree.
 
 	Args:
 		in_trees (list of str): Input NHX trees.
 		out_tree (str): Output NHX tree.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
+		sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
 	"""
 
 	pro.message('Generating index tree')
 	pro.test_files(*in_trees)
-	command=[MERGE_TREES] + in_trees + [out_tree]
+	command=[MERGE_TREES]
+	if sampling_rate is not None:
+		command += ['-s', sampling_rate]
+	command += in_trees + [out_tree]
 	if no_prefixes:
 		command += ['-P']
 	pro.run_safe(
@@ -543,7 +547,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_log_file_md5("{}.{}.klcp".format(fa_fn,k))
 
 
-def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files, sampling_rate):
 	"""Build a Prophyle index.
 
 	Args:
@@ -557,12 +561,14 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 		mask_repeats (bool): Mask repeats using DustMasker.
 		keep_tmp_files (bool): Keep temporary files from k-mer propagation.
+		sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
 	"""
 
 	assert isinstance(k, int)
 	assert isinstance(threads, int)
 	assert k>1
 	assert threads>0
+	assert sampling_rate is None or 0.0 <= float(sampling_rate) <= 1.0
 
 	_compile_prophyle_bin()
 
@@ -591,7 +597,9 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		for tree_fn in trees_fn:
 			tree=pro.load_nhx_tree(tree_fn)
 			pro.validate_prophyle_nhx_tree(tree)
-		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes)
+		if len(trees_fn)!=1:
+			pro.message('Merging {} trees{}'.format(len(trees_fn)))
+		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
 		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -845,7 +853,7 @@ def parser():
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with the library sequences [directory of the first tree]',
+			help='directory with the library sequences [dir. of the first tree]',
 			default=None,
 			#required=True,
 		)
@@ -871,6 +879,14 @@ def parser():
 			metavar='STR',
 			type=str,
 			help='log file [<index.dir>/log.txt]',
+			default=None,
+		)
+	parser_index.add_argument(
+			'-s',
+			metavar='FLOAT',
+			help='rate of sampling of the tree [no sampling]',
+			dest='sampling_rate',
+			type=str,
 			default=None,
 		)
 	parser_index.add_argument(
@@ -1023,6 +1039,7 @@ def main():
 					no_prefixes=args.no_prefixes,
 					mask_repeats=args.mask_repeats,
 					keep_tmp_files=args.keep_tmp_files,
+					sampling_rate=args.sampling_rate,
 				)
 			pro.message('Index construction finished')
 			pro.close_log()
