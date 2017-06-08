@@ -9,8 +9,10 @@ Licence: MIT
 
 import datetime
 import ete3
+import glob
 import os
 import psutil
+import re
 import shutil
 import subprocess
 import sys
@@ -355,13 +357,34 @@ def test_files(*fns,test_nonzero=False):
 	Raises:
 		AssertionError: File does not exist or it is empty.
 	"""
-	#print(fns)
+
 	for fn in fns:
 		assert os.path.isfile(fn), 'File "{}" does not exist'.format(fn)
 		if test_nonzero:
 			assert file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
 
 
+def detect_k_from_index(index_dir):
+	"""Detect k-mer size from a ProPhyle index.
+
+	Args:
+		index_dir (str): Index directory.
+
+	Raises:
+		AssertionError: k cannot be detected.
+	"""
+
+	klcps=glob.glob(os.path.join(index_dir,"*.klcp"))
+
+	assert len(klcps)<2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
+	assert len(klcps)>0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
+	klcp=klcps[0]
+
+	re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
+	klcp_match=re_klcp.match(klcp)
+	k=int(klcp_match.group(1))
+	return k
+
+
 if __name__ == "__main__":
 	sys.exit(1)
-
