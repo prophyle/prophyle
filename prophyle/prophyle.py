@@ -56,7 +56,7 @@ ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 if GITDIR:
 	NEWICK2MAKEFILE=os.path.join(C_D,"prophyle_propagation_makefile.py")
 	TEST_TREE=os.path.join(C_D,"prophyle_validate_tree.py")
-	MERGE_FASTAS=os.path.join(C_D,"prophyle_merge_fa.py")
+	MERGE_FASTAS=os.path.join(C_D,"prophyle_propagation_postprocessing.py")
 	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
 	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
 
@@ -64,7 +64,7 @@ if GITDIR:
 else:
 	NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
 	TEST_TREE="prophyle_validate_tree.py"
-	MERGE_FASTAS="prophyle_merge_fa.py"
+	MERGE_FASTAS="prophyle_propagation_postprocessing.py"
 	MERGE_TREES="prophyle_merge_trees.py"
 	ASSIGN="prophyle_assignment.py"
 
@@ -409,7 +409,7 @@ def _remove_tmp_propagation_files(index_dir):
 	pro.run_safe(command)
 
 
-def _merge_fastas(index_dir):
+def _merge_fastas(index_dir, tree_fn):
 	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
 
 	Args:
@@ -420,7 +420,7 @@ def _merge_fastas(index_dir):
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	index_fa=os.path.join(index_dir,"index.fa")
 	#pro.test_files(MERGE_FASTAS)
-	command=[MERGE_FASTAS, propagation_dir]
+	command=[MERGE_FASTAS, propagation_dir, tree_fn]
 	pro.run_safe(
 			command,
 			output_fn=index_fa,
@@ -608,7 +608,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		pro.message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
-		_merge_fastas(index_dir)
+		_merge_fastas(index_dir, index_tree)
 		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
