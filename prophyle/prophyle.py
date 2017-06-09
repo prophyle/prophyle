@@ -54,19 +54,21 @@ ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
 # git
 if GITDIR:
-	NEWICK2MAKEFILE=os.path.join(C_D,"prophyle_propagation_makefile.py")
-	TEST_TREE=os.path.join(C_D,"prophyle_validate_tree.py")
+	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
+	KMER_ANNOTATION=os.path.join(C_D,"prophyle_kmer_annotations.py")
 	MERGE_FASTAS=os.path.join(C_D,"prophyle_propagation_postprocessing.py")
 	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
-	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
+	NEWICK2MAKEFILE=os.path.join(C_D,"prophyle_propagation_makefile.py")
+	TEST_TREE=os.path.join(C_D,"prophyle_validate_tree.py")
 
 # package
 else:
-	NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
-	TEST_TREE="prophyle_validate_tree.py"
+	ASSIGN="prophyle_assignment.py"
+	KMER_ANNOTATION="prophyle_kmer_annotations.py"
 	MERGE_FASTAS="prophyle_propagation_postprocessing.py"
 	MERGE_TREES="prophyle_merge_trees.py"
-	ASSIGN="prophyle_assignment.py"
+	NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
+	TEST_TREE="prophyle_validate_tree.py"
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -549,6 +551,15 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_log_file_md5("{}.{}.klcp".format(fa_fn,k))
 
 
+def _tree_annotate_kmers(index_dir, newick1, newick2):
+	_message('Annotating tree')
+	tsv_fn=join(index_dir,"index.fa.kmers.tsv")
+	command=["cat",os.path.join(index_dir,"propagation","*.tsv")]
+	_run_safe(command,os.path.tsv_fn)
+	command=["tree_annotate_kmers", '-i', newick1, '-o', newick2, '-c', tsv_fn]
+	# todo: finish
+
+
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files, sampling_rate):
 	"""Build a ProPhyle index.
 
@@ -1002,7 +1013,6 @@ def parser():
 			#help='mimic Kraken algorithm and output (for debugging purposes)',
 			help=argparse.SUPPRESS,
 		)
-
 	##########
 
 	return parser
