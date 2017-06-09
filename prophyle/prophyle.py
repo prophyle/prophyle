@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Main Prophyle file.
+"""Main ProPhyle file.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -550,7 +550,7 @@ def _bwtocc2sa_klcp(fa_fn,k):
 
 
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files, sampling_rate):
-	"""Build a Prophyle index.
+	"""Build a ProPhyle index.
 
 	Args:
 		index_dir (str): Index directory.
@@ -702,7 +702,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate, tie_lca):
 
-	"""Run Prophyle classification.
+	"""Run ProPhyle classification.
 
 	Args:
 		index_dir (str): Index directory.
