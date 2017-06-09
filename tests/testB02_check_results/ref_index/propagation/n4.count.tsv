@@ -1,8 +1,0 @@
-# cmd: /home/simone/.anaconda/envs/prophyle/lib/python3.4/site-packages/prophyle/prophyle_assembler/prophyle_assembler -S -k 2 -i ./n1.full.fa -i ./n2.full.fa -i ./n3.full.fa -o ./n1.reduced.fa -o ./n2.reduced.fa -o ./n3.reduced.fa -x ./n4.full.fa -s ./n4.count.tsv
-./n1.full.fa	4
-./n2.full.fa	4
-./n3.full.fa	5
-./n1.reduced.fa	1
-./n2.reduced.fa	1
-./n3.reduced.fa	2
-./n4.full.fa	3
