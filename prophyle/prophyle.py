@@ -23,46 +23,54 @@ Example:
 TODO:
 	* save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
 	* _is_complete should be combined with a test of files: is_missing => remove mark
-	* index: automatically decide about paths for bwa, etc. (package vs. git repo)
 	* index: kmer annotation to the tree
-	* classificaton: support for c2, h2
+	* classification: support for c2, h2
 """
 
-
 import argparse
-import datetime
+import glob
+import hashlib
 import multiprocessing
 import os
-import shutil
-import subprocess
+import re
 import sys
 import textwrap
-import glob
-import re
-import psutil
 import time
 
-from . import version
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
+import version
 
-C_D=os.path.dirname(os.path.realpath(__file__))
+#C_D=os.path.dirname(os.path.realpath(__file__))
+GITDIR=os.path.basename(sys.argv[0])[-3:]==".py"
+if GITDIR:
+	C_D=os.path.abspath(os.path.dirname(sys.argv[0]))
+else:
+	C_D=os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
 TREE_D=os.path.join(C_D,"trees")
 
-#bin_dir=os.path.dirname(__file__)
 BWA=os.path.join(C_D,"prophyle_index","bwa","bwa")
 IND=os.path.join(C_D,"prophyle_index","prophyle_index")
 ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 
-## TODO: decide about the paths for programs (execution from repo vs from package):
-#    NEWICK2MAKEFILE=os.path.join(C_D,"newick2makefile.py")
-#     vs.
-#    NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
+# git
+if GITDIR:
+	NEWICK2MAKEFILE=os.path.join(C_D,"prophyle_propagation_makefile.py")
+	TEST_TREE=os.path.join(C_D,"prophyle_validate_tree.py")
+	MERGE_FASTAS=os.path.join(C_D,"prophyle_merge_fa.py")
+	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
+	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
+	READ=os.path.join(C_D,"prophyle_paired_end.py")
 
-
-NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
-TEST_TREE="prophyle_test_tree.py"
-MERGE_FASTAS="prophyle_merge_fa.py"
-MERGE_TREES="prophyle_merge_trees.py"
-ASSIGN="prophyle_assignment.py"
+# package
+else:
+	NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
+	TEST_TREE="prophyle_validate_tree.py"
+	MERGE_FASTAS="prophyle_merge_fa.py"
+	MERGE_TREES="prophyle_merge_trees.py"
+	ASSIGN="prophyle_assignment.py"
+	READ="prophyle_paired_end.py"
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -75,71 +83,26 @@ LIBRARIES=['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI='https://ftp.ncbi.nlm.nih.gov'
 
-log_file=None
+
+def _file_md5 (fn, block_size=2**20):
+	md5 = hashlib.md5()
+	with open(fn, 'rb') as f:
+		while True:
+			data = f.read(block_size)
+			if not data:
+				break
+			md5.update(data)
+	return md5.hexdigest()
 
 
-def _message(*msg, upper=False):
-	"""Print a ProPhyle message to stderr.
-
-	Args:
-		*msg: Message.
-		upper (bool): Transform text to upper cases.
-	"""
-
-	global log_file
-
-	dt=datetime.datetime.now()
-	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
-
-	if upper:
-		msg=map(str,msg)
-		msg=map(str.upper,msg)
-
-	log_line='[prophyle] {} {}'.format(fdt, " ".join(msg))
-
-	print(log_line, file=sys.stderr)
-	if log_file is not None:
-		log_file.write(log_line)
-		log_file.write("\n")
-		log_file.flush()
-
-
-def _open_log(fn):
-	"""Open a log file.
-
-	Args:
-		fn (str): File name.
-	"""
-
-	global log_file
-	if fn is not None:
-		log_file=open(fn,"a+")
-
-
-def _close_log():
-	"""Close a log file.
-	"""
-
-	global log_file
-	if log_file is not None:
-		log_file.close()
-
-
-def _test_files(*fns,test_nonzero=False):
-	"""Test if given files exist, and possibly if they are non-empty. If not, stop the program.
-
-	Args:
-		*fns: Files.
-		test_nonzero (bool): Test if files have size greater than zero.
-
-	Raises:
-		AssertionError: File does not exist or it is empty.
-	"""
-	#print(fns)
-	for fn in fns:
-		assert os.path.isfile(fn), 'File "{}" does not exist'.format(fn)
-		if test_nonzero:
-			assert _file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
+def _log_file_md5 (fn, remark=None):
+	md5=_file_md5(fn)
+	m="File {}{} has md5 checksum {}".format(
+			os.path.basename(fn),
+			" ({})".format(remark) if remark is not None else "",
+			md5,
+		)
+	pro.message(m, only_log=True)
 
 
 def _test_tree(fn):
@@ -148,157 +111,25 @@ def _test_tree(fn):
 	Args:
 		fn (str): Newick/NHX tree.
 	"""
-	_test_files(fn)
-	cmd=[TEST_TREE, fn]
-
-
-def _file_sizes(*fns):
-	"""Get file sizes in Bytes.
-
-	Args:
-		fns (str): File names.
-
-	Returns:
-		tuple(int): File sizes.
-	"""
-	return tuple( [os.stat(fn).st_size for fn in fns] )
-
-
-def _run_safe(command, output_fn=None, output_fo=None):
-	"""Get file sizes in Bytes.
-
-	Args:
-		command (list of str): Command to execute.
-		output_fn (str): Name of a file for storing the output.
-		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
-
-	Raises:
-		RuntimeError: Command exited with non-zero code.
-	"""
-	assert output_fn is None or output_fo is None
-	command_str=" ".join(map(lambda x: str(x),command))
-	_message("Running:", command_str)
-	if output_fn is None:
-		if output_fo is None:
-			out_fo=sys.stdout
-		else:
-			out_fo=output_fo
-	else:
-		out_fo=open(output_fn,"w+")
-
-	p=subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
-	ps_p = psutil.Process(p.pid)
-
-	max_rss = 0
-	error_code=None
-	while error_code is None:
-		try:
-			max_rss=max(max_rss, ps_p.memory_info().rss)
-		except psutil.ZombieProcess:
-			pass
-		# wait 0.02 s
-		time.sleep(0.02)
-		error_code=p.poll()
-
-	out_fo.flush()
-
-	mem_mb=round(max_rss/(1024*1024.0), 1)
-
-	if output_fn is not None:
-		out_fo.close()
-
-	if error_code==0 or error_code==141:
-		_message("Finished ({} MB used): {}".format(mem_mb, command_str))
-	else:
-		_message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
-		raise RuntimeError("Command error.")
-
-
-def _touch(*fns):
-	"""Touch files.
-
-	Args:
-		*fns: Files.
-	"""
-	for fn in fns:
-		if os.path.exists(fn):
-			os.utime(fn, None)
-		else:
-			with open(fn, 'a'):
-				pass
-
-
-def _rm(*fns):
-	"""Remove files (might not exists).
-
-	Args:
-		*fns: Files.
-	"""
-	for fn in fns:
-		try:
-			os.remove(fn)
-		except FileNotFoundError:
-			pass
-
-def _cp_to_file(fn0, fn):
-	"""Copy file to file.
-
-	Args:
-		fn0 (str): Source file.
-		fn (str): Target file.
-	"""
-
-	# keep rewriting attributes
-	shutil.copyfile(fn0, fn)
-
-def _cp_to_dir(fn0, d):
-	"""Copy file to dir.
-
-	Args:
-		fn0 (str): Source file.
-		d (str): Target dir.
-	"""
-
-	# keep rewriting attributes
-	shutil.copy(fn0, d)
-
-
-def _makedirs(*ds):
-	"""Make dirs recursively.
-
-	Args:
-		*ds: Dirs to create.
-	"""
-	for d in ds:
-		if not os.path.isdir(d):
-			cmd=['mkdir', '-p', d]
-			_run_safe(cmd)
+	tree=pro.load_nhx_tree(fn, validate=False)
+	assert pro.validate_prophyle_nhx_tree(tree, verbose=False, throw_exceptions=False, output=sys.stderr)
 
 
 def _compile_prophyle_bin():
 	"""Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
 	"""
-	command=["make","-C",C_D]
-	_run_safe(command, output_fo=sys.stderr)
+
+	try:
+		command=["make","-C",C_D]
+		pro.run_safe(command, output_fo=sys.stderr)
+	except RuntimeError:
+		if not os.path.isfile(IND) or not os.path.isfile(ASM):
+			print("Error: ProPhyle executables could not be compiled. Please, the command '{}' manually.".format(" ".join(command)), file=sys.stderr)
+			sys.exit(1)
+		else:
+			print("Warning: ProPhyle executables could not be recompiled. Going to use the old ones.", file=sys.stderr)
 
 
-def _existing_and_newer(fn0, fn):
-	"""Test if file fn exists and is newer than fn0. Raise an exception if fn0 does not exist.
-
-	Args:
-		fn0 (str): Old file.
-		fn (str): New file (to be generated from fn0).
-	"""
-
-	assert os.path.isfile(fn0), "Dependency '{}' does not exist".format(fn0)
-
-	if not os.path.isfile(fn):
-		return False
-
-	if os.path.getmtime(fn0)<=os.path.getmtime(fn):
-		return True
-	else:
-		return False
 
 
 #####################
@@ -330,7 +161,7 @@ def _mark_complete(d, i=1, name=None):
 
 	assert i>0
 
-	_touch(__mark_fn(d, i, name))
+	pro.touch(__mark_fn(d, i, name))
 
 
 def _is_complete(d, i=1, name=None):
@@ -349,7 +180,7 @@ def _is_complete(d, i=1, name=None):
 	if i==1:
 		return os.path.isfile(fn)
 	else:
-		return _existing_and_newer(fn0, fn)
+		return pro.existing_and_newer(fn0, fn)
 
 
 def _missing_library(d):
@@ -360,12 +191,12 @@ def _missing_library(d):
 	"""
 
 	l=os.path.dirname(d)
-	_makedirs(d)
+	pro.makedirs(d)
 	if _is_complete(d,1):
-		_message("Skipping downloading library '{}' (already exists)".format(l))
+		pro.message("Skipping downloading library '{}' (already exists)".format(l))
 		return False
 	else:
-		_message("Downloading library '{}'".format(l))
+		pro.message("Downloading library '{}'".format(l))
 		return True
 
 
@@ -379,18 +210,18 @@ def _pseudo_fai(d):
 	"""
 	l=os.path.dirname(d)
 	pseudofai_fn=d+".pseudofai"
-	_makedirs(d)
+	pro.makedirs(d)
 	if _is_complete(d,2) and os.path.isfile(pseudofai_fn):
-		_message("Skipping generating pseudofai for library '{}' (already exists)".format(l))
+		pro.message("Skipping generating pseudofai for library '{}' (already exists)".format(l))
 	else:
-		_message("Generating pseudofai for library '{}'".format(l))
+		pro.message("Generating pseudofai for library '{}'".format(l))
 		assert d[-1]!="/"
 		#cmd=['grep -r --include=\\*.{fa,ffn,fna}', '">"', d, '| sed "s/:>/\t/"']
 		cmd=[
 			'find', d, '-name', "'*.fa'", "-o", "-name", "'*.ffn'", "-o", "-name", "'*.fna'", "-exec", "grep", "-H", '">"', "{}", "\\;",
 			"|", 'sed', '"s/\:>/\t/"']
 
-		_run_safe(cmd, pseudofai_fn)
+		pro.run_safe(cmd, output_fn=pseudofai_fn)
 		_mark_complete(d, 2)
 
 
@@ -420,9 +251,9 @@ def prophyle_download(library, library_dir, force=False):
 		d=os.path.join(library_dir,library)
 	#print('making',d, file=sys.stderr)
 	#os.makedirs(d, exist_ok=True)
-	_makedirs(d)
+	pro.makedirs(d)
 
-	_message("Checking library '{}' in '{}'".format(library,d))
+	pro.message("Checking library '{}' in '{}'".format(library,d))
 
 	lib_missing=_missing_library(d)
 	if lib_missing or force:
@@ -430,43 +261,43 @@ def prophyle_download(library, library_dir, force=False):
 			fn="{}{}.nw".format(test_prefix,library,)
 			nhx=os.path.join(TREE_D,fn)
 			new_nhx=os.path.join(d,"..",fn)
-			_test_files(nhx)
-			_message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
-			_cp_to_file(nhx, new_nhx)
+			pro.test_files(nhx)
+			pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx,new_nhx))
+			pro.cp_to_file(nhx, new_nhx)
 
 	if library=='bacteria':
 		if lib_missing or force:
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz | tar xz']
-			_run_safe(cmd)
+			cmd=['cd', d, '&&','curl', FTP_NCBI+'/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz', '|', 'tar', 'xz']
+			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='viruses':
 		if lib_missing or force:
-			#cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz | tar xz']
-			#_run_safe(cmd)
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz | tar xz']
-			_run_safe(cmd)
+			#cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz', '|', 'tar', 'xz']
+			#pro.run_safe(cmd)
+			cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz', '|', 'tar', 'xz']
+			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='plasmids':
 		if lib_missing or force:
-			cmd=['cd', d, '&& curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz | tar xz --strip 5']
-			_run_safe(cmd)
+			cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz', '|', 'tar', 'xz', '--strip', '5']
+			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	elif library=='hmp':
 		if lib_missing or force:
 			# fix when error appears
-			cmd=['cd', d, '&& curl http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2 | bzip2 -d']
-			_run_safe(cmd,os.path.join(d,"all_seqs.fa"))
+			cmd=['cd', d, '&&', 'curl', 'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|', 'bzip2', '-d']
+			pro.run_safe(cmd,os.path.join(d,"all_seqs.fa"))
 			_mark_complete(d, 1)
 		#_pseudo_fai(d)
 
 	else:
-		raise ValueError('Unknown library ""'.format(library))
+		raise ValueError('Unknown library "{}"'.format(library))
 
 
 ##################
@@ -485,36 +316,66 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	TODO:
 		* Add checking of params.mk
 	"""
-	_message('Creating Makefile for k-mer propagation')
+	pro.message('Creating Makefile for k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
-	_makedirs(propagation_dir)
+	pro.makedirs(propagation_dir)
 
 	makefile=os.path.join(propagation_dir,'Makefile')
 	tree_fn=os.path.join(index_dir,'tree.nw')
 	_test_tree(tree_fn)
-	#_test_files(NEWICK2MAKEFILE, tree_fn)
+	#pro.test_files(NEWICK2MAKEFILE, tree_fn)
 	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './']
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
-		f.write("PRG_ASM={}\n".format(ASM))
+		f.write('PRG_ASM="{}"\n'.format(ASM))
 		f.write("K={}\n".format(k))
 		if  mask_repeats:
 			f.write("MASKREP=1\n")
-	_run_safe(command,makefile)
+	pro.run_safe(command,output_fn=makefile)
+	_log_file_md5(makefile)
 
 
-def _propagate(index_dir,threads):
+def _propagate(index_dir, threads):
 	"""Run k-mer propagation.
 
 	Args:
 		index_dir (str): Index directory.
 		threads (int): Number of threads for Makefile.
 	"""
-	_message('Running k-mer propagation')
+	pro.message('Running k-mer propagation')
 	propagation_dir=os.path.join(index_dir, 'propagation')
-	_test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
+	pro.test_files(os.path.join(propagation_dir, 'Makefile'),test_nonzero=True)
+
+	# test if input files for propagation exist
+	command=['make', '-C', propagation_dir, '-n', '-s', '>', '/dev/null']
+	pro.run_safe(
+			command,
+			err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
+			thr_exc=False,
+		)
+
+	# run propagation
 	command=['make', '-j', threads, '-C', propagation_dir, 'V=1']
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="K-mer propagation has not been finished because of an error. See messages above.",
+			thr_exc=False,
+		)
+
+
+def _kmer_stats(index_dir):
+	"""Create a file with k-mer statistics.
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+	propagation_dir=os.path.join(index_dir, 'propagation')
+	command=["cat", propagation_dir+"/*.count.tsv", "|", "grep", "-v", "^#", "|", "sort", "|", "uniq", ">", os.path.join(index_dir, "index.fa.kmers.tsv") ]
+	pro.run_safe(
+			command,
+			err_msg="A file with k-mer statistics could not be created.",
+			thr_exc=False,
+		)
 
 
 def _merge_trees(in_trees, out_tree, no_prefixes):
@@ -526,12 +387,30 @@ def _merge_trees(in_trees, out_tree, no_prefixes):
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 	"""
 
-	_message('Generating index tree')
-	_test_files(*in_trees)
+	pro.message('Generating index tree')
+	pro.test_files(*in_trees)
 	command=[MERGE_TREES] + in_trees + [out_tree]
 	if no_prefixes:
 		command += ['-P']
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="The main tree could not be generated.",
+			thr_exc=False,
+		)
+	_log_file_md5(out_tree)
+
+
+def _remove_tmp_propagation_files(index_dir):
+	"""Run k-mer propagation.
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+	pro.message('Removing temporary files')
+	propagation_dir=os.path.join(index_dir, 'propagation')
+
+	command=['make', '-C', propagation_dir, 'clean', '>', '/dev/null']
+	pro.run_safe(command)
 
 
 def _merge_fastas(index_dir):
@@ -539,18 +418,21 @@ def _merge_fastas(index_dir):
 
 	Args:
 		index_dir (str): Index directory.
-
-	TODO:
-		* check files for all nodes exist and are of size > 0
 	"""
 
-	_message('Generating index.fa')
+	pro.message('Generating index.fa')
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	index_fa=os.path.join(index_dir,"index.fa")
-	#_test_files(MERGE_FASTAS)
+	#pro.test_files(MERGE_FASTAS)
 	command=[MERGE_FASTAS, propagation_dir]
-	_run_safe(command, index_fa)
-	_touch(index_fa+".complete")
+	pro.run_safe(
+			command,
+			output_fn=index_fa,
+			err_msg="Main ProPhyle FASTA file could not be generated",
+			thr_exc=True,
+		)
+	pro.touch(index_fa+".complete")
+	_log_file_md5(index_fa)
 
 
 def _fa2pac(fa_fn):
@@ -560,10 +442,15 @@ def _fa2pac(fa_fn):
 		fa_fn (str): FASTA file.
 	"""
 
-	_message('Generating packed FASTA file')
-	_test_files(BWA, fa_fn)
+	pro.message('Generating packed FASTA file')
+	pro.test_files(BWA, fa_fn)
 	command=[BWA, 'fa2pac', fa_fn, fa_fn]
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="Packaged file could not be created.",
+			thr_exc=True,
+		)
+	_log_file_md5(fa_fn+".pac")
 
 
 def _pac2bwt(fa_fn):
@@ -573,10 +460,15 @@ def _pac2bwt(fa_fn):
 		fa_fn (str): FASTA file.
 	"""
 
-	_message('Generating BWT')
-	_test_files(BWA, fa_fn+".pac")
+	pro.message('Generating BWT')
+	pro.test_files(BWA, fa_fn+".pac")
 	command=[BWA, 'pac2bwtgen', fa_fn+".pac", fa_fn+".bwt"]
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="Burrows-Wheeler Transform could not be computed.",
+			thr_exc=True,
+		)
+	_log_file_md5(fa_fn+".bwt", remark="without OCC")
 
 
 def _bwt2bwtocc(fa_fn):
@@ -586,23 +478,33 @@ def _bwt2bwtocc(fa_fn):
 		fa_fn (str): FASTA file.
 	"""
 
-	_message('Generating sampled OCC array')
-	_test_files(BWA, fa_fn+".bwt")
+	pro.message('Generating sampled OCC array')
+	pro.test_files(BWA, fa_fn+".bwt")
 	command=[BWA, 'bwtupdate', fa_fn+".bwt"]
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="OCC array could not be computed.",
+			thr_exc=True,
+		)
+	_log_file_md5(fa_fn+".bwt", remark="with OCC")
 
 
 def _bwtocc2sa(fa_fn):
-	"""Run `bwa bwt2sa` (BWT+OCC => SSA).
+	"""Run `bwa bwt2sa` (BWT+, remark="with OCC"OCC => SSA).
 
 	Args:
 		fa_fn (str): FASTA file.
 	"""
 
-	_message('Generating sampled SA')
-	_test_files(BWA, fa_fn+".bwt")
+	pro.message('Generating sampled SA')
+	pro.test_files(BWA, fa_fn+".bwt", remark="with OCC")
 	command=[BWA, 'bwt2sa', fa_fn+".bwt", fa_fn+".sa"]
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="Sampled Suffix Array computation failed.",
+			thr_exc=True,
+		)
+	_log_file_md5(fa_fn+".sa")
 
 
 def _bwtocc2klcp(fa_fn,k):
@@ -613,10 +515,16 @@ def _bwtocc2klcp(fa_fn,k):
 		k (int): K-mer size.
 	"""
 
-	_message('Generating k-LCP array')
-	_test_files(IND, fa_fn+".bwt")
+	pro.message('Generating k-LCP array')
+	pro.test_files(IND, fa_fn+".bwt")
 	command=[IND, 'build', '-k', k, fa_fn]
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="k-Longest Common Prefix array construction failed.",
+			thr_exc=True,
+		)
+	_log_file_md5("{}.{}.klcp".format(fa_fn,k))
+
 
 
 def _bwtocc2sa_klcp(fa_fn,k):
@@ -627,13 +535,19 @@ def _bwtocc2sa_klcp(fa_fn,k):
 		k (int): K-mer size.
 	"""
 
-	_message('Generating k-LCP array and SA in parallel')
-	_test_files(IND, fa_fn+".bwt")
+	pro.message('Generating k-LCP array and SA in parallel')
+	pro.test_files(IND, fa_fn+".bwt")
 	command=[IND, 'build', '-s', '-k', k, fa_fn]
-	_run_safe(command)
+	pro.run_safe(
+			command,
+			err_msg="Parallel construction of k-Longest Common Prefix array and Sampled Suffix Array failed.",
+			thr_exc=True,
+		)
+	_log_file_md5(fa_fn+".sa")
+	_log_file_md5("{}.{}.klcp".format(fa_fn,k))
 
 
-def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats):
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files):
 	"""Build a Prophyle index.
 
 	Args:
@@ -646,11 +560,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		force (bool): Rewrite files if they already exist.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 		mask_repeats (bool): Mask repeats using DustMasker.
-
-	TODO:
-		* klcp in parallel with SA
-		* copy Newick only if it is newer
-		* add update the tree with number of k-mers
+		keep_tmp_files (bool): Keep temporary files from k-mer propagation.
 	"""
 
 	assert isinstance(k, int)
@@ -659,7 +569,6 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	assert threads>0
 
 	_compile_prophyle_bin()
-
 
 	index_fa=os.path.join(index_dir,'index.fa')
 	index_tree=os.path.join(index_dir,'tree.nw')
@@ -671,23 +580,25 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	recompute=force
 
 	# make index dir
-	_makedirs(index_dir)
+	pro.makedirs(index_dir)
 
 	#
 	# 1) Newick
 	#
 
-	#if not _existing_and_newer(tree_fn, index_tree):
-	if not _is_complete(index_dir, 1):
+	if not _is_complete(index_dir, 1) or not pro.existing_and_newer_list(trees_fn, index_tree):
 		recompute=True
 
 
 	if recompute:
-		_message('[1/5] Copying/merging trees', upper=True)
+		pro.message('[1/5] Copying/merging trees', upper=True)
+		for tree_fn in trees_fn:
+			tree=pro.load_nhx_tree(tree_fn)
+			pro.validate_prophyle_nhx_tree(tree)
 		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes)
 		_mark_complete(index_dir, 1)
 	else:
-		_message('[1/5] Tree already exists, skipping copying', upper=True)
+		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
 
 	#
 	# 2) Create and run Makefile for propagation, and merge FASTA files
@@ -698,13 +609,18 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 	if recompute:
 		# TODO: check if something should be deleted (e.g., the propagation dir)
-		_message('[2/5] Running k-mer propagation', upper=True)
+		pro.message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_merge_fastas(index_dir)
+		_kmer_stats(index_dir)
+		if not keep_tmp_files:
+			_remove_tmp_propagation_files(index_dir)
+		else:
+			pro.message('Keeping temporary files')
 		_mark_complete(index_dir, 2)
 	else:
-		_message('[2/5] K-mers have already been propagating, skipping propagation', upper=True)
+		pro.message('[2/5] K-mers have already been propagated, skipping propagation', upper=True)
 
 	#
 	# 3) BWT + OCC
@@ -716,14 +632,14 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	#if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
 
 	if recompute:
-		_message('[3/5] Constructing BWT+OCC', upper=True)
-		_rm(index_fa+'.bwt',index_fa+'.bwt.complete')
+		pro.message('[3/5] Constructing BWT+OCC', upper=True)
+		pro.rm(index_fa+'.bwt',index_fa+'.bwt.complete')
 		_fa2pac(index_fa)
 		_pac2bwt(index_fa)
 		_bwt2bwtocc(index_fa)
 		_mark_complete(index_dir, 3)
 	else:
-		_message('[3/5] BWT and OCC already exist, skipping their construction', upper=True)
+		pro.message('[3/5] BWT and OCC already exist, skipping their construction', upper=True)
 
 	#
 	# 4) SA + 5) KLCP (compute SA + KLCP in parallel)
@@ -738,7 +654,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 			recompute=True
 
 		if recompute:
-			_message('[4/5],[5/5] Constructing SA + KLCP in parallel ', upper=True)
+			pro.message('[4/5],[5/5] Constructing SA + KLCP in parallel ', upper=True)
 			_bwtocc2sa_klcp(index_fa, k)
 			_mark_complete(index_dir, 4)
 			_mark_complete(index_dir, 5)
@@ -752,10 +668,10 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		recompute=True
 
 	if recompute:
-		_message('[4/5] Constructing SA', upper=True)
+		pro.message('[4/5] Constructing SA', upper=True)
 		_bwtocc2sa(index_fa)
 	else:
-		_message('[4/5] SA already exists, skipping its construction', upper=True)
+		pro.message('[4/5] SA already exists, skipping its construction', upper=True)
 
 
 	#
@@ -767,24 +683,25 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 			recompute=True
 
 		if recompute:
-			_message('[5/5] Constructing k-LCP', upper=True)
+			pro.message('[5/5] Constructing k-LCP', upper=True)
 			_bwtocc2klcp(index_fa,k)
 			_mark_complete(index_dir, 5)
 		else:
-			_message('[5/5] k-LCP already exists, skipping its construction', upper=True)
+			pro.message('[5/5] k-LCP already exists, skipping its construction', upper=True)
 
 
 #####################
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir,fq_fn,fq_pe_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
 
 	"""Run Prophyle classification.
 
 	Args:
 		index_dir (str): Index directory.
-		fq_fn (str): Input reads.
+		fq_fn (str): Input reads (single-end or first of paired-end).
+		fq_pe_fn (str): Input reads (second paired-end, None if single-end)
 		k (int): K-mer size (None => detect automatically).
 		use_rolling_window (bool): Use rolling window.
 		out_format (str): Output format: sam / kraken.
@@ -809,17 +726,19 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
 		klcp_match=re_klcp.match(klcp)
 		k=klcp_match.group(1)
-		_message("Automatic detection of k-mer length: k={}".format(k))
+		pro.message("Automatic detection of k-mer length: k={}".format(k))
 
 	_test_tree(index_tree)
-	#_test_files(fq_fn,index_fa,IND,ASSIGN)
+	#pro.test_files(fq_fn_l+[index_fa,IND,ASSIGN])
 
-	if fq_fn!="-":
-		_test_files(fq_fn)
+	if fq_pe_fn:
+		pro.test_files(fq_fn, fq_pe_fn)
+	elif fq_fn!='-':
+		pro.test_files(fq_fn)
 
-	_test_files(index_fa,IND)
+	pro.test_files(index_fa,IND)
 
-	_test_files(
+	pro.test_files(
 			index_fa+'.bwt',
 			index_fa+'.pac',
 			index_fa+'.sa',
@@ -827,14 +746,14 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 			index_fa+'.amb',
 		)
 
-	(bwt_s, sa_s, pac_s)=_file_sizes(index_fa+'.bwt',index_fa+'.sa',index_fa+'.pac')
+	(bwt_s, sa_s, pac_s)=pro.file_sizes(index_fa+'.bwt',index_fa+'.sa',index_fa+'.pac')
 	assert abs(bwt_s - 2*sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
 	assert abs(bwt_s - 2*pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
 	if use_rolling_window:
 		klcp_fn="{}.{}.klcp".format(index_fa,k)
-		_test_files(klcp_fn)
-		(klcp_s,)=_file_sizes(klcp_fn)
+		pro.test_files(klcp_fn)
+		(klcp_s,)=pro.file_sizes(klcp_fn)
 		assert abs(bwt_s - 4*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
 
 	if mimic_kraken:
@@ -846,12 +765,19 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-	cmd_query=[IND, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, fq_fn]
+	if fq_pe_fn:
+		cmd_read=[READ, fq_fn, fq_pe_fn, '|']
+		in_read='-'
+	else:
+		cmd_read = []
+		# fq_fn can be '-' as well
+		in_read=fq_fn
 
+	cmd_query=[IND, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, in_read, '|']
 
 	#(['|', '|'] if mimic_kraken else ['|']) \
-	command=cmd_query + ['|'] + cmd_assign
-	_run_safe(command)
+	command=cmd_read + cmd_query + cmd_assign
+	pro.run_safe(command)
 
 
 ########
@@ -966,7 +892,7 @@ def parser():
 			dest='log_fn',
 			metavar='STR',
 			type=str,
-			help='log file',
+			help='log file [<index.dir>/log.txt]',
 			default=None,
 		)
 	parser_index.add_argument(
@@ -993,6 +919,12 @@ def parser():
 			action='store_false',
 			help='skip k-LCP construction',
 		)
+	parser_index.add_argument(
+			'-T',
+			dest='keep_tmp_files',
+			action='store_true',
+			help='keep temporary files from k-mer propagation',
+		)
 
 	##########
 
@@ -1011,8 +943,16 @@ def parser():
 			'reads',
 			metavar='<reads.fq>',
 			type=str,
-			help='file with reads in FASTA or FASTQ (use - for standard input)',
+			help='file with reads in FASTA or FASTQ (can be compressed with gzip, use - for standard input'),
 		)
+	parser_classify.add_argument(
+			'reads_pe',
+			metavar='<paired_end.fq>',
+			nargs='?',
+			type=str,
+			help='paired-end FASTA or FASTQ file',
+			default=None,
+	)
 	parser_classify.add_argument(
 			'-k',
 			dest='k',
@@ -1080,24 +1020,28 @@ def main():
 		subcommand=args.subcommand
 
 		if subcommand=="download":
-			_open_log(args.log_fn)
+			pro.open_log(args.log_fn)
 			for single_lib in args.library:
-				_message('Downloading "{}" started'.format(single_lib))
+				pro.message('Downloading "{}" started'.format(single_lib))
 				prophyle_download(
 						library=single_lib,
 						library_dir=args.home_dir,
 						force=args.force,
 					)
-				_message('Downloading "{}" finished'.format(single_lib))
-			_close_log()
+				pro.message('Downloading "{}" finished'.format(single_lib))
+			pro.close_log()
 
 		elif subcommand=="index":
 			if args.library_dir is None:
 				library_dir=os.path.dirname(args.tree[0])
 			else:
 				library_dir=args.library_dir
-			_open_log(args.log_fn)
-			_message('Index construction started')
+
+			if args.log_fn is None:
+				args.log_fn = os.path.join(args.index_dir, "log.txt")
+
+			pro.open_log(args.log_fn)
+			pro.message('Index construction started')
 			prophyle_index(
 					index_dir=args.index_dir,
 					threads=args.threads,
@@ -1108,16 +1052,21 @@ def main():
 					construct_klcp=args.klcp,
 					no_prefixes=args.no_prefixes,
 					mask_repeats=args.mask_repeats,
+					keep_tmp_files=args.keep_tmp_files,
 				)
-			_message('Index construction finished')
-			_close_log()
+			pro.message('Index construction finished')
+			pro.close_log()
 
 		elif subcommand=="classify":
-			_open_log(args.log_fn)
-			_message('Classification started')
+			#if args.log_fn is None:
+			#	args.log_fn = os.path.join(args.index_dir, "log.txt")
+
+			pro.open_log(args.log_fn)
+			pro.message('Classification started')
 			prophyle_classify(
 					index_dir=args.index_dir,
 					fq_fn=args.reads,
+					fq_pe_fn=args.reads_pe,
 					k=args.k,
 					use_rolling_window=args.rolling_window,
 					out_format=args.oform,
@@ -1126,8 +1075,8 @@ def main():
 					tie_lca=args.tie,
 					annotate=args.annotate,
 				)
-			_message('Classificaton finished')
-			_close_log()
+			pro.message('Classification finished')
+			pro.close_log()
 
 		else:
 			msg_lns=par.format_help().split("\n")[2:]
@@ -1144,8 +1093,8 @@ def main():
 		exit(0)
 
 	except KeyboardInterrupt:
-		_message("Error: Keyboard interrupt")
-		_close_log()
+		pro.message("Error: Keyboard interrupt")
+		pro.close_log()
 		exit(1)
 
 
