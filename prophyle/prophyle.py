@@ -700,7 +700,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate, tie_lca):
+def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate, tie_lca, print_seq):
 
 	"""Run ProPhyle classification.
 
@@ -714,6 +714,7 @@ def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic
 		measure (str): Measure used for classification (h1 / h2 / c1 / c2).
 		annotate (bool): Annotate assignments (insert annotations from Newick to SAM).
 		tie_lca (bool): If multiple equally good assignments found, compute their LCA.
+		print_seq (bool): Print sequencing in SAM.
 	"""
 
 
@@ -760,7 +761,7 @@ def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-	cmd_query=[IND, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, fq_fn]
+	cmd_query=[IND, 'query', '-k', k, '-u' if use_rolling_window else '', '-b' if print_seq else '',index_fa, fq_fn]
 
 
 	#(['|', '|'] if mimic_kraken else ['|']) \
@@ -1002,7 +1003,12 @@ def parser():
 			#help='mimic Kraken algorithm and output (for debugging purposes)',
 			help=argparse.SUPPRESS,
 		)
-
+	parser_classify.add_argument(
+			'-P',
+			dest='print_seq',
+			action='store_true',
+			help='print sequences and qualities in SAM (otherwise \'*\' is used)',
+		)
 	##########
 
 	return parser
@@ -1068,6 +1074,7 @@ def main():
 					measure=args.measure,
 					tie_lca=args.tie,
 					annotate=args.annotate,
+					print_seq=args.print_seq,
 				)
 			pro.message('Classification finished')
 			pro.close_log()
