@@ -955,16 +955,16 @@ def parser():
 		)
 	parser_classify.add_argument(
 			'reads',
-			metavar='<reads.fq>',
+			metavar='<reads1.fq>',
 			type=str,
-			help='file with reads in FASTA or FASTQ (can be compressed with gzip, use - for standard input)',
+			help='reads in FASTA or FASTQ (- for stdin)',
 		)
 	parser_classify.add_argument(
 			'reads_pe',
-			metavar='<paired_end.fq>',
+			metavar='<reads2.fq>',
 			nargs='?',
 			type=str,
-			help='paired-end FASTA or FASTQ file',
+			help='mate reads',
 			default=None,
 	)
 	parser_classify.add_argument(
