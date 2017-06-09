@@ -1,4 +1,4 @@
-test_index
+_test_index
 
 *.bak
 .snakemake

@@ -93,10 +93,12 @@ def _file_md5 (fn, block_size=2**20):
 
 def _log_file_md5 (fn, remark=None):
 	md5=_file_md5(fn)
-	m="File {}{} has md5 checksum {}".format(
+	size=pro.file_sizes(fn)[0]
+	m="File {}{} has md5 checksum {} and size {} B".format(
 			os.path.basename(fn),
 			" ({})".format(remark) if remark is not None else "",
 			md5,
+			size,
 		)
 	pro.message(m, only_log=True)
 
