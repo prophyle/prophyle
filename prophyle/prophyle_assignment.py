@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Prophyle assignment algorithm (a prototype implementation, to be reimplemented in C).
+"""ProPhyle assignment algorithm (a prototype implementation, to be reimplemented in C).
 
 Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
