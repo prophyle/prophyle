@@ -91,7 +91,7 @@ def parse_args():
 		parser = argparse.ArgumentParser(
 				description="\n".join(
 					[
-						'Merge multiple Prophyle trees. Specific subtrees might be extracted before merging. Examples:',
+						'Merge multiple ProPhyle trees. Specific subtrees might be extracted before merging. Examples:',
 						'\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw',
 						'\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw'
 					]),
