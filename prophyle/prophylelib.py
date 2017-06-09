@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import time
+import gzip
 
 log_file=None
 
