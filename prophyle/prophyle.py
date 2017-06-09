@@ -61,6 +61,7 @@ if GITDIR:
 	MERGE_FASTAS=os.path.join(C_D,"prophyle_merge_fa.py")
 	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
 	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
+	READ=os.path.join(C_D,"prophyle_paired_reads.py")
 
 # package
 else:
@@ -69,6 +70,7 @@ else:
 	MERGE_FASTAS="prophyle_merge_fa.py"
 	MERGE_TREES="prophyle_merge_trees.py"
 	ASSIGN="prophyle_assignment.py"
+	READ="prophyle_paired_reads.py"
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -692,13 +694,14 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir,fq_fn,fq_pe_fn=None,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
 
 	"""Run Prophyle classification.
 
 	Args:
 		index_dir (str): Index directory.
-		fq_fn (str): Input reads.
+		fq_fn (str): Input reads (single-end or first of paired-end).
+		fq_pe_fn (str): Input reads (second paired-end, None if single-end)
 		k (int): K-mer size (None => detect automatically).
 		use_rolling_window (bool): Use rolling window.
 		out_format (str): Output format: sam / kraken.
@@ -726,9 +729,11 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		pro.message("Automatic detection of k-mer length: k={}".format(k))
 
 	_test_tree(index_tree)
-	#pro.test_files(fq_fn,index_fa,IND,ASSIGN)
+	#pro.test_files(fq_fn_l+[index_fa,IND,ASSIGN])
 
-	if fq_fn!="-":
+	if fq_pe_fn:
+		pro.test_files(fq_fn, fq_pe_fn)
+	elif fq_fn!='-':
 		pro.test_files(fq_fn)
 
 	pro.test_files(index_fa,IND)
@@ -760,11 +765,18 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-	cmd_query=[IND, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, fq_fn]
+	if fq_pe_fn:
+		cmd_read=[READ, fq_fn, fq_pe_fn, '|']
+		in_read='-'
+	else:
+		cmd_read = []
+		# fq_fn can be '-' as well
+		in_read=fq_fn
 
+	cmd_query=[IND, 'query', '-k', k, '-u' if use_rolling_window else '', index_fa, in_read, '|']
 
 	#(['|', '|'] if mimic_kraken else ['|']) \
-	command=cmd_query + ['|'] + cmd_assign
+	command=cmd_read + cmd_query + cmd_assign
 	pro.run_safe(command)
 
 
@@ -931,8 +943,17 @@ def parser():
 			'reads',
 			metavar='<reads.fq>',
 			type=str,
-			help='file with reads in FASTA or FASTQ (use - for standard input)',
+			help="""file with reads in FASTA or FASTQ (can be compressed with gzip)
+					use - for standard input""",
 		)
+	parser_classify.add_argument(
+			'reads_pe',
+			metavar='<paired_end.fq>',
+			nargs='?',
+			type=str,
+			help='paired-end FASTA or FASTQ file',
+			default=None,
+	)
 	parser_classify.add_argument(
 			'-k',
 			dest='k',
@@ -1046,6 +1067,7 @@ def main():
 			prophyle_classify(
 					index_dir=args.index_dir,
 					fq_fn=args.reads,
+					fq_pe_fn=args.reads_pe,
 					k=args.k,
 					use_rolling_window=args.rolling_window,
 					out_format=args.oform,
