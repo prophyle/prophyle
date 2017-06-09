@@ -19,6 +19,24 @@ import time
 log_file=None
 
 
+def open_gzip(fn):
+	"""Open a file, possibly compressed with gzip.
+
+	Args:
+		fn (str): File name.
+	"""
+	magic=b'\x1f\x8b\x08'
+	l=len(magic)
+	with open(fn, 'rb') as f:
+		file_start=f.read(l)
+		f.seek(0)
+	# check if the file is compressed
+	if file_start.startswith(magic):
+		return gzip.open(fn, 'rt')
+	# not compressed
+	return open(fn, 'rt')
+
+
 def open_log(fn):
 	"""Open a log file.
 
@@ -116,7 +134,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 		sys.exit(1)
 
 
-def message(*msg, upper=False, only_log=False):
+def message(*msg, subprogram='', upper=False, only_log=False):
 	"""Print a ProPhyle message to stderr.
 
 	Args:
@@ -134,7 +152,7 @@ def message(*msg, upper=False, only_log=False):
 		msg=map(str,msg)
 		msg=map(str.upper,msg)
 
-	log_line='[prophyle] {} {}'.format(fdt, " ".join(msg))
+	log_line='[prophyle{}] {} {}'.format(subprogram, fdt, " ".join(msg))
 
 	if not only_log:
 		print(log_line, file=sys.stderr)
@@ -302,7 +320,7 @@ def cp_to_dir(fn0, d):
 
 
 def makedirs(*ds):
-	"""Make dirs recursively.
+	"""Make dirs recursively (no error if existing, make parent directories as needed).
 
 	Args:
 		*ds: Dirs to create.
@@ -333,11 +351,11 @@ def existing_and_newer(fn0, fn):
 
 
 def existing_and_newer_list(fn0_l, fn):
-	"""Test if file fn exists and is newer than all files from fn0_l. Raise an exception if some fn0 file does not exist.
+	"""Test if file fn exists and is newer than all files in fn0_l. Raise an exception if some fn0 file does not exist.
 
 	Args:
-		fn0 (str): Old file.
-		fn (str): New file (to be generated from fn0).
+		fn0_l (list of str): Old files list.
+		fn (str): New file (to be generated from fn0_l).
 	"""
 
 	rs=[existing_and_newer(fn0, fn) for fn0 in fn0_l]
@@ -364,4 +382,3 @@ def test_files(*fns,test_nonzero=False):
 
 if __name__ == "__main__":
 	sys.exit(1)
-
