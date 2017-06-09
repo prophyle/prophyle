@@ -61,7 +61,7 @@ if GITDIR:
 	MERGE_FASTAS=os.path.join(C_D,"prophyle_merge_fa.py")
 	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
 	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
-	READ=os.path.join(C_D,"prophyle_paired_reads.py")
+	READ=os.path.join(C_D,"prophyle_paired_end.py")
 
 # package
 else:
@@ -70,7 +70,7 @@ else:
 	MERGE_FASTAS="prophyle_merge_fa.py"
 	MERGE_TREES="prophyle_merge_trees.py"
 	ASSIGN="prophyle_assignment.py"
-	READ="prophyle_paired_reads.py"
+	READ="prophyle_paired_end.py"
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -694,7 +694,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir,fq_fn,fq_pe_fn=None,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir,fq_fn,fq_pe_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
 
 	"""Run Prophyle classification.
 
@@ -943,8 +943,7 @@ def parser():
 			'reads',
 			metavar='<reads.fq>',
 			type=str,
-			help="""file with reads in FASTA or FASTQ (can be compressed with gzip)
-					use - for standard input""",
+			help='file with reads in FASTA or FASTQ (can be compressed with gzip, use - for standard input'),
 		)
 	parser_classify.add_argument(
 			'reads_pe',

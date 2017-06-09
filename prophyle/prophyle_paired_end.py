@@ -8,9 +8,8 @@ Licence: MIT
 """
 
 import sys
+import os
 import argparse
-import gzip
-from itertools import islice
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
@@ -27,7 +26,7 @@ def read_id(read_1, read_2):
 			raise ValueError('different id')
 		else:
 			return id1
-	except KeyError, ValueError:
+	except (KeyError, ValueError):
 		try:
 			id1 = ' '.join(read_1.split(' ')[:-1])
 			id2 = ' '.join(read_2.split(' ')[:-1])
@@ -35,16 +34,15 @@ def read_id(read_1, read_2):
 				raise ValueError('different id')
 			else:
 				return id1
-		except KeyError, ValueError:
+		except (KeyError, ValueError):
 			# cannot find id, just use the one of the first read
 			return read_1
 
 
-def merge_reads(f_reads_1, f_reads_2, output_file):
+def merge_reads(f_reads_1, f_reads_2):
 
 	reads_1 = pro.open_gzip(f_reads_1)
-	if reads_2:
-		reads_2 = pro.open_gzip(f_reads_2)
+	reads_2 = pro.open_gzip(f_reads_2)
 
 	first_read_1 = reads_1.readline()
 	first_read_2 = reads_2.readline()
@@ -76,8 +74,6 @@ def merge_reads(f_reads_1, f_reads_2, output_file):
 			elif l == 1:
 				print(next_line_1.strip()+'NNN'+next_line_2.strip())
 			elif l == 2:
-				assert next_line_1 == '+' and next_line_2 == '+', \
-					"malformed fastq files (no + at line {})".format(i)
 				print('+')
 			elif l == 3:
 				print(next_line_1.strip()+'!!!'+next_line_2.strip())
