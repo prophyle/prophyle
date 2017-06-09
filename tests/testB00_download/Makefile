@@ -9,7 +9,7 @@ all: $(FNS)
 
 seqs/%/.complete.1:
 	mkdir -p seqs
-	prophyle download -d seqs $*
+	$(PROP) download -d seqs $*
 
 clean:
 	rm -fr seqs
