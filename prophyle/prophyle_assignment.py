@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Prophyle assignment algorithm (a prototype implementation, to be reimplemented in C).
+"""ProPhyle assignment algorithm (a prototype implementation, to be reimplemented in C).
 
 Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -21,9 +21,10 @@ import argparse
 import bitarray
 import itertools
 
-from ete3 import Tree
+import ete3
 
-DEFAULT_FORMAT = 1
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
 
 # this should be longer than any possible read
 FAKE_CONTIG_LENGTH = 42424242
@@ -286,9 +287,9 @@ class Read:
 
 class TreeIndex:
 
-	def __init__(self,tree_newick_fn,k,format=DEFAULT_FORMAT):
+	def __init__(self,tree_newick_fn,k):
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=Tree(tree_newick_fn,format=1)
+		self.tree=pro.load_nhx_tree(tree_newick_fn)
 
 		self.k=k
 
