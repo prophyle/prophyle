@@ -12,14 +12,16 @@ Examples:
 		$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw
 """
 
-import os
-import sys
 import argparse
+import ete3
+import os
+import random
+import sys
 
-from ete3 import Tree
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
 
-DEFAULT_FORMAT = 1
-
+random.seed(42)
 
 def add_prefix(tree, prefix):
 	for node in tree.traverse("postorder"):
@@ -27,49 +29,69 @@ def add_prefix(tree, prefix):
 	return tree
 
 
-def merge_trees(input_trees, output_tree, verbose, add_prefixes):
-	t = Tree(
+def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_rate):
+	assert sampling_rate is None or 0.0 <= float(sampling_rate) <= 1.0
+
+	t = ete3.Tree(
 			name="merge_root",
 		)
 
-	if len(input_trees)==1:
+	if len(input_trees_fn)==1:
+		if verbose:
+			print("Only one tree, don't add any prefix", file=sys.stderr)
 		add_prefixes=False
 
-	for i,x in enumerate(input_trees,1):
+	for i, x in enumerate(input_trees_fn, 1):
 		if verbose:
 			print("Loading '{}'".format(x), file=sys.stderr)
+
 		tree_fn,_,root_name=x.partition("@")
-		tree_to_add=Tree(tree_fn, format=DEFAULT_FORMAT)
+		tree_to_add=pro.load_nhx_tree(tree_fn)
+
+		# subtree extraction required
 		if root_name!='':
 			tree_to_add=tree_to_add&root_name
+
+		# prepend prefixes to node names
 		if add_prefixes:
 			tree_to_add=add_prefix(tree_to_add, i)
+
 		t.add_child(tree_to_add)
+
+	if sampling_rate is not None:
+		sampling_rate=float(sampling_rate)
+
+		leaves_1=[]
+
+		for node in t.traverse("postorder"):
+			if len(node.children)==0:
+				leaves_1.append(node)
+
+		leaves_2=random.sample(leaves_1, max(round(sampling_rate*len(leaves_1)), 1))
+
+		leaves_to_remove=set(leaves_1) - set(leaves_2)
+
+		if verbose:
+			print("Removing the following leaves: {}".format(", ".join(map(apply(lambda x: x.name, leaves_to_remove)))), file=sys.stderr)
+
+		for node in leaves_to_remove:
+			while len(node.up.children)==1:
+				node=node.up
+			node.detach()
+
+		print("Subsampling the tree with rate {:.4f}, {} leaves out of {} were sampled".format(sampling_rate, len(leaves_2), len(leaves_1)), file=sys.stderr)
 
 	if verbose:
 		print("Writing to '{}'".format(output_tree), file=sys.stderr)
 
-	# make saving newick reproducible
-	features=set()
-	for n in t.traverse():
-		features|=n.features
-
-	# otherwise some names stored twice – also as a special attribute
-	features.remove("name")
-
-	t.write(
-			outfile=output_tree,
-			features=sorted(features),
-			format=DEFAULT_FORMAT,
-			format_root_node=True,
-		)
+	pro.save_nhx_tree(t, output_tree_fn)
 
 
 def parse_args():
 		parser = argparse.ArgumentParser(
 				description="\n".join(
 					[
-						'Merge multiple Prophyle trees. Specific subtrees might be extracted before merging. Examples:',
+						'Merge multiple ProPhyle trees. Specific subtrees might be extracted before merging. Examples:',
 						'\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw',
 						'\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw'
 					]),
@@ -87,6 +109,14 @@ def parse_args():
 				metavar='<out_tree.nw>',
 				type=str,
 				help='output tree',
+			)
+
+		parser.add_argument('-s',
+				help='rate of sampling the tree [no sampling]',
+				dest='sampling_rate',
+				metavar='FLOAT',
+				type=str,
+				default=None,
 			)
 
 		parser.add_argument('-V',
@@ -108,10 +138,11 @@ def parse_args():
 def main():
 	args=parse_args()
 	merge_trees(
-			input_trees=args.in_tree,
-			output_tree=args.out_tree,
+			input_trees_fn=args.in_tree,
+			output_tree_fn=args.out_tree,
 			verbose=args.verbose,
 			add_prefixes=args.add_prefixes,
+			sampling_rate=args.sampling_rate,
 		)
 
 

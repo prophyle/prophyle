@@ -13,7 +13,10 @@ import re
 import sys
 import argparse
 
-from ete3 import Tree
+import ete3
+
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
 
 
 def load_nb_kmers(tsv_fn):
@@ -50,7 +53,7 @@ def enrich_tree(
 		count_tb,
 	):
 
-	tree=Tree(inp_tree_fn,format=1)
+	tree=pro.load_nhx_tree(inp_tree_fn)
 
 	for node in tree.traverse("preorder"):
 		node.del_feature('kmers_full')
@@ -77,21 +80,7 @@ def enrich_tree(
 		assert node.kmers_reduced<=node.kmers_full
 
 
-	# make saving newick reproducible
-	features=set()
-	for n in tree.traverse():
-		features|=n.features
-
-	# otherwise some names stored twice – also as a special attribute
-	features.remove("name")
-
-	# regularly update
-	tree.write(
-			format=1,
-			features=sorted(features),
-			outfile=out_tree_fn,
-			format_root_node=True,
-		)
+	pro.save_nhx_tree(tree,out_tree_fn)
 
 
 def main():

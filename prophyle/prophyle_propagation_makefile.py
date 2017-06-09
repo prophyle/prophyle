@@ -16,10 +16,6 @@ Propagation parameters (in the Makefile, can be changed through CL):
 	* REASM: re-assemble sequences in leaves
 	* NONDEL: non-deletative propagation, implies REASM
 	* MASKREP: mask repeats in leaves
-
-
-TODO:
-	* Check passing parameters and default paths to programs (e.g., prophyle_assembler).
 """
 
 
@@ -30,9 +26,8 @@ import sys
 import argparse
 import textwrap
 
-from ete3 import Tree
-
-DEFAULT_FORMAT = 1
+sys.path.append(os.path.dirname(__file__))
+import prophylelib as pro
 
 
 def _compl(fn):
@@ -53,13 +48,14 @@ def _compl_l(fns):
 	return [_compl(x) for x in fns]
 
 
-def merge_fasta_files(input_files,output_file,is_leaf):
+def merge_fasta_files(input_files, output_file, is_leaf, nhx_file=None):
 	"""Print Makefile lines for merging FASTA files and removing empty lines.
 
 	Args:
 		input_files (list of str): List of input files.
 		output_file (str): Output file.
 		is_leaf (str): Is a leaf (i.e., copying must be done).
+		nhx_file (str): File with the tree (for including in rule dependencies).
 	"""
 
 	if is_leaf:
@@ -78,7 +74,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 
 		cmd = textwrap.dedent("""\
 
-				{ocompl}: {icompl}
+				{ocompl}: {icompl} {nhx}
 					cat {i} > {o}
 					touch $@
 
@@ -87,6 +83,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 				icomp=' '.join(_compl_l(input_files)),
 				o=output_file,
 				ocomp=_compl(output_file),
+				nhx=nhx_file if nhx_file is not None else "",
 			))
 
 	print("#")
@@ -95,7 +92,7 @@ def merge_fasta_files(input_files,output_file,is_leaf):
 	print(cmd)
 
 
-def assembly(input_files, output_files, intersection_file, count_file="/dev/null"):
+def assembly(input_files, output_files, intersection_file, count_file="/dev/null", nhx_file=None):
 	"""Print Makefile lines for running prophyle_assembler.
 
 	Args:
@@ -103,6 +100,7 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 		output_files (list of str): List of output files.
 		intersection_file (str): File with intersection.
 		count_file (str): File with count statistics.
+		nhx_file (str): File with the tree (for including in rule dependencies).
 	"""
 
 	assert len(input_files)==len(output_files)
@@ -118,10 +116,10 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 			ifdef NONPROP
 			   CMD_ASM_{nid} = touch {x} {o}
 			else
-			   CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -i {ii} $(CMD_ASM_OUT_{nid}) -x {x} -s {c}
+			   CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -x {x} -i {ii} $(CMD_ASM_OUT_{nid}) -s {c}
 			endif
 
-			{xcompl}: {icompl}
+			{xcompl}: {icompl} {nhx}
 				@echo starting propagation for $@
 				$(CMD_ASM_{nid})
 				touch $@
@@ -134,6 +132,7 @@ def assembly(input_files, output_files, intersection_file, count_file="/dev/null
 				xcompl=_compl(intersection_file),
 				c=count_file,
 				nid=intersection_file,
+				nhx=nhx_file if nhx_file is not None else "",
 			)
 		)
 	print("#")
@@ -155,7 +154,7 @@ class TreeIndex:
 			library_dir (str): Directory with FASTA files.
 		"""
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=Tree(tree_newick_fn,format=DEFAULT_FORMAT)
+		self.tree=pro.load_nhx_tree(tree_newick_fn)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
 		self.index_dir=index_dir
 		self.library_dir=library_dir
@@ -260,9 +259,7 @@ class TreeIndex:
 
 				.PHONY: all clean
 
-				SHELL=/usr/bin/env bash
-				.SHELLFLAGS = -eufc -o pipefail
-
+				SHELL=/usr/bin/env bash -euc -o pipefail
 
 				PRG_ASM?=prophyle_assembler
 				PRG_DUST?=dustmasker
@@ -314,7 +311,9 @@ class TreeIndex:
 				all: {root_red_compl}
 
 				clean:
-					rm -f *.complete *.fa *.tsv
+					rm -f *.complete
+					rm -f *.fa
+					rm -f *.tsv
 
 				{root_red_compl}: {root_nonred_compl}
 					ln -s {root_nonred} {root_red}
