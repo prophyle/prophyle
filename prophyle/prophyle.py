@@ -943,7 +943,7 @@ def parser():
 			'reads',
 			metavar='<reads.fq>',
 			type=str,
-			help='file with reads in FASTA or FASTQ (can be compressed with gzip, use - for standard input'),
+			help='file with reads in FASTA or FASTQ (can be compressed with gzip, use - for standard input)',
 		)
 	parser_classify.add_argument(
 			'reads_pe',
