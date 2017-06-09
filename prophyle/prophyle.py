@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Main Prophyle file.
+"""Main ProPhyle file.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -28,11 +28,9 @@ TODO:
 """
 
 import argparse
-import glob
 import hashlib
 import multiprocessing
 import os
-import re
 import sys
 import textwrap
 import time
@@ -58,7 +56,7 @@ ASM=os.path.join(C_D,"prophyle_assembler","prophyle_assembler")
 if GITDIR:
 	NEWICK2MAKEFILE=os.path.join(C_D,"prophyle_propagation_makefile.py")
 	TEST_TREE=os.path.join(C_D,"prophyle_validate_tree.py")
-	MERGE_FASTAS=os.path.join(C_D,"prophyle_merge_fa.py")
+	MERGE_FASTAS=os.path.join(C_D,"prophyle_propagation_postprocessing.py")
 	MERGE_TREES=os.path.join(C_D,"prophyle_merge_trees.py")
 	ASSIGN=os.path.join(C_D,"prophyle_assignment.py")
 	READ=os.path.join(C_D,"prophyle_paired_end.py")
@@ -67,7 +65,7 @@ if GITDIR:
 else:
 	NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
 	TEST_TREE="prophyle_validate_tree.py"
-	MERGE_FASTAS="prophyle_merge_fa.py"
+	MERGE_FASTAS="prophyle_propagation_postprocessing.py"
 	MERGE_TREES="prophyle_merge_trees.py"
 	ASSIGN="prophyle_assignment.py"
 	READ="prophyle_paired_end.py"
@@ -97,10 +95,12 @@ def _file_md5 (fn, block_size=2**20):
 
 def _log_file_md5 (fn, remark=None):
 	md5=_file_md5(fn)
-	m="File {}{} has md5 checksum {}".format(
+	size=pro.file_sizes(fn)[0]
+	m="File {}{} has md5 checksum {} and size {} B".format(
 			os.path.basename(fn),
 			" ({})".format(remark) if remark is not None else "",
 			md5,
+			size,
 		)
 	pro.message(m, only_log=True)
 
@@ -378,18 +378,22 @@ def _kmer_stats(index_dir):
 		)
 
 
-def _merge_trees(in_trees, out_tree, no_prefixes):
+def _merge_trees(in_trees, out_tree, no_prefixes, sampling_rate):
 	"""Merge input trees into a single tree.
 
 	Args:
 		in_trees (list of str): Input NHX trees.
 		out_tree (str): Output NHX tree.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
+		sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
 	"""
 
 	pro.message('Generating index tree')
 	pro.test_files(*in_trees)
-	command=[MERGE_TREES] + in_trees + [out_tree]
+	command=[MERGE_TREES]
+	if sampling_rate is not None:
+		command += ['-s', sampling_rate]
+	command += in_trees + [out_tree]
 	if no_prefixes:
 		command += ['-P']
 	pro.run_safe(
@@ -413,7 +417,7 @@ def _remove_tmp_propagation_files(index_dir):
 	pro.run_safe(command)
 
 
-def _merge_fastas(index_dir):
+def _merge_fastas(index_dir, tree_fn):
 	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
 
 	Args:
@@ -424,7 +428,7 @@ def _merge_fastas(index_dir):
 	propagation_dir=os.path.join(index_dir, 'propagation')
 	index_fa=os.path.join(index_dir,"index.fa")
 	#pro.test_files(MERGE_FASTAS)
-	command=[MERGE_FASTAS, propagation_dir]
+	command=[MERGE_FASTAS, propagation_dir, tree_fn]
 	pro.run_safe(
 			command,
 			output_fn=index_fa,
@@ -547,8 +551,8 @@ def _bwtocc2sa_klcp(fa_fn,k):
 	_log_file_md5("{}.{}.klcp".format(fa_fn,k))
 
 
-def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files):
-	"""Build a Prophyle index.
+def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files, sampling_rate):
+	"""Build a ProPhyle index.
 
 	Args:
 		index_dir (str): Index directory.
@@ -561,12 +565,14 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 		mask_repeats (bool): Mask repeats using DustMasker.
 		keep_tmp_files (bool): Keep temporary files from k-mer propagation.
+		sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
 	"""
 
 	assert isinstance(k, int)
 	assert isinstance(threads, int)
 	assert k>1
 	assert threads>0
+	assert sampling_rate is None or 0.0 <= float(sampling_rate) <= 1.0
 
 	_compile_prophyle_bin()
 
@@ -595,7 +601,9 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		for tree_fn in trees_fn:
 			tree=pro.load_nhx_tree(tree_fn)
 			pro.validate_prophyle_nhx_tree(tree)
-		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes)
+		if len(trees_fn)!=1:
+			pro.message('Merging {} trees{}'.format(len(trees_fn)))
+		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
 		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -612,7 +620,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		pro.message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
-		_merge_fastas(index_dir)
+		_merge_fastas(index_dir, index_tree)
 		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
@@ -694,9 +702,9 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir,fq_fn,fq_pe_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate, tie_lca):
 
-	"""Run Prophyle classification.
+	"""Run ProPhyle classification.
 
 	Args:
 		index_dir (str): Index directory.
@@ -717,15 +725,7 @@ def prophyle_classify(index_dir,fq_fn,fq_pe_fn,k,use_rolling_window,out_format,m
 	index_tree=os.path.join(index_dir, 'tree.nw')
 
 	if k is None:
-		klcps=glob.glob(os.path.join(index_dir,"*.klcp"))
-
-		assert len(klcps)<2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
-		assert len(klcps)>0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
-		klcp=klcps[0]
-
-		re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
-		klcp_match=re_klcp.match(klcp)
-		k=klcp_match.group(1)
+		k=pro.detect_k_from_index(index_dir)
 		pro.message("Automatic detection of k-mer length: k={}".format(k))
 
 	_test_tree(index_tree)
@@ -867,7 +867,7 @@ def parser():
 			metavar='DIR',
 			dest='library_dir',
 			type=str,
-			help='directory with the library sequences [directory of the first tree]',
+			help='directory with the library sequences [dir. of the first tree]',
 			default=None,
 			#required=True,
 		)
@@ -893,6 +893,14 @@ def parser():
 			metavar='STR',
 			type=str,
 			help='log file [<index.dir>/log.txt]',
+			default=None,
+		)
+	parser_index.add_argument(
+			'-s',
+			metavar='FLOAT',
+			help='rate of sampling of the tree [no sampling]',
+			dest='sampling_rate',
+			type=str,
 			default=None,
 		)
 	parser_index.add_argument(
@@ -1053,6 +1061,7 @@ def main():
 					no_prefixes=args.no_prefixes,
 					mask_repeats=args.mask_repeats,
 					keep_tmp_files=args.keep_tmp_files,
+					sampling_rate=args.sampling_rate,
 				)
 			pro.message('Index construction finished')
 			pro.close_log()

@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Test whether given Newick/NHX trees are valid for Prophyle.
+"""Test whether given Newick/NHX trees are valid for ProPhyle.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
