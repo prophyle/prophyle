@@ -12,9 +12,9 @@ diff_res=diff_res.txt
 diffs = $(wildcard ./diff*.txt)
 
 all:
-	prophyle index -k 2 -g . $(tree) $(index)
-	prophyle classify $(index) $(reads) -L -f kraken | grep ^[C\t] | cut -f3,5 > $(res)
-	cmp $(ref) $(res) > $(diff_res)
+	$(PROP) index -k 2 -g . $(tree) $(index)
+	$(PROP) classify $(index) $(reads) -L -f kraken | grep ^[C\t] | cut -f3,5 > $(res)
+	diff $(ref) $(res) > $(diff_res)
 	@for f in $(diffs); do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
 
 clean:
