@@ -178,6 +178,6 @@ klcp_t* construct_klcp(const bwt_t *bwt, const int kmer_length) {
 		klcp->klcp->blocks[i] = 0;
 	}
 	construct_klcp_recursion(bwt, (bwtint_t)0, (bwtint_t)n, 0, kmer_length, klcp);
-	fprintf(stdout, "\n[prophyle_index:%s]  time: %.3f sec; CPU: %.3f sec\n", __func__, realtime() - t_real, cputime());
+	fprintf(stderr, "\n[prophyle_index:%s]  time: %.3f sec; CPU: %.3f sec\n", __func__, realtime() - t_real, cputime());
 	return klcp;
 }
