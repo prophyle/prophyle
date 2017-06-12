@@ -19,8 +19,59 @@ sys.path.append (os.path.dirname (__file__))
 import prophylelib as pro
 
 
-def create_index_tree():
-	pass
+def load_kmer_stats(tsv_fn):
+	re_fa = re.compile (r'(.*)\.([a-z]*)\.fa')
+
+	counts = {"reduced": {}, "full": {}}
+	with open (tsv_fn) as f:
+		for x in f:
+			if len (x) == 0:
+				continue
+			if x[0] == "#":
+				continue
+			else:
+				x = x.strip ()
+				(fa, count) = x.split ("\t")
+				count = int (count)
+				fa_short = os.path.basename (fa)
+				m = re_fa.match (fa_short)
+
+				cat = m.group (2)
+				nname = m.group (1)
+
+				try:
+					assert counts[cat][
+							   nname] == count, "Different k-mer sizes reported for the same node '{}', probably a bug of prophyle_assembler".format (
+						nname)
+				except KeyError:
+					counts[cat][nname] = count
+
+	return counts
+
+
+def enrich_tree(tree, count_tbl):
+	for node in tree.traverse ("preorder"):
+		node.del_feature ('kmers_full')
+		node.del_feature ('kmers_reduced')
+
+		nname = node.name
+
+		assert nname != "", "There is a node without any name ('')"
+
+		try:
+			node.add_features (kmers_full=count_tb["full"][nname])
+		except KeyError:
+			print ("Warning: full-{} is missing".format (nname), file=sys.stderr)
+			node.add_features (kmers_full=0)
+
+		try:
+			node.add_features (kmers_reduced=count_tb["reduced"][nname])
+		except KeyError:
+			print ("Warning: reduced-{} is missing".format (nname), file=sys.stderr)
+			node.add_features (kmers_reduced=0)
+
+		assert 0 <= node.kmers_reduced
+		assert node.kmers_reduced <= node.kmers_full
 
 
 def create_fasta(propagation_dir, index_fasta_fn, suffix, verbose=False):
@@ -92,13 +143,21 @@ def main():
 
 	dir_fn = args.dir
 	index_fasta_fn = args.index_fasta_fn
+	in_tree_fn = args.in_tree_fn
+	out_tree_fn = args.out_tree_fn
 
 	if args.nondel:
 		suffix = "full.fa"
 	else:
 		suffix = "reduced.fa"
 
-	create_fasta (dir_fn, index_fasta_fn, suffix, verbose=False)
+	create_fasta (dir_fn, index_fasta_fn, suffix)
+
+	tree = pro.load_nhx_tree (in_tree_fn)
+	tree = pro.minimum_subtree (tree)
+	stats = load_kmer_stats (tsv_fn)
+	enrich_tree (tree, stats)
+	save_nhx_tree (tree, out_tree_fn)
 
 
 if __name__ == "__main__":
