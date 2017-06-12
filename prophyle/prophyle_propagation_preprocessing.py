@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
-"""Merge ProPhyle Newick/NHX trees.
+"""K-mer propagation pre-processing.
+
+Extract subtrees, merge ProPhyle Newick/NHX trees and subsample them.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -8,8 +10,8 @@ Licence: MIT
 
 Examples:
 
-		$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw
-		$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw
+		$ prophyle_propagation_preprocessing.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw
+		$ prophyle_propagation_preprocessing.py ~/prophyle/bacteria.nw@562 ecoli.nw
 """
 
 import argparse

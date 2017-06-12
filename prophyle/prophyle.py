@@ -54,8 +54,8 @@ ASM = os.path.join(C_D, "prophyle_assembler", "prophyle_assembler")
 if GITDIR:
 	ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
 	KMER_ANNOTATION = os.path.join(C_D, "prophyle_kmer_annotations.py")
-	MERGE_FASTAS = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
-	MERGE_TREES = os.path.join(C_D, "prophyle_merge_trees.py")
+	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
+	PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
 	NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
 	TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
 
@@ -63,8 +63,8 @@ if GITDIR:
 else:
 	ASSIGN = "prophyle_assignment.py"
 	KMER_ANNOTATION = "prophyle_kmer_annotations.py"
-	MERGE_FASTAS = "prophyle_propagation_postprocessing.py"
-	MERGE_TREES = "prophyle_merge_trees.py"
+	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
+	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
 	NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
 	TEST_TREE = "prophyle_validate_tree.py"
 
@@ -396,7 +396,7 @@ def _merge_trees(in_trees, out_tree, no_prefixes, sampling_rate):
 	pro.message('Generating index tree')
 	# existence already checked
 	# pro.test_files(*in_trees)
-	command = [MERGE_TREES]
+	command = [PROPAGATION_PREPROCESSING]
 	if sampling_rate is not None:
 		command += ['-s', sampling_rate]
 	command += in_trees + [out_tree]
@@ -436,7 +436,7 @@ def _merge_fastas(index_dir, in_tree_fn, out_tree_fn):
 	propagation_dir = os.path.join(index_dir, 'propagation')
 	index_fa = os.path.join(index_dir, "index.fa")
 	# pro.test_files(MERGE_FASTAS)
-	command = [MERGE_FASTAS, propagation_dir, in_tree_fn, index_fa, out_tree_fn]
+	command = [PROPAGATION_POSTPROCESSING, propagation_dir, in_tree_fn, index_fa, out_tree_fn]
 	pro.run_safe(
 		command,
 		err_msg="Main ProPhyle FASTA file could not be generated",
