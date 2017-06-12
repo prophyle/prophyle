@@ -76,7 +76,7 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
 
 				{ocompl}: {icompl} {nhx}
 					cat {i} > {o}
-					touch $@
+					@touch $@
 
 			""".format(
 			i=' '.join(input_files_fn),
@@ -122,7 +122,7 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
 			endif
 
 			ifdef NONPROP
-			   CMD_ASM_{nid} = touch {x} {o}
+			   CMD_ASM_{nid} = @touch {x} {o}
 			else
 			   CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -x {x} -i {ii} $(CMD_ASM_OUT_{nid}) -s {c}
 			endif
@@ -130,7 +130,7 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
 			{xcompl}: {icompl} {nhx}
 				@echo starting propagation for $@
 				$(CMD_ASM_{nid})
-				touch $@
+				@touch $@
 			""".format(
 		icompl=' '.join(_compl_l(input_files_fn)),
 		o=' '.join(output_files_fn),
@@ -313,7 +313,7 @@ class TreeIndex:
 
 					{root_red_compl}: {root_nonred_compl}
 						ln -s {root_nonred} {root_red}
-						touch $@
+						@touch $@
 
 					""".format(
 				root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
