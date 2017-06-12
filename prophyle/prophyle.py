@@ -108,9 +108,12 @@ def _test_tree(fn):
 
 	Args:
 		fn (str): Newick/NHX tree.
+
+	Raises:
+		AssertionError: The tree is not valid.
 	"""
 	tree = pro.load_nhx_tree(fn, validate=False)
-	assert pro.validate_prophyle_nhx_tree(tree, verbose=False, throw_exceptions=False, output=sys.stderr)
+	assert pro.validate_prophyle_nhx_tree(tree, verbose=False, throw_exceptions=False, output_fo=sys.stderr)
 
 
 def _compile_prophyle_bin():
@@ -593,8 +596,6 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 	index_fa = os.path.join(index_dir, 'index.fa')
 	index_tree = os.path.join(index_dir, 'tree.nw')
-	makefile_dir = os.path.join(index_dir, 'propagation')
-	makefile = os.path.join(index_dir, 'propagation', 'Makefile')
 
 	# recompute = recompute everything from now on
 	# force==True => start to recompute everything from beginning
