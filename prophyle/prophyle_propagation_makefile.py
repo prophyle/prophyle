@@ -154,7 +154,8 @@ class TreeIndex:
 			library_dir (str): Directory with FASTA files.
 		"""
 		self.tree_newick_fn=tree_newick_fn
-		self.tree=pro.load_nhx_tree(tree_newick_fn)
+		tree=pro.load_nhx_tree(tree_newick_fn)
+		self.tree=pro.minimal_subtree(tree)
 		self.newick_dir=os.path.dirname(tree_newick_fn)
 		self.index_dir=index_dir
 		self.library_dir=library_dir
@@ -170,7 +171,7 @@ class TreeIndex:
 			return "{}".format(node.name)
 
 	def nonreduced_fasta_fn(self,node):
-		"""Get name of the full FASTA file.
+		"""Get name of the full FASTA file (k-mer propagation).
 
 		Args:
 			node: Node of the tree.
@@ -178,7 +179,7 @@ class TreeIndex:
 		return os.path.join(self.index_dir,node.name+".full.fa")
 
 	def reduced_fasta_fn(self,node):
-		"""Get name of the reduced FASTA file.
+		"""Get name of the reduced FASTA file (k-mer propagation).
 
 		Args:
 			node: Node of the tree.

@@ -359,9 +359,9 @@ def test_files(*fns,test_nonzero=False):
 	"""
 
 	for fn in fns:
-		assert os.path.isfile(fn), 'File "{}" does not exist'.format(fn)
+		assert os.path.isfile(fn), 'File "{}" does not exist.'.format(fn)
 		if test_nonzero:
-			assert file_sizes(fn)[0], 'File "{}" has size 0'.format(fn)
+			assert file_sizes(fn)[0], 'File "{}" has size 0.'.format(fn)
 
 
 def detect_k_from_index(index_dir):
@@ -384,6 +384,27 @@ def detect_k_from_index(index_dir):
 	klcp_match=re_klcp.match(klcp)
 	k=int(klcp_match.group(1))
 	return k
+
+
+def minimal_subtree(tree):
+	"""Take a tree and compute its minimal subtree. All singletons are removed and the highest branching node is
+	used as the new root.
+
+	Args:
+		tree (ete3.Tree): Phylogenetic tree.
+	"""
+	tree_copy=tree.copy()
+
+	for n in tree_copy.traverse():
+		if len(n.children)==1:
+			n.delete()
+
+	new_root=tree_copy
+	while len(new_root.children)==1:
+		new_root=new_root.children[0]
+
+	new_tree=new_root.detach()
+	return new_tree
 
 
 if __name__ == "__main__":
