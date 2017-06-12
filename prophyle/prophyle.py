@@ -382,14 +382,15 @@ def _merge_trees(in_trees, out_tree, no_prefixes, sampling_rate):
 	"""Merge input trees into a single tree.
 
 	Args:
-		in_trees (list of str): Input NHX trees.
+		in_trees (list of str): Input NHX trees (possibly with a root specifier).
 		out_tree (str): Output NHX tree.
 		no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
 		sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
 	"""
 
 	pro.message('Generating index tree')
-	pro.test_files(*in_trees)
+	#existence already checked
+	#pro.test_files(*in_trees)
 	command=[MERGE_TREES]
 	if sampling_rate is not None:
 		command += ['-s', sampling_rate]
@@ -567,7 +568,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		index_dir (str): Index directory.
 		threads (int): Number of threads in k-mer propagation.
 		k (int): K-mer size.
-		tree_fn (str): Newick/NHX tree.
+		trees_fn (list of str): Newick/NHX tree, possibly with a root spec (@root).
 		library_dir (str): Library directory.
 		klcp (bool): Generate klcp.
 		force (bool): Rewrite files if they already exist.
@@ -608,8 +609,11 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	if recompute:
 		pro.message('[1/5] Copying/merging trees', upper=True)
 		for tree_fn in trees_fn:
+			tree_fn, _, root=tree_fn.partition("@")
 			tree=pro.load_nhx_tree(tree_fn)
 			pro.validate_prophyle_nhx_tree(tree)
+			if root!="":
+				assert len(tree.search_nodes(name=root))!=0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn)!=1:
 			pro.message('Merging {} trees{}'.format(len(trees_fn)))
 		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes, sampling_rate=sampling_rate)

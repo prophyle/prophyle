@@ -49,10 +49,10 @@ Quick example
 
         $ prophyle download bacteria
 
-3. To quickly test ProPhyle functionality, create an index for a subset of this database with *k*-mer length 12: ::
+3. To quickly test ProPhyle functionality, create an index for randomly sampled 10% genomes from the E.coli subtree of NCBI taxonomy (with k=31): ::
 
-        $ prophyle index -s 0.05 ~/prophyle/bacteria.nw _test_index
+        $ prophyle index -s 0.1 ~/prophyle/bacteria.nw@561 _index_ecoli
 
 4. Classify your reads: ::
 
-	$ prophyle classify _test_index reads.fq > result.sam
+	$ prophyle classify _index_ecoli reads.fq > result.sam
