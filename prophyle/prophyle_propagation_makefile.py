@@ -18,7 +18,6 @@ Propagation parameters (in the Makefile, can be changed through CL):
 	* MASKREP: mask repeats in leaves
 """
 
-
 import os
 import shutil
 import datetime
@@ -36,7 +35,7 @@ def _compl(fn):
 	Args:
 		fn (str): Original file name.
 	"""
-	return fn+".complete"
+	return fn + ".complete"
 
 
 def _compl_l(fns):
@@ -67,10 +66,10 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
 					touch $@
 
 			""".format(
-				i=' '.join(input_files_fn),
-				o=output_file_fn,
-				ocompl=_compl(output_file_fn),
-			))
+			i=' '.join(input_files_fn),
+			o=output_file_fn,
+			ocompl=_compl(output_file_fn),
+		))
 	else:
 
 		cmd = textwrap.dedent("""\
@@ -80,25 +79,26 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
 					touch $@
 
 			""".format(
-				i=' '.join(input_files_fn),
-				icomp=' '.join(_compl_l(input_files_fn)),
-				o=output_file_fn,
-				ocomp=_compl(output_file_fn),
-				nhx=nhx_file if nhx_file is not None else "",
-			))
+			i=' '.join(input_files_fn),
+			icomp=' '.join(_compl_l(input_files_fn)),
+			o=output_file_fn,
+			ocomp=_compl(output_file_fn),
+			nhx=nhx_file if nhx_file is not None else "",
+		))
 
 	print(textwrap.dedent("""\
 			#
 			# Merging FASTA files: {output_file}
 			#
 			""".format(output_file=output_file_fn)
-		)
-		+ cmd,
+	)
+		  + cmd,
 		file=makefile_fo
 	)
 
 
-def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo, counts_fn="/dev/null", nhx_file_fn=None):
+def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo, counts_fn="/dev/null",
+		nhx_file_fn=None):
 	"""Print Makefile lines for running prophyle_assembler.
 
 	Args:
@@ -110,10 +110,10 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
 		nhx_file_fn (str): File with the tree (for including in rule dependencies).
 	"""
 
-	assert len(input_files_fn)==len(output_files_fn)
-	#assert intersection_file not in input_files
-	#print(intersection_file, input_files,file=sys.stderr)
-	cmd =  textwrap.dedent("""\
+	assert len(input_files_fn) == len(output_files_fn)
+	# assert intersection_file not in input_files
+	# print(intersection_file, input_files,file=sys.stderr)
+	cmd = textwrap.dedent("""\
 			ifdef NONDEL
 			   CMD_ASM_OUT_{nid} =
 			else
@@ -131,17 +131,17 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
 				$(CMD_ASM_{nid})
 				touch $@
 			""".format(
-				icompl=' '.join(_compl_l(input_files_fn)),
-				o=' '.join(output_files_fn),
-				ii=' -i '.join(input_files_fn),
-				oo=' -o '.join(output_files_fn),
-				x=intersection_file_fn,
-				xcompl=_compl(intersection_file_fn),
-				c=counts_fn,
-				nid=intersection_file_fn,
-				nhx=nhx_file_fn if nhx_file_fn is not None else "",
-			)
-		)
+		icompl=' '.join(_compl_l(input_files_fn)),
+		o=' '.join(output_files_fn),
+		ii=' -i '.join(input_files_fn),
+		oo=' -o '.join(output_files_fn),
+		x=intersection_file_fn,
+		xcompl=_compl(intersection_file_fn),
+		c=counts_fn,
+		nid=intersection_file_fn,
+		nhx=nhx_file_fn if nhx_file_fn is not None else "",
+	)
+	)
 
 	print(
 		textwrap.dedent("""\
@@ -150,7 +150,7 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
 			#
 			""".format(intersection_file=intersection_file_fn)
 		) + cmd,
-		file=makefile_fo, 
+		file=makefile_fo,
 	)
 
 
@@ -168,51 +168,47 @@ class TreeIndex:
 			makefile_fn (str): Output Makefile.
 		"""
 
-		self.tree_newick_fn=tree_newick_fn
-		tree=pro.load_nhx_tree(tree_newick_fn)
-		self.tree=pro.minimal_subtree(tree)
-		self.newick_dir=os.path.dirname(tree_newick_fn)
-		self.index_dir=index_dir
-		self.library_dir=library_dir
-		self.makefile_fn=makefile_fn
-		os.makedirs(self.index_dir,exist_ok=True)
+		self.tree_newick_fn = tree_newick_fn
+		tree = pro.load_nhx_tree(tree_newick_fn)
+		self.tree = pro.minimal_subtree(tree)
+		self.newick_dir = os.path.dirname(tree_newick_fn)
+		self.index_dir = index_dir
+		self.library_dir = library_dir
+		self.makefile_fn = makefile_fn
+		os.makedirs(self.index_dir, exist_ok=True)
 
 	@staticmethod
 	def _node_debug(node):
-		if hasattr(node,"common_name") and node.common_name!="":
-			return "{}_{}".format(node.name,node.common_name)
-		elif hasattr(node,"sci_name") and node.sci_name!="":
-			return "{}_{}".format(node.name,node.sci_name)
+		if hasattr(node, "common_name") and node.common_name != "":
+			return "{}_{}".format(node.name, node.common_name)
+		elif hasattr(node, "sci_name") and node.sci_name != "":
+			return "{}_{}".format(node.name, node.sci_name)
 		else:
 			return "{}".format(node.name)
 
-
-	def nonreduced_fasta_fn(self,node):
+	def nonreduced_fasta_fn(self, node):
 		"""Get name of the full FASTA file (k-mer propagation).
 
 		Args:
 			node: Node of the tree.
 		"""
-		return os.path.join(self.index_dir,node.name+".full.fa")
+		return os.path.join(self.index_dir, node.name + ".full.fa")
 
-
-	def reduced_fasta_fn(self,node):
+	def reduced_fasta_fn(self, node):
 		"""Get name of the reduced FASTA file (k-mer propagation).
 
 		Args:
 			node: Node of the tree.
 		"""
-		return os.path.join(self.index_dir,node.name+".reduced.fa")
+		return os.path.join(self.index_dir, node.name + ".reduced.fa")
 
-
-	def count_fn(self,node):
+	def count_fn(self, node):
 		"""Get FASTA name of the file with k-mer counts.
 
 		Args:
 			node: Node of the tree.
 		"""
-		return os.path.join(self.index_dir,node.name+".count.tsv")
-
+		return os.path.join(self.index_dir, node.name + ".count.tsv")
 
 	def process_node(self, node, makefile_fo):
 		"""Recursive function for treating an individual node of the tree.
@@ -224,29 +220,28 @@ class TreeIndex:
 
 		if node.is_leaf():
 
-			if hasattr(node,"fastapath"):
-				fastas_fn=node.fastapath.split("@")
+			if hasattr(node, "fastapath"):
+				fastas_fn = node.fastapath.split("@")
 				for i in range(len(fastas_fn)):
-					fastas_fn[i]=os.path.join(self.library_dir,fastas_fn[i])
+					fastas_fn[i] = os.path.join(self.library_dir, fastas_fn[i])
 				merge_fasta_files(fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo)
 
 		else:
-			children=node.get_children()
+			children = node.get_children()
 
 			# 1) process children
 			for child in children:
 				self.process_node(child, makefile_fo=makefile_fo)
-				#print(child.name, "processed",file=sys.stderr)
+			# print(child.name, "processed",file=sys.stderr)
 
 			# 2) k-mer propagation & assembly
-			input_files=[self.nonreduced_fasta_fn(x) for x in children]
-			output_files=[self.reduced_fasta_fn(x) for x in children]
-			intersection_file=self.nonreduced_fasta_fn(node)
-			count_file=self.count_fn(node)
+			input_files = [self.nonreduced_fasta_fn(x) for x in children]
+			output_files = [self.reduced_fasta_fn(x) for x in children]
+			intersection_file = self.nonreduced_fasta_fn(node)
+			count_file = self.count_fn(node)
 			assembly(input_files, output_files, intersection_file, counts_fn=count_file, makefile_fo=makefile_fo)
 
-
-	def build_index(self,k):
+	def build_index(self, k):
 		"""Print Makefile for the tree.
 
 		Args:
@@ -254,7 +249,6 @@ class TreeIndex:
 		"""
 
 		with open(self.makefile_fn, 'w+') as f:
-
 			print(textwrap.dedent("""\
 					include params.mk\n
 
@@ -321,12 +315,12 @@ class TreeIndex:
 						touch $@
 
 					""".format(
-								root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
-								root_nonred_compl=_compl(self.nonreduced_fasta_fn(self.tree.get_tree_root())),
-								root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
-								root_red_compl=_compl(self.reduced_fasta_fn(self.tree.get_tree_root())),
-							)
-				), file=f)
+				root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
+				root_nonred_compl=_compl(self.nonreduced_fasta_fn(self.tree.get_tree_root())),
+				root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
+				root_red_compl=_compl(self.reduced_fasta_fn(self.tree.get_tree_root())),
+			)
+			), file=f)
 
 			self.process_node(self.tree.get_tree_root(), makefile_fo=f)
 
@@ -334,55 +328,55 @@ class TreeIndex:
 def main():
 	parser = argparse.ArgumentParser(description='Create Makefile for parallelized ProPhyle k-mer propagation.')
 	parser.add_argument(
-			'newick_fn',
-			type=str,
-			metavar='<tree.nw>',
-			help='Taxonomic tree (in Newick/NHX).',
-		)
+		'newick_fn',
+		type=str,
+		metavar='<tree.nw>',
+		help='Taxonomic tree (in Newick/NHX).',
+	)
 	parser.add_argument(
-			'-k',
-			type=int,
-			metavar='int',
-			dest='k',
-			required=True,
-			help='k-mer length',
-		)
+		'-k',
+		type=int,
+		metavar='int',
+		dest='k',
+		required=True,
+		help='k-mer length',
+	)
 	parser.add_argument(
-			'library_dir_fn',
-			metavar='<library.dir>',
-			help='directory with the library',
-		)
+		'library_dir_fn',
+		metavar='<library.dir>',
+		help='directory with the library',
+	)
 	parser.add_argument(
-			'output_dir_fn',
-			type=str,
-			metavar='<output.dir>',
-			help='output directory for the index',
-		)
+		'output_dir_fn',
+		type=str,
+		metavar='<output.dir>',
+		help='output directory for the index',
+	)
 	parser.add_argument(
-			'makefile_fn',
-			type=str,
-			metavar='<Makefile>',
-			help='output Makefile',
-		)
+		'makefile_fn',
+		type=str,
+		metavar='<Makefile>',
+		help='output Makefile',
+	)
 
 	args = parser.parse_args()
 
-	k=args.k
-	assert k>0
-	newick_fn=args.newick_fn
-	output_dir_fn=args.output_dir_fn
-	library_dir_fn=args.library_dir_fn
-	makefile_fn=args.makefile_fn
+	k = args.k
+	assert k > 0
+	newick_fn = args.newick_fn
+	output_dir_fn = args.output_dir_fn
+	library_dir_fn = args.library_dir_fn
+	makefile_fn = args.makefile_fn
 
-	ti=TreeIndex(
-			tree_newick_fn=newick_fn,
-			library_dir=library_dir_fn,
-			index_dir=output_dir_fn,
-			makefile_fn=makefile_fn,
-		)
+	ti = TreeIndex(
+		tree_newick_fn=newick_fn,
+		library_dir=library_dir_fn,
+		index_dir=output_dir_fn,
+		makefile_fn=makefile_fn,
+	)
 	ti.build_index(
-			k=k,
-		)
+		k=k,
+	)
 
 
 if __name__ == "__main__":

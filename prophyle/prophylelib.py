@@ -18,7 +18,7 @@ import subprocess
 import sys
 import time
 
-log_file=None
+log_file = None
 
 
 def open_log(fn):
@@ -30,9 +30,9 @@ def open_log(fn):
 
 	global log_file
 	if fn is not None:
-		d=os.path.dirname(fn)
+		d = os.path.dirname(fn)
 		makedirs(d)
-		log_file=open(fn,"a+")
+		log_file = open(fn, "a+")
 
 
 def close_log():
@@ -64,47 +64,47 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 	command_safe = []
 
 	for part in command:
-		part=str(part)
+		part = str(part)
 		if " " in part:
-			part='"{}"'.format(part)
+			part = '"{}"'.format(part)
 		command_safe.append(part)
 
-	command_str=" ".join(command_safe)
+	command_str = " ".join(command_safe)
 	message("Running:", command_str)
 	if output_fn is None:
 		if output_fo is None:
-			out_fo=sys.stdout
+			out_fo = sys.stdout
 		else:
-			out_fo=output_fo
+			out_fo = output_fo
 	else:
-		out_fo=open(output_fn,"w+")
+		out_fo = open(output_fn, "w+")
 
-	if out_fo==sys.stdout:
-		p=subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True)
+	if out_fo == sys.stdout:
+		p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True)
 	else:
-		p=subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+		p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
 
 	ps_p = psutil.Process(p.pid)
 
 	max_rss = 0
-	error_code=None
+	error_code = None
 	while error_code is None:
 		try:
-			max_rss=max(max_rss, ps_p.memory_info().rss)
+			max_rss = max(max_rss, ps_p.memory_info().rss)
 		except psutil.ZombieProcess:
 			pass
 		# wait 0.02 s
 		time.sleep(0.02)
-		error_code=p.poll()
+		error_code = p.poll()
 
 	out_fo.flush()
 
-	mem_mb=round(max_rss/(1024*1024.0), 1)
+	mem_mb = round(max_rss / (1024 * 1024.0), 1)
 
 	if output_fn is not None:
 		out_fo.close()
 
-	if error_code==0 or error_code==141:
+	if error_code == 0 or error_code == 141:
 		message("Finished ({} MB used): {}".format(mem_mb, command_str))
 	else:
 		message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
@@ -129,14 +129,14 @@ def message(*msg, upper=False, only_log=False):
 
 	global log_file
 
-	dt=datetime.datetime.now()
-	fdt=dt.strftime("%Y-%m-%d %H:%M:%S")
+	dt = datetime.datetime.now()
+	fdt = dt.strftime("%Y-%m-%d %H:%M:%S")
 
 	if upper:
-		msg=map(str,msg)
-		msg=map(str.upper,msg)
+		msg = map(str, msg)
+		msg = map(str.upper, msg)
 
-	log_line='[prophyle] {} {}'.format(fdt, " ".join(msg))
+	log_line = '[prophyle] {} {}'.format(fdt, " ".join(msg))
 
 	if not only_log:
 		print(log_line, file=sys.stderr)
@@ -147,7 +147,7 @@ def message(*msg, upper=False, only_log=False):
 
 
 def load_nhx_tree(nhx_fn, validate=True):
-	tree=ete3.Tree(
+	tree = ete3.Tree(
 		nhx_fn,
 		format=1
 	)
@@ -162,68 +162,68 @@ def save_nhx_tree(tree, nhx_fn):
 	assert isinstance(tree, ete3.Tree)
 
 	# make saving newick reproducible
-	features=set()
+	features = set()
 	for n in tree.traverse():
-		features|=n.features
+		features |= n.features
 
 	# otherwise some names stored twice – also as a special attribute
 	features.remove("name")
 
 	tree.write(
 		features=sorted(features),
-		format = 1,
-		format_root_node = True,
-		outfile = nhx_fn,
+		format=1,
+		format_root_node=True,
+		outfile=nhx_fn,
 	)
 
 
 def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output=sys.stderr):
-	node_names=set()
+	node_names = set()
 
-	error=False
+	error = False
 
-	existing_names=[]
-	names_with_separator=[]
+	existing_names = []
+	names_with_separator = []
 
-	without_name=[]
-	empty_name=[]
+	without_name = []
+	empty_name = []
 
-	duplicates=[]
+	duplicates = []
 
-	for i,node in enumerate(tree.traverse("postorder")):
-		noname=True
+	for i, node in enumerate(tree.traverse("postorder")):
+		noname = True
 		try:
-			nname=node.name
-			noname=False
+			nname = node.name
+			noname = False
 		except AttributeError:
-			without_name.append((i,None))
+			without_name.append((i, None))
 
 		if not noname:
-			if nname=='':
-				empty_name.append((i,nname))
-				error=True
+			if nname == '':
+				empty_name.append((i, nname))
+				error = True
 			if nname in existing_names:
-				duplicates.append((i,nname))
-				error=True
+				duplicates.append((i, nname))
+				error = True
 			if "@" in nname:
-				names_with_separator.append((i,nname))
-				error=True
-			existing_names.append((i,nname))
+				names_with_separator.append((i, nname))
+				error = True
+			existing_names.append((i, nname))
 
 	def _format_node_list(node_list):
-		return ", ".join(map(str,node_list))
+		return ", ".join(map(str, node_list))
 
 	def _error_report(node_list, message):
-		if len(node_list)>0:
+		if len(node_list) > 0:
 			print("   * {} node(s) {}: {}".format(
-					len(node_list),
-					message,
-					_format_node_list(node_list),
-				),file=output)
+				len(node_list),
+				message,
+				_format_node_list(node_list),
+			), file=output)
 
 	if verbose:
 		if error:
-			print("Errors:".format(),file=output)
+			print("Errors:".format(), file=output)
 
 		_error_report(without_name, "without name")
 		_error_report(empty_name, "with empty name")
@@ -249,7 +249,7 @@ def file_sizes(*fns):
 	Returns:
 		tuple(int): File sizes.
 	"""
-	return tuple( [os.stat(fn).st_size for fn in fns] )
+	return tuple([os.stat(fn).st_size for fn in fns])
 
 
 def touch(*fns):
@@ -311,7 +311,7 @@ def makedirs(*ds):
 	"""
 	for d in ds:
 		if not os.path.isdir(d):
-			cmd=['mkdir', '-p', d]
+			cmd = ['mkdir', '-p', d]
 			run_safe(cmd)
 
 
@@ -328,7 +328,7 @@ def existing_and_newer(fn0, fn):
 	if not os.path.isfile(fn):
 		return False
 
-	if os.path.getmtime(fn0)<=os.path.getmtime(fn):
+	if os.path.getmtime(fn0) <= os.path.getmtime(fn):
 		return True
 	else:
 		return False
@@ -342,12 +342,12 @@ def existing_and_newer_list(fn0_l, fn):
 		fn (str): New file (to be generated from fn0).
 	"""
 
-	rs=[existing_and_newer(fn0, fn) for fn0 in fn0_l]
-	some_false=False in rs
+	rs = [existing_and_newer(fn0, fn) for fn0 in fn0_l]
+	some_false = False in rs
 	return not some_false
 
 
-def test_files(*fns,test_nonzero=False):
+def test_files(*fns, test_nonzero=False):
 	"""Test if given files exist, and possibly if they are non-empty. If not, stop the program.
 
 	Args:
@@ -374,15 +374,16 @@ def detect_k_from_index(index_dir):
 		AssertionError: k cannot be detected.
 	"""
 
-	klcps=glob.glob(os.path.join(index_dir,"*.klcp"))
+	klcps = glob.glob(os.path.join(index_dir, "*.klcp"))
 
-	assert len(klcps)<2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
-	assert len(klcps)>0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
-	klcp=klcps[0]
+	assert len(
+		klcps) < 2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
+	assert len(klcps) > 0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
+	klcp = klcps[0]
 
-	re_klcp=re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
-	klcp_match=re_klcp.match(klcp)
-	k=int(klcp_match.group(1))
+	re_klcp = re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
+	klcp_match = re_klcp.match(klcp)
+	k = int(klcp_match.group(1))
 	return k
 
 
@@ -393,17 +394,17 @@ def minimal_subtree(tree):
 	Args:
 		tree (ete3.Tree): Phylogenetic tree.
 	"""
-	tree_copy=tree.copy()
+	tree_copy = tree.copy()
 
 	for n in tree_copy.traverse():
-		if len(n.children)==1:
+		if len(n.children) == 1:
 			n.delete()
 
-	new_root=tree_copy
-	while len(new_root.children)==1:
-		new_root=new_root.children[0]
+	new_root = tree_copy
+	while len(new_root.children) == 1:
+		new_root = new_root.children[0]
 
-	new_tree=new_root.detach()
+	new_tree = new_root.detach()
 	return new_tree
 
 
