@@ -595,7 +595,8 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	_compile_prophyle_bin()
 
 	index_fa = os.path.join(index_dir, 'index.fa')
-	index_tree = os.path.join(index_dir, 'tree.1.nw')
+	index_tree_1 = os.path.join(index_dir, 'tree.1.nw')
+	index_tree_2 = os.path.join(index_dir, 'tree.2.nw')
 
 	# recompute = recompute everything from now on
 	# force==True => start to recompute everything from beginning
@@ -608,7 +609,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	# 1) Newick
 	#
 
-	if not _is_complete(index_dir, 1) or not pro.existing_and_newer_list(trees_fn, index_tree):
+	if not _is_complete(index_dir, 1) or not pro.existing_and_newer_list(trees_fn, index_tree_1):
 		recompute = True
 
 	if recompute:
@@ -621,7 +622,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 				assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn) != 1:
 			pro.message('Merging {} trees{}'.format(len(trees_fn)))
-		_merge_trees(trees_fn, index_tree, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
+		_merge_trees(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
 		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -637,7 +638,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		pro.message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
-		_merge_fastas(index_dir, index_tree, index_tree+".2")
+		_merge_fastas(index_dir, index_tree_1, index_tree_2)
 		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
