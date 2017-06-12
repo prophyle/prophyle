@@ -274,8 +274,7 @@ def prophyle_download(library, library_dir, force=False):
 
 	elif library=='viruses':
 		if lib_missing or force:
-			#cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz', '|', 'ta
-      r', 'xz']
+			#cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz', '|', 'tar', 'xz']
 			#pro.run_safe(cmd)
 			cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.fna.tar.gz', '|', 'tar', 'xz']
 			pro.run_safe(cmd)
