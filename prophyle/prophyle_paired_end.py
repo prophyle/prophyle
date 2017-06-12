@@ -19,24 +19,18 @@ def read_id(read_1, read_2):
 	# two possibilities:
 	# <instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>   <pair idx>:<is filtered>:<control number>:<index sequence>
 	# <instrument>:<flowcell lane>:<tile>:<x-pos>:<y-pos>:<multiplex idx>/<pair idx>
-	try:
-		id1 = '/'.join(read_1.split('/')[:-1])
-		id2 = '/'.join(read_2.split('/')[:-1])
-		if id1 != id2:
-			raise ValueError('different id')
-		else:
-			return id1
-	except (KeyError, ValueError):
+	for sep in ['/', ' ']:
 		try:
-			id1 = ' '.join(read_1.split(' ')[:-1])
-			id2 = ' '.join(read_2.split(' ')[:-1])
-			if id1 != id2:
+			id1 = sep.join(read_1.split(sep)[:-1])
+			id2 = sep.join(read_2.split(sep)[:-1])
+			if id1 != id2 or len(id1)<0.3*len(read_1):
 				raise ValueError('different id')
 			else:
 				return id1
 		except (KeyError, ValueError):
-			# cannot find id, just use the one of the first read
-			return read_1
+			pass
+	# cannot find id, just use the one of the first read
+	return read_1
 
 
 def merge_reads(f_reads_1, f_reads_2):
@@ -59,7 +53,7 @@ def merge_reads(f_reads_1, f_reads_2):
 				file=sys.stderr)
 		sys.exit(1)
 
-	print(read_id(first_read_1,first_read_2))
+	print(read_id(first_read_1.strip(),first_read_2.strip()))
 
 	if fastq:
 		# file line
