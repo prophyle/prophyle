@@ -324,14 +324,14 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	tree_fn=os.path.join(index_dir,'tree.nw')
 	_test_tree(tree_fn)
 	#pro.test_files(NEWICK2MAKEFILE, tree_fn)
-	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './']
+	command=[NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './', makefile]
 
 	with open(os.path.join(propagation_dir, "params.mk"),"w+") as f:
 		f.write('PRG_ASM="{}"\n'.format(ASM))
 		f.write("K={}\n".format(k))
 		if  mask_repeats:
 			f.write("MASKREP=1\n")
-	pro.run_safe(command,output_fn=makefile)
+	pro.run_safe(command)
 	_log_file_md5(makefile)
 
 
