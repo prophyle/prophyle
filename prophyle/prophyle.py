@@ -33,13 +33,11 @@ import multiprocessing
 import os
 import sys
 import textwrap
-import time
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
 import version
 
-# C_D=os.path.dirname(os.path.realpath(__file__))
 GITDIR = os.path.basename(sys.argv[0])[-3:] == ".py"
 if GITDIR:
 	C_D = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -268,7 +266,7 @@ def prophyle_download(library, library_dir, force=False):
 	if library == 'bacteria':
 		if lib_missing or force:
 			cmd = ['cd', d, '&&', 'curl', FTP_NCBI + '/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz', '|', 'tar',
-				   'xz']
+				'xz']
 			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		# _pseudo_fai(d)
@@ -285,7 +283,7 @@ def prophyle_download(library, library_dir, force=False):
 	elif library == 'plasmids':
 		if lib_missing or force:
 			cmd = ['cd', d, '&&', 'curl', FTP_NCBI + '/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz',
-				   '|', 'tar', 'xz', '--strip', '5']
+				'|', 'tar', 'xz', '--strip', '5']
 			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		# _pseudo_fai(d)
@@ -294,7 +292,7 @@ def prophyle_download(library, library_dir, force=False):
 		if lib_missing or force:
 			# fix when error appears
 			cmd = ['cd', d, '&&', 'curl', 'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|', 'bzip2',
-				   '-d']
+				'-d']
 			pro.run_safe(cmd, os.path.join(d, "all_seqs.fa"))
 			_mark_complete(d, 1)
 		# _pseudo_fai(d)
@@ -374,7 +372,7 @@ def _kmer_stats(index_dir):
 	"""
 	propagation_dir = os.path.join(index_dir, 'propagation')
 	command = ["cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "sort", "|", "uniq", ">",
-			   os.path.join(index_dir, "index.fa.kmers.tsv")]
+		os.path.join(index_dir, "index.fa.kmers.tsv")]
 	pro.run_safe(
 		command,
 		err_msg="A file with k-mer statistics could not be created.",
@@ -568,7 +566,7 @@ def _tree_annotate_kmers(index_dir, newick1, newick2):
 
 
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats,
-				   keep_tmp_files, sampling_rate):
+		keep_tmp_files, sampling_rate):
 	"""Build a ProPhyle index.
 
 	Args:
@@ -635,7 +633,6 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		recompute = True
 
 	if recompute:
-		# TODO: check if something should be deleted (e.g., the propagation dir)
 		pro.message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
@@ -721,7 +718,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 #####################
 
 def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate, tie_lca,
-					  print_seq):
+		print_seq):
 	"""Run ProPhyle classification.
 
 	Args:
@@ -807,13 +804,13 @@ def parser():
 		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
 
 		Usage:   prophyle <command> [options]
-	""".format(V=version.VERSION)
+		""".format(V=version.VERSION)
 	parser = MyParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent(desc))
 
 	parser.add_argument('-v', '--version',
-						action='version',
-						version='%(prog)s {}'.format(version.VERSION),
-						)
+		action='version',
+		version='%(prog)s {}'.format(version.VERSION),
+	)
 
 	subparsers = parser.add_subparsers(help="", description=argparse.SUPPRESS, dest='subcommand', metavar="")
 	fc = lambda prog: argparse.HelpFormatter(prog, max_help_position=27)
@@ -821,10 +818,10 @@ def parser():
 	##########
 
 	parser_download = subparsers.add_parser('download',
-											help='download a genomic database',
-											# description='Download RefSeq and HMP databases.',
-											formatter_class=fc,
-											)
+		help='download a genomic database',
+		# description='Download RefSeq and HMP databases.',
+		formatter_class=fc,
+	)
 	parser_download.add_argument(
 		'library',
 		metavar='<library>',
@@ -858,16 +855,15 @@ def parser():
 	##########
 
 	parser_index = subparsers.add_parser('index',
-										 help='build index',
-										 # description='Build a ProPhyle index (i.e., propagate k-mers and construct a BWT-index with k-LCP).',
-										 formatter_class=fc,
-										 )
+		help='build index',
+		formatter_class=fc,
+	)
 	parser_index.add_argument('tree',
-							  metavar='<tree.nw>',
-							  type=str,
-							  nargs='+',
-							  help='phylogenetic tree (in Newick/NHX)',
-							  )
+		metavar='<tree.nw>',
+		type=str,
+		nargs='+',
+		help='phylogenetic tree (in Newick/NHX)',
+	)
 	parser_index.add_argument(
 		'index_dir',
 		metavar='<index.dir>',
@@ -949,10 +945,10 @@ def parser():
 	##########
 
 	parser_classify = subparsers.add_parser('classify',
-											help='classify reads',
-											# description='Classify reads.',
-											formatter_class=fc,
-											)
+		help='classify reads',
+		# description='Classify reads.',
+		formatter_class=fc,
+	)
 	parser_classify.add_argument(
 		'index_dir',
 		metavar='<index.dir>',
