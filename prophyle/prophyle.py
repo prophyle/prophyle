@@ -325,7 +325,7 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	pro.makedirs(propagation_dir)
 
 	makefile = os.path.join(propagation_dir, 'Makefile')
-	tree_fn = os.path.join(index_dir, 'tree.nw')
+	tree_fn = os.path.join(index_dir, 'tree.1.nw')
 	_test_tree(tree_fn)
 	# pro.test_files(NEWICK2MAKEFILE, tree_fn)
 	command = [NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './', makefile]
@@ -423,22 +423,22 @@ def _remove_tmp_propagation_files(index_dir):
 	pro.run_safe(command)
 
 
-def _merge_fastas(index_dir, tree_fn):
+def _merge_fastas(index_dir, in_tree_fn, out_tree_fn):
 	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
 
 	Args:
 		index_dir (str): Index directory.
-		tree_fn (str): Tree in Newick/NHX.
+		in_tree_fn (str): Input tree in Newick/NHX.
+		out_tree_fn (str): Output tree in Newick/NHX.
 	"""
 
 	pro.message('Generating index.fa')
 	propagation_dir = os.path.join(index_dir, 'propagation')
 	index_fa = os.path.join(index_dir, "index.fa")
 	# pro.test_files(MERGE_FASTAS)
-	command = [MERGE_FASTAS, propagation_dir, tree_fn]
+	command = [MERGE_FASTAS, propagation_dir, in_tree_fn, index_fa, out_tree_fn]
 	pro.run_safe(
 		command,
-		output_fn=index_fa,
 		err_msg="Main ProPhyle FASTA file could not be generated",
 		thr_exc=True,
 	)
@@ -595,7 +595,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	_compile_prophyle_bin()
 
 	index_fa = os.path.join(index_dir, 'index.fa')
-	index_tree = os.path.join(index_dir, 'tree.nw')
+	index_tree = os.path.join(index_dir, 'tree.1.nw')
 
 	# recompute = recompute everything from now on
 	# force==True => start to recompute everything from beginning
@@ -637,7 +637,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		pro.message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
-		_merge_fastas(index_dir, index_tree)
+		_merge_fastas(index_dir, index_tree, index_tree+".2")
 		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
@@ -737,7 +737,7 @@ def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic
 
 	_compile_prophyle_bin()
 	index_fa = os.path.join(index_dir, 'index.fa')
-	index_tree = os.path.join(index_dir, 'tree.nw')
+	index_tree = os.path.join(index_dir, 'tree.1.nw')
 
 	if k is None:
 		k = pro.detect_k_from_index(index_dir)
