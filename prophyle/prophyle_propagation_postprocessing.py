@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""K-mer propagation postprocessing.
+"""K-mer propagation post-processing.
 
 Create the main index FASTA file and the new tree, i.e., a minimal tree with k-mer annotations.
 
