@@ -300,7 +300,7 @@ class TreeIndex:
 
 				ifdef REASM
 				   $(info | Re-assembling leaves:   On)
-				   CMD_REASM= | $(PRG_ASM) -S -i - -o -
+				   CMD_REASM= | $(PRG_ASM) -k $(K) -S -i - -o -
 				else
 				   $(info | Re-assembling leaves:   Off)
 				   CMD_REASM=
