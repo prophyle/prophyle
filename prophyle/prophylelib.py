@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Auxiliary ProPhyle functions.
+"""Auxiliary ProPhyle functions for running shell commands, file manipulation and tree manipulation.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -362,7 +362,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 		command (list of str): Command to execute.
 		output_fn (str): Name of a file for storing the output.
 		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
-		error_msg (str): Error message if the command fails.
+		err_msg (str): Error message if the command fails.
 		thr_exc (bool): Through exception if the command fails. error_msg or thr_exc must be set.
 
 	Raises:
