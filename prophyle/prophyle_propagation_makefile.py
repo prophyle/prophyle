@@ -63,7 +63,7 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
 
 				{ocompl}: {i}
 					cat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
-					touch $@
+					@touch $@
 
 			""".format(
 			i=' '.join(input_files_fn),
@@ -83,16 +83,17 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
 			icomp=' '.join(_compl_l(input_files_fn)),
 			o=output_file_fn,
 			ocomp=_compl(output_file_fn),
-			nhx=nhx_file if nhx_file is not None else "",
+			nhx=nhx_file_fn if nhx_file_fn is not None else "",
 		))
 
-	print(textwrap.dedent("""\
+	print(
+		textwrap.dedent("""\
 			#
 			# Merging FASTA files: {output_file}
 			#
 			""".format(output_file=output_file_fn)
-	)
-		  + cmd,
+		)
+		+ cmd,
 		file=makefile_fo
 	)
 
@@ -215,7 +216,7 @@ class TreeIndex:
 
 		Args:
 			node: Node of the tree.
-			file: Output file.
+			makefile_fo: Output file.
 		"""
 
 		if node.is_leaf():

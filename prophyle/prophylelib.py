@@ -18,6 +18,11 @@ import subprocess
 import sys
 import time
 
+###########
+# LOGGING #
+###########
+
+
 log_file = None
 
 
@@ -42,80 +47,6 @@ def close_log():
 	global log_file
 	if log_file is not None:
 		log_file.close()
-
-
-def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True):
-	"""Run a shell command safely.
-
-	Args:
-		command (list of str): Command to execute.
-		output_fn (str): Name of a file for storing the output.
-		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
-		error_msg (str): Error message if the command fails.
-		thr_exc (bool): Through exception if the command fails. error_msg or thr_exc must be set.
-
-	Raises:
-		RuntimeError: Command exited with a non-zero code.
-	"""
-
-	assert output_fn is None or output_fo is None
-	assert err_msg is not None or thr_exc
-
-	command_safe = []
-
-	for part in command:
-		part = str(part)
-		if " " in part:
-			part = '"{}"'.format(part)
-		command_safe.append(part)
-
-	command_str = " ".join(command_safe)
-	message("Running:", command_str)
-	if output_fn is None:
-		if output_fo is None:
-			out_fo = sys.stdout
-		else:
-			out_fo = output_fo
-	else:
-		out_fo = open(output_fn, "w+")
-
-	if out_fo == sys.stdout:
-		p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True)
-	else:
-		p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
-
-	ps_p = psutil.Process(p.pid)
-
-	max_rss = 0
-	error_code = None
-	while error_code is None:
-		try:
-			max_rss = max(max_rss, ps_p.memory_info().rss)
-		except psutil.ZombieProcess:
-			pass
-		# wait 0.02 s
-		time.sleep(0.02)
-		error_code = p.poll()
-
-	out_fo.flush()
-
-	mem_mb = round(max_rss / (1024 * 1024.0), 1)
-
-	if output_fn is not None:
-		out_fo.close()
-
-	if error_code == 0 or error_code == 141:
-		message("Finished ({} MB used): {}".format(mem_mb, command_str))
-	else:
-		message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
-
-		if err_msg is not None:
-			print('Error: {}'.format(err_msg), file=sys.stderr)
-
-		if thr_exc:
-			raise RuntimeError("A command failed, see messages above.")
-
-		sys.exit(1)
 
 
 def message(*msg, upper=False, only_log=False):
@@ -146,7 +77,19 @@ def message(*msg, upper=False, only_log=False):
 		log_file.flush()
 
 
+###################
+# TREE OPERATIONS #
+###################
+
+
 def load_nhx_tree(nhx_fn, validate=True):
+	"""Load a ProPhyle NHX tree.
+
+	Args:
+		nhx_fn (str): Newick/NHX tree.
+		validate (bool): Validate the tree.
+	"""
+
 	tree = ete3.Tree(
 		nhx_fn,
 		format=1
@@ -159,6 +102,13 @@ def load_nhx_tree(nhx_fn, validate=True):
 
 
 def save_nhx_tree(tree, nhx_fn):
+	"""Save a ProPhyle NHX tree.
+
+	Args:
+		tree (ete3.Tree): Ete3 tree.
+		nhx_fn (str): Name of the file.
+	"""
+
 	assert isinstance(tree, ete3.Tree)
 
 	# make saving newick reproducible
@@ -177,8 +127,18 @@ def save_nhx_tree(tree, nhx_fn):
 	)
 
 
-def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output=sys.stderr):
-	node_names = set()
+def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output_fo=sys.stderr):
+	"""Validate an ETE3 tree with respect to ProPhyle requirements.
+
+	Args:
+		tree (ete3.Tree): Ete3 tree.
+		verbose (bool): Verbose mode.
+		throw_exceptions (bool): Throw an exception if the tree is not valid.
+		output_fo (file): Output file object.
+
+	Raises:
+		ValueError: The tree is not valid.
+	"""
 
 	error = False
 
@@ -219,11 +179,11 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 				len(node_list),
 				message,
 				_format_node_list(node_list),
-			), file=output)
+			), file=output_fo)
 
 	if verbose:
 		if error:
-			print("Errors:".format(), file=output)
+			print("Errors:".format(), file=output_fo)
 
 		_error_report(without_name, "without name")
 		_error_report(empty_name, "with empty name")
@@ -238,6 +198,32 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 		return False
 	else:
 		return True
+
+
+def minimal_subtree(tree):
+	"""Take a tree and compute its minimal subtree. All singletons are removed and the highest branching node is
+	used as the new root.
+
+	Args:
+		tree (ete3.Tree): Phylogenetic tree.
+	"""
+	tree_copy = tree.copy()
+
+	for n in tree_copy.traverse():
+		if len(n.children) == 1:
+			n.delete()
+
+	new_root = tree_copy
+	while len(new_root.children) == 1:
+		new_root = new_root.children[0]
+
+	new_tree = new_root.detach()
+	return new_tree
+
+
+#####################
+# FILE MANIPULATION #
+#####################
 
 
 def file_sizes(*fns):
@@ -364,6 +350,85 @@ def test_files(*fns, test_nonzero=False):
 			assert file_sizes(fn)[0], 'File "{}" has size 0.'.format(fn)
 
 
+########
+# MISC #
+########
+
+
+def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True):
+	"""Run a shell command safely.
+
+	Args:
+		command (list of str): Command to execute.
+		output_fn (str): Name of a file for storing the output.
+		output_fo (fileobject): Output file object. If both params are None, the standard output is used.
+		error_msg (str): Error message if the command fails.
+		thr_exc (bool): Through exception if the command fails. error_msg or thr_exc must be set.
+
+	Raises:
+		RuntimeError: Command exited with a non-zero code.
+	"""
+
+	assert output_fn is None or output_fo is None
+	assert err_msg is not None or thr_exc
+
+	command_safe = []
+
+	for part in command:
+		part = str(part)
+		if " " in part:
+			part = '"{}"'.format(part)
+		command_safe.append(part)
+
+	command_str = " ".join(command_safe)
+	message("Running:", command_str)
+	if output_fn is None:
+		if output_fo is None:
+			out_fo = sys.stdout
+		else:
+			out_fo = output_fo
+	else:
+		out_fo = open(output_fn, "w+")
+
+	if out_fo == sys.stdout:
+		p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True)
+	else:
+		p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+
+	ps_p = psutil.Process(p.pid)
+
+	max_rss = 0
+	error_code = None
+	while error_code is None:
+		try:
+			max_rss = max(max_rss, ps_p.memory_info().rss)
+		except psutil.ZombieProcess:
+			pass
+		# wait 0.02 s
+		time.sleep(0.02)
+		error_code = p.poll()
+
+	out_fo.flush()
+
+	mem_mb = round(max_rss / (1024 * 1024.0), 1)
+
+	if output_fn is not None:
+		out_fo.close()
+
+	if error_code == 0 or error_code == 141:
+		message("Finished ({} MB used): {}".format(mem_mb, command_str))
+	else:
+		message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
+
+		if err_msg is not None:
+			print('Error: {}'.format(err_msg), file=sys.stderr)
+
+		if thr_exc:
+			raise RuntimeError("A command failed, see messages above.")
+
+		sys.exit(1)
+
+
 def detect_k_from_index(index_dir):
 	"""Detect k-mer size from a ProPhyle index.
 
@@ -385,27 +450,6 @@ def detect_k_from_index(index_dir):
 	klcp_match = re_klcp.match(klcp)
 	k = int(klcp_match.group(1))
 	return k
-
-
-def minimal_subtree(tree):
-	"""Take a tree and compute its minimal subtree. All singletons are removed and the highest branching node is
-	used as the new root.
-
-	Args:
-		tree (ete3.Tree): Phylogenetic tree.
-	"""
-	tree_copy = tree.copy()
-
-	for n in tree_copy.traverse():
-		if len(n.children) == 1:
-			n.delete()
-
-	new_root = tree_copy
-	while len(new_root.children) == 1:
-		new_root = new_root.children[0]
-
-	new_tree = new_root.detach()
-	return new_tree
 
 
 if __name__ == "__main__":
