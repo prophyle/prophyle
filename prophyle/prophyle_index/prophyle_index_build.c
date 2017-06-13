@@ -70,7 +70,7 @@ void build_index(const char *prefix, const prophyle_index_opt_t *opt, int sa_int
   strcat(fn, kmer_length_str);
   strcat(fn, ".klcp");
 	klcp_dump(fn, klcp);
-  fprintf(stdout, "[prophyle_index:%s] klcp dumped\n", __func__);
+  fprintf(stderr, "[prophyle_index:%s] klcp dumped\n", __func__);
 	if (opt->construct_sa_parallel) {
 		bwt_destroy(bwt);
 	} else {
