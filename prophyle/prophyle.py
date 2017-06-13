@@ -740,7 +740,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 
 	_compile_prophyle_bin()
 	index_fa = os.path.join(index_dir, 'index.fa')
-	index_tree = os.path.join(index_dir, 'tree.preliminary.nw')
+	index_tree = os.path.join(index_dir, 'tree.nw')
 
 	if k is None:
 		k = pro.detect_k_from_index(index_dir)

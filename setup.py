@@ -76,9 +76,8 @@ setuptools.setup(
 		'console_scripts': [
 			'prophyle = prophyle.prophyle:main',
 			'prophyle_assignment.py = prophyle.prophyle_assignment:main',
-			'prophyle_contig_statistics.py = prophyle.prophyle_contig_statistics:main',
-			'prophyle_kmer_annotations.py = prophyle.prophyle_kmer_annotations:main',
 			'prophyle_ncbi_tree.py = prophyle.prophyle_ncbi_tree:main',
+			'prophyle_otu_table.py = prophyle.prophyle_otu_table:main',
 			'prophyle_plot_tree.py = prophyle.prophyle_plot_tree:main',
 			'prophyle_propagation_makefile.py = prophyle.prophyle_propagation_makefile:main',
 			'prophyle_propagation_postprocessing.py = prophyle.prophyle_propagation_postprocessing:main',
