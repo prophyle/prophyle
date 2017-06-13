@@ -70,12 +70,17 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
 			if len(node.children) == 0:
 				leaves_1.append(node)
 
-		leaves_2 = random.sample(leaves_1, max(round(sampling_rate * len(leaves_1)), 1))
+		leaves_1.sort(key=lambda x: x.name)
 
-		leaves_to_remove = set(leaves_1) - set(leaves_2)
+		leaves_2 = random.sample(leaves_1, max(round(sampling_rate * len(leaves_1)), 1))
+		leaves_2.sort(key=lambda x: x.name)
+
+		leaves_to_remove = list(set(leaves_1) - set(leaves_2))
+		leaves_to_remove.sort(key=lambda x: x.name)
 
 		if verbose:
-			print("Removing the following leaves: {}".format(", ".join(map(apply(lambda x: x.name, leaves_to_remove)))),
+			print("Removing the following leaves: {}".format(
+				", ".join(map(apply(lambda x: x.name, leaves_to_remove)))),
 				file=sys.stderr)
 
 		for node in leaves_to_remove:
@@ -87,7 +92,7 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
 			len(leaves_2), len(leaves_1)), file=sys.stderr)
 
 	if verbose:
-		print("Writing to '{}'".format(output_tree), file=sys.stderr)
+		print("Writing to '{}'".format(output_tree_fn), file=sys.stderr)
 
 	pro.save_nhx_tree(t, output_tree_fn)
 
