@@ -10,32 +10,33 @@ import prophylelib as pro
 
 
 def main():
-	parser = argparse.ArgumentParser(description='Compute contig statistics for a ProPhyle index. Fasta index should be already computed (using samtools faidx).')
+	parser = argparse.ArgumentParser(
+		description='Compute contig statistics for a ProPhyle index. Fasta index should be already computed (using samtools faidx).')
 	parser.add_argument(
-			'-k',
-			type=int,
-			metavar='int',
-			dest='k',
-			default=None,
-			help='k-mer length [detected automatically]',
-		)
+		'-k',
+		type=int,
+		metavar='int',
+		dest='k',
+		default=None,
+		help='k-mer length [detected automatically]',
+	)
 	parser.add_argument(
-			'index_dir',
-			metavar='<index.dir>',
-			type=str,
-			help='index directory (will be created)',
-		)
+		'index_dir',
+		metavar='<index.dir>',
+		type=str,
+		help='index directory (will be created)',
+	)
 
 	args = parser.parse_args()
 
-	lengths=[]
+	lengths = []
 
-	fai_fn=os.path.join(args.index_dir, "index.fa.fai")
+	fai_fn = os.path.join(args.index_dir, "index.fa.fai")
 
 	if args.k is None:
-		k=pro.detect_k_from_index(args.index_dir)
+		k = pro.detect_k_from_index(args.index_dir)
 	else:
-		k=args.k
+		k = args.k
 
 	with open(fai_fn) as file:
 		for x in file:
@@ -44,13 +45,13 @@ def main():
 
 		lengths.sort()
 
-		contig_nb=len(lengths)
-		len_total=sum(lengths)
-		len_mean=statistics.mean(lengths)
-		len_stdev=statistics.stdev(lengths)
-		len_median=statistics.median(lengths)
+		contig_nb = len(lengths)
+		len_total = sum(lengths)
+		len_mean = statistics.mean(lengths)
+		len_stdev = statistics.stdev(lengths)
+		len_median = statistics.median(lengths)
 
-		kmer_occ=len_total - contig_nb * (k - 1)
+		kmer_occ = len_total - contig_nb * (k - 1)
 
 		print("Number of contigs:\t{}".format(contig_nb))
 		print("Total length:\t{}".format(len_total))
