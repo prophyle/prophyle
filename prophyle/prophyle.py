@@ -56,7 +56,7 @@ if GITDIR:
 	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
 	PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
 	NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
-	READ=os.path.join(C_D,"prophyle_paired_end.py")
+	READ = os.path.join(C_D, "prophyle_paired_end.py")
 	TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
 
 # package
@@ -65,7 +65,7 @@ else:
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
 	NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
-	READ="prophyle_paired_end.py"
+	READ = "prophyle_paired_end.py"
 	TEST_TREE = "prophyle_validate_tree.py"
 
 DEFAULT_K = 31
@@ -445,7 +445,6 @@ def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
 		thr_exc=True,
 	)
 
-
 	command = [PROPAGATION_POSTPROCESSING, propagation_dir, index_fa, in_tree_fn, tsv_fn, out_tree_fn]
 	pro.run_safe(
 		command,
@@ -720,7 +719,8 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate, tie_lca,
+def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate,
+		tie_lca,
 		print_seq):
 	"""Run ProPhyle classification.
 
@@ -750,7 +750,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 
 	if fq_pe_fn:
 		pro.test_files(fq_fn, fq_pe_fn)
-	elif fq_fn!='-':
+	elif fq_fn != '-':
 		pro.test_files(fq_fn)
 
 	pro.test_files(index_fa, IND)
@@ -780,20 +780,20 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 		if annotate:
 			cmd_assign += ['--annotate']
 		if tie_lca:
-			cmd_assign+=['--tie-lca']
+			cmd_assign += ['--tie-lca']
 
 	if fq_pe_fn:
-		cmd_read=[READ, fq_fn, fq_pe_fn, '|']
-		in_read='-'
+		cmd_read = [READ, fq_fn, fq_pe_fn, '|']
+		in_read = '-'
 	else:
 		cmd_read = []
 		# fq_fn can be '-' as well
-		in_read=fq_fn
+		in_read = fq_fn
 
+	cmd_query = [IND, 'query', '-k', k, '-u' if use_rolling_window else '', '-b' if print_seq else '', index_fa, fq_fn,
+		'|']
 
-	cmd_query = [IND, 'query', '-k', k, '-u' if use_rolling_window else '', '-b' if print_seq else '', index_fa, fq_fn, '|']
-
-	command=cmd_read + cmd_query + cmd_assign
+	command = cmd_read + cmd_query + cmd_assign
 	pro.run_safe(command)
 
 
@@ -872,12 +872,14 @@ def parser():
 
 	##########
 
-	parser_index = subparsers.add_parser('index',
+	parser_index = subparsers.add_parser(
+		'index',
 		help='build index',
 		formatter_class=fc,
 	)
 
-	parser_index.add_argument('tree',
+	parser_index.add_argument(
+		'tree',
 		metavar='<tree.nw>',
 		type=str,
 		nargs='+',
@@ -974,7 +976,8 @@ def parser():
 
 	##########
 
-	parser_classify = subparsers.add_parser('classify',
+	parser_classify = subparsers.add_parser(
+		'classify',
 		help='classify reads',
 		# description='Classify reads.',
 		formatter_class=fc,
