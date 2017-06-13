@@ -49,7 +49,7 @@ def load_kmer_stats(tsv_fn):
 	return counts
 
 
-def enrich_tree(tree, count_tbl):
+def enrich_tree(tree, count_tb):
 	for node in tree.traverse ("preorder"):
 		node.del_feature ('kmers_full')
 		node.del_feature ('kmers_reduced')
@@ -107,18 +107,13 @@ def create_fasta(propagation_dir, index_fasta_fn, suffix, verbose=False):
 
 def main():
 	parser = argparse.ArgumentParser (
-		description='K-mer propagation postprocessing – merging FASTA files and tree minimization.')
+		description='K-mer propagation postprocessing – merging FASTA files and tree minimization.'
+	)
 	parser.add_argument (
 		'dir',
 		metavar='<propagation.dir>',
 		type=str,
-		help='directory with FASTA file'
-	)
-	parser.add_argument (
-		'in_tree_fn',
-		type=str,
-		metavar='<in.tree.nw>',
-		help='input phylogenetic tree',
+		help='directory with FASTA files'
 	)
 	parser.add_argument (
 		'index_fasta_fn',
@@ -127,17 +122,29 @@ def main():
 		help='output fast file',
 	)
 	parser.add_argument (
+		'in_tree_fn',
+		type=str,
+		metavar='<in.tree.nw>',
+		help='input phylogenetic tree',
+	)
+	parser.add_argument (
+		'counts_fn',
+		type=str,
+		metavar='<counts.tsv>',
+		help='input phylogenetic tree',
+	)
+	parser.add_argument (
 		'out_tree_fn',
 		type=str,
 		metavar='<out.tree.nw>',
 		help='output phylogenetic tree',
 	)
-	parser.add_argument (
-		'-D',
-		dest='nondel',
-		action='store_true',
-		help='Non-deleting propagation',
-	)
+	#parser.add_argument (
+	#	'-D',
+	#	dest='nondel',
+	#	action='store_true',
+	#	help='Non-deleting propagation',
+	#)
 
 	args = parser.parse_args ()
 
@@ -145,19 +152,22 @@ def main():
 	index_fasta_fn = args.index_fasta_fn
 	in_tree_fn = args.in_tree_fn
 	out_tree_fn = args.out_tree_fn
+	tsv_fn = args.counts_fn
 
-	if args.nondel:
-		suffix = "full.fa"
-	else:
-		suffix = "reduced.fa"
+	suffix = "reduced.fa"
+
+	#if args.nondel:
+	#	suffix = "full.fa"
+	#else:
+	#	suffix = "reduced.fa"
 
 	create_fasta (dir_fn, index_fasta_fn, suffix)
 
 	tree = pro.load_nhx_tree (in_tree_fn)
-	tree = pro.minimum_subtree (tree)
+	tree = pro.minimal_subtree (tree)
 	stats = load_kmer_stats (tsv_fn)
 	enrich_tree (tree, stats)
-	save_nhx_tree (tree, out_tree_fn)
+	pro.save_nhx_tree (tree, out_tree_fn)
 
 
 if __name__ == "__main__":
