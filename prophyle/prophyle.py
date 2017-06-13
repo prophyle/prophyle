@@ -325,7 +325,7 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	pro.makedirs(propagation_dir)
 
 	makefile = os.path.join(propagation_dir, 'Makefile')
-	tree_fn = os.path.join(index_dir, 'tree.1.nw')
+	tree_fn = os.path.join(index_dir, 'tree.preliminary.nw')
 	_test_tree(tree_fn)
 	# pro.test_files(NEWICK2MAKEFILE, tree_fn)
 	command = [NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './', makefile]
@@ -596,8 +596,8 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	_compile_prophyle_bin()
 
 	index_fa = os.path.join(index_dir, 'index.fa')
-	index_tree_1 = os.path.join(index_dir, 'tree.1.nw')
-	index_tree_2 = os.path.join(index_dir, 'tree.2.nw')
+	index_tree_1 = os.path.join(index_dir, 'tree.preliminary.nw')
+	index_tree_2 = os.path.join(index_dir, 'tree.nw')
 
 	# recompute = recompute everything from now on
 	# force==True => start to recompute everything from beginning
@@ -739,7 +739,7 @@ def prophyle_classify(index_dir, fq_fn, k, use_rolling_window, out_format, mimic
 
 	_compile_prophyle_bin()
 	index_fa = os.path.join(index_dir, 'index.fa')
-	index_tree = os.path.join(index_dir, 'tree.1.nw')
+	index_tree = os.path.join(index_dir, 'tree.preliminary.nw')
 
 	if k is None:
 		k = pro.detect_k_from_index(index_dir)
