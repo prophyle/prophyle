@@ -383,7 +383,7 @@ def _kmer_stats(index_dir):
 	)
 
 
-def _merge_trees(in_trees, out_tree, no_prefixes, sampling_rate):
+def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate):
 	"""Merge input trees into a single tree.
 
 	Args:
@@ -423,7 +423,7 @@ def _remove_tmp_propagation_files(index_dir):
 	pro.run_safe(command)
 
 
-def _merge_fastas(index_dir, in_tree_fn, out_tree_fn):
+def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
 	"""Merge reduced FASTA files after k-mer propagation and create index.fa.
 
 	Args:
@@ -432,11 +432,21 @@ def _merge_fastas(index_dir, in_tree_fn, out_tree_fn):
 		out_tree_fn (str): Output tree in Newick/NHX.
 	"""
 
-	pro.message('Generating index.fa')
+	pro.message('Propagation post-processing')
+
 	propagation_dir = os.path.join(index_dir, 'propagation')
+	tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
 	index_fa = os.path.join(index_dir, "index.fa")
-	# pro.test_files(MERGE_FASTAS)
-	command = [PROPAGATION_POSTPROCESSING, propagation_dir, in_tree_fn, index_fa, out_tree_fn]
+
+	command = ["cat", os.path.join(propagation_dir, "*.tsv"), '>', tsv_fn]
+	pro.run_safe(
+		command,
+		err_msg="K-mer statistics could not be created.",
+		thr_exc=True,
+	)
+
+
+	command = [PROPAGATION_POSTPROCESSING, propagation_dir, index_fa, in_tree_fn, tsv_fn, out_tree_fn]
 	pro.run_safe(
 		command,
 		err_msg="Main ProPhyle FASTA file could not be generated",
@@ -557,17 +567,6 @@ def _bwtocc2sa_klcp(fa_fn, k):
 	_log_file_md5("{}.{}.klcp".format(fa_fn, k))
 
 
-def _tree_annotate_kmers(index_dir, newick1, newick2):
-	_message('Annotating tree')
-	tsv_fn = join(index_dir, "index.fa.kmers.tsv")
-	command = ["cat", os.path.join(index_dir, "propagation", "*.tsv")]
-	_run_safe(command, os.path.tsv_fn)
-	command = ["tree_annotate_kmers", '-i', newick1, '-o', newick2, '-c', tsv_fn]
-
-
-# todo: finish
-
-
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats,
 		keep_tmp_files, sampling_rate):
 	"""Build a ProPhyle index.
@@ -622,7 +621,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 				assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn) != 1:
 			pro.message('Merging {} trees{}'.format(len(trees_fn)))
-		_merge_trees(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
+		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
 		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -638,7 +637,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		pro.message('[2/5] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
-		_merge_fastas(index_dir, index_tree_1, index_tree_2)
+		_propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
 		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
