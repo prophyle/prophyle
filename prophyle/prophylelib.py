@@ -452,5 +452,16 @@ def detect_k_from_index(index_dir):
 	return k
 
 
+def lower_nonsigleton(node):
+	while len(node.children)==1:
+		node = node.children[0]
+	return node
+
+## None if root
+#def upper_nonsigleton(node):
+#	while len(node.children)==1:
+#		node = node.children[0]
+#	return node
+
 if __name__ == "__main__":
 	sys.exit(1)
