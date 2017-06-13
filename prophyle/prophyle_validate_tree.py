@@ -37,7 +37,7 @@ def main():
 	for tree_fn in tree_fns:
 		print("Validating '{}'".format(tree_fn))
 		tree = pro.load_nhx_tree(tree_fn, validate=False)
-		r = pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output=sys.stdout)
+		r = pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stdout)
 		if r:
 			print("   ...OK")
 		else:
