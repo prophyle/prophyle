@@ -790,7 +790,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 		# fq_fn can be '-' as well
 		in_read = fq_fn
 
-	cmd_query = [IND, 'query', '-k', k, '-u' if use_rolling_window else '', '-b' if print_seq else '', index_fa, fq_fn,
+	cmd_query = [IND, 'query', '-k', k, '-u' if use_rolling_window else '', '-b' if print_seq else '', index_fa, in_read,
 		'|']
 
 	command = cmd_read + cmd_query + cmd_assign
