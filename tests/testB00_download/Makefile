@@ -1,5 +1,7 @@
 .PHONY: all clean
 
+include ../conf.mk
+
 GENLIBS=bacteria viruses plasmids
 FNS=$(addprefix seqs/,$(addsuffix /.complete.1, $(GENLIBS)))
 
