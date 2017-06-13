@@ -454,6 +454,8 @@ def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
 	)
 	pro.touch(index_fa + ".complete")
 	_log_file_md5(index_fa)
+	_log_file_md5(in_tree_fn)
+	_log_file_md5(out_tree_fn)
 
 
 def _fa2pac(fa_fn):
