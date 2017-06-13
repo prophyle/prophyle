@@ -998,7 +998,7 @@ def parser():
 	)
 
 	parser_classify.add_argument(
-		'reads',
+		'reads_pe',
 		metavar='<reads2.fq>',
 		type=str,
 		help='second file with reads in FASTA or FASTQ',
