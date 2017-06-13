@@ -748,7 +748,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 
 	_test_tree(index_tree)
 
-  if fq_pe_fn:
+	if fq_pe_fn:
 		pro.test_files(fq_fn, fq_pe_fn)
 	elif fq_fn!='-':
 		pro.test_files(fq_fn)
@@ -782,7 +782,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 		if tie_lca:
 			cmd_assign+=['--tie-lca']
 
-  if fq_pe_fn:
+	if fq_pe_fn:
 		cmd_read=[READ, fq_fn, fq_pe_fn, '|']
 		in_read='-'
 	else:
@@ -794,7 +794,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	cmd_query = [IND, 'query', '-k', k, '-u' if use_rolling_window else '', '-b' if print_seq else '', index_fa, fq_fn, '|']
 
 	command=cmd_read + cmd_query + cmd_assign
-  pro.run_safe(command)
+	pro.run_safe(command)
 
 
 ########
@@ -830,11 +830,13 @@ def parser():
 
 	##########
 
-	parser_download = subparsers.add_parser('download',
+	parser_download = subparsers.add_parser(
+		'download',
 		help='download a genomic database',
 		# description='Download RefSeq and HMP databases.',
 		formatter_class=fc,
 	)
+
 	parser_download.add_argument(
 		'library',
 		metavar='<library>',
@@ -842,6 +844,7 @@ def parser():
 		choices=LIBRARIES + ['all'],
 		help='genomic library {}'.format(LIBRARIES + ['all']),
 	)
+
 	parser_download.add_argument(
 		'-d',
 		metavar='DIR',
@@ -850,6 +853,7 @@ def parser():
 		default=None,
 		help='directory for the tree and the sequences [~/prophyle]',
 	)
+
 	parser_download.add_argument(
 		'-l',
 		dest='log_fn',
@@ -858,6 +862,7 @@ def parser():
 		help='log file',
 		default=None,
 	)
+
 	parser_download.add_argument(
 		'-F',
 		dest='force',
@@ -871,18 +876,21 @@ def parser():
 		help='build index',
 		formatter_class=fc,
 	)
+
 	parser_index.add_argument('tree',
 		metavar='<tree.nw>',
 		type=str,
 		nargs='+',
 		help='phylogenetic tree (in Newick/NHX)',
 	)
+
 	parser_index.add_argument(
 		'index_dir',
 		metavar='<index.dir>',
 		type=str,
 		help='index directory (will be created)',
 	)
+
 	parser_index.add_argument(
 		'-g',
 		metavar='DIR',
@@ -892,6 +900,7 @@ def parser():
 		default=None,
 		# required=True,
 	)
+
 	parser_index.add_argument(
 		'-j',
 		metavar='INT',
@@ -900,6 +909,7 @@ def parser():
 		help='number of threads [auto ({})]'.format(DEFAULT_THREADS),
 		default=DEFAULT_THREADS,
 	)
+
 	parser_index.add_argument(
 		'-k',
 		dest='k',
@@ -908,6 +918,7 @@ def parser():
 		help='k-mer length [{}]'.format(DEFAULT_K),
 		default=DEFAULT_K,
 	)
+
 	parser_index.add_argument(
 		'-l',
 		dest='log_fn',
@@ -916,6 +927,7 @@ def parser():
 		help='log file [<index.dir>/log.txt]',
 		default=None,
 	)
+
 	parser_index.add_argument(
 		'-s',
 		metavar='FLOAT',
@@ -924,30 +936,35 @@ def parser():
 		type=str,
 		default=None,
 	)
+
 	parser_index.add_argument(
 		'-F',
 		dest='force',
 		action='store_true',
 		help='rewrite index files if they already exist',
 	)
+
 	parser_index.add_argument(
 		'-M',
 		action='store_true',
 		dest='mask_repeats',
 		help='mask repeats/low complexity regions (using DustMasker)',
 	)
+
 	parser_index.add_argument(
 		'-P',
 		dest='no_prefixes',
 		action='store_true',
 		help='do not add prefixes to node names when multiple trees are used',
 	)
+
 	parser_index.add_argument(
 		'-K',
 		dest='klcp',
 		action='store_false',
 		help='skip k-LCP construction',
 	)
+
 	parser_index.add_argument(
 		'-T',
 		dest='keep_tmp_files',
@@ -962,24 +979,30 @@ def parser():
 		# description='Classify reads.',
 		formatter_class=fc,
 	)
+
 	parser_classify.add_argument(
 		'index_dir',
 		metavar='<index.dir>',
 		type=str,
 		help='index directory',
 	)
-	parser_classify.add_argument(
-		'reads',
-		metavar='<reads.fq>',
-		type=str,
-		help='file with reads in FASTA or FASTQ (use - for standard input)',
-	)
+
 	parser_classify.add_argument(
 		'reads',
 		metavar='<reads1.fq>',
 		type=str,
-		help='reads in FASTA or FASTQ (- for stdin)',
+		help='first file with reads in FASTA or FASTQ (use - for standard input)',
 	)
+
+	parser_classify.add_argument(
+		'reads',
+		metavar='<reads2.fq>',
+		type=str,
+		help='second file with reads in FASTA or FASTQ',
+		nargs='?',
+		default=None,
+	)
+
 	parser_classify.add_argument(
 		'-k',
 		dest='k',
@@ -988,12 +1011,14 @@ def parser():
 		help='k-mer length [detect automatically from the index]',
 		default=None,
 	)
+
 	parser_classify.add_argument(
 		'-R',
 		dest='rolling_window',
 		action='store_false',
 		help='use restarted search for matching rather than rolling window (slower, but k-LCP is not needed)',
 	)
+
 	parser_classify.add_argument(
 		'-m',
 		dest='measure',
@@ -1001,6 +1026,7 @@ def parser():
 		help='measure: h1=hit count, c1=coverage [{}]'.format(DEFAULT_MEASURE),
 		default=DEFAULT_MEASURE,
 	)
+
 	parser_classify.add_argument(
 		'-f',
 		dest='oform',
@@ -1008,6 +1034,7 @@ def parser():
 		default=DEFAULT_OUTPUT_FORMAT,
 		help='output format [{}]'.format(DEFAULT_OUTPUT_FORMAT),
 	)
+
 	parser_classify.add_argument(
 		'-l',
 		dest='log_fn',
@@ -1016,18 +1043,21 @@ def parser():
 		help='log file',
 		default=None,
 	)
+
 	parser_classify.add_argument(
 		'-A',
 		dest='annotate',
 		action='store_true',
 		help='annotate assignments',
 	)
+
 	parser_classify.add_argument(
 		'-L',
 		dest='tie',
 		action='store_true',
 		help='use LCA when tie (multiple hits with the same score)',
 	)
+
 	parser_classify.add_argument(
 		'-M',
 		dest='mimic',
@@ -1035,6 +1065,7 @@ def parser():
 		# help='mimic Kraken algorithm and output (for debugging purposes)',
 		help=argparse.SUPPRESS,
 	)
+
 	parser_classify.add_argument(
 		'-P',
 		dest='print_seq',
@@ -1099,13 +1130,13 @@ def main():
 			pro.open_log(args.log_fn)
 			pro.message('Classification started')
 			prophyle_classify(
-        index_dir=args.index_dir,
-        fq_fn=args.reads,
-        fq_pe_fn=args.reads_pe,
-        k=args.k,
-        use_rolling_window=args.rolling_window,
-        out_format=args.oform,
-        mimic_kraken=args.mimic,
+				index_dir=args.index_dir,
+				fq_fn=args.reads,
+				fq_pe_fn=args.reads_pe,
+				k=args.k,
+				use_rolling_window=args.rolling_window,
+				out_format=args.oform,
+				mimic_kraken=args.mimic,
 				measure=args.measure,
 				tie_lca=args.tie,
 				annotate=args.annotate,
