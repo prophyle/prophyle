@@ -45,6 +45,7 @@ matrix:
         - source activate prophyle
 
 script:
+  - unset PYTHONPATH
   - make test
 
 cache:

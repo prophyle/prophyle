@@ -28,36 +28,34 @@ import prophylelib as pro
 
 
 def plot_tree(newick_in_fn, out_plot_fn, attribute_name):
-	tree=pro.load_nhx_tree(newick_in_fn)
+	tree = pro.load_nhx_tree(newick_in_fn)
 
 	ts = ete3.TreeStyle()
 	ts.show_leaf_name = False
 
 	def my_layout(node):
-		name=getattr(node, attribute_name)
+		name = getattr(node, attribute_name)
 
 		try:
-			kmer_full=locale.format("%d", int(node.kmers_full), grouping=True),
+			kmer_full = locale.format("%d", int(node.kmers_full), grouping=True),
 		except AttributeError:
-			kmer_full=None
+			kmer_full = None
 
 		try:
-			kmer_reduced=locale.format("%d", int(node.kmers_reduced), grouping=True)
+			kmer_reduced = locale.format("%d", int(node.kmers_reduced), grouping=True)
 		except AttributeError:
-			kmer_reduced=None
-
+			kmer_reduced = None
 
 		if kmer_full is None:
 			if kmer_reduced is None:
-				t=name
+				t = name
 			else:
-				t="{} [red. {}]".format(name, kmer_reduced)
+				t = "{} [red. {}]".format(name, kmer_reduced)
 		else:
 			if kmer_reduced is None:
-				t="{} [full {}]".format(name, kmer_full)
+				t = "{} [full {}]".format(name, kmer_full)
 			else:
-				t="{} [full {} & red. {}]".format(name, kmer_full, kmer_reduced)
-
+				t = "{} [full {} & red. {}]".format(name, kmer_full, kmer_reduced)
 
 		f = ete3.TextFace(t, tight_text=True)
 		ete3.add_face_to_node(f, node, column=0, position="branch-right")
@@ -67,39 +65,36 @@ def plot_tree(newick_in_fn, out_plot_fn, attribute_name):
 
 
 def main():
-
 	parser = argparse.ArgumentParser(description='Plot a Newick/NHX tree')
 
 	parser.add_argument('newick_in_fn',
-			metavar='<tree.nhx>',
-			type=str,
-			help='phylogenetic tree (in Newick/NHX)',
-		)
+		metavar='<tree.nhx>',
+		type=str,
+		help='phylogenetic tree (in Newick/NHX)',
+	)
 
 	parser.add_argument('out_plot_fn',
-			metavar='<figure.{pdf,png,svg,..}>',
-			type=str,
-			help='output figure',
-		)
+		metavar='<figure.{pdf,png,svg,..}>',
+		type=str,
+		help='output figure',
+	)
 
 	parser.add_argument('-a',
-			metavar='str',
-			dest='attribute_name',
-			type=str,
-			help='attribute to print with each node (e.g., sci_name)',
-			default='name',
-		)
+		metavar='str',
+		dest='attribute_name',
+		type=str,
+		help='attribute to print with each node (e.g., sci_name)',
+		default='name',
+	)
 
 	args = parser.parse_args()
 
 	plot_tree(
-			newick_in_fn=args.newick_in_fn,
-			out_plot_fn=args.out_plot_fn,
-			attribute_name=args.attribute_name,
-		)
-
-
+		newick_in_fn=args.newick_in_fn,
+		out_plot_fn=args.out_plot_fn,
+		attribute_name=args.attribute_name,
+	)
 
 
 if __name__ == "__main__":
-	main ()
+	main()

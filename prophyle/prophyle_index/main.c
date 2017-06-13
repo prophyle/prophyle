@@ -54,6 +54,7 @@ static int usage_query(int threads){
 	fprintf(stderr, "         -u        use k-LCP for querying\n");
 	fprintf(stderr, "         -v        output set of chromosomes for every k-mer\n");
 	fprintf(stderr, "         -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output\n");
+	fprintf(stderr, "         -b        print sequences and base qualities\n");
 	fprintf(stderr, "         -l STR    log file name to output statistics\n");
 	fprintf(stderr, "         -t INT    number of threads [%d]\n", threads);
 	fprintf(stderr, "\n");
