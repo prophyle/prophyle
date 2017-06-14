@@ -18,6 +18,8 @@ import operator
 import ete3
 
 
+formats=['sam','bam','cram','uncompressed_bam','kraken']
+
 def parse_args():
 
 	desc = """\
@@ -34,7 +36,7 @@ def parse_args():
 	parser = argparse.ArgumentParser(description=desc)
 
 	parser.add_argument('sam',
-			metavar='<sam_f>'
+			metavar='<sam_f>',
 			type=argparse.FileType('r'),
 			help='ProPhyle output in SAM/BAM format'
 		)
@@ -45,9 +47,16 @@ def parse_args():
 			help='Newick/NHX tree from the directory of the index used for classification'
 		)
 
+	parser.add_argument('-f','--format',
+			type=str,
+			metavar='<format>',
+			choices=formats,
+			help='Input format'
+		)
+
 	parser.add_argument('-n','--main-node',
 			type=str,
-			metavar='<node_name>'
+			metavar='<node_name>',
 			dest='main_node_name',
 			default='merge_root',
 			help='Node from which the distances should be computed [root]'
@@ -63,13 +72,13 @@ def parse_args():
 
 	parser.add_argument('-t','--otu',
 			type=str,
-			metavar='<otu_suffix>'
+			metavar='<otu_suffix>',
 			dest='otu_suffix',
-			default=None
+			default=None,
 			help='Compute OTU tables from the histograms and write them to fn<i>_otu_suffix.biom'
 		)
 
-	parser.add_argument('-h','--from-histogram',
+	parser.add_argument('-s','--from-histogram',
 			type=argparse.FileType('r'),
 			metavar='<histo>',
 			dest='histo',
@@ -90,16 +99,39 @@ def parse_args():
 	return args
 
 
-def load_asgs(bam_fn):
+def load_asgs(in_fn, in_format):
 	asgs={}
-	samfile = pysam.AlignmentFile(bam_fn, "rb")
-	for read in samfile.fetch(until_eof=True):
-		if read.is_unmapped:
-			continue
+	if in_format=='sam':
+		in_f=pysam.AlignmentFile(in_fn, "r")
+	elif in_format=='bam':
+		in_f=pysam.AlignmentFile(in_fn, "rb")
+	elif in_format=='cram':
+		in_f=pysam.AlignmentFile(in_fn, "rc")
+	elif in_format=='uncompressed_bam':
+		in_f=pysam.AlignmentFile(in_fn, "ru")
+	elif in_format=='kraken':
+		in_f=open(in_fn,'r')
+
+	if in_format=='kraken':
+		read_iterator=(read for read in in_f)
+	else:
+		read_iterator=(read for read in in_f.fetch(until_eof=True))
+
+	for read in read_iterator:
+		if in_format=='kraken':
+			res,read_name,read_ref=read.split('\t')[0:3]
+			if res.strip()=='U':
+				continue
+		else:
+			if read.is_unmapped:
+				continue
+			read_name=read.qname
+			read_ref=read.reference_name
 		try:
-			asgs[read.qname].append(read.reference_name)
+			asgs[read_name].append(read_ref)
 		except KeyError:
-			asgs[read.qname]=[read.reference_name]
+			asgs[read_name]=[read_ref]
+
 	return asgs
 
 
@@ -128,7 +160,7 @@ def asgs_to_leaves(tree,asgs):
 	return asgs2
 
 
-def compute_histogram_unique(asgs):
+def compute_histogram_unique(asgs,prop_leaves=False):
 	hist=collections.Counter()
 	for qname in asgs:
 		if len(asgs[qname])==1:
@@ -137,7 +169,7 @@ def compute_histogram_unique(asgs):
 	return hist
 
 
-def compute_histogram_weighted(asgs):
+def compute_histogram_weighted(asgs,prop_leaves=False):
 	hist=collections.Counter()
 	for qname in asgs:
 		no_asg=len(asgs[qname])
@@ -145,8 +177,16 @@ def compute_histogram_weighted(asgs):
 			hist[taxid]+=1.0/no_asg
 	return hist
 
+#
+# histogram_stats={
+# 1:compute_histogram_unique(prop_leaves=False),
+# 2:compute_histogram_weighted(prop_leaves=False),
+# 3:compute_histogram_unique(prop_leaves=True),
+# 4:compute_histogram_weighted(prop_leaves=True)
+# }
 
-def compute_histograms(tree, asgs):
+
+def compute_histograms(tree, out_files, asgs):
 	"""asgs: rname => list of taxids
 	"""
 
@@ -179,6 +219,7 @@ def compute_node_distances(tree, main_node_name):
 
 
 def print_histogram(histogram, distances, out_file, lines):
+	# maybe score is better than hits, and something like unit_dist is better than dist_nodes
 	print ("#node", "hits", "dist", "dist_nodes", sep="\t", file=out_file)
 	# reverse = true???
 	for i, (node_name,w) in enumerate(sorted(histogram.items(), key=operator.itemgetter(1), reverse=True)):
@@ -192,6 +233,20 @@ def print_histogram(histogram, distances, out_file, lines):
 			print("[prophyle_analyze] Error: node name {} found in assignments but not in the tree".format(n1_name),
 					file=sys.stderr)
 			raise
+
+
+def load_histo(in_file, distances):
+	histogram=collections.Counter()
+	with open(in_file, 'r') as in_f:
+		for line in in_f:
+			node_name,w=line.split('\t')[0:2]
+			if not node_name in distances:
+				print("[prophyle_analyze] Error: node name {} found in the histogram {} but not in the tree".format(n1_name,in_file),
+						file=sys.stderr)
+				raise
+			histogram[node_name]=w
+	return histogram
+
 
 def compute_otu_tables():
 	return
@@ -209,7 +264,8 @@ def main():
 				with open(fn, "w+") as f:
 					print_histogram(tree, args.main_node_name, histogram, f, lines=args.lines)
 	elif args.histo:
-		otu_tables=compute_otu_tables()
+		histograms=load_histo()
+	otu_tables=compute_otu_tables()
 
 if __name__ == "__main__":
 	try:
