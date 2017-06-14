@@ -98,22 +98,12 @@ def merge_reads(f_reads_1, f_reads_2, out_file):
 			print('[prophyle_paired_reads] Warning: files of different length (merged till the end of the shortest)',
 				file=sys.stderr)
 
-	except IOError as e:
-		if e.errno == errno.EPIPE:
-			print('[prophyle_paired_reads]'+reads_1.readline().strip()+reads_2.readline().strip(),file=sys.stderr)
-			if reads_1.readline().strip() == '' and reads_2.readline().strip() == '':
-				# pipe closed but both files correctly processed
-				pass
-			else:
-				print('[prophyle_paired_reads] Error: pipe closed before EOF',
-					file=sys.stderr)
-				reads_1.close()
-				reads_2.close()
-				sys.exit(1)
-		else:
-			reads_1.close()
-			reads_2.close()
-			raise
+	except BrokenPipeError:
+		# pipe error (e.g., when head is used)
+		sys.stderr.close()
+		reads_1.close()
+		reads_2.close()
+		exit(0)
 
 	reads_1.close()
 	reads_2.close()
