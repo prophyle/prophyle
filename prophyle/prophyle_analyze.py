@@ -23,23 +23,18 @@ formats=['sam','bam','cram','uncompressed_bam','kraken']
 def parse_args():
 
 	desc = """\
-		Program: prophyle_analyze.py
+Program: prophyle_analyze.py
 
-		Analyze results of ProPhyle's classification
-		Stats:
-			(1) Unique assignments, non-weighted
-			(2) Weighted assignments
-			(3) Unique assignments, propagated to leaves
-			(4) Weighted assignments, propagated to leaves
+Analyze results of ProPhyle's classification.
+Stats:
+	(1) Unique assignments, non-weighted
+	(2) Weighted assignments
+	(3) Unique assignments, propagated to leaves
+	(4) Weighted assignments, propagated to leaves
 	"""
 
-	parser = argparse.ArgumentParser(description=desc)
-
-	parser.add_argument('sam',
-			metavar='<sam_f>',
-			type=argparse.FileType('r'),
-			help='ProPhyle output in the format specified with the -f option'
-		)
+	parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+									description=desc)
 
 	parser.add_argument('tree',
 			metavar='<tree.nw>',
@@ -47,11 +42,20 @@ def parse_args():
 			help='Newick/NHX tree from the directory of the index used for classification'
 		)
 
+	parser.add_argument('asgs_f',
+			metavar='<asgs_fn>',
+			type=argparse.FileType('r'),
+			default=sys.stdin,
+			nargs='?',
+			help='ProPhyle output in the format specified with the -f option [stdin]'
+		)
+
 	parser.add_argument('-f','--format',
 			type=str,
+			dest='in_format',
 			metavar='<format>',
 			choices=formats,
-			default=formats[0]
+			default=formats[0],
 			help='Input format ['+formats[0]+']'
 		)
 
@@ -71,7 +75,7 @@ def parse_args():
 			help='Output only the n nodes with the highest score [all]'
 		)
 
-	parser.add_argument('-t','--otu',
+	parser.add_argument('-o','--otu-suffix',
 			type=str,
 			metavar='<otu_suffix>',
 			dest='otu_suffix',
@@ -87,15 +91,15 @@ def parse_args():
 			default=None,
 			help="""Compute OTU table from existing histogram (do not compute
 					any other histogram) and write it to <histo>_<otu_suffix>.biom
-					[<histo>_otu.biom]"""
+					[<histo>_otu.biom if -t/--otu-suffix is not specified]"""
 		)
 
 	for i in range(1,5):
 		parser.add_argument('-{}'.format(i),
 				type=str,
-				metavar='<histo_f[{}]>'.format(i),
+				metavar='<histo_fn_{}>'.format(i),
 				dest='fn{}'.format(i),
-				help='Stats {}'.format(i),
+				help='Output file for histogram computed using stats {} [do not compute]'.format(i),
 				default=None,
 				required=False,
 			)
@@ -251,10 +255,12 @@ def compute_node_distances(tree, main_node_name):
 					file=sys.stderr)
 			raise
 
-	for node in tree.iterate('postorder'):
+	for node in tree.traverse('postorder'):
 		dist1=main_node.get_distance(node)
 		dist2=main_node.get_distance(node, topology_only=True)
 		distances[node.name]=(dist1,dist2)
+
+	return distances
 
 
 def print_histogram(histogram, distances, out_file, lines):
@@ -274,7 +280,7 @@ def print_histogram(histogram, distances, out_file, lines):
 	print ("node_name", "hits", "dist", "dist_nodes", sep="\t", file=out_file)
 	# reverse = true???
 	for i, (node_name,w) in enumerate(sorted(histogram.items(), key=operator.itemgetter(1), reverse=True)):
-		if i > 0 and not i < lines:
+		if lines > 0 and not i < lines:
 			break
 		try:
 			dist1,dist2=distances[node_name]
@@ -313,16 +319,16 @@ def main():
 	tree=ete3.Tree(args.tree, format=1)
 	distances=compute_node_distances(tree,args.main_node_name)
 
-	if args.sam:
-		asgs=load_asgs(args.sam)
-		histograms=compute_histograms(tree, asgs)
+	if args.asgs_f:
+		asgs=load_asgs(args.asgs_f,args.in_format)
+		histograms=compute_histograms(tree, (args.fn1,args.fn2,args.fn3,args.fn4), asgs)
 		for (histogram, fn) in zip(histograms, (args.fn1, args.fn2, args.fn3, args.fn4) ):
 			if fn is not None:
 				with open(fn, "w+") as f:
-					print_histogram(tree, args.main_node_name, histogram, f, lines=args.lines)
+					print_histogram(histogram, distances, f, lines=args.lines)
 	elif args.histo:
 		histograms=load_histo(args.histo,distances)
-	otu_tables=compute_otu_tables()
+	#otu_tables=compute_otu_tables()
 
 if __name__ == "__main__":
 	try:
