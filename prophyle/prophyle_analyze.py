@@ -15,10 +15,57 @@ import pysam
 import biom
 import collections
 import operator
+import enum
 import ete3
+from biom.table import Table
 
 
 formats=['sam','bam','cram','uncompressed_bam','kraken']
+
+class OrderedEnum(enum.Enum):
+	def __ge__(self, other):
+		if self.__class__ is other.__class__:
+			return self.value >= other.value
+		return NotImplemented
+
+	def __gt__(self, other):
+		if self.__class__ is other.__class__:
+			return self.value > other.value
+		return NotImplemented
+
+	def __le__(self, other):
+		if self.__class__ is other.__class__:
+			return self.value <= other.value
+		return NotImplemented
+
+	def __lt__(self, other):
+		if self.__class__ is other.__class__:
+			return self.value < other.value
+		return NotImplemented
+
+
+class Rank(OrderedEnum):
+	NO_RANK = 7
+	SPECIES = 6
+	GENUS = 5
+	FAMILY = 4
+	ORDER = 3
+	CLASS = 2
+	PHYLUM = 1
+	KINGDOM = 0
+
+
+str2rank = {
+	'species': Rank.SPECIES,
+	'genus': Rank.GENUS,
+	'family': Rank.FAMILY,
+	'order': Rank.ORDER,
+	'class': Rank.CLASS,
+	'phylum': Rank.PHYLUM,
+	'kingdom': Rank.KINGDOM,
+	'no rank': Rank.NO_RANK
+}
+
 
 def parse_args():
 
@@ -224,11 +271,11 @@ def compute_histograms(tree, out_files, asgs):
 			if i==0:
 				histograms[i]=compute_histogram_unique(asgs)
 			elif i==1:
-				histograms[i]=compute_histogram_unique(asgs)
+				histograms[i]=compute_histogram_weighted(asgs)
 			elif i==2:
-				histograms[i]=compute_histogram_unique(asgs)
+				histograms[i]=compute_histogram_unique(leaf_asgs)
 			elif i==3:
-				histograms[i]=compute_histogram_unique(asgs)
+				histograms[i]=compute_histogram_weighted(leaf_asgs)
 
 	return tuple(histograms)
 
@@ -311,8 +358,26 @@ def load_histo(in_fn, distances):
 	return histogram
 
 
-def compute_otu_tables():
-	return
+def propagation_score(tree, otu, histo):
+	# try:
+	# 	otu_node=tree & otu
+	# except:
+	# 	print("[prophyle_analyze] Error: node name {} not in the tree".format(main_node_name),
+	# 			file=sys.stderr)
+	# 	raise
+	# ancstors=otu_node.get_ancestors()
+	# descendants=otu_node.get_descendants()
+	return 0
+
+
+def compute_otu_table(histograms, tree, ncbi=False):
+	otu_tables=[]
+	for histo in histograms:
+		otu_t=dict(histo)
+		for otu,score in otu_t.items():
+			score+=propagation_score(tree,otu,histo)
+		otu_tables.append(otu_t)
+	return tuple(otu_tables)
 
 def main():
 	args=parse_args()

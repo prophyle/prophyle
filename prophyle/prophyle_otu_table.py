@@ -16,9 +16,11 @@ from collections import Counter
 from ete3 import Tree, NCBITaxa
 
 desc = """\
-	Program: prophyle_otu_table
+Program: prophyle_otu_table
 
-	Create an OTU table for ProPhyle's classification output
+Create an OTU table for ProPhyle's classification output, ignoring reads
+assigned to multiple reference genomes. Change the positions of the read id
+and of the taxid with -i and -t to switch format (default: SAM)
 """
 
 
@@ -93,9 +95,10 @@ def build_complete_tree(tree, log):
 	return complete_tree
 
 
-def create_otu_tables(tree, input_files, target_ranks, field, log):
+def create_otu_tables(tree, input_files, target_ranks, read_field, taxid_field, log):
 	# index starts from 0
-	taxid_field = field - 1
+	read_field = read_field - 1
+	taxid_field = taxid_field - 1
 	# for each node n, tree_ranked_ancestors[n.taxid][r] is its ancestor at rank r
 	taxa = [str(n.taxid) for n in tree.traverse('postorder')]
 	tree_ranked_ancestors = {t: {} for t in taxa}
@@ -125,9 +128,20 @@ def create_otu_tables(tree, input_files, target_ranks, field, log):
 	already_ignored = set()
 
 	for f in input_files:
+		reads = set()
 		with open(f, 'r') as in_f:
 			for line in in_f:
-				taxid = line.split('\t')[taxid_field].strip()
+				# skip SAM header
+				if line.startswith('@'):
+					continue
+				fields = line.split('\t')
+				taxid = fields[taxid_field].strip()
+				read = fields[read_field].strip()
+				# ignore multiple assigments
+				if read in reads:
+					continue
+				else:
+					reads.add(read)
 				try:
 					for r, t in tree_ranked_ancestors[taxid].items():
 						otu_tables[r][f][t] += 1
@@ -159,14 +173,15 @@ def write_tables(otu_tables, otu_rank_taxacount, output_prefix, input_files, log
 
 def main():
 	parser = argparse.ArgumentParser(
-		description=desc,
+		formatter_class=argparse.RawDescriptionHelpFormatter,
+		description=desc
 	)
 
 	parser.add_argument(
 		'tree',
 		type=str,
 		metavar='<tree>',
-		help='taxonomic tree used for classification',
+		help='taxonomic tree used for classification (Newick/NHX format)',
 	)
 
 	parser.add_argument(
@@ -179,7 +194,7 @@ def main():
 	parser.add_argument(
 		'input_files',
 		nargs='+',
-		help='input files (outputs of prophyle classify)',
+		help='input files (outputs of prophyle classify in sam or kraken format)',
 	)
 
 	parser.add_argument(
@@ -192,11 +207,19 @@ def main():
 	)
 
 	parser.add_argument(
-		'-f',
+		'-t',
 		type=int,
 		default=3,
-		dest='field',
-		help='position of the taxid in the input lines [3]',
+		dest='taxid_field',
+		help='position of the taxid in the input lines [3 (for sam and kraken format)]',
+	)
+
+	parser.add_argument(
+		'-i',
+		type=int,
+		default=3,
+		dest='read_field',
+		help='position of the read id in the input lines [1 (for sam, use 2 for kraken)]',
 	)
 
 	parser.add_argument(
@@ -222,7 +245,7 @@ def main():
 
 	complete_tree = build_complete_tree(args.tree, args.log_file)
 	otu_tables, otu_rank_taxacount = create_otu_tables(complete_tree, args.input_files,
-		target_ranks, args.field, args.log_file)
+		target_ranks, args.read_field, args.taxid_field, args.log_file)
 	write_tables(otu_tables, otu_rank_taxacount, args.output_prefix, args.input_files, args.log_file)
 
 
