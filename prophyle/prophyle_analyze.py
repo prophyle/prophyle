@@ -122,24 +122,24 @@ Stats:
 			help='Output only the n nodes with the highest score [all]'
 		)
 
-	parser.add_argument('-o','--otu-suffix',
-			type=str,
-			metavar='<otu_suffix>',
-			dest='otu_suffix',
-			default=None,
-			help="""Compute OTU tables for each specified statistics and write
-					them to <histo_f[i]>_<otu_suffix>.biom"""
-		)
-
-	parser.add_argument('-s','--from-histogram',
-			type=argparse.FileType('r'),
-			metavar='<histo>',
-			dest='histo',
-			default=None,
-			help="""Compute OTU table from existing histogram (do not compute
-					any other histogram) and write it to <histo>_<otu_suffix>.biom
-					[<histo>_otu.biom if -t/--otu-suffix is not specified]"""
-		)
+	# parser.add_argument('-o','--otu-suffix',
+	# 		type=str,
+	# 		metavar='<otu_suffix>',
+	# 		dest='otu_suffix',
+	# 		default=None,
+	# 		help="""Compute OTU tables for each specified statistics and write
+	# 				them to <histo_f[i]>_<otu_suffix>.biom"""
+	# 	)
+	#
+	# parser.add_argument('-s','--from-histogram',
+	# 		type=argparse.FileType('r'),
+	# 		metavar='<histo>',
+	# 		dest='histo',
+	# 		default=None,
+	# 		help="""Compute OTU table from existing histogram (do not compute
+	# 				any other histogram) and write it to <histo>_<otu_suffix>.biom
+	# 				[<histo>_otu.biom if -t/--otu-suffix is not specified]"""
+	# 	)
 
 	for i in range(1,5):
 		parser.add_argument('-{}'.format(i),
@@ -391,9 +391,9 @@ def main():
 			if fn is not None:
 				with open(fn, "w+") as f:
 					print_histogram(histogram, distances, f, lines=args.lines)
-	elif args.histo:
-		histograms=load_histo(args.histo,distances)
-	#otu_tables=compute_otu_tables()
+	# elif args.histo:
+	# 	histograms=load_histo(args.histo,distances)
+	# otu_tables=compute_otu_tables()
 
 if __name__ == "__main__":
 	try:
