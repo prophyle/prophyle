@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Create an OTU table for ProPhyle's classification output
+"""Create an OTU table for ProPhyle's classification output for NCBI-based indexes
 
 Author: Simone Pignotti <pignottisimone@gmail.com>
 
@@ -19,7 +19,8 @@ desc = """\
 Program: prophyle_otu_table
 
 Create an OTU table for ProPhyle's classification output, ignoring reads
-assigned to multiple reference genomes. Change the positions of the read id
+assigned to multiple reference genomes. Needs the index to be NCBI-based (with
+informations about ranks and taxid). Change the positions of the read id
 and of the taxid with -i and -t to switch format (default: SAM)
 """
 
