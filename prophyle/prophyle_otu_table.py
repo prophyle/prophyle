@@ -193,6 +193,7 @@ def main():
 
 	parser.add_argument(
 		'input_files',
+		metavar='<in_fn>',
 		nargs='+',
 		help='input files (outputs of prophyle classify in sam or kraken format)',
 	)
@@ -217,14 +218,14 @@ def main():
 	parser.add_argument(
 		'-i',
 		type=int,
-		default=3,
+		default=1,
 		dest='read_field',
 		help='position of the read id in the input lines [1 (for sam, use 2 for kraken)]',
 	)
 
 	parser.add_argument(
 		'-l',
-		type=argparse.FileType('w'),
+		type=argparse.FileType('a+'),
 		default=sys.stderr,
 		metavar='log_file',
 		dest='log_file',
