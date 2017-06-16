@@ -86,6 +86,7 @@ def build_complete_tree(tree, log):
 			complete_tree = ncbi.get_topology(taxa, intermediate_nodes=True)
 			built = True
 		except KeyError as e:
+			# if a taxid is not found, try to build the tree without it
 			taxid_not_found = int(e.args[0])
 			taxa.remove(taxid_not_found)
 			if log:
@@ -97,12 +98,13 @@ def build_complete_tree(tree, log):
 
 
 def create_otu_tables(tree, input_files, target_ranks, read_field, taxid_field, log):
-	# index starts from 0
+	# index starts from 1 in the options
 	read_field = read_field - 1
 	taxid_field = taxid_field - 1
 	# for each node n, tree_ranked_ancestors[n.taxid][r] is its ancestor at rank r
 	taxa = [str(n.taxid) for n in tree.traverse('postorder')]
 	tree_ranked_ancestors = {t: {} for t in taxa}
+	# global rank-dependent count (just for ordering purposes)
 	otu_rank_taxacount = {r: Counter() for r in target_ranks}
 	otu_tables = {}
 	for r in target_ranks:
@@ -126,9 +128,11 @@ def create_otu_tables(tree, input_files, target_ranks, read_field, taxid_field, 
 
 	tree_ranked_ancestors['0'] = {}
 	tree_ranked_ancestors['*'] = {}
+	# reads found in the assignments but not in the tree
 	already_ignored = set()
 
 	for f in input_files:
+		# ignore multiple reads
 		reads = set()
 		with open(f, 'r') as in_f:
 			for line in in_f:
@@ -144,7 +148,9 @@ def create_otu_tables(tree, input_files, target_ranks, read_field, taxid_field, 
 				else:
 					reads.add(read)
 				try:
+					# propagate the assigment up
 					for r, t in tree_ranked_ancestors[taxid].items():
+						# increment count of the ancestor at rank r with taxid t for file f
 						otu_tables[r][f][t] += 1
 						otu_rank_taxacount[r][t] += 1
 				except KeyError:
