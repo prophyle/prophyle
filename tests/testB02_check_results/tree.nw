@@ -1,0 +1,1 @@
+((n1:1[&&NHX:fastapath=fastas/n1.fa:seqname=n1_seq],n2:1[&&NHX:fastapath=fastas/n2.fa:seqname=n2_seq],n3:1[&&NHX:fastapath=fastas/n3.fa:seqname=n3_seq])n4:1,(n5:1[&&NHX:fastapath=fastas/n5.fa:seqname=n5_seq],n6:1[&&NHX:fastapath=fastas/n6.fa:seqname=n6_seq])n7:1)n8:0;

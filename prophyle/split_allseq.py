@@ -14,12 +14,14 @@ TODO:
 
 import os, argparse
 
+
 def split_fs(output_dir_fn):
 	i = 0
 	while True:
 		i += 1
 		fn = output_dir_fn + '/' + str(i) + '.fna'
 		yield open(fn, 'w'), i
+
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(
