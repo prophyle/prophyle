@@ -722,9 +722,9 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate,
 		tie_lca, print_seq, cimpl):
-"""Run ProPhyle classification.
+	"""Run ProPhyle classification.
 
-Args:
+	Args:
 		index_dir (str): Index directory.
 		fq_fn (str): Input reads (single-end or first of paired-end).
 		fq_pe_fn (str): Input reads (second paired-end, None if single-end)
@@ -776,7 +776,7 @@ Args:
 
 
 
-	if casign:
+	if cimpl:
 		ASSIGN=C_ASSIGN
 	else:
 		ASSIGN=PY_ASSIGN
@@ -1076,20 +1076,20 @@ def parser():
 		# help='mimic Kraken algorithm and output (for debugging purposes)',
 		help=argparse.SUPPRESS,
 	)
-  
+
 	parser_classify.add_argument(
 		'-P',
 		dest='print_seq',
 		action='store_true',
 		help='print sequences and qualities in SAM (otherwise \'*\' is used)',
 	)
-  
+
 	parser_classify.add_argument(
-			'-C',
-			dest='cimp',
-			action='store_true',
-			help='use the C++ implementation of the assignment algorithm (highly experimental so far)',
-			#help=argparse.SUPPRESS,
+		'-C',
+		dest='cimpl',
+		action='store_true',
+		help='use the C++ implementation of the assignment algorithm (highly experimental so far)',
+		#help=argparse.SUPPRESS,
 	)
 
 	##########
@@ -1160,7 +1160,7 @@ def main():
 				tie_lca=args.tie,
 				annotate=args.annotate,
 				print_seq=args.print_seq,
-				cimpl=args.cimpl,        
+				cimpl=args.cimpl,
 			)
 			pro.message('Classification finished')
 			pro.close_log()
