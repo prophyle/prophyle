@@ -1,5 +1,5 @@
-#! /usr/bin/env bash -f -e -o pipefail
+#! /usr/bin/env bash -f -e -o pipefail -x
 
-prophyle download bacteria
-prophyle index -k 5 ~/prophyle/test_bacteria.nw test_idx
+./prophyle/prophyle.py download bacteria
+./prophyle/prophyle.py index -k 5 -s 0.05 -T ~/prophyle/bacteria.nw _index_test
 

@@ -1,13 +1,13 @@
 language: cpp
 
-cache: 
+cache:
   - brew
   - apt: true
 
 matrix:
   include:
 
-    - os: linux 
+    - os: linux
       sudo: true
       compiler: gcc
       install:
@@ -23,7 +23,7 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel || true
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel psutil || true
         - source activate prophyle
 
     - os: osx
@@ -41,10 +41,11 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel || true
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel psutil || true
         - source activate prophyle
 
 script:
+  - unset PYTHONPATH
   - make test
 
 cache:

@@ -1,4 +1,5 @@
-test_idx
+_index_*
+_test*
 
 *.bak
 .snakemake
