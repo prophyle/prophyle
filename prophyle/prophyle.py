@@ -62,7 +62,8 @@ NEWICK2MAKEFILE="prophyle_propagation_makefile.py"
 TEST_TREE="prophyle_test_tree.py"
 MERGE_FASTAS="prophyle_merge_fa.py"
 MERGE_TREES="prophyle_merge_trees.py"
-ASSIGN="prophyle_assignment.py"
+PY_ASSIGN="prophyle_assignment.py"
+C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
 DEFAULT_K=31
 DEFAULT_THREADS=multiprocessing.cpu_count()
@@ -778,7 +779,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca):
+def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_kraken,measure,annotate,tie_lca, cimpl):
 
 	"""Run Prophyle classification.
 
@@ -792,6 +793,7 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		measure (str): Measure used for classification (h1 / h2 / c1 / c2).
 		annotate (bool): Annotate assignments (insert annotations from Newick to SAM).
 		tie_lca (bool): If multiple equally good assignments found, compute their LCA.
+		cimpl (bool): Use the C++ implementation.
 	"""
 
 
@@ -836,6 +838,13 @@ def prophyle_classify(index_dir,fq_fn,k,use_rolling_window,out_format,mimic_krak
 		_test_files(klcp_fn)
 		(klcp_s,)=_file_sizes(klcp_fn)
 		assert abs(bwt_s - 4*klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
+
+
+
+	if casign:
+		ASSIGN=C_ASSIGN
+	else:
+		ASSIGN=PY_ASSIGN
 
 	if mimic_kraken:
 		cmd_assign=[ASSIGN, '-i', '-', '-k', k, '-n', index_tree, '-m', 'h1', '-f', 'kraken', '-l', '-t']
@@ -1068,6 +1077,13 @@ def parser():
 			#help='mimic Kraken algorithm and output (for debugging purposes)',
 			help=argparse.SUPPRESS,
 		)
+	parser_classify.add_argument(
+			'-C',
+			dest='cimp',
+			action='store_true',
+			help='use C++ implementation of the assignment algorithm (highly experimental so far)',
+			#help=argparse.SUPPRESS,
+		)
 
 	##########
 
@@ -1125,6 +1141,7 @@ def main():
 					measure=args.measure,
 					tie_lca=args.tie,
 					annotate=args.annotate,
+					cimpl=args.cimpl,
 				)
 			_message('Classificaton finished')
 			_close_log()
