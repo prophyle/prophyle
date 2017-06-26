@@ -437,7 +437,7 @@ def parse_args():
 		help='format of output [sam]',
 	)
 
-	parser.add_argument('-m', '--measure',
+	parser.add_argument('-m',
 		choices=['h1', 'c1'],
 		default='h1',
 		dest='crit',
