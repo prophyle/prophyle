@@ -9,8 +9,6 @@ License: MIT
 TODO:
 	* Allow to use c2 and h2 (when k-mer annotations exist in the NHX tree)
 	* Add docstrings
-	* Synchronize options with prophyle.py
-
 """
 
 import os
@@ -414,65 +412,62 @@ def assign(
 def parse_args():
 	parser = argparse.ArgumentParser(description='Implementation of assignment algorithm')
 
-	parser.add_argument('-i', '--input',
-		type=argparse.FileType('r'),
-		required=True,
-		dest='input_file',
-		help='input file',
-	)
-
-	parser.add_argument('-k', '--kmer-size',
-		type=int,
-		required=True,
-		dest='k',
-		help='k-mer size',
-	)
-
-	parser.add_argument('-n', '--newick-tree',
+	parser.add_argument('newick_fn',
 		type=str,
-		metavar='str',
-		required=True,
-		dest='newick_fn',
-		help='newick tree',
+		metavar='<tree.nhx>',
+		help='phylogenetic tree (Newick/NHX)',
 	)
 
-	parser.add_argument('-f', '--oformat',
+	parser.add_argument('k',
+		type=int,
+		metavar='<k>',
+		help='k-mer length',
+	)
+
+	parser.add_argument('input_file',
+		type=argparse.FileType('r'),
+		metavar='<assignments.txt>',
+		help='assignments in generalized Kraken format',
+	)
+
+	parser.add_argument('-f',
 		choices=['kraken', 'sam'],
-		default='kraken',
-		dest='format',
-		help='format of output',
+		default='sam',
+		metavar='format',
+		help='format of output [sam]',
 	)
 
 	parser.add_argument('-m', '--measure',
 		choices=['h1', 'c1'],
 		default='h1',
 		dest='crit',
-		help='measure: h1=hitnumber, c1=coverage',
+		help='measure: h1=hitnumber, c1=coverage [h1]',
 	)
 
-	parser.add_argument('-l', '--sim-lca',
-		action='store_true',
-		dest='lca',
-		help='simulate LCA',
-	)
-
-	parser.add_argument('-a', '--annotate',
+	parser.add_argument('-A',
 		action='store_true',
 		dest='annotate',
 		help='annotate assignments',
 	)
 
-	parser.add_argument('-t', '--tie-lca',
+	parser.add_argument('-L',
 		action='store_true',
 		dest='tie',
-		help='use LCA when tie (more hits with the same score)',
+		help='use LCA when tie (multiple hits with the same score)',
 	)
 
-	parser.add_argument('-d', '--nontransl-blocks',
+	parser.add_argument('-X',
+		action='store_true',
+		dest='lca',
+		help='simulate LCA for each k-mer',
+	)
+
+	parser.add_argument('-D',
 		action='store_true',
 		dest='donttransl',
 		help='do not translate blocks from node to tax IDs',
 	)
+
 	args = parser.parse_args()
 	return args
 
