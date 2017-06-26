@@ -1,5 +1,7 @@
 .PHONY: all clean
 
+include ../conf.mk
+
 GENLIBS=bacteria viruses plasmids
 FNS=$(addprefix seqs/,$(addsuffix /.complete.1, $(GENLIBS)))
 
@@ -9,7 +11,7 @@ all: $(FNS)
 
 seqs/%/.complete.1:
 	mkdir -p seqs
-	prophyle download -d seqs $*
+	$(PROP) download -d seqs $*
 
 clean:
 	rm -fr seqs
