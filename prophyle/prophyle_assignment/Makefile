@@ -1,12 +1,12 @@
 CXX      = g++
 CXXFLAGS  = -std=c++11 -Wall -Wextra -Wno-missing-field-initializers -g -O2
 
-.PHONY: all clean 
+.PHONY: all clean
 
 all: prophyle_assignment
 
 prophyle_assignment: prophyle_assignment.o
-	$(CXX) $(CXXFLAGS) $(DFLAGS) prophyle_assignment.o read_processor.o tree_index.o knhx.o -o prophyle_assignment 
+	$(CXX) $(CXXFLAGS) $(DFLAGS) prophyle_assignment.o read_processor.o tree_index.o knhx.o -o prophyle_assignment
 
 prophyle_assignment.o: read_processor.o tree_index.o knhx.o prophyle_assignment.cpp
 	$(CXX) $(CXXFLAGS) $(DFLAGS) -c read_processor.o knhx.o tree_index.o prophyle_assignment.cpp
@@ -21,4 +21,4 @@ knhx.o: knhx.c knhx.h
 	$(CXX) $(CXXFLAGS) $(DFLAGS) -c knhx.c knhx.h
 
 clean:
-	rm -f prophyle_assignment *.o
+	rm -f prophyle_assignment *.o *.gch
