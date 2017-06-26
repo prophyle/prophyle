@@ -459,7 +459,7 @@ def parse_args():
 	parser.add_argument('-X',
 		action='store_true',
 		dest='lca',
-		help='simulate LCA for each k-mer',
+		help='replace k-mer matches by their LCA',
 	)
 
 	parser.add_argument('-D',
