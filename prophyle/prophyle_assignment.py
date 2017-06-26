@@ -433,7 +433,7 @@ def parse_args():
 	parser.add_argument('-f',
 		choices=['kraken', 'sam'],
 		default='sam',
-		metavar='format',
+		dest='format',
 		help='format of output [sam]',
 	)
 

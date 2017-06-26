@@ -782,13 +782,13 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 		ASSIGN=PY_ASSIGN
 
 	if mimic_kraken:
-		cmd_assign = [ASSIGN, '-i', '-', '-k', k, '-n', index_tree, '-m', 'h1', '-f', 'kraken', '-l', '-t']
+		cmd_assign = [ASSIGN, '-m', 'h1', '-f', 'kraken', '-L', '-T', index_tree, k, '-']
 	else:
-		cmd_assign = [ASSIGN, '-i', '-', '-k', k, '-n', index_tree, '-m', measure, '-f', out_format]
+		cmd_assign = [ASSIGN, '-m', measure, '-f', out_format, index_tree, k, '-']
 		if annotate:
-			cmd_assign += ['--annotate']
+			cmd_assign += ['-A']
 		if tie_lca:
-			cmd_assign += ['--tie-lca']
+			cmd_assign += ['-L']
 
 	if fq_pe_fn:
 		cmd_read = [READ, fq_fn, fq_pe_fn, '|']
