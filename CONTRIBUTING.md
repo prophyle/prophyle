@@ -35,6 +35,6 @@
 
 ## FAQs
 
-> Travis test don't pass due to missing packages even though everything seems to be fine.
+> Travis tests don't pass due to missing packages even though everything seems to be fine.
 
 Try to remove Travis caches (see the button _More options_).
