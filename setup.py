@@ -53,6 +53,7 @@ setuptools.setup(
 			'wheel',
 			'bitarray',
 			'psutil',
+			'biom-format',
 		],
 
 	package_data={
