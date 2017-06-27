@@ -10,7 +10,7 @@
 
 * Only short command-line parameters should be used (e.g., `-L`).
 * CLI parameters with a capital letter are switchers without arguments (e.g., `-R`).
-* When possible, required program arguments should be passed through positional arguments (e.g., `-k 31`).
+* When possible, required program arguments should be passed through positional arguments
 
 
 ## Source codes
