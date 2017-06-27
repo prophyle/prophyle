@@ -38,7 +38,7 @@ private:
   void clear_masks();
   void propagate_matching_kmers();
   void copy_masks(int32_t node_from, int32_t node_to);
-  void fill_cigar(const std::vector<int16_t>& mask, size_t mask_size, std::stringstream& cigar);
+  void fill_cigar(const std::vector<int16_t>& mask, size_t mask_size, std::string& cigar);
 
   size_t hit_mask_size() const {
     return read_length_ - k_ + 1;
@@ -70,6 +70,6 @@ private:
   std::vector<int32_t> best_coverage_nodes_;
   int32_t best_coverage_;
 
-  std::stringstream hit_cigar_;
-  std::stringstream coverage_cigar_;
+  std::string hit_cigar_;
+  std::string coverage_cigar_;
 };
