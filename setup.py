@@ -54,6 +54,7 @@ setuptools.setup(
 			'bitarray',
 			'psutil',
 			'biom-format',
+			'pysam',
 		],
 
 	package_data={
