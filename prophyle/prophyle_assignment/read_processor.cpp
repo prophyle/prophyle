@@ -127,13 +127,13 @@ void ReadProcessor::print_sam_line(int32_t node_id, const std::string& suffix, s
     out << "4\t*\t0\t0\t*\t";
   } else {
     const knhx1_t* node = tree_.node_by_id(node_id);
-    out << "0\t" << node->name << "\t1\t60\t" << coverage_cigar_.str() << "\t";
+    out << "0\t" << node->name << "\t1\t60\t" << coverage_cigar_ << "\t";
   }
   out << "*\t0\t0\t" << read_ << "\t" << qualities_ << "\t";
   if (node_id != -1) {
     out << "h1:i:" << best_hit_ << "\t";
     out << "c1:i:" << best_coverage_ << "\t";
-    out << "hc:Z:" << hit_cigar_.str();
+    out << "hc:Z:" << hit_cigar_;
   }
   out << suffix << "\n";
 }
@@ -288,8 +288,7 @@ void ReadProcessor::set_masks(const std::vector<int32_t>& node_ids, size_t block
   }
 }
 
-void ReadProcessor::fill_cigar(const std::vector<int16_t>& mask, size_t mask_size, std::stringstream& cigar) {
-  cigar.str(std::string());
+void ReadProcessor::fill_cigar(const std::vector<int16_t>& mask, size_t mask_size, std::string& cigar) {
   cigar.clear();
   size_t block_start = 0;
   while (block_start < mask_size) {
@@ -298,7 +297,8 @@ void ReadProcessor::fill_cigar(const std::vector<int16_t>& mask, size_t mask_siz
       position++;
     }
     char match = mask[block_start] == 0 ? 'X' : '=';
-    cigar << position - block_start << match;
+    cigar += std::to_string(position - block_start);
+    cigar += match;
     block_start = position;
   }
 }
