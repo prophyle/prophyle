@@ -29,24 +29,21 @@ desc = """\
 	Build a taxonomic tree in the New Hampshire newick format #1 for NCBI sequences
 """
 
-DEFAULT_HOME_DIR = 'prophyle'
-
-
-def acquire_sequences(library_dir, log):
+def acquire_sequences(library, library_dir, log):
 	seqs = {}
 	acquired = 0
 	skipped = 0
-	for dirpath, _, filenames in os.walk(library_dir):
+	for dirpath, _, filenames in os.walk(os.path.join(library_dir,library)):
 		for filename in (f for f in filenames if f.endswith('.fai')):
 			fn = os.path.join(dirpath, filename)
-			rel_fn = fn[(fn.find(DEFAULT_HOME_DIR) + 9):-4]
+			rel_fn = fn[(len(library_dir)+1):-4]
 			with open(fn, 'r') as faidx:
 				for seq in faidx:
 					try:
 						seqname, seqlen, offset, _, _ = seq.split('\t')
 						# RefSeq filenames start with accession numbers
-						f = filename.split('_')
-						acc = f[0] + '_' + f[1]
+						f = (filename.split('.')[0]).split('_')
+						acc = f[0].strip() + '_' + f[1].strip()
 						try:
 							seqs[acc]['fn'] += '@' + rel_fn
 							seqs[acc]['seqname'] += '@' + seqname
@@ -179,10 +176,10 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 	return t, seq_count, node_count
 
 
-def main_fun(library_dir, output_f, taxid_map, red_factor, root, log_file):
+def main_fun(library, library_dir, output_f, taxid_map, red_factor, root, log_file):
 	library_dir = os.path.abspath(library_dir)
 
-	seqs, acquired, skipped = acquire_sequences(library_dir, log_file)
+	seqs, acquired, skipped = acquire_sequences(library, library_dir, log_file)
 
 	print('[prophyle_ncbi_tree] Acquired ' + str(acquired) +
 		  ' sequences (' + str(skipped) + ' skipped)', file=sys.stderr)
@@ -219,10 +216,17 @@ def main():
 	parser = argparse.ArgumentParser(
 		description=desc)
 
+
+	parser.add_argument('library',
+		type=str,
+		metavar='<library>',
+		help='directory with the library sequences (e.g. bacteria, viruses etc.)',
+	)
 	parser.add_argument('library_dir',
 		type=str,
 		metavar='<library_dir>',
-		help='library path (must be a subdirectory of ProPhyle\'s home directory)')
+		help='library path (parent of library, e.g. main ProPhyle directory)'
+	)
 	parser.add_argument('output_file',
 		type=str,
 		metavar='<output_file>',
@@ -252,7 +256,7 @@ def main():
 
 	args = parser.parse_args()
 
-	main_fun(args.library_dir, args.output_file, args.taxid_map_file, args.red_factor, args.root, args.log_file)
+	main_fun(args.library, args.library_dir, args.output_file, args.taxid_map_file, args.red_factor, args.root, args.log_file)
 
 
 if __name__ == '__main__':
