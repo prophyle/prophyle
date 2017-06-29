@@ -108,7 +108,7 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 	built = False
 	while not built:
 		try:
-			t = ncbi.get_topology(taxa, intermediate_nodes=False)
+			t = ncbi.get_topology(taxa, intermediate_nodes=True)
 			built = True
 		except KeyError as e:
 			taxid_not_found = int(e.args[0])
@@ -127,7 +127,7 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 		print('[prophyle_ncbi_tree] ' + str(internal_with_fasta) + ' sequences' +
 			  ' ignored because associated to internal node (see issue #153)', file=log)
 	leaves_taxa = [leaf.taxid for leaf in t if leaf.taxid in taxa2acc]
-	t = ncbi.get_topology(leaves_taxa, intermediate_nodes=False)
+	t = ncbi.get_topology(leaves_taxa, intermediate_nodes=True)
 
 	if red_factor:
 		i = 0
@@ -136,14 +136,14 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 			if i % red_factor == 0:
 				red_taxa.append(leaf.taxid)
 			i += 1
-		t = ncbi.get_topology(red_taxa, intermediate_nodes=False)
+		t = ncbi.get_topology(red_taxa, intermediate_nodes=True)
 
 	if root:
 		taxa_to_keep = []
 		for leaf in t:
 			if root in leaf.named_lineage:
 				taxa_to_keep.append(leaf.taxid)
-		t = ncbi.get_topology(taxa_to_keep, intermediate_nodes=False)
+		t = ncbi.get_topology(taxa_to_keep, intermediate_nodes=True)
 
 	node_count = len(t.get_descendants()) + 1
 	seq_count = 0
