@@ -73,7 +73,7 @@ Stats:
 			dest='in_format',
 			choices=IN_FMTS,
 			default=IN_FMTS[0],
-			help='Input format of assignments ['+IN_FMTS[0]+']'
+			help='Input format of assignments [{}]'.format(IN_FMTS[0])
 		)
 
 	parser.add_argument('-s',
@@ -82,7 +82,7 @@ Stats:
 			dest='stats',
 			choices=STATS,
 			default=STATS[0],
-			help='Statistics to use for the computation of histograms ['+STATS[0]+']'
+			help='Statistics to use for the computation of histograms [{}]'.format(STATS[0])
 		)
 
 	parser.add_argument('-o',
@@ -303,8 +303,9 @@ def load_histo(in_fns, tree):
 			for sample in samples:
 				assert sample not in histo, "Duplicated sample ID"
 				histo[sample]=Counter()
-			for line in f:
+			for line_num, line in enumerate(f):
 				fields=list(map(str.strip, line.split('\t')))
+				assert len(fields)==(len(samples)+1), "Malformed histogram (check fields at line {})".format(line_num+2)
 				node_name=fields[0]
 				scores=fields[1:]
 				if not node_name in tree_names:
@@ -342,7 +343,7 @@ def load_histo(in_fns, tree):
 #             if log:
 #                 print('[prophyle_otu_table] ERROR: TaxID ' + str(taxid_not_found) +
 #                       ' not found in ETE DB (try updating it)', file=log)
-#             pass
+#             continue
 #
 #     complete_tree=ncbi.get_topology(taxa, intermediate_nodes=True)
 #
@@ -362,18 +363,27 @@ def load_histo(in_fns, tree):
 
 def ncbi_tree_info(tree):
 	# count of descendants at each rank (used for normalization of assignments propagation)
-	ranked_desc_count=Counter()
+	ranked_desc_count={rank:Counter() for rank in KNOWN_RANKS}
 	leaves_count=Counter()
 	tax2rank={}
 	for node in tree.traverse('postorder'):
-		taxid=str(node.taxid)
-		rank=node.rank
-		tax2rank[taxid]=rank
-		leaves_count[taxid]+=len(node.get_leaves())
-		if rank in KNOWN_RANKS:
-			for anc in node.iter_ancestors():
-				anc_taxid=str(anc.taxid)
-				ranked_desc_count[rank][anc_taxid]+=1
+		if node.name!='merge_root':
+			try:
+				taxid=str(node.taxid)
+				rank=node.rank
+			except AttributeError:
+				print("[prophyle_analyze] Warning: missing attributes for node {}".format(node.name),file=sys.stderr)
+				continue
+			tax2rank[taxid]=rank
+			leaves_count[taxid]+=len(node.get_leaves())
+			if rank in KNOWN_RANKS:
+				for anc in node.iter_ancestors():
+					if anc.name!="merge_root":
+						try:
+							anc_taxid=str(anc.taxid)
+							ranked_desc_count[rank][anc_taxid]+=1
+						except AttributeError:
+							continue
 
 	return tax2rank, ranked_desc_count, leaves_count
 
@@ -386,13 +396,20 @@ def compute_otu_table(histogram, tree, ncbi=False):
 		otu_t=otu_table[sample]
 		if ncbi:
 			for node in tree.traverse('postorder'):
-				taxid=str(node.taxid)
-				rank=str2rank.get(node.rank, Rank.NO_RANK)
+				if node.name!='merge_root':
+					try:
+						taxid=str(node.taxid)
+						rank=node.rank
+					except AttributeError:
+						continue
 				count=histo[taxid]
 				if count!=0:
 					for anc in node.iter_ancestors():
-						anc_taxid=str(anc.taxid)
-						otu_t[anc_taxid]+=count
+						try:
+							anc_taxid=str(anc.taxid)
+							otu_t[anc_taxid]+=count
+						except AttributeError:
+							continue
 					for desc in node.iter_descendants():
 						desc_taxid=str(desc.taxid)
 						desc_rank=desc.rank
@@ -433,6 +450,7 @@ def compute_otu_table(histogram, tree, ncbi=False):
 #         otus_metadata=[{'taxonomy':node.named_lineage.split('|'),'rank':node.rank}
 #                         for taxid in otus for node in tree.search_nodes(taxid=taxid)]
 #     else:
+# 		#check that is not merge_root
 #         features = set()
 #         for n in tree.traverse():
 #             features |= n.features
@@ -476,7 +494,7 @@ def main():
 		histogram=load_histo(args.histograms,tree)
 
 	otu_table=compute_otu_table(histogram,tree,args.ncbi)
-	with open(args.out_prefix+'_'+args.otu_suffix+'.tsv', 'w') as f:
+	with open("{}_{}.tsv".format(args.out_prefix, args.otu_suffix), 'w') as f:
 		print_histogram(otu_table, f, args.max_lines)
 
 if __name__ == "__main__":
