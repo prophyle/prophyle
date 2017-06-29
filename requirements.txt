@@ -2,5 +2,3 @@ ete3
 wheel
 bitarray
 psutil
-biom-format
-pysam
