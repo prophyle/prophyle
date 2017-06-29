@@ -85,7 +85,7 @@ Examples
 Quick test (small k, subsampled bacterial database)::
 
 	prophyle download bacteria
-	prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
+	prophyle index -k 10 -s 0.1 ~/prophyle/bacteria.nw test_idx
 	prophyle classify test_idx reads.fq > result.sam
 
 Bacterial database (k=31)::
