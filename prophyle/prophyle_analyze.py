@@ -299,12 +299,13 @@ def load_histo(in_fns, tree):
 	histo={}
 	for fn in in_fns:
 		with open(fn, 'r') as f:
-			samples=f.readline().split('\t')[1:]
+			samples=list(map(str.strip, f.readline().split('\t')[1:]))
 			for sample in samples:
+				assert sample not in histo, "Duplicated sample ID"
 				histo[sample]=Counter()
 			for line in f:
-				fields=line.split('\t')
-				node_name=fields[0].strip()
+				fields=list(map(str.strip, line.split('\t')))
+				node_name=fields[0]
 				scores=fields[1:]
 				if not node_name in tree_names:
 					print("""[prophyle_analyze] Error: node name {} found in the
@@ -468,10 +469,11 @@ def main():
 	if args.asgs_list is not None:
 		asgs=load_asgs(args.asgs_list,args.in_format)
 		histogram=compute_histogram(tree, asgs, args.stats)
-	elif args.histo is not None:
+		with open(args.out_prefix+'.tsv', "w") as f:
+			print_histogram(histogram, f, args.max_lines)
+
+	elif args.histograms is not None:
 		histogram=load_histo(args.histograms,tree)
-	with open(args.out_prefix+'.tsv', "w") as f:
-		print_histogram(histogram, f, args.max_lines)
 
 	otu_table=compute_otu_table(histogram,tree,args.ncbi)
 	with open(args.out_prefix+'_'+args.otu_suffix+'.tsv', 'w') as f:
