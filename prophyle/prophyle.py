@@ -14,7 +14,7 @@ Example:
 
 	Create an index for k=10 and the small testing bacterial tree:
 
-		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw ~/prophyle/test_viruses.nw test_idx
+		$ prophyle index -k 10 -s 0.1 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw test_idx
 
 	Classify some reads:
 
@@ -258,13 +258,12 @@ def prophyle_download(library, library_dir, force=False):
 
 	lib_missing = _missing_library(d)
 	if lib_missing or force:
-		for test_prefix in ["", "test_"]:
-			fn = "{}{}.nw".format(test_prefix, library, )
-			nhx = os.path.join(TREE_D, fn)
-			new_nhx = os.path.join(d, "..", fn)
-			pro.test_files(nhx)
-			pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx, new_nhx))
-			pro.cp_to_file(nhx, new_nhx)
+		fn = "{}.nw".format(library)
+		nhx = os.path.join(TREE_D, fn)
+		new_nhx = os.path.join(d, "..", fn)
+		pro.test_files(nhx)
+		pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx, new_nhx))
+		pro.cp_to_file(nhx, new_nhx)
 
 	if library == 'bacteria':
 		if lib_missing or force:
