@@ -81,8 +81,8 @@ LIBRARIES = ['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
 
-ANALYZE_IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken']
-ANALYZE_OUT_FMTS=['h5py','json','tsv']
+ANALYZE_IN_FMTS=['sam','kraken']
+ANALYZE_STATS=['w','u','wl','ul']
 
 
 def _file_md5(fn, block_size=2 ** 20):
@@ -801,35 +801,27 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	command = cmd_read + cmd_query + cmd_assign
 	pro.run_safe(command)
 
-#####################
-# PROPHYLE CLASSIFY #
-#####################
+####################
+# PROPHYLE ANALYZE #
+####################
 
-def prophyle_analyze(tree, asgs_list, histograms, in_format, max_lines,
-					otu_suffix, out_format, ncbi, fn1, fn2, fn3, fn4):
+def prophyle_analyze(tree, asgs_list, histograms, in_format, stats, out_prefix,
+					max_lines, otu_suffix, ncbi):
 
 	cmd_analyze = [ANALYZE, tree]
 
-	if len(asgs_list) > 0:
-		cmd_analyze += ['-i'] + asgs_list + ['-f', in_format]
-	elif len(histograms) > 0:
-		cmd_analyze += ['-s'] + histograms
+	if asgs_list and len(asgs_list) > 0:
+		cmd_analyze += ['-f', in_format, '-i'] + asgs_list
+	elif histograms and len(histograms) > 0:
+		cmd_analyze += ['-s', stats, '-g'] + histograms
 	else:
 		print("[prophyle_analyze] Invalid command", sys.stderr)
 		sys.exit(1)
 
-	cmd_analyze += ['-o', otu_suffix, '-u', out_format]
+	cmd_analyze += ['-o', out_prefix, '-l', max_lines, '-t', otu_suffix]
 
 	if ncbi:
-		cmd_analyze += ['-n']
-	if fn1:
-		cmd_analyze += ['-1', fn1]
-	if fn2:
-		cmd_analyze += ['-2', fn2]
-	if fn3:
-		cmd_analyze += ['-3', fn3]
-	if fn4:
-		cmd_analyze += ['-4', fn4]
+		cmd_analyze += ['-N']
 
 	pro.run_safe(cmd_analyze)
 
@@ -851,7 +843,7 @@ def parser():
 		Program: prophyle (phylogeny-based metagenomic classification)
 		Version: {V}
 		Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
-		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+				 Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
 
 		Usage:   prophyle <command> [options]
 		""".format(V=version.VERSION)
@@ -1122,36 +1114,37 @@ def parser():
 	)
 
 	parser_analyze.add_argument('tree',
-			metavar='<tree.nw>',
+			metavar='<tree.nhx>',
 			type=str,
-			help='Newick/NHX tree from the directory of the index used for classification'
+			help='Newick/NHX tree used for classification'
 		)
 
 	parser_analyze_subgroup = parser_analyze.add_mutually_exclusive_group(required=True)
 
-	parser_analyze_subgroup.add_argument('-i','--asg-files',
-			metavar='<asgs_fn>',
+	parser_analyze_subgroup.add_argument('-i',
+			metavar='STR',
 			type=str,
 			dest='asgs_list',
 			nargs='+',
 			default=None,
 			help="""ProPhyle output files in the format specified with the -f
-					option (use - for stdin, or one file for each sample)"""
+					option (default SAM, use - for stdin or one file for each
+					sample)"""
 		)
 
-	parser_analyze_subgroup.add_argument('-s','--from-histogram',
-			type=argparse.FileType('r'),
-			metavar='<histo>',
+	parser_analyze_subgroup.add_argument('-g',
+			metavar='STR',
+			type=str,
 			dest='histograms',
 			nargs='+',
 			default=None,
-			help="""Compute OTU table from existing histograms (do not compute
-					any other) and write it to <histo>_<otu_suffix>.biom
-					[<histo>_otu.biom if -o/--otu-suffix is not specified]"""
+			help="""Histograms previously computed using prophyle analyze.
+					Compute OTU table direcly from them (assignment files are
+					not required)"""
 		)
 
-	parser_analyze.add_argument('-f','--in-format',
-			metavar='<format>',
+	parser_analyze.add_argument('-f',
+			metavar='STR',
 			type=str,
 			dest='in_format',
 			choices=ANALYZE_IN_FMTS,
@@ -1159,51 +1152,53 @@ def parser():
 			help='Input format of assignments ['+ANALYZE_IN_FMTS[0]+']'
 		)
 
-	parser_analyze.add_argument('-l','--number-of-records',
+	parser_analyze.add_argument('-s',
+			metavar='STR',
+			type=str,
+			dest='stats',
+			choices=ANALYZE_STATS,
+			default=ANALYZE_STATS[0],
+			help=textwrap.dedent("""Statistics to use for the computation of histograms:\n
+                    w (default): weighted assignments\n
+    				u: unique assignments, non-weighted\n
+    				wl: weighted assignments, propagated to leaves\n
+    				ul: unique assignments, propagated to leaves"""
+                )
+	)
+
+	parser_analyze.add_argument('-o',
+			metavar='STR',
+			type=str,
+			dest='out_prefix',
+			required=True,
+			help="""Prefix for output files (the complete file name will be
+					<prefix>.tsv for histograms and <prefix>_<otu_suffix>.tsv
+					for otu tables)"""
+	)
+
+	parser_analyze.add_argument('-l',
 			type=int,
-			metavar='n',
+			metavar='INT',
 			dest='max_lines',
 			default=-1,
 			help='Output only the n nodes with the highest score [all]'
 		)
 
-	parser_analyze.add_argument('-o','--otu-suffix',
+	parser_analyze.add_argument('-t',
 			type=str,
-			metavar='<otu_suffix>',
+			metavar='STR',
 			dest='otu_suffix',
 			default='otu',
-			help="""Compute OTU tables for each specified statistics or input
-					histogram and write them to <histo_f[i]>_<otu_suffix>.biom [otu]"""
+			help='Suffix for otu table file [otu]'
 		)
 
-	parser_analyze.add_argument('-u','--out-format',
-			metavar='<format>',
-			type=str,
-			dest='out_format',
-			choices=ANALYZE_OUT_FMTS,
-			default=ANALYZE_OUT_FMTS[0],
-			help='Output format of OTU tables ['+ANALYZE_OUT_FMTS[0]+']'
-		)
-
-	parser_analyze.add_argument('-n','--ncbi',
+	parser_analyze.add_argument('-N',
 			action='store_true',
 			dest='ncbi',
-			help="""Use NCBI taxonomic information to annotate the OTU tables and
-					calculate abundances at every rank [default: propagate
-					weighted assigments to leaves and do not output internal
-					nodes; metadata from all common features in the tree]"""
+			help="""Use NCBI taxonomic information to calculate abundances at
+					every rank for otu tables [default: propagate weighted
+					assigments to leaves and do not output internal nodes]"""
 		)
-
-	for i in range(1,5):
-		parser_analyze.add_argument('-{}'.format(i),
-				type=str,
-				metavar='<histo_fn_{}>'.format(i),
-				dest='fn{}'.format(i),
-				help="""Output file for histogram computed using stats {}
-						[do not compute if not specified]""".format(i),
-				default=None,
-				required=False,
-			)
 
 	##########
 
@@ -1257,7 +1252,7 @@ def main():
 
 		elif subcommand == "classify":
 			# if args.log_fn is None:
-			#	args.log_fn = os.path.join(args.index_dir, "log.txt")
+			#    args.log_fn = os.path.join(args.index_dir, "log.txt")
 
 			pro.open_log(args.log_fn)
 			pro.message('Classification started')
@@ -1284,14 +1279,11 @@ def main():
 				asgs_list=args.asgs_list,
 				histograms=args.histograms,
 				in_format=args.in_format,
+				stats=args.stats,
+				out_prefix=args.out_prefix,
 				max_lines=args.max_lines,
 				otu_suffix=args.otu_suffix,
-				out_format=args.out_format,
 				ncbi=args.ncbi,
-				fn1=args.fn1,
-				fn2=args.fn2,
-				fn3=args.fn3,
-				fn4=args.fn4
 			)
 
 		else:
