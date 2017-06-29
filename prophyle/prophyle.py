@@ -58,6 +58,7 @@ if GITDIR:
 	NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
 	READ = os.path.join(C_D, "prophyle_paired_end.py")
 	TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
+	SPLIT_FA = os.path.join(C_D, "prophyle_split_allseq.py")
 
 # package
 else:
@@ -67,6 +68,7 @@ else:
 	NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
 	READ = "prophyle_paired_end.py"
 	TEST_TREE = "prophyle_validate_tree.py"
+	SPLIT_FA = "prophyle_split_allseq.py"
 
 DEFAULT_K = 31
 DEFAULT_THREADS = multiprocessing.cpu_count()
@@ -293,9 +295,10 @@ def prophyle_download(library, library_dir, force=False):
 	elif library == 'hmp':
 		if lib_missing or force:
 			# fix when error appears
-			cmd = ['cd', d, '&&', 'curl', 'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|', 'bzip2',
-				'-d']
-			pro.run_safe(cmd, os.path.join(d, "all_seqs.fa"))
+			cmd = ['cd', d, '&&', 'curl',
+				'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|',
+				'bzip2', '-d', '|', SPLIT_FA, os.path.abspath(d)]
+			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		# _pseudo_fai(d)
 

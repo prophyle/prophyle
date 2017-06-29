@@ -6,28 +6,37 @@
 	Author: Simone Pignotti <pignottisimone@gmail.com>
 
 Example:
-	$ split_allseq.py <input.fa> <output_dir>
+	$ prophyle_split_allseq.py <output_dir> [-i <input.fa>]
 
 TODO:
 	* support infasta_offset and base_len (already included in the trees) for index construction
 """
 
-import os, argparse
+import os
+import sys
+import argparse
 
 
 def split_fs(output_dir_fn):
 	i = 0
 	while True:
 		i += 1
-		fn = output_dir_fn + '/' + str(i) + '.fna'
+		fn = os.path.join(output_dir_fn, str(i)+'.fna')
 		yield open(fn, 'w'), i
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(
 		description='Split a fasta file containing multiple sequences in multiple files containing one sequence')
-	parser.add_argument('input_file', help='Fasta file')
-	parser.add_argument('output_dir', help='Output directory')
+	parser.add_argument('output_dir',
+		type=str,
+		help='Path to the output directory')
+	parser.add_argument('-i',
+		dest='input_file',
+		metavar='STR',
+		type=argparse.FileType('r'),
+		default=sys.stdin,
+		help='Fasta file [stdin]')
 	args = parser.parse_args()
 
 	input_f = args.input_file
@@ -37,14 +46,13 @@ if __name__ == "__main__":
 	split_f = split_fs(output_dir_fn)
 	outfile = None
 
-	with open(input_f, 'r') as fasta:
-		for line in fasta:
-			if start_seq not in line:
-				outfile.write(line)
-			else:
-				if outfile:
-					outfile.close()
-				outfile, i = next(split_f)
-				outfile.write(line)
+	for line in input_f:
+		if start_seq not in line:
+			outfile.write(line)
+		else:
+			if outfile:
+				outfile.close()
+			outfile, i = next(split_f)
+			outfile.write(line)
 
 	outfile.close()
