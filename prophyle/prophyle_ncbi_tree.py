@@ -101,6 +101,7 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 	# Important: you should update ETE DB before running this script.
 	# This is done automatically only if it has not been downloaded yet.
 	ncbi = NCBITaxa()
+	seqs = {s:v if 'taxid' in v for s,v in seqs.items()}
 	taxa = [s['taxid'] for s in seqs.values()]
 	built = False
 	while not built:
@@ -231,24 +232,22 @@ def main():
 		type=str,
 		metavar='<output_file>',
 		help='output file')
-	parser.add_argument('-t', '--taxid-map',
+	parser.add_argument('taxid_map_file',
 		type=str,
-		required=True,
-		metavar='taxid_map',
-		dest='taxid_map_file',
+		metavar='<taxid_map>',
 		help='tab separated accession number to taxid map')
-	parser.add_argument('-l', '--log',
-		type=argparse.FileType('w'),
+	parser.add_argument('-l',
+		type=argparse.FileType('a+'),
 		metavar='log_file',
 		dest='log_file',
 		help='log file [stderr]')
-	parser.add_argument('-r', '--reduce',
+	parser.add_argument('-r',
 		type=int,
 		metavar='red_factor',
 		dest='red_factor',
 		help='build reduced tree (one sequence every n)'
 	)
-	parser.add_argument('-u', '--root',
+	parser.add_argument('-u',
 		type=str,
 		metavar='root',
 		dest='root',

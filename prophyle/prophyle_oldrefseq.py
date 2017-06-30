@@ -74,7 +74,7 @@ def parse_rpt(library, library_dir):
 
     if library == "all":
         for l in LIBRARIES:
-            parce_rpt(l, library_dir)
+            parse_rpt(l, library_dir)
         return
     else:
         assert library in LIBRARIES
@@ -91,7 +91,7 @@ def build_tree(library, library_dir):
     else:
         assert library in LIBRARIES
 
-    cmd = [TREE_BUILDER, library, library_dir, library+'.nw','-t',
+    cmd = [TREE_BUILDER, library, library_dir, library+'.nw',
         library+'_taxamap.tsv','-l',library+'.log','-u',library.title()]
     pro.run_safe(cmd)
 
