@@ -91,8 +91,10 @@ def build_tree(library, library_dir):
     else:
         assert library in LIBRARIES
 
+    root = "Bacteria" if library=='plasmids' else library.title()
+
     cmd = [TREE_BUILDER, library, library_dir, library+'.nw',
-        library+'_taxamap.tsv','-l',library+'.log','-u',library.title()]
+        library+'_taxamap.tsv','-l',library+'.log','-u',root]
     pro.run_safe(cmd)
 
 
