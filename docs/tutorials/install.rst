@@ -52,4 +52,4 @@ To quickly test if ProPhyle has been installed correctly, you can
 create a small index with a small k-mer length::
 
 	prophyle download bacteria
-	prophyle index -k 10 ~/prophyle/test_bacteria.nw test_idx
+	prophyle index -k 10 -s 0.1 ~/prophyle/bacteria.nw test_idx

@@ -14,7 +14,7 @@ Example:
 
 	Create an index for k=10 and the small testing bacterial tree:
 
-		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw ~/prophyle/test_viruses.nw test_idx
+		$ prophyle index -k 10 -s 0.1 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw test_idx
 
 	Classify some reads:
 
@@ -59,6 +59,7 @@ if GITDIR:
 	NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
 	READ = os.path.join(C_D, "prophyle_paired_end.py")
 	TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
+	SPLIT_FA = os.path.join(C_D, "prophyle_split_allseq.py")
 
 # package
 else:
@@ -69,6 +70,7 @@ else:
 	NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
 	READ = "prophyle_paired_end.py"
 	TEST_TREE = "prophyle_validate_tree.py"
+	SPLIT_FA = "prophyle_split_allseq.py"
 
 DEFAULT_K = 31
 DEFAULT_THREADS = multiprocessing.cpu_count()
@@ -263,13 +265,12 @@ def prophyle_download(library, library_dir, force=False):
 
 	lib_missing = _missing_library(d)
 	if lib_missing or force:
-		for test_prefix in ["", "test_"]:
-			fn = "{}{}.nw".format(test_prefix, library, )
-			nhx = os.path.join(TREE_D, fn)
-			new_nhx = os.path.join(d, "..", fn)
-			pro.test_files(nhx)
-			pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx, new_nhx))
-			pro.cp_to_file(nhx, new_nhx)
+		fn = "{}.nw".format(library)
+		nhx = os.path.join(TREE_D, fn)
+		new_nhx = os.path.join(d, "..", fn)
+		pro.test_files(nhx)
+		pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx, new_nhx))
+		pro.cp_to_file(nhx, new_nhx)
 
 	if library == 'bacteria':
 		if lib_missing or force:
@@ -299,9 +300,10 @@ def prophyle_download(library, library_dir, force=False):
 	elif library == 'hmp':
 		if lib_missing or force:
 			# fix when error appears
-			cmd = ['cd', d, '&&', 'curl', 'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|', 'bzip2',
-				'-d']
-			pro.run_safe(cmd, os.path.join(d, "all_seqs.fa"))
+			cmd = ['cd', d, '&&', 'curl',
+				'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|',
+				'bzip2', '-d', '|', SPLIT_FA, os.path.abspath(d)]
+			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		# _pseudo_fai(d)
 
@@ -626,7 +628,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 			if root != "":
 				assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn) != 1:
-			pro.message('Merging {} trees{}'.format(len(trees_fn)))
+			pro.message('Merging {} trees'.format(len(trees_fn)))
 		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:

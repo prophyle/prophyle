@@ -27,8 +27,8 @@ Build a tree
 
 Build a taxonomic tree for the downloaded sequences using::
 
-  prophyle_homedir/prophyle/prophyle_ncbitree.py <library_subdir> <output_file> \
-		-t acc2taxid.tsv -l <log_file>
+  prophyle_homedir/prophyle/prophyle_ncbitree.py <library_name> <library_main_dir>\
+		<output_file> acc2taxid.tsv -l <log_file>
 
 Taxonomic identifiers are assigned to the sequences first, and then the tree is
 built using `ETE Toolkit <http://etetoolkit.org/>`_ and saved with newick format
