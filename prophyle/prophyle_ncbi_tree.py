@@ -101,8 +101,12 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 	# Important: you should update ETE DB before running this script.
 	# This is done automatically only if it has not been downloaded yet.
 	ncbi = NCBITaxa()
-	seqs = {s:v if 'taxid' in v for s,v in seqs.items()}
-	taxa = [s['taxid'] for s in seqs.values()]
+	taxa = []
+	for s in seqs.values():
+		try:
+			taxa.append(s['taxid'])
+		except KeyError:
+			continue
 	built = False
 	while not built:
 		try:
