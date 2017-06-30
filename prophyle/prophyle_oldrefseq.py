@@ -61,7 +61,7 @@ def fasta_idx(library, library_dir):
 
     if library == "all":
         for l in LIBRARIES:
-            parce_rpt(l, library_dir)
+            fasta_idx(l, library_dir)
         return
     else:
         assert library in LIBRARIES
