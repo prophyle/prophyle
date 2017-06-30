@@ -53,6 +53,7 @@ ASM = os.path.join(C_D, "prophyle_assembler", "prophyle_assembler")
 # git
 if GITDIR:
 	ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
+	ANALYZE = os.path.join(C_D, "prophyle_analyze.py")
 	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
 	PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
 	NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
@@ -63,6 +64,7 @@ if GITDIR:
 # package
 else:
 	ASSIGN = "prophyle_assignment.py"
+	ANALYZE = "prophyle_analyze.py"
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
 	NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
@@ -80,6 +82,9 @@ DEFAULT_HOME_DIR = os.path.join(os.path.expanduser('~'), 'prophyle')
 LIBRARIES = ['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
+
+ANALYZE_IN_FMTS=['sam','kraken']
+ANALYZE_STATS=['w','u','wl','ul']
 
 
 def _file_md5(fn, block_size=2 ** 20):
@@ -798,6 +803,30 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	command = cmd_read + cmd_query + cmd_assign
 	pro.run_safe(command)
 
+####################
+# PROPHYLE ANALYZE #
+####################
+
+def prophyle_analyze(tree, asgs_list, histograms, in_format, stats, out_prefix,
+					max_lines, otu_suffix, ncbi):
+
+	cmd_analyze = [ANALYZE, tree]
+
+	if asgs_list and len(asgs_list) > 0:
+		cmd_analyze += ['-f', in_format, '-i'] + asgs_list
+	elif histograms and len(histograms) > 0:
+		cmd_analyze += ['-s', stats, '-g'] + histograms
+	else:
+		print("[prophyle_analyze] Invalid command", sys.stderr)
+		sys.exit(1)
+
+	cmd_analyze += ['-o', out_prefix, '-l', max_lines, '-t', otu_suffix]
+
+	if ncbi:
+		cmd_analyze += ['-N']
+
+	pro.run_safe(cmd_analyze)
+
 
 ########
 # MAIN #
@@ -816,7 +845,7 @@ def parser():
 		Program: prophyle (phylogeny-based metagenomic classification)
 		Version: {V}
 		Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
-		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+				 Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
 
 		Usage:   prophyle <command> [options]
 		""".format(V=version.VERSION)
@@ -1080,6 +1109,101 @@ def parser():
 
 	##########
 
+	parser_analyze = subparsers.add_parser(
+		'analyze',
+		help='analyze results',
+		formatter_class=fc,
+	)
+
+	parser_analyze.add_argument('tree',
+			metavar='<tree.nhx>',
+			type=str,
+			help='Newick/NHX tree used for classification'
+		)
+
+	parser_analyze_subgroup = parser_analyze.add_mutually_exclusive_group(required=True)
+
+	parser_analyze_subgroup.add_argument('-i',
+			metavar='STR',
+			type=str,
+			dest='asgs_list',
+			nargs='+',
+			default=None,
+			help="""ProPhyle output files in the format specified with the -f
+					option (default SAM, use - for stdin or one file for each
+					sample)"""
+		)
+
+	parser_analyze_subgroup.add_argument('-g',
+			metavar='STR',
+			type=str,
+			dest='histograms',
+			nargs='+',
+			default=None,
+			help="""Histograms previously computed using prophyle analyze.
+					Compute OTU table direcly from them (assignment files are
+					not required)"""
+		)
+
+	parser_analyze.add_argument('-f',
+			metavar='STR',
+			type=str,
+			dest='in_format',
+			choices=ANALYZE_IN_FMTS,
+			default=ANALYZE_IN_FMTS[0],
+			help='Input format of assignments ['+ANALYZE_IN_FMTS[0]+']'
+		)
+
+	parser_analyze.add_argument('-s',
+			metavar='STR',
+			type=str,
+			dest='stats',
+			choices=ANALYZE_STATS,
+			default=ANALYZE_STATS[0],
+			help=textwrap.dedent("""Statistics to use for the computation of histograms:\n
+                    w (default): weighted assignments\n
+    				u: unique assignments, non-weighted\n
+    				wl: weighted assignments, propagated to leaves\n
+    				ul: unique assignments, propagated to leaves"""
+                )
+	)
+
+	parser_analyze.add_argument('-o',
+			metavar='STR',
+			type=str,
+			dest='out_prefix',
+			required=True,
+			help="""Prefix for output files (the complete file name will be
+					<prefix>.tsv for histograms and <prefix>_<otu_suffix>.tsv
+					for otu tables)"""
+	)
+
+	parser_analyze.add_argument('-l',
+			type=int,
+			metavar='INT',
+			dest='max_lines',
+			default=-1,
+			help='Output only the n nodes with the highest score [all]'
+		)
+
+	parser_analyze.add_argument('-t',
+			type=str,
+			metavar='STR',
+			dest='otu_suffix',
+			default='otu',
+			help='Suffix for otu table file [otu]'
+		)
+
+	parser_analyze.add_argument('-N',
+			action='store_true',
+			dest='ncbi',
+			help="""Use NCBI taxonomic information to calculate abundances at
+					every rank for otu tables [default: propagate weighted
+					assigments to leaves and do not output internal nodes]"""
+		)
+
+	##########
+
 	return parser
 
 
@@ -1130,7 +1254,7 @@ def main():
 
 		elif subcommand == "classify":
 			# if args.log_fn is None:
-			#	args.log_fn = os.path.join(args.index_dir, "log.txt")
+			#    args.log_fn = os.path.join(args.index_dir, "log.txt")
 
 			pro.open_log(args.log_fn)
 			pro.message('Classification started')
@@ -1149,6 +1273,20 @@ def main():
 			)
 			pro.message('Classification finished')
 			pro.close_log()
+
+		elif subcommand == "analyze":
+
+			prophyle_analyze(
+				tree=args.tree,
+				asgs_list=args.asgs_list,
+				histograms=args.histograms,
+				in_format=args.in_format,
+				stats=args.stats,
+				out_prefix=args.out_prefix,
+				max_lines=args.max_lines,
+				otu_suffix=args.otu_suffix,
+				ncbi=args.ncbi,
+			)
 
 		else:
 			msg_lns = par.format_help().split("\n")[2:]
