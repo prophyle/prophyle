@@ -18,7 +18,7 @@ from collections import Counter
 
 IN_FMTS=['sam','kraken']
 STATS=['w','u','wl','ul']
-KNOWN_RANKS=['species','genus','family','order','class','phylum','kingdom']
+KNOWN_RANKS=['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
 
 def parse_args():
 
@@ -479,6 +479,44 @@ def compute_otu_table(histogram, tree, ncbi=False):
 #         else:
 #             table.to_hdf5(out_f, table.generated_by)
 
+def print_taxonomy(tree, out_fn):
+
+	taxa2info={}
+	for node in tree.traverse('preorder'):
+		if node.name!='merge_root':
+			try:
+				taxid=str(node.taxid).strip()
+				rank=node.rank.strip()
+				sci_name=node.sci_name.strip()
+				if rank in KNOWN_RANKS:
+					taxa2info[taxid]=(rank,sci_name)
+			except AttributeError:
+				continue
+
+	with open(out_fn, 'w') as out_f:
+		print('#taxid\t'+'\t'.join(KNOWN_RANKS), file=out_f)
+		for node in tree.traverse('preorder'):
+			if node.name!='merge_root':
+				try:
+					lineage=map(str.strip,node.lineage.split('|'))
+					rank=node.rank.strip()
+				except AttributeError:
+					continue
+				if rank in KNOWN_RANKS:
+					info=['NA']*len(KNOWN_RANKS)
+					for t in lineage:
+						try:
+							r,sn=taxa2info[t]
+						except KeyError:
+							continue
+						try:
+							i=KNOWN_RANKS.index(r)
+							info[i]=sn
+						except ValueError:
+							continue
+					# t is the last element of lineage, e.g. the taxid of the node
+					print(t+'\t'+'\t'.join(info), file=out_f)
+
 
 def main():
 	args=parse_args()
@@ -496,6 +534,8 @@ def main():
 	otu_table=compute_otu_table(histogram,tree,args.ncbi)
 	with open("{}_{}.tsv".format(args.out_prefix, args.otu_suffix), 'w') as f:
 		print_histogram(otu_table, f, args.max_lines)
+	if args.ncbi:
+		print_taxonomy(tree,args.out_prefix+"_tax.tsv")
 
 if __name__ == "__main__":
 	try:
