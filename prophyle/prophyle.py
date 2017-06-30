@@ -623,7 +623,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 			if root != "":
 				assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn) != 1:
-			pro.message('Merging {} trees{}'.format(len(trees_fn)))
+			pro.message('Merging {} trees'.format(len(trees_fn)))
 		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
