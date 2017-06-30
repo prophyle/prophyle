@@ -29,24 +29,21 @@ desc = """\
 	Build a taxonomic tree in the New Hampshire newick format #1 for NCBI sequences
 """
 
-DEFAULT_HOME_DIR = 'prophyle'
-
-
-def acquire_sequences(library_dir, log):
+def acquire_sequences(library, library_dir, log):
 	seqs = {}
 	acquired = 0
 	skipped = 0
-	for dirpath, _, filenames in os.walk(library_dir):
+	for dirpath, _, filenames in os.walk(os.path.join(library_dir,library)):
 		for filename in (f for f in filenames if f.endswith('.fai')):
 			fn = os.path.join(dirpath, filename)
-			rel_fn = fn[(fn.find(DEFAULT_HOME_DIR) + 9):-4]
+			rel_fn = fn[(len(library_dir)+1):-4]
 			with open(fn, 'r') as faidx:
 				for seq in faidx:
 					try:
 						seqname, seqlen, offset, _, _ = seq.split('\t')
 						# RefSeq filenames start with accession numbers
-						f = filename.split('_')
-						acc = f[0] + '_' + f[1]
+						f = (filename.split('.')[0]).split('_')
+						acc = f[0].strip() + '_' + f[1].strip()
 						try:
 							seqs[acc]['fn'] += '@' + rel_fn
 							seqs[acc]['seqname'] += '@' + seqname
@@ -104,11 +101,16 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 	# Important: you should update ETE DB before running this script.
 	# This is done automatically only if it has not been downloaded yet.
 	ncbi = NCBITaxa()
-	taxa = [s['taxid'] for s in seqs.values()]
+	taxa = []
+	for s in seqs.values():
+		try:
+			taxa.append(s['taxid'])
+		except KeyError:
+			continue
 	built = False
 	while not built:
 		try:
-			t = ncbi.get_topology(taxa, intermediate_nodes=False)
+			t = ncbi.get_topology(taxa, intermediate_nodes=True)
 			built = True
 		except KeyError as e:
 			taxid_not_found = int(e.args[0])
@@ -127,7 +129,7 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 		print('[prophyle_ncbi_tree] ' + str(internal_with_fasta) + ' sequences' +
 			  ' ignored because associated to internal node (see issue #153)', file=log)
 	leaves_taxa = [leaf.taxid for leaf in t if leaf.taxid in taxa2acc]
-	t = ncbi.get_topology(leaves_taxa, intermediate_nodes=False)
+	t = ncbi.get_topology(leaves_taxa, intermediate_nodes=True)
 
 	if red_factor:
 		i = 0
@@ -136,14 +138,14 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 			if i % red_factor == 0:
 				red_taxa.append(leaf.taxid)
 			i += 1
-		t = ncbi.get_topology(red_taxa, intermediate_nodes=False)
+		t = ncbi.get_topology(red_taxa, intermediate_nodes=True)
 
 	if root:
 		taxa_to_keep = []
 		for leaf in t:
 			if root in leaf.named_lineage:
 				taxa_to_keep.append(leaf.taxid)
-		t = ncbi.get_topology(taxa_to_keep, intermediate_nodes=False)
+		t = ncbi.get_topology(taxa_to_keep, intermediate_nodes=True)
 
 	node_count = len(t.get_descendants()) + 1
 	seq_count = 0
@@ -179,10 +181,10 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
 	return t, seq_count, node_count
 
 
-def main_fun(library_dir, output_f, taxid_map, red_factor, root, log_file):
+def main_fun(library, library_dir, output_f, taxid_map, red_factor, root, log_file):
 	library_dir = os.path.abspath(library_dir)
 
-	seqs, acquired, skipped = acquire_sequences(library_dir, log_file)
+	seqs, acquired, skipped = acquire_sequences(library, library_dir, log_file)
 
 	print('[prophyle_ncbi_tree] Acquired ' + str(acquired) +
 		  ' sequences (' + str(skipped) + ' skipped)', file=sys.stderr)
@@ -219,32 +221,37 @@ def main():
 	parser = argparse.ArgumentParser(
 		description=desc)
 
+
+	parser.add_argument('library',
+		type=str,
+		metavar='<library>',
+		help='directory with the library sequences (e.g. bacteria, viruses etc.)',
+	)
 	parser.add_argument('library_dir',
 		type=str,
 		metavar='<library_dir>',
-		help='library path (must be a subdirectory of ProPhyle\'s home directory)')
+		help='library path (parent of library, e.g. main ProPhyle directory)'
+	)
 	parser.add_argument('output_file',
 		type=str,
 		metavar='<output_file>',
 		help='output file')
-	parser.add_argument('-t', '--taxid-map',
+	parser.add_argument('taxid_map_file',
 		type=str,
-		required=True,
-		metavar='taxid_map',
-		dest='taxid_map_file',
+		metavar='<taxid_map>',
 		help='tab separated accession number to taxid map')
-	parser.add_argument('-l', '--log',
-		type=argparse.FileType('w'),
+	parser.add_argument('-l',
+		type=argparse.FileType('a+'),
 		metavar='log_file',
 		dest='log_file',
 		help='log file [stderr]')
-	parser.add_argument('-r', '--reduce',
+	parser.add_argument('-r',
 		type=int,
 		metavar='red_factor',
 		dest='red_factor',
 		help='build reduced tree (one sequence every n)'
 	)
-	parser.add_argument('-u', '--root',
+	parser.add_argument('-u',
 		type=str,
 		metavar='root',
 		dest='root',
@@ -252,7 +259,7 @@ def main():
 
 	args = parser.parse_args()
 
-	main_fun(args.library_dir, args.output_file, args.taxid_map_file, args.red_factor, args.root, args.log_file)
+	main_fun(args.library, args.library_dir, args.output_file, args.taxid_map_file, args.red_factor, args.root, args.log_file)
 
 
 if __name__ == '__main__':

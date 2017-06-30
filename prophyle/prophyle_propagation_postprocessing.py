@@ -2,7 +2,7 @@
 
 """K-mer propagation post-processing.
 
-Create the main index FASTA file and the new tree, i.e., a minimal tree with k-mer annotations.
+Create the main index FASTA file and a tree with k-mer annotations.
 
 Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -164,7 +164,6 @@ def main():
 	create_fasta (dir_fn, index_fasta_fn, suffix)
 
 	tree = pro.load_nhx_tree (in_tree_fn)
-	tree = pro.minimal_subtree (tree)
 	stats = load_kmer_stats (tsv_fn)
 	enrich_tree (tree, stats)
 	pro.save_nhx_tree (tree, out_tree_fn)
