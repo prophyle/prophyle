@@ -14,7 +14,7 @@ Example:
 
 	Create an index for k=10 and the small testing bacterial tree:
 
-		$ prophyle index -k 10 ~/prophyle/test_bacteria.nw ~/prophyle/test_viruses.nw test_idx
+		$ prophyle index -k 10 -s 0.1 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw test_idx
 
 	Classify some reads:
 
@@ -53,21 +53,25 @@ C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
 # git
 if GITDIR:
-	PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
+	ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
+	ANALYZE = os.path.join(C_D, "prophyle_analyze.py")
 	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
 	PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
 	NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
 	READ = os.path.join(C_D, "prophyle_paired_end.py")
 	TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
+	SPLIT_FA = os.path.join(C_D, "prophyle_split_allseq.py")
 
 # package
 else:
-	PY_ASSIGN = "prophyle_assignment.py"
+	ASSIGN = "prophyle_assignment.py"
+	ANALYZE = "prophyle_analyze.py"
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
 	NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
 	READ = "prophyle_paired_end.py"
 	TEST_TREE = "prophyle_validate_tree.py"
+	SPLIT_FA = "prophyle_split_allseq.py"
 
 DEFAULT_K = 31
 DEFAULT_THREADS = multiprocessing.cpu_count()
@@ -79,6 +83,9 @@ DEFAULT_HOME_DIR = os.path.join(os.path.expanduser('~'), 'prophyle')
 LIBRARIES = ['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
+
+ANALYZE_IN_FMTS=['sam','kraken']
+ANALYZE_STATS=['w','u','wl','ul']
 
 
 def _file_md5(fn, block_size=2 ** 20):
@@ -259,13 +266,12 @@ def prophyle_download(library, library_dir, force=False):
 
 	lib_missing = _missing_library(d)
 	if lib_missing or force:
-		for test_prefix in ["", "test_"]:
-			fn = "{}{}.nw".format(test_prefix, library, )
-			nhx = os.path.join(TREE_D, fn)
-			new_nhx = os.path.join(d, "..", fn)
-			pro.test_files(nhx)
-			pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx, new_nhx))
-			pro.cp_to_file(nhx, new_nhx)
+		fn = "{}.nw".format(library)
+		nhx = os.path.join(TREE_D, fn)
+		new_nhx = os.path.join(d, "..", fn)
+		pro.test_files(nhx)
+		pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx, new_nhx))
+		pro.cp_to_file(nhx, new_nhx)
 
 	if library == 'bacteria':
 		if lib_missing or force:
@@ -295,9 +301,10 @@ def prophyle_download(library, library_dir, force=False):
 	elif library == 'hmp':
 		if lib_missing or force:
 			# fix when error appears
-			cmd = ['cd', d, '&&', 'curl', 'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|', 'bzip2',
-				'-d']
-			pro.run_safe(cmd, os.path.join(d, "all_seqs.fa"))
+			cmd = ['cd', d, '&&', 'curl',
+				'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|',
+				'bzip2', '-d', '|', SPLIT_FA, os.path.abspath(d)]
+			pro.run_safe(cmd)
 			_mark_complete(d, 1)
 		# _pseudo_fai(d)
 
@@ -622,7 +629,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 			if root != "":
 				assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn) != 1:
-			pro.message('Merging {} trees{}'.format(len(trees_fn)))
+			pro.message('Merging {} trees'.format(len(trees_fn)))
 		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
@@ -804,6 +811,30 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	command = cmd_read + cmd_query + cmd_assign
 	pro.run_safe(command)
 
+####################
+# PROPHYLE ANALYZE #
+####################
+
+def prophyle_analyze(tree, asgs_list, histograms, in_format, stats, out_prefix,
+					max_lines, otu_suffix, ncbi):
+
+	cmd_analyze = [ANALYZE, tree]
+
+	if asgs_list and len(asgs_list) > 0:
+		cmd_analyze += ['-f', in_format, '-i'] + asgs_list
+	elif histograms and len(histograms) > 0:
+		cmd_analyze += ['-s', stats, '-g'] + histograms
+	else:
+		print("[prophyle_analyze] Invalid command", sys.stderr)
+		sys.exit(1)
+
+	cmd_analyze += ['-o', out_prefix, '-l', max_lines, '-t', otu_suffix]
+
+	if ncbi:
+		cmd_analyze += ['-N']
+
+	pro.run_safe(cmd_analyze)
+
 
 ########
 # MAIN #
@@ -822,7 +853,7 @@ def parser():
 		Program: prophyle (phylogeny-based metagenomic classification)
 		Version: {V}
 		Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
-		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+				 Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
 
 		Usage:   prophyle <command> [options]
 		""".format(V=version.VERSION)
@@ -1094,6 +1125,101 @@ def parser():
 
 	##########
 
+	parser_analyze = subparsers.add_parser(
+		'analyze',
+		help='analyze results',
+		formatter_class=fc,
+	)
+
+	parser_analyze.add_argument('tree',
+			metavar='<tree.nhx>',
+			type=str,
+			help='Newick/NHX tree used for classification'
+		)
+
+	parser_analyze_subgroup = parser_analyze.add_mutually_exclusive_group(required=True)
+
+	parser_analyze_subgroup.add_argument('-i',
+			metavar='STR',
+			type=str,
+			dest='asgs_list',
+			nargs='+',
+			default=None,
+			help="""ProPhyle output files in the format specified with the -f
+					option (default SAM, use - for stdin or one file for each
+					sample)"""
+		)
+
+	parser_analyze_subgroup.add_argument('-g',
+			metavar='STR',
+			type=str,
+			dest='histograms',
+			nargs='+',
+			default=None,
+			help="""Histograms previously computed using prophyle analyze.
+					Compute OTU table direcly from them (assignment files are
+					not required)"""
+		)
+
+	parser_analyze.add_argument('-f',
+			metavar='STR',
+			type=str,
+			dest='in_format',
+			choices=ANALYZE_IN_FMTS,
+			default=ANALYZE_IN_FMTS[0],
+			help='Input format of assignments ['+ANALYZE_IN_FMTS[0]+']'
+		)
+
+	parser_analyze.add_argument('-s',
+			metavar='STR',
+			type=str,
+			dest='stats',
+			choices=ANALYZE_STATS,
+			default=ANALYZE_STATS[0],
+			help=textwrap.dedent("""Statistics to use for the computation of histograms:\n
+                    w (default): weighted assignments\n
+    				u: unique assignments, non-weighted\n
+    				wl: weighted assignments, propagated to leaves\n
+    				ul: unique assignments, propagated to leaves"""
+                )
+	)
+
+	parser_analyze.add_argument('-o',
+			metavar='STR',
+			type=str,
+			dest='out_prefix',
+			required=True,
+			help="""Prefix for output files (the complete file name will be
+					<prefix>.tsv for histograms and <prefix>_<otu_suffix>.tsv
+					for otu tables)"""
+	)
+
+	parser_analyze.add_argument('-l',
+			type=int,
+			metavar='INT',
+			dest='max_lines',
+			default=-1,
+			help='Output only the n nodes with the highest score [all]'
+		)
+
+	parser_analyze.add_argument('-t',
+			type=str,
+			metavar='STR',
+			dest='otu_suffix',
+			default='otu',
+			help='Suffix for otu table file [otu]'
+		)
+
+	parser_analyze.add_argument('-N',
+			action='store_true',
+			dest='ncbi',
+			help="""Use NCBI taxonomic information to calculate abundances at
+					every rank for otu tables [default: propagate weighted
+					assigments to leaves and do not output internal nodes]"""
+		)
+
+	##########
+
 	return parser
 
 
@@ -1144,7 +1270,7 @@ def main():
 
 		elif subcommand == "classify":
 			# if args.log_fn is None:
-			#	args.log_fn = os.path.join(args.index_dir, "log.txt")
+			#    args.log_fn = os.path.join(args.index_dir, "log.txt")
 
 			pro.open_log(args.log_fn)
 			pro.message('Classification started')
@@ -1164,6 +1290,20 @@ def main():
 			)
 			pro.message('Classification finished')
 			pro.close_log()
+
+		elif subcommand == "analyze":
+
+			prophyle_analyze(
+				tree=args.tree,
+				asgs_list=args.asgs_list,
+				histograms=args.histograms,
+				in_format=args.in_format,
+				stats=args.stats,
+				out_prefix=args.out_prefix,
+				max_lines=args.max_lines,
+				otu_suffix=args.otu_suffix,
+				ncbi=args.ncbi,
+			)
 
 		else:
 			msg_lns = par.format_help().split("\n")[2:]
