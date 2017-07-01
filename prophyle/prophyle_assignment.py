@@ -280,7 +280,8 @@ class Read:
 class TreeIndex:
 	def __init__(self, tree_newick_fn, k):
 		self.tree_newick_fn = tree_newick_fn
-		self.tree = pro.load_nhx_tree(tree_newick_fn)
+		tree = pro.load_nhx_tree(tree_newick_fn)
+		self.tree = pro.minimal_subtree (tree)
 
 		self.k = k
 
