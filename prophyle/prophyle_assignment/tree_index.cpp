@@ -1,4 +1,5 @@
 #include "tree_index.h"
+#include "word_splitter.h"
 #include "knhx.h"
 #include <sstream>
 #include <fstream>
@@ -29,6 +30,63 @@ TreeIndex::TreeIndex(const std::string& tree_filename) {
   }
   upper_nodes_.resize(nodes_count_);
   fill_upper_nodes(root_);
+  fill_tags(buffer.str());
+}
+
+void TreeIndex::fill_tags(const std::string& newick_string) {
+  tags_.resize(nodes_count_);
+  auto parts_by_comma = split(newick_string, ',');
+  std::vector<std::string> parts;
+  for (auto& part : parts_by_comma) {
+    for (auto& part_by_bracket : split(part, ')')) {
+      parts.push_back(part_by_bracket);
+    }
+  }
+  for (int32_t id = 0; id < nodes_count_; ++id) {
+    auto& part = parts[id];
+    if (part.find('[') == std::string::npos) {
+      continue;
+    }
+    std::string tag_string = part.substr(part.find('[') + 1, part.length() - part.find('[') - 2);
+    auto tags = split(tag_string, ':');
+    for (auto& tag : tags) {
+      auto pair = split(tag, '=');
+      if (pair.size() != 2) {
+        continue;
+      }
+      tags_[id].emplace(std::pair<std::string, std::string>(pair[0], pair[1]));
+    }
+  }
+  joined_tags_.resize(nodes_count_);
+  for (int32_t id = 0; id < nodes_count_; ++id) {
+    std::string joined_tags;
+    auto& tags = tags_[id];
+    auto gi = tags.find("gi");
+    if (gi != tags.cend()) {
+      joined_tags += "\tgi:Z:" + (*gi).second;
+    }
+    auto taxid = tags.find("taxid");
+    if (taxid != tags.cend()) {
+      joined_tags += "\tti:Z:" + (*taxid).second;
+    }
+    auto sci_name = tags.find("sci_name");
+    if (sci_name != tags.cend()) {
+      joined_tags += "\tsn:Z:" + (*sci_name).second;
+    }
+    auto rank = tags.find("rank");
+    if (rank != tags.cend()) {
+      joined_tags += "\tra:Z:" + (*rank).second;
+    }
+    joined_tags_[id] = joined_tags;
+  }
+
+//  for (int32_t id = 0; id < nodes_count_; ++id) {
+//    std::cerr << id << " ";
+//    for (auto& pair : tags_[id]) {
+//      std::cerr << pair.first << ":" << pair.second << " ";
+//    }
+//    std::cerr << std::endl;
+//  }
 }
 
 void TreeIndex::fill_upper_nodes(const knhx1_t* node) {

@@ -1,26 +1,11 @@
 #include "read_processor.h"
+#include "word_splitter.h"
 #include "knhx.h"
 #include <vector>
 #include <sstream>
 #include <iostream>
 
 namespace {
-
-template<typename Out>
-void split(const std::string &s, char delim, Out result) {
-  std::stringstream ss;
-  ss.str(s);
-  std::string item;
-  while (std::getline(ss, item, delim)) {
-    *(result++) = item;
-  }
-}
-
-std::vector<std::string> split(const std::string &s, char delim) {
-  std::vector<std::string> elems;
-  split(s, delim, std::back_inserter(elems));
-  return elems;
-}
 
 int32_t ones_count(const std::vector<int16_t> &values, size_t size) {
   int32_t count = 0;
@@ -31,6 +16,8 @@ int32_t ones_count(const std::vector<int16_t> &values, size_t size) {
 }
 
 }
+
+constexpr size_t ReadProcessor::kFakeContigLength;
 
 ReadProcessor::ReadProcessor(const TreeIndex& tree, size_t k, bool simulate_lca, bool annotate,
     bool tie_lca, bool not_translate_blocks):
@@ -100,16 +87,16 @@ void ReadProcessor::print_assignments(AssignmentOutputFormat format, Measure cri
     exit(1);
   }
   if (best_matching_nodes.size() > 0) {
-    for (auto node_id : best_matching_nodes) {
+    for (auto id : best_matching_nodes) {
       if (format == AssignmentOutputFormat::Sam) {
         if (!tie_solved) {
-          fill_cigar(hit_masks_[node_id], hit_mask_size(), hit_cigar_);
-          fill_cigar(coverage_masks_[node_id], coverage_mask_size(), coverage_cigar_);
+          fill_cigar(hit_masks_[id], hit_mask_size(), hit_cigar_);
+          fill_cigar(coverage_masks_[id], coverage_mask_size(), coverage_cigar_);
         }
         // add annotations
-        print_sam_line(node_id, "");
+        print_sam_line(id, annotate_ ? tree_.joined_tags(id) : "");
       } else if (format == AssignmentOutputFormat::Kraken) {
-        print_kraken_line(node_id);
+        print_kraken_line(id);
       }
     }
   } else {
@@ -121,16 +108,35 @@ void ReadProcessor::print_assignments(AssignmentOutputFormat format, Measure cri
   }
 }
 
-void ReadProcessor::print_sam_line(int32_t node_id, const std::string& suffix, std::ostream& out) {
+void ReadProcessor::print_sam_header(std::ostream& out) const {
+  out << "@HD\tVN:1.5\tSO:unsorted" << std::endl;
+  for (int32_t id = 0; id < tree_.nodes_count(); ++id) {
+    const auto& tags = tree_.tags(id);
+    auto node = tree_.node_by_id(id);
+    auto gi = tags.find("gi");
+    auto fastapath = tags.find("fastapath");
+    auto sci_name = tags.find("sci_name");
+    if (strcmp(node->name, "")) {
+      out << "@SQ\tSN:" << node->name <<
+          "\tLN:" << kFakeContigLength <<
+          (gi == tags.cend() ? "" : "\tAS:" + (*gi).second) <<
+          (fastapath == tags.cend() ? "" : "\tUR:" + (*fastapath).second) <<
+          (sci_name == tags.cend() ? "" : "\tSP:" + (*sci_name).second) <<
+          std::endl;
+    }
+  }
+}
+
+void ReadProcessor::print_sam_line(int32_t id, const std::string& suffix, std::ostream& out) {
   out << read_name_ << "\t";
-  if (node_id == -1) {
+  if (id == -1) {
     out << "4\t*\t0\t0\t*\t";
   } else {
-    const knhx1_t* node = tree_.node_by_id(node_id);
+    const knhx1_t* node = tree_.node_by_id(id);
     out << "0\t" << node->name << "\t1\t60\t" << coverage_cigar_ << "\t";
   }
   out << "*\t0\t0\t" << read_ << "\t" << qualities_ << "\t";
-  if (node_id != -1) {
+  if (id != -1) {
     out << "h1:i:" << best_hit_ << "\t";
     out << "c1:i:" << best_coverage_ << "\t";
     out << "hc:Z:" << hit_cigar_;
@@ -138,21 +144,21 @@ void ReadProcessor::print_sam_line(int32_t node_id, const std::string& suffix, s
   out << suffix << "\n";
 }
 
-void ReadProcessor::print_kraken_line(int32_t node_id, std::ostream& out) {
+void ReadProcessor::print_kraken_line(int32_t id, std::ostream& out) {
   if (simulate_lca_) {
     std::cerr << "simulate_lca_ is not implemented yet" << std::endl;
     exit(1);
   }
-  if (node_id == -1) {
+  if (id == -1) {
     out << "U\t";
   } else {
     out << "C\t";
   }
   out << read_name_ << "\t";
-  if (node_id == -1) {
+  if (id == -1) {
     out << "0\t";
   } else {
-    const knhx1_t* node = tree_.node_by_id(node_id);
+    const knhx1_t* node = tree_.node_by_id(id);
     out << node->name << "\t";
   }
   out << read_length_ << "\t";
@@ -183,10 +189,10 @@ void ReadProcessor::load_krakline(const std::string& krakline) {
 }
 
 void ReadProcessor::propagate_matching_kmers() {
-  for (auto node_id : matching_nodes_) {
-    for (auto upper_node_id : tree_.upper_nodes(node_id)) {
+  for (auto id : matching_nodes_) {
+    for (auto upper_node_id : tree_.upper_nodes(id)) {
       if (matching_nodes_.count(upper_node_id) > 0) {
-        copy_masks(upper_node_id, node_id);
+        copy_masks(upper_node_id, id);
       }
     }
   }
@@ -225,9 +231,9 @@ void ReadProcessor::fill_masks_from_kmer_blocks() {
         ambiguous_kmers = true;
         break;
       }
-      int32_t node_id = tree_.id_by_name(node_name);
-      node_ids.push_back(node_id);
-      matching_nodes_.insert(node_id);
+      int32_t id = tree_.id_by_name(node_name);
+      node_ids.push_back(id);
+      matching_nodes_.insert(id);
     }
     if (!no_nodes && !ambiguous_kmers) {
       if (simulate_lca_) {
@@ -247,17 +253,17 @@ void ReadProcessor::fill_masks_from_kmer_blocks() {
 }
 
 void ReadProcessor::clear_masks() {
-  for (auto node_id : matching_nodes_) {
-    std::fill(hit_masks_[node_id].begin(), hit_masks_[node_id].end(), 0);
-    std::fill(coverage_masks_[node_id].begin(), coverage_masks_[node_id].end(), 0);
+  for (auto id : matching_nodes_) {
+    std::fill(hit_masks_[id].begin(), hit_masks_[id].end(), 0);
+    std::fill(coverage_masks_[id].begin(), coverage_masks_[id].end(), 0);
   }
 }
 
 void ReadProcessor::print_masks() const {
-  for (auto node_id : matching_nodes_) {
-    auto& hit_mask = hit_masks_[node_id];
-    auto& coverage_mask = coverage_masks_[node_id];
-    std::cerr << tree_.node_by_id(node_id)->name << " " << hit_mask_size() << " " << coverage_mask_size() << std::endl;
+  for (auto id : matching_nodes_) {
+    auto& hit_mask = hit_masks_[id];
+    auto& coverage_mask = coverage_masks_[id];
+    std::cerr << tree_.node_by_id(id)->name << " " << hit_mask_size() << " " << coverage_mask_size() << std::endl;
     for (size_t i = 0; i < hit_mask_size(); ++i) {
       std::cerr << hit_mask[i];
     }
@@ -270,15 +276,15 @@ void ReadProcessor::print_masks() const {
 }
 
 void ReadProcessor::set_masks(const std::vector<int32_t>& node_ids, size_t block_position, size_t block_length) {
-  for (auto node_id : node_ids) {
-    auto& hit_mask = hit_masks_[node_id];
+  for (auto id : node_ids) {
+    auto& hit_mask = hit_masks_[id];
     if (hit_mask.size() <= hit_mask_size()) {
       hit_mask.resize(2 * hit_mask_size(), 0);
     }
     for (size_t i = block_position; i < block_position + block_length; ++i) {
       hit_mask[i] = 1;
     }
-    auto& coverage_mask = coverage_masks_[node_id];
+    auto& coverage_mask = coverage_masks_[id];
     if (coverage_mask.size() <= coverage_mask_size()) {
       coverage_mask.resize(2 * coverage_mask_size(), 0);
     }
