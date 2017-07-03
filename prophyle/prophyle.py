@@ -1107,27 +1107,29 @@ def parser():
 	)
 
 	parser_analyze.add_argument('index_dir',
-			metavar='<index_dir>',
+			metavar='{index.dir, tree.nw}',
 			type=str,
-			help='Directory of the index used for classification'
-		)
-
-	parser_analyze.add_argument('out_prefix',
-			metavar='<out_prefix>',
-			type=str,
-			help="""Prefix for output files (the complete file names will be
-					<out_prefix>.tsv for histograms and
-					<out_prefix>_<otu_suffix>.tsv for otu tables)"""
+			help='index directory or phylogenetic tree'
 		)
 
 	parser_analyze.add_argument('input_fns',
-			metavar='<input_fn>',
+			metavar='<classified.bam>',
 			type=str,
 			nargs='+',
 			default=None,
-			help="""ProPhyle output files whose format is chosen with the -f
-					option. Use '-' for stdin or multiple files with the same
-					format (one per sample)"""
+			help="classified reads (SAM/BAM/Kraken) [auto]",
+			#""ProPhyle output files whose format is chosen with the -f
+			#		option. Use '-' for stdin or multiple files with the same
+			#		format (one per sample)"""
+		)
+
+	parser_analyze.add_argument('out_prefix',
+			metavar='<out.pref>',
+			type=str,
+			help="output prefix"
+			#"""Prefix for output files (the complete file names will be
+			#		<out_prefix>.tsv for histograms and
+			#		<out_prefix>_<otu_suffix>.tsv for otu tables)"""
 		)
 
 	parser_analyze.add_argument('-N',
