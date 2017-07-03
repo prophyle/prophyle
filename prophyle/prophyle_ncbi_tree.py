@@ -42,7 +42,7 @@ def acquire_sequences(library, library_dir, log):
 					try:
 						seqname, seqlen, offset, _, _ = seq.split('\t')
 						# RefSeq filenames start with accession numbers
-						f = (filename.split('.')[0]).split('_')
+						f = '.'.join((os.path.basename(filename).split('.')[:-2])).split('_')
 						acc = f[0].strip() + '_' + f[1].strip()
 						try:
 							seqs[acc]['fn'] += '@' + rel_fn
@@ -242,18 +242,18 @@ def main():
 		help='tab separated accession number to taxid map')
 	parser.add_argument('-l',
 		type=argparse.FileType('a+'),
-		metavar='log_file',
+		metavar='STR',
 		dest='log_file',
 		help='log file [stderr]')
 	parser.add_argument('-r',
 		type=int,
-		metavar='red_factor',
+		metavar='INT',
 		dest='red_factor',
 		help='build reduced tree (one sequence every n)'
 	)
 	parser.add_argument('-u',
 		type=str,
-		metavar='root',
+		metavar='STR',
 		dest='root',
 		help='root of the tree (e.g. Bacteria); will exclude sequences which are not its descendants')
 
