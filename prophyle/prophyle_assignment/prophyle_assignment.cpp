@@ -18,7 +18,22 @@ struct Arguments {
 };
 
 void print_usage() {
-
+  std::cerr << std::endl;
+  std::cerr << "Program: prophyle_assignment (assignment of reads)" << std::endl;
+  std::cerr << "Contact: Kamil Salikhov <salikhov.kamil@gmail.com>" << std::endl;
+  std::cerr << std::endl;
+  std::cerr << "Usage:   prophyle_assignment [options] <newick_fn> <k> <input_file>" << std::endl;
+  std::cerr << std::endl;
+  std::cerr << "Options: newick_fn     STR                          phylogenetic tree (Newick/NHX)" << std::endl;
+  std::cerr << "         k             INT                          k-mer length" << std::endl;
+  std::cerr << "         input_file    STR                          assignments in generalized Kraken format" << std::endl;
+  std::cerr << "         -f            sam, kraken                  format of output [default:sam]" << std::endl;
+  std::cerr << "         -m            h1=hitnumber, c1=coverage    measure [default:h1]" << std::endl;
+  std::cerr << "         -A                                         annotate assignments" << std::endl;
+  std::cerr << "         -L                                         use LCA when tie (multiple hits with the same score)" << std::endl;
+  std::cerr << "         -X                                         replace k-mer matches by their LCA" << std::endl;
+  std::cerr << "         -D                                         do not translate blocks from node to tax IDs" << std::endl;
+  std::cerr << std::endl;
 }
 
 bool is_number(const std::string& s)
