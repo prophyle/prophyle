@@ -1,5 +1,6 @@
 #include "tree_index.h"
 #include "read_processor.h"
+#include "word_splitter.h"
 #include <iostream>
 #include <fstream>
 #include <getopt.h>
@@ -16,36 +17,22 @@ struct Arguments {
   bool not_translate_blocks = false;
 };
 
+void print_usage() {
+
+}
+
+bool is_number(const std::string& s)
+{
+  return !s.empty() && std::find_if(s.begin(),
+      s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+}
+
 Arguments parse_arguments(int argc, char *argv[]) {
   int32_t c;
   int index;
   Arguments arguments;
-  const struct option longopts[] =
-      {
-          {"input", required_argument, 0, 'i'},
-          {"kmer-size", required_argument, 0, 'k'},
-          {"newick-tree", required_argument, 0, 'n'},
-          {"oformat", required_argument, 0, 'f'},
-          {"measure", required_argument, 0, 'm'},
-          {"sim-lca", optional_argument, 0, 'l'},
-          {"annotate", optional_argument, 0, 'i'},
-          {"tie-lca", optional_argument, 0, 't'},
-          {"nontransl-blocks", optional_argument, 0, 'd'},
-          {0,0,0,0},
-      };
-  while ((c = getopt_long(argc, argv, "i:k:n:f:m:latd", longopts, &index)) >= 0) {
+  while ((c = getopt(argc, argv, "f:m:XALD")) >= 0) {
     switch (c) {
-      case 'i': arguments.input_file = optarg; break;
-      case 'k': {
-        int32_t k_int = std::stoi(optarg);
-        if (k_int <= 0) {
-          std::cerr << "k should be > 0" << std::endl;
-          exit(1);
-        }
-        arguments.k = static_cast<size_t>(k_int);
-        break;
-      }
-      case 'n': arguments.newick_file = optarg; break;
       case 'f': {
         std::string format_str(optarg);
         if (format_str == "sam") {
@@ -70,16 +57,33 @@ Arguments parse_arguments(int argc, char *argv[]) {
         }
         break;
       }
-      case 'l': arguments.simulate_lca = true; break;
-      case 'a': arguments.annotate = true; break;
-      case 't': arguments.tie_lca = true; break;
-      case 'd': arguments.not_translate_blocks = true; break;
+      case 'X': arguments.simulate_lca = true; break;
+      case 'A': arguments.annotate = true; break;
+      case 'L': arguments.tie_lca = true; break;
+      case 'D': arguments.not_translate_blocks = true; break;
       default: {
         std::cerr << "argument " << c << " is not supported" << std::endl;
         exit(1);
       };
     }
   }
+  if (optind + 3 > argc) {
+    print_usage();
+    exit(1);
+  }
+  arguments.newick_file = argv[optind];
+  if (!is_number(std::string(argv[optind + 1]))) {
+    std::cerr << "argument k should be number, but k = " << argv[optind + 1] << std::endl;
+    print_usage();
+    exit(1);
+  }
+  int32_t k = std::stoi(argv[optind + 1]);
+  if (k <= 0) {
+    std::cerr << "k should be > 0" << std::endl;
+    exit(1);
+  }
+  arguments.k = static_cast<size_t>(k);
+  arguments.input_file = argv[optind + 2];
   return arguments;
 }
 
@@ -93,6 +97,9 @@ int main(int argc, char *argv[]) {
     freopen(arguments.input_file.c_str(), "r", stdin);
   }
 
+  if (arguments.format == AssignmentOutputFormat::Sam) {
+    read_processor.print_sam_header(std::cout);
+  }
   std::string line;
   while (getline(std::cin, line)) {
     read_processor.process_krakline(line, arguments.format, arguments.criteria);

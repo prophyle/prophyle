@@ -24,8 +24,11 @@ public:
       bool tie_lca = false, bool not_translate_blocks = false);
 
   void process_krakline(const std::string& krakline, AssignmentOutputFormat format, Measure criteria);
+  void print_sam_header(std::ostream& out) const;
 
 private:
+  static constexpr size_t kFakeContigLength = 42424242;
+
   void load_krakline(const std::string& krakline);
   void filter_assignments();
   void print_assignments(AssignmentOutputFormat format, Measure criteria);
