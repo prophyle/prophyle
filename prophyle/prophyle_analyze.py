@@ -16,7 +16,7 @@ import operator
 from ete3 import Tree
 from collections import Counter
 
-IN_FMTS=['sam','kraken']
+IN_FMTS=['sam','kraken','histo']
 STATS=['w','u','wl','ul']
 KNOWN_RANKS=['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
 
@@ -27,80 +27,70 @@ Program: prophyle_analyze.py
 
 Analyze results of ProPhyle's classification.
 Stats:
-	w: weighted assignments
-	u: unique assignments, non-weighted
-	wl: weighted assignments, propagated to leaves
-	ul: unique assignments, propagated to leaves
-	"""
+w: weighted assignments
+u: unique assignments, non-weighted
+wl: weighted assignments, propagated to leaves
+ul: unique assignments, propagated to leaves
+"""
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
 									description=desc)
 
-	parser.add_argument('tree',
-			metavar='<tree.nhx>',
+	parser.add_argument('index_dir',
+			metavar='<index_dir>',
 			type=str,
-			help='Newick/NHX tree used for classification'
+			help='Directory of the index used for classification'
 		)
 
-	input_group = parser.add_mutually_exclusive_group(required=True)
-
-	input_group.add_argument('-i',
-			metavar='STR',
+	parser.add_argument('out_prefix',
+			metavar='<out_prefix>',
 			type=str,
-			dest='asgs_list',
+			help="""Prefix for output files (the complete file names will be
+					<out_prefix>.tsv for histograms and
+					<out_prefix>_<otu_suffix>.tsv for otu tables)"""
+		)
+
+	parser.add_argument('input_fns',
+			metavar='<input_fn>',
+			type=str,
 			nargs='+',
 			default=None,
-			help="""ProPhyle output files in the format specified with the -f
-					option (default SAM, use - for stdin or one file for each
-					sample)"""
+			help="""ProPhyle output files whose format is chosen with the -f
+					option. Use '-' for stdin or multiple files with the same
+					format (one per sample)"""
 		)
 
-
-	input_group.add_argument('-g',
-			metavar='STR',
-			type=str,
-			dest='histograms',
-			nargs='+',
-			default=None,
-			help="""Histograms previously computed using prophyle analyze. Merge
-					them and compute OTU table from the result (assignment files
-					are not required)"""
-		)
-
-	parser.add_argument('-f',
-			metavar='STR',
-			type=str,
-			dest='in_format',
-			choices=IN_FMTS,
-			default=IN_FMTS[0],
-			help='Input format of assignments [{}]'.format(IN_FMTS[0])
+	parser.add_argument('-N',
+			action='store_true',
+			dest='ncbi',
+			help="""Use NCBI taxonomic information to calculate abundances at
+					every rank for otu tables [default: propagate weighted
+					assigments to leaves and do not output internal nodes]"""
 		)
 
 	parser.add_argument('-s',
-			metavar='STR',
+			metavar=STATS,
 			type=str,
 			dest='stats',
 			choices=STATS,
 			default=STATS[0],
-			help='Statistics to use for the computation of histograms [{}]'.format(STATS[0])
+			help="""Statistics to use for the computation of histograms:
+					w (default) => weighted assignments;
+					u => unique assignments, non-weighted;
+					wl => weighted assignments, propagated to leaves;
+					ul => unique assignments, propagated to leaves."""
 		)
 
-	parser.add_argument('-o',
-			metavar='STR',
+	parser.add_argument('-f',
+			metavar=IN_FMTS,
 			type=str,
-			dest='out_prefix',
-			required=True,
-			help="""Prefix for output files (the complete file name will be
-					<prefix>.tsv for histograms and <prefix>_<otu_suffix>.tsv
-					for otu tables)"""
-		)
-
-	parser.add_argument('-l',
-			type=int,
-			metavar='INT',
-			dest='max_lines',
-			default=-1,
-			help='Output only the n nodes with the highest score [all]'
+			dest='in_format',
+			choices=IN_FMTS,
+			default='sam',
+			help="""Input format of assignments. If 'histo' is selected the
+					program expects histograms previously computed using
+					prophyle analyze, it merges them and compute OTU table from
+					the result (assignment files are not required)"""
 		)
 
 	parser.add_argument('-t',
@@ -111,12 +101,12 @@ Stats:
 			help='Suffix for otu table file [otu]'
 		)
 
-	parser.add_argument('-N',
-			action='store_true',
-			dest='ncbi',
-			help="""Use NCBI taxonomic information to calculate abundances at
-					every rank for otu tables [default: propagate weighted
-					assigments to leaves and do not output internal nodes]"""
+	parser.add_argument('-l',
+			type=int,
+			metavar='INT',
+			dest='max_lines',
+			default=-1,
+			help='Output only the n nodes with highest score [all]'
 		)
 
 	args = parser.parse_args()
@@ -520,16 +510,16 @@ def print_taxonomy(tree, out_fn):
 
 def main():
 	args=parse_args()
-	tree=Tree(args.tree, format=1)
+	tree_path=os.path.join(args.index_dir, 'tree.preliminary.nw')
+	tree=Tree(tree_path, format=1)
 
-	if args.asgs_list is not None:
-		asgs=load_asgs(args.asgs_list,args.in_format)
+	if args.in_format=='histo':
+		histogram=load_histo(args.input_fns,tree)
+	else:
+		asgs=load_asgs(args.input_fns,args.in_format)
 		histogram=compute_histogram(tree, asgs, args.stats)
 		with open(args.out_prefix+'.tsv', "w") as f:
 			print_histogram(histogram, f, args.max_lines)
-
-	elif args.histograms is not None:
-		histogram=load_histo(args.histograms,tree)
 
 	otu_table=compute_otu_table(histogram,tree,args.ncbi)
 	with open("{}_{}.tsv".format(args.out_prefix, args.otu_suffix), 'w') as f:
