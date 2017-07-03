@@ -1117,7 +1117,7 @@ def parser():
 			type=str,
 			nargs='+',
 			default=None,
-			help="classified reads (SAM/BAM/Kraken) [auto]",
+			help="classified reads (SAM/BAM/Kraken)",
 			#""ProPhyle output files whose format is chosen with the -f
 			#		option. Use '-' for stdin or multiple files with the same
 			#		format (one per sample)"""
@@ -1162,7 +1162,7 @@ def parser():
 			help="""Input format of assignments. If 'histo' is selected the
 					program expects histograms previously computed using
 					prophyle analyze, it merges them and compute OTU table from
-					the result (assignment files are not required)"""
+					the result (assignment files are not required) [auto]"""
 		)
 
 	parser_analyze.add_argument('-t',
