@@ -36,10 +36,17 @@ void print_usage() {
   std::cerr << std::endl;
 }
 
-bool is_number(const std::string& s)
+bool is_integer_without_sign(const std::string& s)
 {
-  return !s.empty() && std::find_if(s.begin(),
-      s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+  if (s.empty()) {
+    return false;
+  }
+  for (auto c : s) {
+    if (!std::isdigit(c)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 Arguments parse_arguments(int argc, char *argv[]) {
@@ -87,7 +94,7 @@ Arguments parse_arguments(int argc, char *argv[]) {
     exit(1);
   }
   arguments.newick_file = argv[optind];
-  if (!is_number(std::string(argv[optind + 1]))) {
+  if (!is_integer_without_sign(std::string(argv[optind + 1]))) {
     std::cerr << "argument k should be number, but k = " << argv[optind + 1] << std::endl;
     print_usage();
     exit(1);
