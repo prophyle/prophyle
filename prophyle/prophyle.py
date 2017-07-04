@@ -807,11 +807,9 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 # PROPHYLE ANALYZE #
 ####################
 
-def prophyle_analyze(index_dir, out_prefix, input_fns, ncbi, stats, in_format,
-					otu_suffix, max_lines):
+def prophyle_analyze(index_dir, out_prefix, input_fns, ncbi, stats, in_format):
 
-	cmd_analyze = [ANALYZE, index_dir, out_prefix] + input_fns \
-					+ ['-t', otu_suffix, '-l', max_lines, ]
+	cmd_analyze = [ANALYZE, '-s', stats, '-f', in_format, index_dir, out_prefix] + input_fns
 
 	if ncbi:
 		cmd_analyze += ['-N']
@@ -1165,22 +1163,6 @@ def parser():
 					the result (assignment files are not required) [auto]"""
 		)
 
-	parser_analyze.add_argument('-t',
-			type=str,
-			metavar='STR',
-			dest='otu_suffix',
-			default='otu',
-			help='Suffix for otu table file [otu]'
-		)
-
-	parser_analyze.add_argument('-l',
-			type=int,
-			metavar='INT',
-			dest='max_lines',
-			default=-1,
-			help='Output only the n nodes with highest score [all]'
-		)
-
 	##########
 
 	return parser
@@ -1262,8 +1244,6 @@ def main():
 				ncbi=args.ncbi,
 				stats=args.stats,
 				in_format=args.in_format,
-				otu_suffix=args.otu_suffix,
-				max_lines=args.max_lines
 			)
 
 		else:
