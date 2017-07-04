@@ -46,8 +46,8 @@ ul: unique assignments, propagated to leaves
 			metavar='<out_prefix>',
 			type=str,
 			help="""Prefix for output files (the complete file names will be
-					<out_prefix>.tsv for histograms and
-					<out_prefix>_<otu_suffix>.tsv for otu tables)"""
+					<out_prefix>_rawhits.tsv for the raw hit counts table and
+					<out_prefix>_otu.tsv for the otu table)"""
 		)
 
 	parser.add_argument('input_fns',
@@ -93,13 +93,6 @@ ul: unique assignments, propagated to leaves
 					the result (assignment files are not required)"""
 		)
 
-	parser.add_argument('-t',
-			type=str,
-			metavar='STR',
-			dest='otu_suffix',
-			default='otu',
-			help='Suffix for otu table file [otu]'
-		)
 
 	args = parser.parse_args()
 	return args
@@ -507,11 +500,11 @@ def main():
 	else:
 		asgs=load_asgs(args.input_fns,args.in_format)
 		histogram=compute_histogram(tree, asgs, args.stats)
-		with open(args.out_prefix+'.tsv', "w") as f:
+		with open(args.out_prefix+'_rawhits.tsv', "w") as f:
 			print_histogram(histogram, f)
 
 	otu_table=compute_otu_table(histogram,tree,args.ncbi)
-	with open("{}_{}.tsv".format(args.out_prefix, args.otu_suffix), 'w') as f:
+	with open(args.out_prefix+'_otu.tsv', 'w') as f:
 		print_histogram(otu_table, f)
 	if args.ncbi:
 		print_taxonomy(tree,args.out_prefix+"_tax.tsv")
