@@ -77,7 +77,7 @@ void ReadProcessor::filter_assignments() {
 
 void ReadProcessor::print_assignments(AssignmentOutputFormat format, Measure criteria) {
   std::vector<int32_t> best_matching_nodes;
-  if (criteria == Measure::C1) {
+  if (criteria == Measure::H1) {
     best_matching_nodes = best_hit_nodes_;
   } else {
     best_matching_nodes = best_coverage_nodes_;
