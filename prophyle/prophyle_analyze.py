@@ -12,11 +12,12 @@ import argparse
 import os
 import sys
 import operator
+import pysam
 
 from ete3 import Tree
 from collections import Counter
 
-IN_FMTS=['sam','kraken','histo']
+IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken','histo']
 STATS=['w','u','wl','ul']
 KNOWN_RANKS=['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
 
@@ -86,16 +87,51 @@ ul: unique assignments, propagated to leaves
 			type=str,
 			dest='in_format',
 			choices=IN_FMTS,
-			default='sam',
-			help="""Input format of assignments. If 'histo' is selected the
-					program expects histograms previously computed using
-					prophyle analyze, it merges them and compute OTU table from
-					the result (assignment files are not required)"""
+			default=None,
+			help="""Input format of assignments [auto]. If 'histo' is selected the
+					program expects hit count histograms (*_rawhits.tsv)
+					previously computed using prophyle analyze, it merges them
+					and compute OTU table from the result (assignment files are
+					not required)"""
 		)
-
 
 	args = parser.parse_args()
 	return args
+
+
+def open_asg(in_fn, in_format):
+
+	# try to detect kraken and histo formats automatically
+	if in_format is None:
+		if '.' in in_fn:
+			f_ext=in_fn.split('.')[-1]
+			if f_ext in IN_FMTS:
+				in_format=f_ext
+		else:
+			with open(in_fn, 'rb') as f:
+				f_start=f.read(2)
+				if f_start==b'C\t' or f_start==b'U\t':
+					in_format='kraken'
+				elif f_start==b'#O':
+					in_format='histo'
+
+	elif in_format=='sam':
+		in_f=pysam.AlignmentFile(in_fn, "r")
+	elif in_format=='bam':
+		in_f=pysam.AlignmentFile(in_fn, "rb")
+	elif in_format=='cram':
+		in_f=pysam.AlignmentFile(in_fn, "rc")
+	elif in_format=='uncompressed_bam':
+		in_f=pysam.AlignmentFile(in_fn, "ru")
+	elif in_format=='kraken':
+		in_f=open(in_fn,'r')
+	# no need to load assignments if input is a histogram -> go to load_histo
+	elif in_format=='histo':
+		in_f=None
+	# let pysam assess the format
+	else:
+		in_f=pysam.AlignmentFile(in_fn)
+	return in_f, in_format
 
 
 def load_asgs(in_fns, in_format):
@@ -107,10 +143,12 @@ def load_asgs(in_fns, in_format):
 		in_format (str): input format
 	"""
 	asgs={}
+	histograms=[]
 
 	for fn in in_fns:
 		if fn=='-':
 			assert len(in_fns)==1, "No support for multiple files with stdin"
+			assert in_format is not None, "Not able to infer format from stdin"
 			base_fn='stdin'
 			f=sys.stdin
 		else:
@@ -118,22 +156,31 @@ def load_asgs(in_fns, in_format):
 			if '.' in base_fn:
 				base_fn='.'.join(base_fn.split('.')[:-1])
 			assert base_fn not in asgs.keys(), "Duplicated input filename"
-			f=open(fn,'r')
+			f, f_fmt=open_asg(fn,in_format)
+
+		# if histogram, skip load_asgs and go to load_histo
+		if in_format=='histo':
+			histograms.append(fn)
+			continue
+		elif in_format=='kraken':
+			read_iterator=(read for read in f)
+		# pysam AlignmentFile (sam, bam etc.)
+		else:
+			read_iterator=(read for read in f.fetch(until_eof=True))
 
 		asgs[base_fn]={}
 		current_asgs=asgs[base_fn]
 
-		for line in f:
+		for read in read_iterator:
 			if in_format=='kraken':
-				res,read_name,read_ref=line.split('\t')[0:3]
+				res,read_name,read_ref=read.split('\t')[0:3]
 				if res.strip()=='U':
 					continue
 			else:
-				if line.startswith('@'):
+				if read.is_unmapped:
 					continue
-				read_name, _, read_ref=line.split('\t')[0:3]
-				if read_ref=='*':
-					continue
+				read_name=read.qname
+				read_ref=read.reference_name
 			try:
 				current_asgs[read_name.strip()].append(read_ref.strip())
 			except KeyError:
@@ -141,7 +188,7 @@ def load_asgs(in_fns, in_format):
 
 		f.close()
 
-	return asgs
+	return asgs, histograms
 
 
 def asgs_to_leaves(tree,asgs):
@@ -495,13 +542,14 @@ def main():
 	tree_path=os.path.join(args.index_dir, 'tree.preliminary.nw')
 	tree=Tree(tree_path, format=1)
 
-	if args.in_format=='histo':
-		histogram=load_histo(args.input_fns,tree)
+	asgs,histo_fns=load_asgs(args.input_fns,args.in_format)
+	if len(histo_fns)>0:
+		assert len(args.input_fns)==len(histo_fns), "Mixed histogram/assignments input formats not supported"
+		histogram=load_histo(histo_fns,tree)
 	else:
-		asgs=load_asgs(args.input_fns,args.in_format)
 		histogram=compute_histogram(tree, asgs, args.stats)
-		with open(args.out_prefix+'_rawhits.tsv', "w") as f:
-			print_histogram(histogram, f)
+	with open(args.out_prefix+'_rawhits.tsv', "w") as f:
+		print_histogram(histogram, f)
 
 	otu_table=compute_otu_table(histogram,tree,args.ncbi)
 	with open(args.out_prefix+'_otu.tsv', 'w') as f:
