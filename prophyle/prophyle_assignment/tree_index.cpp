@@ -3,12 +3,14 @@
 #include "knhx.h"
 #include <sstream>
 #include <fstream>
+#include <cstring>
 
 TreeIndex::TreeIndex(const std::string& tree_filename) {
   std::ifstream t(tree_filename);
   std::stringstream buffer;
   buffer << t.rdbuf();
-  const char *s = buffer.str().c_str();
+  char s[buffer.str().length()+1];
+  strcpy(s, buffer.str().c_str());
   int error;
   first_node_ = kn_parse(s, &nodes_count_, &error);
   bool root_found = false;
