@@ -101,14 +101,6 @@ ul: unique assignments, propagated to leaves
 			help='Suffix for otu table file [otu]'
 		)
 
-	parser.add_argument('-l',
-			type=int,
-			metavar='INT',
-			dest='max_lines',
-			default=-1,
-			help='Output only the n nodes with highest score [all]'
-		)
-
 	args = parser.parse_args()
 	return args
 
@@ -250,7 +242,7 @@ def compute_histogram(tree, asgs, stats):
 #     return distances
 
 
-def print_histogram(histogram, out_file, max_lines):
+def print_histogram(histogram, out_file):
 	"""Print a histogram in tsv format with header, each line containing:
 	 - node name;
 	 - score of the node in the first sample;
@@ -260,7 +252,6 @@ def print_histogram(histogram, out_file, max_lines):
 	Args:
 		histogram (dict of str:Counter): histogram computed using compute_histogram.
 		out_file (file): output file.
-		max_lines (int): maximum number of nodes to output, ordered by score (all if max_lines < 0).
 	"""
 	# sum the histograms of each sample to sort assignments by score
 	merged_histo=sum(histogram.values(), Counter())
@@ -271,8 +262,6 @@ def print_histogram(histogram, out_file, max_lines):
 	# header
 	print ("\t".join(["#OTU ID"]+samples), file=out_file)
 	for i, (node_name,w) in enumerate(sorted(merged_histo.items(), key=operator.itemgetter(1), reverse=True)):
-		if max_lines > 0 and not i < max_lines:
-			break
 		sample_scores=[histogram[sample][node_name] for sample in samples]
 		sample_scores=["{:.2f}".format(round(w,2)) if isinstance(w, float) else str(w) for w in sample_scores]
 		print("\t".join([node_name]+sample_scores), file=out_file)
@@ -519,11 +508,11 @@ def main():
 		asgs=load_asgs(args.input_fns,args.in_format)
 		histogram=compute_histogram(tree, asgs, args.stats)
 		with open(args.out_prefix+'.tsv', "w") as f:
-			print_histogram(histogram, f, args.max_lines)
+			print_histogram(histogram, f)
 
 	otu_table=compute_otu_table(histogram,tree,args.ncbi)
 	with open("{}_{}.tsv".format(args.out_prefix, args.otu_suffix), 'w') as f:
-		print_histogram(otu_table, f, args.max_lines)
+		print_histogram(otu_table, f)
 	if args.ncbi:
 		print_taxonomy(tree,args.out_prefix+"_tax.tsv")
 
