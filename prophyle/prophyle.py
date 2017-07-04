@@ -53,7 +53,7 @@ C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
 # git
 if GITDIR:
-	ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
+	PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
 	ANALYZE = os.path.join(C_D, "prophyle_analyze.py")
 	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
 	PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
@@ -64,7 +64,7 @@ if GITDIR:
 
 # package
 else:
-	ASSIGN = "prophyle_assignment.py"
+	PY_ASSIGN = "prophyle_assignment.py"
 	ANALYZE = "prophyle_analyze.py"
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
