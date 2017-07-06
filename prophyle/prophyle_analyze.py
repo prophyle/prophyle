@@ -110,7 +110,7 @@ def open_asg(in_fn, in_format):
 				elif f_start==b'#O':
 					in_format='histo'
 
-	elif in_format=='sam':
+	if in_format=='sam':
 		in_f=pysam.AlignmentFile(in_fn, "r")
 	elif in_format=='bam':
 		in_f=pysam.AlignmentFile(in_fn, "rb")
@@ -430,7 +430,7 @@ def compute_otu_table(histogram, tree):
 						leaves=node.get_leaves()
 						for anc in node.iter_ancestors():
 							if anc.name!='merge_root':
-								otu_t[str(anc_taxid)]+=count
+								otu_t[str(anc.taxid)]+=count
 						for desc in node.iter_descendants():
 							desc_taxid=str(desc.taxid)
 							desc_rank=desc.rank
