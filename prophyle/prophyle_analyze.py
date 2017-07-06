@@ -21,6 +21,9 @@ IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken','histo']
 STATS=['w','u','wl','ul']
 KNOWN_RANKS=['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
 
+class NotNCBIException(Exception):
+    pass
+
 def parse_args():
 
 	desc = """\
@@ -29,7 +32,7 @@ Program: prophyle_analyze.py
 Analyze results of ProPhyle's classification.
 Stats:
 w: weighted assignments
-u: unique assignments, non-weighted
+u: unique assignments (ignore multiple assignments)
 wl: weighted assignments, propagated to leaves
 ul: unique assignments, propagated to leaves
 """
@@ -38,9 +41,9 @@ ul: unique assignments, propagated to leaves
 									description=desc)
 
 	parser.add_argument('index_dir',
-			metavar='<index_dir>',
+			metavar='{index_dir, tree.nw}',
 			type=str,
-			help='Directory of the index used for classification'
+			help='Index directory or phylogenetic tree'
 		)
 
 	parser.add_argument('out_prefix',
@@ -59,14 +62,6 @@ ul: unique assignments, propagated to leaves
 			help="""ProPhyle output files whose format is chosen with the -f
 					option. Use '-' for stdin or multiple files with the same
 					format (one per sample)"""
-		)
-
-	parser.add_argument('-N',
-			action='store_true',
-			dest='ncbi',
-			help="""Use NCBI taxonomic information to calculate abundances at
-					every rank for otu tables [default: propagate weighted
-					assigments to leaves and do not output internal nodes]"""
 		)
 
 	parser.add_argument('-s',
@@ -381,9 +376,9 @@ def load_histo(in_fns, tree):
 #     return complete_tree, tax2rank, ranked_desc_count, leaves_count
 
 def ncbi_tree_info(tree):
+	ncbi=True
 	# count of descendants at each rank (used for normalization of assignments propagation)
 	ranked_desc_count={rank:Counter() for rank in KNOWN_RANKS}
-	leaves_count=Counter()
 	tax2rank={}
 	for node in tree.traverse('postorder'):
 		if node.name!='merge_root':
@@ -391,62 +386,69 @@ def ncbi_tree_info(tree):
 				taxid=str(node.taxid)
 				rank=node.rank
 			except AttributeError:
-				print("[prophyle_analyze] Warning: missing attributes for node {}".format(node.name),file=sys.stderr)
-				continue
+				print("""[prophyle_analyze] taxonomic annotations (taxid or
+						rank) missing for node {}. Switching to leaf-mode
+						analysis""".format(node.name),
+						file=sys.stderr
+					)
+				ncbi=False
+				return None, None
 			tax2rank[taxid]=rank
-			leaves_count[taxid]+=len(node.get_leaves())
 			if rank in KNOWN_RANKS:
+				anc_ranks=[]
 				for anc in node.iter_ancestors():
 					if anc.name!="merge_root":
 						try:
 							anc_taxid=str(anc.taxid)
-							ranked_desc_count[rank][anc_taxid]+=1
+							anc_rank=anc.rank
 						except AttributeError:
-							continue
+							print("""[prophyle_analyze] taxonomic annotations (taxid or
+									rank) missing for node {}. Switching to leaf-mode
+									analysis""".format(anc.name),
+									file=sys.stderr
+								)
+							ncbi=False
+							return None, None
+						ranked_desc_count[rank][anc_taxid]+=1
 
-	return tax2rank, ranked_desc_count, leaves_count
+	return tax2rank, ranked_desc_count
 
-def compute_otu_table(histogram, tree, ncbi=False):
+def compute_otu_table(histogram, tree):
 	otu_table={}
-	if ncbi:
-		tax2rank,ranked_desc_count,leaves_count=ncbi_tree_info(tree)
+	tax2rank,ranked_desc_count=ncbi_tree_info(tree)
+	ncbi=False if tax2rank is None or ranked_desc_count is None else True
 	for sample,histo in histogram.items():
 		otu_table[sample]=Counter(histo)
 		otu_t=otu_table[sample]
 		if ncbi:
 			for node in tree.traverse('postorder'):
 				if node.name!='merge_root':
-					try:
-						taxid=str(node.taxid)
-						rank=node.rank
-					except AttributeError:
-						continue
-				count=histo[taxid]
-				if count!=0:
-					for anc in node.iter_ancestors():
-						try:
-							anc_taxid=str(anc.taxid)
-							otu_t[anc_taxid]+=count
-						except AttributeError:
-							continue
-					for desc in node.iter_descendants():
-						desc_taxid=str(desc.taxid)
-						desc_rank=desc.rank
-						# propagate weighted assigment count to descendants
-						# (divided by no of nodes at each rank, or leaves count)
-						if desc_rank in KNOWN_RANKS:
-							otu_t[desc_taxid]+=count/float(ranked_desc_count[desc_rank][taxid])
-						elif desc.is_leaf():
-							otu_t[desc_taxid]+=count/float(leaves_count[taxid])
-					# remove unranked internal nodes from the table (impossible
-					# to calculate propagation score accurately)
-					if (rank not in KNOWN_RANKS) and (not node.is_leaf()):
-						del otu_t[taxid]
+					taxid=str(node.taxid)
+					rank=node.rank
+					count=histo[taxid]
+					if count!=0:
+						leaves=node.get_leaves()
+						for anc in node.iter_ancestors():
+							if anc.name!='merge_root':
+								otu_t[str(anc_taxid)]+=count
+						for desc in node.iter_descendants():
+							desc_taxid=str(desc.taxid)
+							desc_rank=desc.rank
+							# propagate weighted assigment count to descendants
+							# (divided by no of nodes at each rank, or leaves count)
+							if desc_rank in KNOWN_RANKS:
+								otu_t[desc_taxid]+=count/float(ranked_desc_count[desc_rank][taxid])
+							elif desc.is_leaf():
+								otu_t[desc_taxid]+=count/float(len(leaves))
+						# remove unranked internal nodes from the table (impossible
+						# to calculate propagation score accurately)
+						if (rank not in KNOWN_RANKS) and (not node.is_leaf()):
+							del otu_t[taxid]
 		else:
 			for node_name,count in histo.items():
 				try:
 					node=tree & node_name
-				except:
+				except TreeError:
 					print("[prophyle_analyze] Error: node name {} not in the tree".format(node_name),
 							file=sys.stderr)
 					raise
@@ -459,7 +461,7 @@ def compute_otu_table(histogram, tree, ncbi=False):
 						otu_t[leaf.name]+=prop_count
 					del otu_t[node_name]
 
-	return otu_table
+	return otu_table, ncbi
 
 # def print_otu_table(otu_t, tree, out_fn, max_lines, fmt="hdf5", ncbi=False):
 #     samples=sorted(otu_t.keys())
@@ -539,7 +541,10 @@ def print_taxonomy(tree, out_fn):
 
 def main():
 	args=parse_args()
-	tree_path=os.path.join(args.index_dir, 'tree.preliminary.nw')
+	if os.path.isdir(args.index_dir):
+		tree_path=os.path.join(args.index_dir, 'tree.preliminary.nw')
+	else:
+		tree_path=args.index_dir
 	tree=Tree(tree_path, format=1)
 
 	asgs,histo_fns=load_asgs(args.input_fns,args.in_format)
@@ -548,13 +553,13 @@ def main():
 		histogram=load_histo(histo_fns,tree)
 	else:
 		histogram=compute_histogram(tree, asgs, args.stats)
-	with open(args.out_prefix+'_rawhits.tsv', "w") as f:
-		print_histogram(histogram, f)
+		with open(args.out_prefix+'_rawhits.tsv', "w") as f:
+			print_histogram(histogram, f)
 
-	otu_table=compute_otu_table(histogram,tree,args.ncbi)
+	otu_table, ncbi =compute_otu_table(histogram,tree)
 	with open(args.out_prefix+'_otu.tsv', 'w') as f:
 		print_histogram(otu_table, f)
-	if args.ncbi:
+	if ncbi:
 		print_taxonomy(tree,args.out_prefix+"_tax.tsv")
 
 if __name__ == "__main__":

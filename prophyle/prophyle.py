@@ -83,7 +83,7 @@ LIBRARIES = ['bacteria', 'viruses', 'plasmids', 'hmp']
 
 FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
 
-ANALYZE_IN_FMTS=['sam','kraken','histo']
+ANALYZE_IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken','histo']
 ANALYZE_STATS=['w','u','wl','ul']
 
 
@@ -807,12 +807,12 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 # PROPHYLE ANALYZE #
 ####################
 
-def prophyle_analyze(index_dir, out_prefix, input_fns, ncbi, stats, in_format):
+def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
 
-	cmd_analyze = [ANALYZE, '-s', stats, '-f', in_format, index_dir, out_prefix] + input_fns
+	cmd_analyze = [ANALYZE, '-s', stats, index_dir, out_prefix] + input_fns
 
-	if ncbi:
-		cmd_analyze += ['-N']
+	if in_format is not None:
+		cmd_analyze += ['-f', in_format]
 
 	pro.run_safe(cmd_analyze)
 
@@ -1105,7 +1105,7 @@ def parser():
 	)
 
 	parser_analyze.add_argument('index_dir',
-			metavar='{index.dir, tree.nw}',
+			metavar='{index_dir, tree.nw}',
 			type=str,
 			help='index directory or phylogenetic tree'
 		)
@@ -1115,7 +1115,7 @@ def parser():
 			type=str,
 			nargs='+',
 			default=None,
-			help="classified reads (SAM/BAM/Kraken)",
+			help="classified reads (use '-' for stdin)",
 			#""ProPhyle output files whose format is chosen with the -f
 			#		option. Use '-' for stdin or multiple files with the same
 			#		format (one per sample)"""
@@ -1130,21 +1130,13 @@ def parser():
 			#		<out_prefix>_<otu_suffix>.tsv for otu tables)"""
 		)
 
-	parser_analyze.add_argument('-N',
-			action='store_true',
-			dest='ncbi',
-			help="""Use NCBI taxonomic information to calculate abundances at
-					every rank for otu tables [default: propagate weighted
-					assigments to leaves and do not output internal nodes]"""
-		)
-
 	parser_analyze.add_argument('-s',
 			metavar=ANALYZE_STATS,
 			type=str,
 			dest='stats',
 			choices=ANALYZE_STATS,
 			default=ANALYZE_STATS[0],
-			help="""Statistics to use for the computation of histograms:
+			help="""statistics to use for the computation of histograms:
 					w (default) => weighted assignments;
 					u => unique assignments, non-weighted;
 					wl => weighted assignments, propagated to leaves;
@@ -1156,11 +1148,8 @@ def parser():
 			type=str,
 			dest='in_format',
 			choices=ANALYZE_IN_FMTS,
-			default='sam',
-			help="""Input format of assignments. If 'histo' is selected the
-					program expects histograms previously computed using
-					prophyle analyze, it merges them and compute OTU table from
-					the result (assignment files are not required) [auto]"""
+			default=None,
+			help="""Input format of assignments [auto]"""
 		)
 
 	##########
@@ -1241,7 +1230,6 @@ def main():
 				index_dir=args.index_dir,
 				out_prefix=args.out_prefix,
 				input_fns=args.input_fns,
-				ncbi=args.ncbi,
 				stats=args.stats,
 				in_format=args.in_format,
 			)
