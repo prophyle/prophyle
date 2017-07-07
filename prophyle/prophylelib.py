@@ -160,6 +160,8 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 		ValueError: The tree is not valid.
 	"""
 
+	assert isinstance(tree, ete3.Tree), tree
+
 	error = False
 
 	existing_names = []
@@ -239,6 +241,13 @@ def minimal_subtree(tree):
 
 	new_tree = new_root.detach()
 	return new_tree
+
+
+def has_attribute(tree, attribute):
+	for n in tree.traverse():
+		if hasattr(n, attribute):
+			return True
+	return False
 
 
 #####################
