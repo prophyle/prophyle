@@ -2,16 +2,16 @@
 
 """K-mer propagation pre-processing.
 
-Extract subtrees, merge ProPhyle Newick/NHX trees and subsample them.
+Extract subtrees, merge ProPhyle Newick/NHX trees, possibly run autocomplete
+(add FASTAPATH and create names for internal nodes) and subsample the resulting tree.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
 Licence: MIT
 
 Examples:
-
-		$ prophyle_propagation_preprocessing.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw
-		$ prophyle_propagation_preprocessing.py ~/prophyle/bacteria.nw@562 ecoli.nw
+	$ prophyle_propagation_preprocessing.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw
+	$ prophyle_propagation_preprocessing.py ~/prophyle/bacteria.nw@562 ecoli.nw
 """
 
 import argparse
@@ -32,7 +32,26 @@ def add_prefix(tree, prefix):
 	return tree
 
 
-def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_rate):
+def autocomplete_fastapath(tree):
+	for n in tree.traverse():
+		if len(n.children)==0:
+			n.fastapath="{}.fa".format(n.name)
+	return tree
+
+
+def autocomplete_internal_node_names(tree):
+	i=1
+	for n in tree.traverse():
+		if len(n.children)==0:
+			assert hasattr(n, "name")
+		else:
+			if not hasattr(n, "name") or n.name=="" or n.name is None:
+				n.name="int_{}".format(i)
+				i+=1
+	return tree
+
+
+def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_rate, autocomplete):
 	assert sampling_rate is None or 0.0 <= float(sampling_rate) <= 1.0
 
 	t = ete3.Tree(
@@ -49,7 +68,7 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
 			print("Loading '{}'".format(x), file=sys.stderr)
 
 		tree_fn, _, root_name = x.partition("@")
-		tree_to_add = pro.load_nhx_tree(tree_fn)
+		tree_to_add = pro.load_nhx_tree(tree_fn, validate=False)
 
 		# subtree extraction required
 		if root_name != '':
@@ -60,6 +79,11 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
 			tree_to_add = add_prefix(tree_to_add, i)
 
 		t.add_child(tree_to_add)
+
+	if autocomplete:
+		if not pro.has_attribute(t, "fastapath"):
+			t=autocomplete_fastapath(t)
+		t=autocomplete_internal_node_names(t)
 
 	if sampling_rate is not None:
 		sampling_rate = float(sampling_rate)
@@ -129,6 +153,12 @@ def parse_args():
 		default=None,
 	)
 
+	parser.add_argument('-A',
+		help='autocomplete tree (names of internal nodes and FASTA paths)',
+		dest='autocomplete',
+		action='store_true',
+	)
+
 	parser.add_argument('-V',
 		help='verbose',
 		dest='verbose',
@@ -153,6 +183,7 @@ def main():
 		verbose=args.verbose,
 		add_prefixes=args.add_prefixes,
 		sampling_rate=args.sampling_rate,
+		autocomplete=args.autocomplete,
 	)
 
 

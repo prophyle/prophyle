@@ -121,7 +121,7 @@ def _test_tree(fn):
 		AssertionError: The tree is not valid.
 	"""
 	tree = pro.load_nhx_tree(fn, validate=False)
-	assert pro.validate_prophyle_nhx_tree(tree, verbose=False, throw_exceptions=False, output_fo=sys.stderr)
+	assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
 
 
 def _compile_prophyle_bin():
@@ -391,7 +391,7 @@ def _kmer_stats(index_dir):
 	)
 
 
-def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate):
+def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate, autocomplete):
 	"""Merge input trees into a single tree.
 
 	Args:
@@ -410,6 +410,8 @@ def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate):
 	command += in_trees + [out_tree]
 	if no_prefixes:
 		command += ['-P']
+	if autocomplete:
+		command += ['-A']
 	pro.run_safe(
 		command,
 		err_msg="The main tree could not be generated.",
@@ -577,7 +579,7 @@ def _bwtocc2sa_klcp(fa_fn, k):
 
 
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats,
-		keep_tmp_files, sampling_rate):
+		keep_tmp_files, sampling_rate, autocomplete):
 	"""Build a ProPhyle index.
 
 	Args:
@@ -592,6 +594,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		mask_repeats (bool): Mask repeats using DustMasker.
 		keep_tmp_files (bool): Keep temporary files from k-mer propagation.
 		sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
+		autocomplete (bool): Autocomplete names of internal nodes and fasta paths.
 	"""
 
 	assert isinstance(k, int)
@@ -624,13 +627,15 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		pro.message('[1/5] Copying/merging trees', upper=True)
 		for tree_fn in trees_fn:
 			tree_fn, _, root = tree_fn.partition("@")
-			tree = pro.load_nhx_tree(tree_fn)
-			pro.validate_prophyle_nhx_tree(tree)
+			tree = pro.load_nhx_tree(tree_fn, validate=False)
+			# postpone for autocomplete
+			if not autocomplete:
+				pro.validate_prophyle_nhx_tree(tree)
 			if root != "":
 				assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn) != 1:
 			pro.message('Merging {} trees'.format(len(trees_fn)))
-		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
+		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate, autocomplete=autocomplete)
 		_mark_complete(index_dir, 1)
 	else:
 		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
@@ -1013,6 +1018,14 @@ def parser():
 		help='keep temporary files from k-mer propagation',
 	)
 
+	parser_index.add_argument('-A',
+		help='autocomplete tree (names of internal nodes and fasta paths)',
+		dest='autocomplete',
+		action='store_true',
+	)
+
+
+
 	##########
 
 	parser_classify = subparsers.add_parser(
@@ -1264,6 +1277,7 @@ def main():
 				mask_repeats=args.mask_repeats,
 				keep_tmp_files=args.keep_tmp_files,
 				sampling_rate=args.sampling_rate,
+				autocomplete=args.autocomplete,
 			)
 			pro.message('Index construction finished')
 			pro.close_log()
