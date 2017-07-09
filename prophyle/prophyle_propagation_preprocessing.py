@@ -33,13 +33,15 @@ def add_prefix(tree, prefix):
 
 
 def autocomplete_fastapath(tree):
+	print("Autocompleting FASTA paths", file=sys.stderr)
 	for n in tree.traverse():
 		if len(n.children)==0:
-			n.fastapath="{}.fa".format(n.name)
+			n.add_features(fastapath="{}.fa".format(n.name))
 	return tree
 
 
 def autocomplete_internal_node_names(tree):
+	print("Autocompleting internal node names", file=sys.stderr)
 	i=1
 	for n in tree.traverse():
 		if len(n.children)==0:
