@@ -19,5 +19,8 @@ function download_isolate ()
 
 export -f download_isolate
 
+#
+# Download assemblies
+#
 parallel -j $THREADS --colsep '\t' --skip-first-line --halt now,fail=1 --no-notice download_isolate :::: ${FILE}
 
