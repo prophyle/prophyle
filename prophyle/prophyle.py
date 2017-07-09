@@ -49,10 +49,11 @@ TREE_D = os.path.join(C_D, "trees")
 BWA = os.path.join(C_D, "prophyle_index", "bwa", "bwa")
 IND = os.path.join(C_D, "prophyle_index", "prophyle_index")
 ASM = os.path.join(C_D, "prophyle_assembler", "prophyle_assembler")
+C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
 # git
 if GITDIR:
-	ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
+	PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
 	ANALYZE = os.path.join(C_D, "prophyle_analyze.py")
 	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
 	PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
@@ -65,7 +66,7 @@ if GITDIR:
 
 # package
 else:
-	ASSIGN = "prophyle_assignment.py"
+	PY_ASSIGN = "prophyle_assignment.py"
 	ANALYZE = "prophyle_analyze.py"
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
@@ -817,8 +818,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 #####################
 
 def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate,
-		tie_lca,
-		print_seq):
+		tie_lca, print_seq, cimpl):
 	"""Run ProPhyle classification.
 
 	Args:
@@ -833,6 +833,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 		annotate (bool): Annotate assignments (insert annotations from Newick to SAM).
 		tie_lca (bool): If multiple equally good assignments found, compute their LCA.
 		print_seq (bool): Print sequencing in SAM.
+		cimpl (bool): Use the C++ implementation.
 	"""
 
 	_compile_prophyle_bin()
@@ -870,14 +871,21 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 		(klcp_s,) = pro.file_sizes(klcp_fn)
 		assert abs(bwt_s - 4 * klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
 
-	if mimic_kraken:
-		cmd_assign = [ASSIGN, '-i', '-', '-k', k, '-n', index_tree, '-m', 'h1', '-f', 'kraken', '-l', '-t']
+
+
+	if cimpl:
+		ASSIGN=C_ASSIGN
 	else:
-		cmd_assign = [ASSIGN, '-i', '-', '-k', k, '-n', index_tree, '-m', measure, '-f', out_format]
+		ASSIGN=PY_ASSIGN
+
+	if mimic_kraken:
+		cmd_assign = [ASSIGN, '-m', 'h1', '-f', 'kraken', '-L', '-T', index_tree, k, '-']
+	else:
+		cmd_assign = [ASSIGN, '-m', measure, '-f', out_format, index_tree, k, '-']
 		if annotate:
-			cmd_assign += ['--annotate']
+			cmd_assign += ['-A']
 		if tie_lca:
-			cmd_assign += ['--tie-lca']
+			cmd_assign += ['-L']
 
 	if fq_pe_fn:
 		cmd_read = [READ, fq_fn, fq_pe_fn, '|']
@@ -1197,6 +1205,14 @@ def parser():
 		help='print sequences and qualities in SAM (otherwise \'*\' is used)',
 	)
 
+	parser_classify.add_argument(
+		'-C',
+		dest='cimpl',
+		action='store_true',
+		help='use the C++ implementation of the assignment algorithm (highly experimental so far)',
+		#help=argparse.SUPPRESS,
+	)
+
 	##########
 
 	parser_analyze = subparsers.add_parser(
@@ -1360,6 +1376,7 @@ def main():
 				tie_lca=args.tie,
 				annotate=args.annotate,
 				print_seq=args.print_seq,
+				cimpl=args.cimpl,
 			)
 			pro.message('Classification finished')
 			pro.close_log()
