@@ -10,6 +10,7 @@ Licence: MIT
 import datetime
 import ete3
 import glob
+import json
 import os
 import psutil
 import re
@@ -449,27 +450,37 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 		sys.exit(1)
 
 
+def save_config (index_dir, data):
+	"""Save a configuration dictionary (index.json in the index directory).
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+
+	with open(os.path.join(index_dir, 'index.json'),"w+") as data_file:
+		json.dump(data, data_file, indent=4)
+
+
+def load_config (index_dir):
+	"""Load a configuration dictionary (index.json in the index directory).
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+	with open(os.path.join(index_dir, 'index.json')) as data_file:
+		data = json.load(data_file)
+	return data
+
+
 def detect_k_from_index(index_dir):
 	"""Detect k-mer size from a ProPhyle index.
 
 	Args:
 		index_dir (str): Index directory.
-
-	Raises:
-		AssertionError: k cannot be detected.
 	"""
 
-	klcps = glob.glob(os.path.join(index_dir, "*.klcp"))
-
-	assert len(
-		klcps) < 2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
-	assert len(klcps) > 0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
-	klcp = klcps[0]
-
-	re_klcp = re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
-	klcp_match = re_klcp.match(klcp)
-	k = int(klcp_match.group(1))
-	return k
+	config=load_configuration(index_dir)
+	return config['k']
 
 
 def lower_nonsigleton(node):
