@@ -1309,11 +1309,11 @@ def parser():
 
 	parser_compress.add_argument(
 		'archive',
-		metavar='archive.tar.gz',
+		metavar='<archive.tar.gz>',
 		type=str,
 		default=None,
 		nargs="?",
-		help='output archive',
+		help='output archive [<index.dir>.tar.gz]',
 	)
 
 
@@ -1452,7 +1452,8 @@ def main():
 			msg_lns = par.format_help().split("\n")[2:]
 			msg_lns = [x for x in msg_lns if x.find("optional arguments") == -1 and x.find("--") == -1]
 			msg = "\n".join(msg_lns)
-			msg = msg.replace("\n\n", '\n').replace("subcommands:\n", "Command:").replace("Usage", "\nUsage")
+			msg = msg.replace("\n\n", '\n').replace("subcommands:\n", "Command:\n").replace("Usage", "\nUsage")
+			msg = msg.replace("\n    compress","\n\n    compress")
 			print(file=sys.stderr)
 			print(msg, file=sys.stderr)
 			sys.exit(1)
