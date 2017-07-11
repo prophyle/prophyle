@@ -93,11 +93,12 @@ ANALYZE_STATS=['w','u','wl','ul']
 FILES_TO_ARCHIVE=[
 		".complete.1",
 		".complete.2",
+		".complete.3",
 		"tree.nw",
 		"tree.preliminary.nw",
-		#"index.fa",
 		"index.fa.bwt",
-		#"index.fa.pac",
+		"index.fa.ann",
+		"index.fa.amb", # but will be empty
 	]
 
 
@@ -636,7 +637,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		recompute = True
 
 	if recompute:
-		pro.message('[1/5] Copying/merging trees', upper=True)
+		pro.message('[1/6] Copying/merging trees', upper=True)
 		for tree_fn in trees_fn:
 			tree_fn, _, root = tree_fn.partition("@")
 			tree = pro.load_nhx_tree(tree_fn)
@@ -648,7 +649,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
-		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
+		pro.message('[1/6] Tree already exists, skipping copying', upper=True)
 
 	#
 	# 2) Create and run Makefile for propagation, and merge FASTA files
@@ -658,7 +659,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		recompute = True
 
 	if recompute:
-		pro.message('[2/5] Running k-mer propagation', upper=True)
+		pro.message('[2/6] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
@@ -669,26 +670,37 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 			pro.message('Keeping temporary files')
 		_mark_complete(index_dir, 2)
 	else:
-		pro.message('[2/5] K-mers have already been propagated, skipping propagation', upper=True)
+		pro.message('[2/6] K-mers have already been propagated, skipping propagation', upper=True)
 
 	#
-	# 3) BWT + OCC
+	# 3) BWT
 	#
 
-	if not _is_complete(index_dir, 3):
+	if not _is_complete(index_dir, 3) and not _is_complete(index_dir, 4):
 		recompute = True
 
-	# if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
-
 	if recompute:
-		pro.message('[3/5] Constructing BWT+OCC', upper=True)
+		pro.message('[3/6] Constructing BWT', upper=True)
 		pro.rm(index_fa + '.bwt', index_fa + '.bwt.complete')
 		_fa2pac(index_fa)
 		_pac2bwt(index_fa)
-		_bwt2bwtocc(index_fa)
 		_mark_complete(index_dir, 3)
 	else:
-		pro.message('[3/5] BWT and OCC already exist, skipping their construction', upper=True)
+		pro.message('[3/6] BWT already exists, skipping its construction', upper=True)
+
+	#
+	# 3) OCC
+	#
+
+	if not _is_complete(index_dir, 4):
+		recompute = True
+
+	if recompute:
+		pro.message('[4/6] Constructing OCC', upper=True)
+		_bwt2bwtocc(index_fa)
+		_mark_complete(index_dir, 4)
+	else:
+		pro.message('[4/6] OCC already exists, skipping their construction', upper=True)
 
 	#
 	# 4) SA + 5) KLCP (compute SA + KLCP in parallel)
@@ -698,44 +710,44 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 	if construct_klcp:
 
-		if not _is_complete(index_dir, 4):
+		if not _is_complete(index_dir, 5):
 			# SA not computed yet => compute it in parallel with KLCP
 			recompute = True
 
 		if recompute:
-			pro.message('[4/5],[5/5] Constructing SA + KLCP in parallel ', upper=True)
+			pro.message('[5/6],[6/6] Constructing SA + KLCP in parallel ', upper=True)
 			_bwtocc2sa_klcp(index_fa, k)
-			_mark_complete(index_dir, 4)
 			_mark_complete(index_dir, 5)
+			_mark_complete(index_dir, 6)
 			return
 
 	#
-	# 4) SA (compute only SA)
+	# 5) SA (compute only SA)
 	#
 
-	if not _is_complete(index_dir, 4):
+	if not _is_complete(index_dir, 5):
 		recompute = True
 
 	if recompute:
-		pro.message('[4/5] Constructing SA', upper=True)
+		pro.message('[5/6] Constructing SA', upper=True)
 		_bwtocc2sa(index_fa)
 	else:
-		pro.message('[4/5] SA already exists, skipping its construction', upper=True)
+		pro.message('[5/6] SA already exists, skipping its construction', upper=True)
 
 	#
-	# 5) KLCP (compute only KLCP)
+	# 6) KLCP (compute only KLCP)
 	#
 
 	if construct_klcp:
-		if not _is_complete(index_dir, 5):
+		if not _is_complete(index_dir, 6):
 			recompute = True
 
 		if recompute:
-			pro.message('[5/5] Constructing k-LCP', upper=True)
+			pro.message('[6/6] Constructing k-LCP', upper=True)
 			_bwtocc2klcp(index_fa, k)
-			_mark_complete(index_dir, 5)
+			_mark_complete(index_dir, 6)
 		else:
-			pro.message('[5/5] k-LCP already exists, skipping its construction', upper=True)
+			pro.message('[6/6] k-LCP already exists, skipping its construction', upper=True)
 
 
 #####################
@@ -776,7 +788,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	elif fq_fn != '-':
 		pro.test_files(fq_fn)
 
-	pro.test_files(index_fa, IND)
+	pro.test_files(IND)
 
 	pro.test_files(
 		index_fa + '.bwt',
@@ -786,9 +798,9 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 		#index_fa + '.amb',
 	)
 
-	(bwt_s, sa_s, pac_s) = pro.file_sizes(index_fa + '.bwt', index_fa + '.sa', index_fa + '.pac')
+	(bwt_s, sa_s) = pro.file_sizes(index_fa + '.bwt', index_fa + '.sa')
 	assert abs(bwt_s - 2 * sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
-	assert abs(bwt_s - 2 * pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
+	#assert abs(bwt_s - 2 * pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
 	if use_rolling_window:
 		klcp_fn = "{}.{}.klcp".format(index_fa, k)
