@@ -19,7 +19,18 @@ from collections import Counter
 
 IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken','histo']
 STATS=['w','u','wl','ul']
-KNOWN_RANKS=['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
+KNOWN_RANKS=['domain', 'superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
+KRAKEN_RANKS={
+	'unclassified':'U',
+	'domain':'D',
+	'superkingdom':'K',
+	'phylum':'P',
+	'class':'C',
+	'order':'O',
+	'family':'F',
+	'genus':'G',
+	'species':'S'
+}
 
 class NotNCBIException(Exception):
     pass
@@ -538,6 +549,40 @@ def print_taxonomy(tree, out_fn):
 					# t is the last element of lineage, e.g. the taxid of the node
 					print(t+'\t'+'\t'.join(info), file=out_f)
 
+def print_kraken_report(otu_table, histogram, tree, out_f):
+	merged_histo=sum(histogram.values(), Counter())
+	merged_otu=sum(otu_table.values(), Counter())
+	tot_count=float(sum(merged_otu.values()))
+	# indentation of the previous scientific name
+	prev_or_curr_ind=0
+	for node in tree.traverse('preorder'):
+		try:
+			taxon=node.taxid
+			sci_name=node.sci_name
+		except AttributeError:
+			continue
+		count=merged_otu[taxon]
+		if count > 0:
+			hits=merged_histo[taxon]
+			try:
+				rank=node.rank
+			except AttributeError:
+				rank='unclassified'
+			# Percentage of reads covered by the clade rooted at this taxon
+			out_line=["{:.2f}".format(round(count/tot_count,2))]
+			# Number of reads covered by the clade rooted at this taxon
+			out_line.append("{:.2f}".format(round(count,2)) if isinstance(count, float) else str(count))
+			# Number of reads assigned directly to this taxon
+			out_line.append("{:.2f}".format(round(hits,2)) if isinstance(hits, float) else str(hits))
+			# Rank code
+			out_line.append(KRAKEN_RANKS.get(rank,'-'))
+			# NCBI taxonomy ID
+			out_line.append(taxon)
+			# indented scientific name
+			if rank in KNOWN_RANKS:
+				prev_or_curr_ind=KNOWN_RANKS.index(rank)
+			out_line.append(' '*prev_or_curr_ind + sci_name)
+			print('\t'.join(out_line), file=out_f)
 
 def main():
 	args=parse_args()
@@ -561,6 +606,8 @@ def main():
 		print_histogram(otu_table, f)
 	if ncbi:
 		print_taxonomy(tree,args.out_prefix+"_tax.tsv")
+		with open(args.out_prefix+'.kraken', 'w') as f:
+			print_kraken_report(otu_table, histogram, tree, f)
 
 if __name__ == "__main__":
 	try:
