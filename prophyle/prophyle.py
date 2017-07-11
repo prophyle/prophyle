@@ -353,6 +353,13 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	# pro.test_files(NEWICK2MAKEFILE, tree_fn)
 	command = [NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './', makefile]
 
+	config={
+		'prophyle-version': version.VERSION,
+		'k': k,
+	}
+
+	pro.save_config(index_dir, config)
+
 	with open(os.path.join(propagation_dir, "params.mk"), "w+") as f:
 		f.write('PRG_ASM="{}"\n'.format(ASM))
 		f.write("K={}\n".format(k))
