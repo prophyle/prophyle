@@ -180,7 +180,7 @@ class TreeIndex:
 		self.index_dir = index_dir
 		self.library_dir = library_dir
 		self.makefile_fn = makefile_fn
-		os.makedirs(self.index_dir, exist_ok=True)
+		pro.makedirs(self.index_dir)
 
 	@staticmethod
 	def _node_debug(node):
