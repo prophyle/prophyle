@@ -1,10 +1,10 @@
-.PHONY: all clean
-
-include ../conf.mk
-
 LIBRARIES = bacteria viruses plasmids hmp
 SEQS = seqs
 PKG_SEQS = pkg_seqs
+
+.PHONY: all clean all_libs $(LIBRARIES)
+
+include ../conf.mk
 
 $(LIBRARIES):
 	@echo
