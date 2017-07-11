@@ -431,10 +431,10 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 	while error_code is None:
 		try:
 			max_rss = max(max_rss, ps_p.memory_info().rss)
-		except psutil.ZombieProcess:
+		except (psutil.ZombieProcess, OSError, IOError):
 			pass
 		# wait 0.02 s
-		time.sleep(0.02)
+		time.sleep(0.2)
 		error_code = p.poll()
 
 	out_fo.flush()
