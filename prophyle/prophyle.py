@@ -95,9 +95,9 @@ FILES_TO_ARCHIVE=[
 		".complete.2",
 		"tree.nw",
 		"tree.preliminary.nw",
-		"index.fa",
+		#"index.fa",
 		"index.fa.bwt",
-		"index.fa.pac",
+		#"index.fa.pac",
 	]
 
 
@@ -631,7 +631,8 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	# 1) Newick
 	#
 
-	if not _is_complete(index_dir, 1) or not pro.existing_and_newer_list(trees_fn, index_tree_1):
+	#if not _is_complete(index_dir, 1) or not pro.existing_and_newer_list(trees_fn, index_tree_1):
+	if not _is_complete(index_dir, 1):
 		recompute = True
 
 	if recompute:
@@ -779,10 +780,10 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 
 	pro.test_files(
 		index_fa + '.bwt',
-		index_fa + '.pac',
+		#index_fa + '.pac',
 		index_fa + '.sa',
 		index_fa + '.ann',
-		index_fa + '.amb',
+		#index_fa + '.amb',
 	)
 
 	(bwt_s, sa_s, pac_s) = pro.file_sizes(index_fa + '.bwt', index_fa + '.sa', index_fa + '.pac')
@@ -896,13 +897,13 @@ def prophyle_decompress(archive, output_dir):
 		for x in FILES_TO_ARCHIVE:
 			assert os.path.join(index_name, x) in names, "File '{}' is missing in the archive".format(x)
 
-	sys.exit(0)
+	index_dir=os.path.join(output_dir, index_name)
 
 	cmd = ["tar", "xvf", archive, "-C", output_dir]
 	pro.run_safe(cmd)
 	pro.message("Core files have been decompressed")
 
-	cmd = [PROPHYLE, "index", "-K", os.path.join(ind_dir, "/tree.nw"), ind_dir]
+	cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "/tree.nw"), index_dir]
 	pro.run_safe(cmd)
 	pro.message("Index reconstruction finished")
 
