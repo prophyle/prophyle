@@ -100,6 +100,7 @@ FILES_TO_ARCHIVE=[
 		"index.fa.bwt",
 		"index.fa.ann",
 		"index.fa.amb", # but will be empty
+		'index.fa.kmers.tsv'
 	]
 
 
