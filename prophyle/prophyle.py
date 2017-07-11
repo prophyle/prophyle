@@ -877,9 +877,6 @@ def prophyle_compress(index_dir, archive):
 
 	pro.message("Opening '{}'".format(archive))
 	with tarfile.open(archive, "w:gz") as tar:
-		#arcname=os.path.join(arcdir, os.path.basename(fn))
-		#pro.message("Compressing '{}' => '{}'".format(fn, arcname))
-		#tar.add(fn, arcname=arcname)
 		tar.add(tmp_arc_dir, arcname=arcdir)
 	pro.message("File '{}' has been created".format(archive))
 
@@ -1434,7 +1431,7 @@ def main():
 			if args.archive is None:
 				archive=args.index_dir.lstrip("/")+".tar.gz"
 			else:
-				archive=args.archive,
+				archive=args.archive
 
 			prophyle_compress(
 				index_dir=args.index_dir,
