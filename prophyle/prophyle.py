@@ -867,10 +867,12 @@ def prophyle_compress(index_dir, archive):
 		os.path.join(index_dir, "index.fa.pac"),
 	]
 
+	pro.message("Opening '{}'".format(archive))
 	with tarfile.open(archive, "w:gz") as tar:
 		for fn in fns_to_add:
-			print(fn, os.path.basename(fn))
+			pro.message("Compressing '{}'".format(fn))
 			tar.add(fn, arcname=os.path.basename(fn))
+	pro.message("File '{}' has been created".format(fn))
 
 
 ########
