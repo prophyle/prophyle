@@ -187,7 +187,7 @@ def _mark_complete(d, i=1, name=None):
 	pro.touch(__mark_fn(d, i, name))
 
 
-def _is_complete(d, i=1, name=None):
+def _is_complete(d, i=1, name=None, dont_check_previous=False):
 	"""Check if a mark file i exists AND is newer than the mark file (i-1).
 
 	Args:
@@ -200,7 +200,7 @@ def _is_complete(d, i=1, name=None):
 	fn = __mark_fn(d, i, name)
 	fn0 = __mark_fn(d, i - 1, name)
 
-	if i == 1:
+	if i == 1 or dont_check_previous:
 		return os.path.isfile(fn)
 	else:
 		return pro.existing_and_newer(fn0, fn)
@@ -649,7 +649,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
 		_mark_complete(index_dir, 1)
 	else:
-		pro.message('[1/6] Tree already exists, skipping copying', upper=True)
+		pro.message('[1/6] Tree already exists, skipping its creation', upper=True)
 
 	#
 	# 2) Create and run Makefile for propagation, and merge FASTA files
@@ -676,7 +676,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	# 3) BWT
 	#
 
-	if not _is_complete(index_dir, 3) and not _is_complete(index_dir, 4):
+	if not _is_complete(index_dir, 3) and not _is_complete(index_dir, 4, dont_check_previous=True):
 		recompute = True
 
 	if recompute:
@@ -911,11 +911,17 @@ def prophyle_decompress(archive, output_dir):
 
 	index_dir=os.path.join(output_dir, index_name)
 
+
+	pro.message("Decompressing ProPhyle index")
+
 	cmd = ["tar", "xvf", archive, "-C", output_dir]
 	pro.run_safe(cmd)
-	pro.message("Core files have been decompressed")
+	pro.message("Core files have been decompressed, reconstructing the index")
 
-	cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "/tree.nw"), index_dir]
+	pro.touch(os.path.join(index_dir, "index.fa"))
+	pro.touch(os.path.join(index_dir, "index.fa.pac"))
+
+	cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "tree.nw"), index_dir]
 	pro.run_safe(cmd)
 	pro.message("Index reconstruction finished")
 
