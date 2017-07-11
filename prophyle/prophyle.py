@@ -55,6 +55,7 @@ C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
 # git
 if GITDIR:
+	PROPHYLE = os.path.join(C_D, "prophyle.py")
 	PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
 	ANALYZE = os.path.join(C_D, "prophyle_analyze.py")
 	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
@@ -66,7 +67,7 @@ if GITDIR:
 
 # package
 else:
-	PY_ASSIGN = "prophyle_assignment.py"
+	PROPHYLE = "prophyle"
 	ANALYZE = "prophyle_analyze.py"
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
@@ -88,6 +89,17 @@ FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
 
 ANALYZE_IN_FMTS=['sam','kraken']
 ANALYZE_STATS=['w','u','wl','ul']
+
+FILES_TO_ARCHIVE=[
+		".complete.1",
+		".complete.2",
+		"tree.nw",
+		"tree.preliminary.nw",
+		"index.fa",
+		"index.fa.bwt",
+		"index.fa.pac",
+	]
+
 
 
 def _file_md5(fn, block_size=2 ** 20):
@@ -853,24 +865,15 @@ def prophyle_compress(index_dir, archive):
 
 	pro.makedirs(tmp_arc_dir)
 
-	bwt_fn_1=os.path.join(index_dir,"index.fa.bwt")
-	bwt_fn_2=os.path.join(tmp_dir,"index.fa.bwt")
-	cmd = [IND, "debwtupdate", bwt_fn_1, bwt_fn_2]
-	pro.run_safe(cmd)
-
-
-	files_to_archive=[
-		".complete.1",
-		".complete.2",
-		"tree.nw",
-		"tree.preliminary.nw",
-		"index.fa",
-		"index.fa.pac",
-	]
-
-	for x in files_to_archive:
+	for x in FILES_TO_ARCHIVE:
+		if x == "index.fa.bwt":
+			continue
 		pro.cp_to_dir(os.path.join(index_dir,x), tmp_arc_dir)
 
+	bwt_fn_1=os.path.join(index_dir,"index.fa.bwt")
+	bwt_fn_2=os.path.join(tmp_arc_dir,"index.fa.bwt")
+	cmd = [IND, "debwtupdate", bwt_fn_1, bwt_fn_2]
+	pro.run_safe(cmd)
 
 	pro.message("Opening '{}'".format(archive))
 	with tarfile.open(archive, "w:gz") as tar:
@@ -890,9 +893,21 @@ def prophyle_decompress(archive, output_dir):
 
 	_compile_prophyle_bin()
 
+	with tarfile.open(archive) as tar:
+		names=tar.getnames()
+		index_name=names[0]
+		for x in FILES_TO_ARCHIVE:
+			assert os.path.join(index_name, x) in names, "File '{}' is missing in the archive".format(x)
+
+	sys.exit(0)
+
 	cmd = ["tar", "xvf", archive, "-C", output_dir]
 	pro.run_safe(cmd)
 	pro.message("Core files have been decompressed")
+
+	cmd = [PROPHYLE, "index", "-K", os.path.join(ind_dir, "/tree.nw"), ind_dir]
+	pro.run_safe(cmd)
+	pro.message("Index reconstruction finished")
 
 
 ########
