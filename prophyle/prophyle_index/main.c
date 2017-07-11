@@ -46,6 +46,13 @@ static int usage_build(){
 	return 1;
 }
 
+static int usage_debwtupdate(){
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Usage:   prophyle_index debwtupdate input.bwt output.bwt\n");
+	fprintf(stderr, "\n");
+	return 1;
+}
+
 static int usage_query(int threads){
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage:   prophyle_index query [options] <prefix> <in.fq>\n");
@@ -128,12 +135,21 @@ int prophyle_index_build(int argc, char *argv[])
 	return 0;
 }
 
+int prophyle_debwtupdate(int argc, char *argv[])
+{
+	if (argc < 2) {
+		return usage_debwtupdate();
+	}
+	return debwtupdate(argv[0], argv[1]);
+}
+
 int main(int argc, char *argv[])
 {
 	int ret = 0;
 	if (argc < 2) return usage();
 	if (strcmp(argv[1], "build") == 0) ret = prophyle_index_build(argc - 1, argv + 1);
-	else if (strcmp(argv[1], "query") == 0) ret = prophyle_index_query(argc-1, argv+1);
+	else if (strcmp(argv[1], "query") == 0) ret = prophyle_index_query(argc - 1, argv+1);
+	else if (strcmp(argv[1], "debwtupdate") == 0) ret = prophyle_debwtupdate(argc - 2, argv + 2);
 	else return usage();
 
 	return ret;
