@@ -529,7 +529,7 @@ def _bwtocc2sa(fa_fn):
 	"""
 
 	pro.message('Generating sampled SA')
-	pro.test_files(BWA, fa_fn + ".bwt", remark="with OCC")
+	pro.test_files(BWA, fa_fn + ".bwt")
 	command = [BWA, 'bwt2sa', fa_fn + ".bwt", fa_fn + ".sa"]
 	pro.run_safe(
 		command,
@@ -886,10 +886,13 @@ def prophyle_compress(index_dir, archive):
 #######################
 
 def prophyle_decompress(archive, output_dir):
+	pro.test_files(archive)
+
 	_compile_prophyle_bin()
+
 	cmd = ["tar", "xvf", archive, "-C", output_dir]
 	pro.run_safe(cmd)
-	#pro.message("File '{}' has been created".format(fn))
+	pro.message("Core files have been decompressed")
 
 
 ########
