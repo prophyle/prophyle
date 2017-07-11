@@ -96,6 +96,7 @@ FILES_TO_ARCHIVE=[
 		".complete.3",
 		"tree.nw",
 		"tree.preliminary.nw",
+		"index.json",
 		"index.fa.bwt",
 		"index.fa.ann",
 		"index.fa.amb", # but will be empty
@@ -883,6 +884,7 @@ def prophyle_compress(index_dir, archive):
 
 	# todo: should create a correct directory
 
+	pro.message("Creating a temporary directory for files to compress")
 	pro.makedirs(tmp_arc_dir)
 
 	for x in FILES_TO_ARCHIVE:
@@ -895,7 +897,7 @@ def prophyle_compress(index_dir, archive):
 	cmd = [IND, "debwtupdate", bwt_fn_1, bwt_fn_2]
 	pro.run_safe(cmd)
 
-	pro.message("Opening '{}'".format(archive))
+	pro.message("Creating '{}'".format(archive))
 	with tarfile.open(archive, "w:gz") as tar:
 		tar.add(tmp_arc_dir, arcname=arcdir)
 	pro.message("File '{}' has been created".format(archive))
@@ -919,7 +921,7 @@ def prophyle_decompress(archive, output_dir):
 	index_dir=os.path.join(output_dir, index_name)
 
 
-	pro.message("Decompressing ProPhyle index")
+	pro.message("Decompressing index core files")
 
 	cmd = ["tar", "xvf", archive, "-C", output_dir]
 	pro.run_safe(cmd)
@@ -928,7 +930,9 @@ def prophyle_decompress(archive, output_dir):
 	pro.touch(os.path.join(index_dir, "index.fa"))
 	pro.touch(os.path.join(index_dir, "index.fa.pac"))
 
-	cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "tree.nw"), index_dir]
+	config=pro.load_config(index_dir)
+
+	cmd = [PROPHYLE, "index", "-k", config['k'], os.path.join(index_dir, "tree.nw"), index_dir]
 	pro.run_safe(cmd)
 	pro.message("Index reconstruction finished")
 
@@ -1319,7 +1323,7 @@ def parser():
 
 	parser_compress = subparsers.add_parser(
 		'compress',
-		help='compress a ProPhyle index',
+		help='compress a ProPhyle index (experimental)',
 		formatter_class=fc,
 	)
 
@@ -1344,7 +1348,7 @@ def parser():
 
 	parser_decompress = subparsers.add_parser(
 		'decompress',
-		help='decompress a compressed ProPhyle index',
+		help='decompress a compressed ProPhyle index (experimental)',
 		formatter_class=fc,
 	)
 
