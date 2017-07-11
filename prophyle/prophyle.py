@@ -1276,6 +1276,8 @@ def parser():
 		'archive',
 		metavar='archive.tar.gz',
 		type=str,
+		default=None,
+		nargs="?",
 		help='output archive',
 	)
 
@@ -1369,9 +1371,14 @@ def main():
 
 		elif subcommand == "compress":
 
+			if args.archive is None:
+				archive=args.index_dir.lstrip("/")+".tar.gz"
+			else:
+				archive=args.archive,
+
 			prophyle_compress(
 				index_dir=args.index_dir,
-				archive=args.archive,
+				archive=archive,
 			)
 
 		else:
