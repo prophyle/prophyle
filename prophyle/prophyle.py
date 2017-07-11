@@ -32,6 +32,8 @@ import hashlib
 import multiprocessing
 import os
 import sys
+import tarfile
+import tempfile
 import textwrap
 
 sys.path.append(os.path.dirname(__file__))
@@ -836,6 +838,41 @@ def prophyle_analyze(tree, asgs_list, histograms, in_format, stats, out_prefix,
 	pro.run_safe(cmd_analyze)
 
 
+#####################
+# PROPHYLE COMPRESS #
+#####################
+
+def prophyle_compress(index_dir, archive):
+	tmp_dir=tempfile.mkdtemp()
+
+	bwt_fn_1=os.path.join(index_dir,"index.fa.bwt")
+	bwt_fn_2=os.path.join(tmp_dir,"index.fa.bwt")
+	cmd = [IND, "debwtupdate", bwt_fn_1, bwt_fn_2]
+	pro.run_safe(cmd)
+
+	pro.touch(os.path.join(tmp_dir, ".complete.1"))
+	pro.touch(os.path.join(tmp_dir, ".complete.2"))
+	pro.touch(os.path.join(tmp_dir, ".complete.3"))
+	#pro.touch(os.path.join(tmp_dir, "index.fa"))
+	#pro.touch(os.path.join(tmp_dir, "index.fa.pac"))
+
+	fns_to_add=[
+		bwt_fn_2,
+		os.path.join(index_dir, "index.fa.ann"),
+		os.path.join(index_dir, "tree.nw"),
+		os.path.join(index_dir, "tree.preliminary.nw"),
+		os.path.join(tmp_dir, ".complete.1"),
+		os.path.join(tmp_dir, ".complete.2"),
+		os.path.join(index_dir, "index.fa"),
+		os.path.join(index_dir, "index.fa.pac"),
+	]
+
+	with tarfile.open(archive, "w:gz") as tar:
+		for fn in fns_to_add:
+			print(fn, os.path.basename(fn))
+			tar.add(fn, arcname=os.path.basename(fn))
+
+
 ########
 # MAIN #
 ########
@@ -1220,6 +1257,29 @@ def parser():
 
 	##########
 
+	parser_compress = subparsers.add_parser(
+		'compress',
+		help='compress ProPhyle index',
+		formatter_class=fc,
+	)
+
+	parser_compress.add_argument(
+		'index_dir',
+		metavar='<index.dir>',
+		type=str,
+		help='index directory',
+	)
+
+	parser_compress.add_argument(
+		'archive',
+		metavar='archive.tar.gz',
+		type=str,
+		help='output archive',
+	)
+
+
+	##########
+
 	return parser
 
 
@@ -1303,6 +1363,13 @@ def main():
 				max_lines=args.max_lines,
 				otu_suffix=args.otu_suffix,
 				ncbi=args.ncbi,
+			)
+
+		elif subcommand == "compress":
+
+			prophyle_compress(
+				index_dir=args.index_dir,
+				archive=args.archive,
 			)
 
 		else:
