@@ -1448,7 +1448,7 @@ def main():
 		elif subcommand == "compress":
 
 			if args.archive is None:
-				archive=args.index_dir.lstrip("/")+".tar.gz"
+				archive=args.index_dir.rstrip("/")+".tar.gz"
 			else:
 				archive=args.archive
 
