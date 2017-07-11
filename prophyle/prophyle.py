@@ -1125,7 +1125,7 @@ def parser():
 	)
 
 	parser_index.add_argument('-A',
-		help='autocomplete tree (names of internal nodes and fasta paths)',
+		help='autocomplete tree (names of internal nodes and FASTA paths)',
 		dest='autocomplete',
 		action='store_true',
 	)
@@ -1152,14 +1152,14 @@ def parser():
 		'reads',
 		metavar='<reads1.fq>',
 		type=str,
-		help='first file with reads in FASTA or FASTQ (use - for standard input)',
+		help='first file with reads in FASTA/FASTQ (- for standard input)',
 	)
 
 	parser_classify.add_argument(
 		'reads_pe',
 		metavar='<reads2.fq>',
 		type=str,
-		help='second file with reads in FASTA or FASTQ',
+		help='second file with reads in FASTA/FASTQ',
 		nargs='?',
 		default=None,
 	)
@@ -1209,7 +1209,7 @@ def parser():
 		'-A',
 		dest='annotate',
 		action='store_true',
-		help='annotate assignments',
+		help='annotate assignments (using tax. information from NHX)',
 	)
 
 	parser_classify.add_argument(
@@ -1231,14 +1231,14 @@ def parser():
 		'-P',
 		dest='print_seq',
 		action='store_true',
-		help='print sequences and qualities in SAM (otherwise \'*\' is used)',
+		help='incorporate sequences and qualities into SAM records',
 	)
 
 	parser_classify.add_argument(
 		'-C',
 		dest='cimpl',
 		action='store_true',
-		help='use the C++ implementation of the assignment algorithm (highly experimental so far)',
+		help='use C++ impl. of the assignment algorithm (experimental)',
 		#help=argparse.SUPPRESS,
 	)
 
@@ -1391,7 +1391,7 @@ def parser():
 		'-K',
 		dest='klcp',
 		action='store_false',
-		help='skip k-LCP construction (then restarted search only)',
+		help='skip k-LCP construction',
 	)
 
 
