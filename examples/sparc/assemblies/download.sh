@@ -1,4 +1,7 @@
-#! /usr/bin/env bash -f -o pipefail
+#! /usr/bin/env bash
+
+set -f
+set -o pipefail
 
 THREADS=10
 FILE=../isolates.2015.tsv
@@ -19,5 +22,8 @@ function download_isolate ()
 
 export -f download_isolate
 
+#
+# Download assemblies
+#
 parallel -j $THREADS --colsep '\t' --skip-first-line --halt now,fail=1 --no-notice download_isolate :::: ${FILE}
 
