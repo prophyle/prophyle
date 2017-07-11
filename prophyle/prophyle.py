@@ -907,7 +907,7 @@ def prophyle_compress(index_dir, archive):
 # PROPHYLE DECOMPRESS #
 #######################
 
-def prophyle_decompress(archive, output_dir):
+def prophyle_decompress(archive, output_dir, klcp):
 	pro.test_files(archive)
 
 	_compile_prophyle_bin()
@@ -930,9 +930,12 @@ def prophyle_decompress(archive, output_dir):
 	pro.touch(os.path.join(index_dir, "index.fa"))
 	pro.touch(os.path.join(index_dir, "index.fa.pac"))
 
-	config=pro.load_config(index_dir)
+	if klcp:
+		config=pro.load_config(index_dir)
+		cmd = [PROPHYLE, "index", "-k", config['k'], os.path.join(index_dir, "tree.nw"), index_dir]
+	else:
+		cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "tree.nw"), index_dir]
 
-	cmd = [PROPHYLE, "index", "-k", config['k'], os.path.join(index_dir, "tree.nw"), index_dir]
 	pro.run_safe(cmd)
 	pro.message("Index reconstruction finished")
 
@@ -1104,7 +1107,7 @@ def parser():
 		'-K',
 		dest='klcp',
 		action='store_false',
-		help='skip k-LCP construction',
+		help='skip k-LCP construction (then restarted search only)',
 	)
 
 	parser_index.add_argument(
@@ -1369,6 +1372,14 @@ def parser():
 		help='output directory [./]',
 	)
 
+	parser_decompress.add_argument(
+		'-K',
+		dest='klcp',
+		action='store_false',
+		help='skip k-LCP construction (then restarted search only)',
+	)
+
+
 	##########
 
 	return parser
@@ -1473,6 +1484,7 @@ def main():
 			prophyle_decompress(
 				archive=args.archive,
 				output_dir=args.output_dir,
+				klcp=args.klcp,
 			)
 
 		else:
