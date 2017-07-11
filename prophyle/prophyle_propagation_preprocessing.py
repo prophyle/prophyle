@@ -18,6 +18,7 @@ import argparse
 import ete3
 import os
 import random
+import re
 import sys
 
 sys.path.append(os.path.dirname(__file__))
@@ -42,14 +43,28 @@ def autocomplete_fastapath(tree):
 
 def autocomplete_internal_node_names(tree):
 	print("Autocompleting internal node names", file=sys.stderr)
-	i=1
-	for n in tree.traverse():
+
+	re_inferred=re.compile(r'^(.*)-up(\d+)$')
+
+	for n in tree.traverse("postorder"):
 		if len(n.children)==0:
 			assert hasattr(n, "name")
 		else:
+			for x in n.children:
+				assert hasattr(x, "name")
+
 			if not hasattr(n, "name") or n.name=="" or n.name is None:
-				n.name="int_{}".format(i)
-				i+=1
+				names=[x.name for x in n.children]
+				lmin_name=sorted(names)[0]
+
+				m=re_inferred.match(lmin_name)
+				if m is not None:
+					left, right=m.groups()
+					right=int(right)+1
+					n.name="{}-up{}".format(left, right)
+				else:
+					n.name=lmin_name+"-up1"
+
 	return tree
 
 
