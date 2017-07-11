@@ -843,6 +843,7 @@ def prophyle_analyze(tree, asgs_list, histograms, in_format, stats, out_prefix,
 #####################
 
 def prophyle_compress(index_dir, archive):
+	_compile_prophyle_bin()
 	tmp_dir=tempfile.mkdtemp()
 
 	bwt_fn_1=os.path.join(index_dir,"index.fa.bwt")
