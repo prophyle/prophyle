@@ -813,6 +813,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	command = cmd_read + cmd_query + cmd_assign
 	pro.run_safe(command)
 
+
 ####################
 # PROPHYLE ANALYZE #
 ####################
@@ -846,35 +847,49 @@ def prophyle_compress(index_dir, archive):
 	_compile_prophyle_bin()
 	tmp_dir=tempfile.mkdtemp()
 	arcdir=index_dir.rstrip("/").split("/")[-1]
+	tmp_arc_dir=os.path.join(tmp_dir, arcdir)
+
+	# todo: should create a correct directory
+
+	pro.makedirs(tmp_arc_dir)
 
 	bwt_fn_1=os.path.join(index_dir,"index.fa.bwt")
 	bwt_fn_2=os.path.join(tmp_dir,"index.fa.bwt")
 	cmd = [IND, "debwtupdate", bwt_fn_1, bwt_fn_2]
 	pro.run_safe(cmd)
 
-	pro.touch(os.path.join(tmp_dir, ".complete.1"))
-	pro.touch(os.path.join(tmp_dir, ".complete.2"))
-	pro.touch(os.path.join(tmp_dir, ".complete.3"))
-	#pro.touch(os.path.join(tmp_dir, "index.fa"))
-	#pro.touch(os.path.join(tmp_dir, "index.fa.pac"))
 
-	fns_to_add=[
-		bwt_fn_2,
-		os.path.join(index_dir, "index.fa.ann"),
-		os.path.join(index_dir, "tree.nw"),
-		os.path.join(index_dir, "tree.preliminary.nw"),
-		os.path.join(tmp_dir, ".complete.1"),
-		os.path.join(tmp_dir, ".complete.2"),
-		os.path.join(index_dir, "index.fa"),
-		os.path.join(index_dir, "index.fa.pac"),
+	files_to_archive=[
+		".complete.1",
+		".complete.2",
+		"tree.nw",
+		"tree.preliminary.nw",
+		"index.fa",
+		"index.fa.pac",
 	]
+
+	for x in files_to_archive:
+		pro.cp_to_dir(os.path.join(index_dir,x), tmp_arc_dir)
+
 
 	pro.message("Opening '{}'".format(archive))
 	with tarfile.open(archive, "w:gz") as tar:
-		for fn in fns_to_add:
-			pro.message("Compressing '{}'".format(fn))
-			tar.add(fn, arcname=os.path.join(arcdir, os.path.basename(fn)))
-	pro.message("File '{}' has been created".format(fn))
+		#arcname=os.path.join(arcdir, os.path.basename(fn))
+		#pro.message("Compressing '{}' => '{}'".format(fn, arcname))
+		#tar.add(fn, arcname=arcname)
+		tar.add(tmp_arc_dir, arcname=arcdir)
+	pro.message("File '{}' has been created".format(archive))
+
+
+#######################
+# PROPHYLE DECOMPRESS #
+#######################
+
+def prophyle_decompress(archive, output_dir):
+	_compile_prophyle_bin()
+	cmd = ["tar", "xvf", archive, "-C", output_dir]
+	pro.run_safe(cmd)
+	#pro.message("File '{}' has been created".format(fn))
 
 
 ########
@@ -1263,7 +1278,7 @@ def parser():
 
 	parser_compress = subparsers.add_parser(
 		'compress',
-		help='compress ProPhyle index',
+		help='compress a ProPhyle index',
 		formatter_class=fc,
 	)
 
@@ -1283,6 +1298,31 @@ def parser():
 		help='output archive',
 	)
 
+
+	##########
+
+	parser_decompress = subparsers.add_parser(
+		'decompress',
+		help='decompress a compressed ProPhyle index',
+		formatter_class=fc,
+	)
+
+
+	parser_decompress.add_argument(
+		'archive',
+		metavar='archive.tar.gz',
+		type=str,
+		help='output archive',
+	)
+
+	parser_decompress.add_argument(
+		'output_dir',
+		metavar='output.dir',
+		type=str,
+		nargs="?",
+		default="./",
+		help='output directory [./]',
+	)
 
 	##########
 
@@ -1381,6 +1421,13 @@ def main():
 			prophyle_compress(
 				index_dir=args.index_dir,
 				archive=archive,
+			)
+
+		elif subcommand == "decompress":
+
+			prophyle_decompress(
+				archive=args.archive,
+				output_dir=args.output_dir,
 			)
 
 		else:
