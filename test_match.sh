@@ -1,4 +1,8 @@
-#! /usr/bin/env bash -f -e -o pipefail
+#! /usr/bin/env bash
+
+set -f
+set -e
+set -o pipefail
 
 echo
 echo " =========== 1 ============"

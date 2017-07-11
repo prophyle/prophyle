@@ -660,6 +660,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		if len(trees_fn) != 1:
 			pro.message('Merging {} trees'.format(len(trees_fn)))
 		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate, autocomplete=autocomplete)
+		_test_tree(index_tree_1)
 		_mark_complete(index_dir, 1)
 	else:
 		pro.message('[1/6] Tree already exists, skipping its creation', upper=True)
@@ -676,6 +677,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
+		_test_tree(index_tree_2)
 		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
