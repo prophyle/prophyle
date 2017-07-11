@@ -845,6 +845,7 @@ def prophyle_analyze(tree, asgs_list, histograms, in_format, stats, out_prefix,
 def prophyle_compress(index_dir, archive):
 	_compile_prophyle_bin()
 	tmp_dir=tempfile.mkdtemp()
+	arcdir=index_dir.rstrip("/").split("/")[-1]
 
 	bwt_fn_1=os.path.join(index_dir,"index.fa.bwt")
 	bwt_fn_2=os.path.join(tmp_dir,"index.fa.bwt")
@@ -872,7 +873,7 @@ def prophyle_compress(index_dir, archive):
 	with tarfile.open(archive, "w:gz") as tar:
 		for fn in fns_to_add:
 			pro.message("Compressing '{}'".format(fn))
-			tar.add(fn, arcname=os.path.basename(fn))
+			tar.add(fn, arcname=os.path.join(arcdir, os.path.basename(fn)))
 	pro.message("File '{}' has been created".format(fn))
 
 
