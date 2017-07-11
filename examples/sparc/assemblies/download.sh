@@ -1,4 +1,7 @@
-#! /usr/bin/env bash -f -o pipefail
+#! /usr/bin/env bash
+
+set -f
+set -o pipefail
 
 THREADS=10
 FILE=../isolates.2015.tsv

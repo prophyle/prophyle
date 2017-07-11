@@ -1,4 +1,7 @@
-#! /usr/bin/env bash -f -o pipefail
+#! /usr/bin/env bash
+
+set -f
+set -o pipefail
 
 #
 # Download tree (see http://datadryad.org/resource/doi:10.5061/dryad.t55gq/1)
