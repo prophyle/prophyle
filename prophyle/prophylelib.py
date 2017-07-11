@@ -479,7 +479,7 @@ def detect_k_from_index(index_dir):
 		index_dir (str): Index directory.
 	"""
 
-	config=load_configuration(index_dir)
+	config=load_config(index_dir)
 	return config['k']
 
 
