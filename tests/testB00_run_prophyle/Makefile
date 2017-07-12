@@ -2,7 +2,7 @@ LIBRARIES = .complete.bacteria .complete.viruses .complete.plasmids .complete.hm
 SEQS = seqs
 PKG_SEQS = pkg_seqs
 
-.PHONY: all clean all_libs
+.PHONY: all clean diffs
 
 include ../conf.mk
 
@@ -38,7 +38,7 @@ $(LIBRARIES):
 	touch $@
 
 # Add LIBRARIES dependency to avoid parallel usage of the same seq directory
-.all.complete: $(LIBRARIES)
+.complete.all: $(LIBRARIES)
 	@echo
 	@echo "========================================="
 	@echo "ALL"
@@ -47,8 +47,8 @@ $(LIBRARIES):
 	@echo "Download"
 	@echo "--------"
 	@echo
-	$(PROP) download -F -d $(SEQS) -l $(SEQS)/log_down_all.txt all
-	$(PROP_PKG) download -F -d $(PKG_SEQS) -l $(PKG_SEQS)/log_pkg_down_all.txt all
+	$(PROP) download -d $(SEQS) -l $(SEQS)/log_down_all.txt all
+	$(PROP_PKG) download -d $(PKG_SEQS) -l $(PKG_SEQS)/log_pkg_down_all.txt all
 	@echo
 	@echo "Index"
 	@echo "-----"
@@ -65,10 +65,10 @@ $(LIBRARIES):
 	# ANALYZE
 	touch $@
 
-git_pkg_diffs: $(LIBRARIES) all_libs
+diffs: $(LIBRARIES) .complete.all
 	@for f in ./diff_*.txt ; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
 
-all: $(LIBRARIES) all_libs git_pkg_diffs
+all: $(LIBRARIES) .complete.all diffs
 
 clean:
-	rm -fr log_* idx_* pkg_idx_* $(SEQS) $(PKG_SEQS)
+	rm -fr .complete.* log_* idx_* pkg_idx_* $(SEQS) $(PKG_SEQS)
