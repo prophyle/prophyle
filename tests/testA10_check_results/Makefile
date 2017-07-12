@@ -13,8 +13,8 @@ all:
 	$(PROP) classify $(index) $(reads) -L -f kraken | grep ^[C\t] | cut -f3,5 >_test_res.txt
 	diff $(ref) _test_res.txt > diff_ref.txt
 	# PAIRED END
-	$(PROP) classify $(index) $(reads) | cut -s -f6 | sort -k 3 | sort >_test_single.txt
-	$(PROP) classify $(index) $(reads) $(reads) | cut -s -f6 | sort -k 3 | sort >_test_paired.txt
+	$(PROP) classify $(index) $(reads) | cut --complement -f6 | sort -k 3 | sort >_test_single.txt
+	$(PROP) classify $(index) $(reads) $(reads) | cut --complement -f6 | sort -k 3 | sort >_test_paired.txt
 	diff _test_single.txt _test_paired.txt > diff_paired.txt
 	# CHECK DIFF
 	@for f in diff_*.txt ; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
