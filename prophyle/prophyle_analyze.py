@@ -19,10 +19,9 @@ from collections import Counter
 
 IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken','histo']
 STATS=['w','u','wl','ul']
-KNOWN_RANKS=['domain', 'superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
+KNOWN_RANKS=['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
 KRAKEN_RANKS={
 	'unclassified':'U',
-	'domain':'D',
 	'superkingdom':'K',
 	'phylum':'P',
 	'class':'C',
@@ -288,7 +287,7 @@ def compute_histogram(tree, asgs, stats):
 #     return distances
 
 
-def print_histogram(histogram, out_file):
+def print_histogram(histogram, out_f, tax_tree=None):
 	"""Print a histogram in tsv format with header, each line containing:
 	 - node name;
 	 - score of the node in the first sample;
@@ -297,20 +296,51 @@ def print_histogram(histogram, out_file):
 
 	Args:
 		histogram (dict of str:Counter): histogram computed using compute_histogram.
-		out_file (file): output file.
+		out_f (file): output file.
 	"""
+	taxa2info={}
+	if tax_tree is not None:
+		for node in tax_tree.traverse('preorder'):
+			if node.name!='merge_root':
+				try:
+					taxid=str(node.taxid).strip()
+					rank=node.rank.strip()
+					sci_name=node.sci_name.strip()
+					lineage=map(str.strip,node.lineage.split('|'))
+					taxa2info[taxid]=(rank,sci_name,tuple(lineage))
+				except AttributeError:
+					continue
+
 	# sum the histograms of each sample to sort assignments by score
 	merged_histo=sum(histogram.values(), Counter())
 	samples=sorted(histogram.keys())
-	# ref_nodes=sorted(set(ref for sample,asg_dict in asgs.items()
-	#                 for qname,ref_list in asg_dict.items() for ref in ref_list))
 
-	# header
-	print ("\t".join(["#OTU ID"]+samples), file=out_file)
-	for i, (node_name,w) in enumerate(sorted(merged_histo.items(), key=operator.itemgetter(1), reverse=True)):
+	header=["#OTU_ID"]+samples
+	if tax_tree is not None:
+		header+=KNOWN_RANKS
+	print ("\t".join(header), file=out_f)
+
+	for i, (node_name,w) in enumerate(merged_histo.most_common()):
 		sample_scores=[histogram[sample][node_name] for sample in samples]
-		sample_scores=["{:.2f}".format(round(w,2)) if isinstance(w, float) else str(w) for w in sample_scores]
-		print("\t".join([node_name]+sample_scores), file=out_file)
+		out_line=[node_name]+["{:.2f}".format(round(c,2)) if isinstance(c, float) else str(c) for c in sample_scores]
+		if tax_tree is not None:
+			info=['NA']*len(KNOWN_RANKS)
+			try:
+				_,_,lineage=taxa2info[node_name]
+			except KeyError:
+				continue
+			for t in lineage:
+				try:
+					r,sn,_=taxa2info[t]
+				except KeyError:
+					continue
+				try:
+					i=KNOWN_RANKS.index(r)
+					info[i]=sn
+				except ValueError:
+					continue
+			out_line+=info
+		print("\t".join(out_line), file=out_f)
 
 
 def load_histo(in_fns, tree):
@@ -325,11 +355,14 @@ def load_histo(in_fns, tree):
 	for fn in in_fns:
 		with open(fn, 'r') as f:
 			samples=list(map(str.strip, f.readline().split('\t')[1:]))
+			if len(samples)>len(KNOWN_RANKS) and samples[-len(KNOWN_RANKS):]==KNOWN_RANKS:
+				samples=samples[:-len(KNOWN_RANKS)]
+			fields_no=len(samples)+1
 			for sample in samples:
 				assert sample not in histo, "Duplicated sample ID"
 				histo[sample]=Counter()
 			for line_num, line in enumerate(f):
-				fields=list(map(str.strip, line.split('\t')))
+				fields=list(map(str.strip, line.split('\t')[:fields_no]))
 				assert len(fields)==(len(samples)+1), "Malformed histogram (check fields at line {})".format(line_num+2)
 				node_name=fields[0]
 				scores=fields[1:]
@@ -511,43 +544,43 @@ def compute_otu_table(histogram, tree):
 #         else:
 #             table.to_hdf5(out_f, table.generated_by)
 
-def print_taxonomy(tree, out_fn):
-
-	taxa2info={}
-	for node in tree.traverse('preorder'):
-		if node.name!='merge_root':
-			try:
-				taxid=str(node.taxid).strip()
-				rank=node.rank.strip()
-				sci_name=node.sci_name.strip()
-				if rank in KNOWN_RANKS:
-					taxa2info[taxid]=(rank,sci_name)
-			except AttributeError:
-				continue
-
-	with open(out_fn, 'w') as out_f:
-		print('#taxid\t'+'\t'.join(KNOWN_RANKS), file=out_f)
-		for node in tree.traverse('preorder'):
-			if node.name!='merge_root':
-				try:
-					lineage=map(str.strip,node.lineage.split('|'))
-					rank=node.rank.strip()
-				except AttributeError:
-					continue
-				if rank in KNOWN_RANKS:
-					info=['NA']*len(KNOWN_RANKS)
-					for t in lineage:
-						try:
-							r,sn=taxa2info[t]
-						except KeyError:
-							continue
-						try:
-							i=KNOWN_RANKS.index(r)
-							info[i]=sn
-						except ValueError:
-							continue
-					# t is the last element of lineage, e.g. the taxid of the node
-					print(t+'\t'+'\t'.join(info), file=out_f)
+# def print_taxonomy(tree, out_fn):
+#
+# 	taxa2info={}
+# 	for node in tree.traverse('preorder'):
+# 		if node.name!='merge_root':
+# 			try:
+# 				taxid=str(node.taxid).strip()
+# 				rank=node.rank.strip()
+# 				sci_name=node.sci_name.strip()
+# 				if rank in KNOWN_RANKS:
+# 					taxa2info[taxid]=(rank,sci_name)
+# 			except AttributeError:
+# 				continue
+#
+# 	with open(out_fn, 'w') as out_f:
+# 		print('#taxid\t'+'\t'.join(KNOWN_RANKS), file=out_f)
+# 		for node in tree.traverse('preorder'):
+# 			if node.name!='merge_root':
+# 				try:
+# 					lineage=map(str.strip,node.lineage.split('|'))
+# 					rank=node.rank.strip()
+# 				except AttributeError:
+# 					continue
+# 				if rank in KNOWN_RANKS:
+# 					info=['NA']*len(KNOWN_RANKS)
+# 					for t in lineage:
+# 						try:
+# 							r,sn=taxa2info[t]
+# 						except KeyError:
+# 							continue
+# 						try:
+# 							i=KNOWN_RANKS.index(r)
+# 							info[i]=sn
+# 						except ValueError:
+# 							continue
+# 					# t is the last element of lineage, e.g. the taxid of the node
+# 					print(t+'\t'+'\t'.join(info), file=out_f)
 
 def print_kraken_report(otu_table, histogram, tree, out_f):
 	merged_histo=sum(histogram.values(), Counter())
@@ -598,14 +631,13 @@ def main():
 		histogram=load_histo(histo_fns,tree)
 	else:
 		histogram=compute_histogram(tree, asgs, args.stats)
-		with open(args.out_prefix+'_rawhits.tsv', "w") as f:
-			print_histogram(histogram, f)
+	otu_table,ncbi=compute_otu_table(histogram,tree)
+	with open(args.out_prefix+'_rawhits.tsv', 'w') as f:
+		print_histogram(histogram, f, tree if ncbi else None)
 
-	otu_table, ncbi =compute_otu_table(histogram,tree)
 	with open(args.out_prefix+'_otu.tsv', 'w') as f:
-		print_histogram(otu_table, f)
+		print_histogram(otu_table, f, tree if ncbi else None)
 	if ncbi:
-		print_taxonomy(tree,args.out_prefix+"_tax.tsv")
 		with open(args.out_prefix+'.kraken', 'w') as f:
 			print_kraken_report(otu_table, histogram, tree, f)
 
