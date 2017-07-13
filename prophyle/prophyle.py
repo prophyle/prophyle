@@ -68,6 +68,7 @@ if GITDIR:
 # package
 else:
 	PROPHYLE = "prophyle"
+	PY_ASSIGN = "prophyle_assignment.py"
 	ANALYZE = "prophyle_analyze.py"
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
