@@ -1,4 +1,9 @@
-#! /usr/bin/env bash -u -f -e -o pipefail
+#! /usr/bin/env bash
+
+set -u
+set -f
+set -e
+set -o pipefail
 
 K=31
 
