@@ -644,29 +644,28 @@ def print_metaphlan_report(otu_table, tot_count, tree, out_f):
 				rank=node.rank
 				lineage=node.lineage
 			except AttributeError:
-				rank='unclassified'
-				lineage='no_tax'
-			# taxonomic string (r__name|r__name...)
-			tax_string=''
-			for t in lineage.split('|'):
-				n=tree.search_nodes(taxid=t)
-				if len(n)==1:
-					n=n[0]
-					try:
-						name=n.sci_name
-						rank=n.rank
-						if rank in KNOWN_RANKS:
-							prefix=METAPHLAN_RANKS.get(rank,'u__')
-							if tax_string=='':
-								tax_string=prefix+name
-							else:
-								tax_string+='|'+prefix+name
-					except AttributeError:
-						continue
-			# Percentage of reads covered by the clade rooted at this taxon
-			out_line=[tax_string]+["{:.5f}".format(round(c*100/tot_count,5)) for c in counts]
-
-			print(*out_line, sep='\t', file=out_f)
+				continue
+			if rank in KNOWN_RANKS:
+				# taxonomic string (r__name|r__name...)
+				tax_string=''
+				for t in lineage.split('|'):
+					n=tree.search_nodes(taxid=t)
+					if len(n)==1:
+						n=n[0]
+						try:
+							name=n.sci_name
+							rank=n.rank
+							if rank in KNOWN_RANKS:
+								prefix=METAPHLAN_RANKS.get(rank,'u__')
+								if tax_string=='':
+									tax_string=prefix+name
+								else:
+									tax_string+='|'+prefix+name
+						except AttributeError:
+							continue
+				# Percentage of reads covered by the clade rooted at this taxon
+				out_line=[tax_string]+["{:.5f}".format(round(c*100/tot_count,5)) for c in counts]
+				print(*out_line, sep='\t', file=out_f)
 
 def main():
 	args=parse_args()
