@@ -30,6 +30,16 @@ KRAKEN_RANKS={
 	'genus':'G',
 	'species':'S'
 }
+METAPHLAN_RANKS={
+	'unclassified':'u__',
+	'superkingdom':'k__',
+	'phylum':'p__',
+	'class':'c__',
+	'order':'o__',
+	'family':'f__',
+	'genus':'g__',
+	'species':'s__'
+}
 
 class NotNCBIException(Exception):
     pass
@@ -585,7 +595,7 @@ def compute_otu_table(histogram, tree):
 def print_kraken_report(otu_table, histogram, tree, out_f):
 	merged_histo=sum(histogram.values(), Counter())
 	merged_otu=sum(otu_table.values(), Counter())
-	tot_count=float(sum(merged_otu.values()))
+	tot_count=float(sum(merged_histo.values()))
 	# indentation of the previous scientific name
 	prev_or_curr_ind=0
 	for node in tree.traverse('preorder'):
@@ -602,7 +612,7 @@ def print_kraken_report(otu_table, histogram, tree, out_f):
 			except AttributeError:
 				rank='unclassified'
 			# Percentage of reads covered by the clade rooted at this taxon
-			out_line=["{:.2f}".format(round(count/tot_count,2))]
+			out_line=["{:.2f}".format(round(count*100/tot_count,2))]
 			# Number of reads covered by the clade rooted at this taxon
 			out_line.append("{:.2f}".format(round(count,2)) if isinstance(count, float) else str(count))
 			# Number of reads assigned directly to this taxon
@@ -616,6 +626,47 @@ def print_kraken_report(otu_table, histogram, tree, out_f):
 				prev_or_curr_ind=KNOWN_RANKS.index(rank)
 			out_line.append(' '*prev_or_curr_ind + sci_name)
 			print('\t'.join(out_line), file=out_f)
+	return tot_count
+
+def print_metaphlan_report(otu_table, tot_count, tree, out_f):
+	samples=list(otu_table.keys())
+	header=['ID'] + samples
+	print(*header, sep='\t', file=out_f)
+	for node in tree.traverse('preorder'):
+		try:
+			taxon=node.taxid
+			sci_name=node.sci_name
+		except AttributeError:
+			continue
+		counts=[otu_table[s][taxon] for s in samples]
+		if sum(counts) > 0:
+			try:
+				rank=node.rank
+				lineage=node.lineage
+			except AttributeError:
+				rank='unclassified'
+				lineage='no_tax'
+			# taxonomic string (r__name|r__name...)
+			tax_string=''
+			for t in lineage.split('|'):
+				n=tree.search_nodes(taxid=t)
+				if len(n)==1:
+					n=n[0]
+					try:
+						name=n.sci_name
+						rank=n.rank
+						if rank in KNOWN_RANKS:
+							prefix=METAPHLAN_RANKS.get(rank,'u__')
+							if tax_string=='':
+								tax_string=prefix+name
+							else:
+								tax_string+='|'+prefix+name
+					except AttributeError:
+						continue
+			# Percentage of reads covered by the clade rooted at this taxon
+			out_line=[tax_string]+["{:.5f}".format(round(c*100/tot_count,5)) for c in counts]
+
+			print(*out_line, sep='\t', file=out_f)
 
 def main():
 	args=parse_args()
@@ -632,14 +683,16 @@ def main():
 	else:
 		histogram=compute_histogram(tree, asgs, args.stats)
 	otu_table,ncbi=compute_otu_table(histogram,tree)
-	with open(args.out_prefix+'_rawhits.tsv', 'w') as f:
+	with open(args.out_prefix+'.rawhits.tsv', 'w') as f:
 		print_histogram(histogram, f, tree if ncbi else None)
 
-	with open(args.out_prefix+'_otu.tsv', 'w') as f:
+	with open(args.out_prefix+'.otu.tsv', 'w') as f:
 		print_histogram(otu_table, f, tree if ncbi else None)
 	if ncbi:
-		with open(args.out_prefix+'.kraken', 'w') as f:
-			print_kraken_report(otu_table, histogram, tree, f)
+		with open(args.out_prefix+'.kraken.tsv', 'w') as f:
+			tot_count=print_kraken_report(otu_table, histogram, tree, f)
+		with open(args.out_prefix+'.metaphlan.tsv', 'w') as f:
+			print_metaphlan_report(otu_table, tot_count, tree, f)
 
 if __name__ == "__main__":
 	try:
