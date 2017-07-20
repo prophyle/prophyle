@@ -2,7 +2,8 @@
 
 """K-mer propagation post-processing.
 
-Create the main index FASTA file and a tree with k-mer annotations.
+Create the main index FASTA file and a tree with k-mer annotations (number of
+k-mers during propagation - size of the  full k-mer set and reduced k-mer set).
 
 Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -50,7 +51,7 @@ def load_kmer_stats(tsv_fn):
 
 
 def enrich_tree(tree, count_tb):
-	for node in tree.traverse ("preorder"):
+	for node in tree.traverse ("postorder"):
 		node.del_feature ('kmers_full')
 		node.del_feature ('kmers_reduced')
 
@@ -58,16 +59,24 @@ def enrich_tree(tree, count_tb):
 
 		assert nname != "", "There is a node without any name ('')"
 
+
+		singleton = len(node.children)==1
+
 		try:
 			node.add_features (kmers_full=count_tb["full"][nname])
 		except KeyError:
-			print ("Warning: full-{} is missing".format (nname), file=sys.stderr)
-			node.add_features (kmers_full=0)
+			if singleton:
+				# kmer_full the same as in the child
+				node.add_features (kmers_full=node.children[0].kmers_full)
+			else:
+				print ("Warning: full-{} is missing".format (nname), file=sys.stderr)
+				node.add_features (kmers_full=0)
 
 		try:
 			node.add_features (kmers_reduced=count_tb["reduced"][nname])
 		except KeyError:
-			print ("Warning: reduced-{} is missing".format (nname), file=sys.stderr)
+			if not singleton:
+				print ("Warning: reduced-{} is missing".format (nname), file=sys.stderr)
 			node.add_features (kmers_reduced=0)
 
 		assert 0 <= node.kmers_reduced
@@ -106,39 +115,46 @@ def create_fasta(propagation_dir, index_fasta_fn, suffix, verbose=False):
 
 
 def main():
+
 	parser = argparse.ArgumentParser (
-		description='K-mer propagation postprocessing – merging FASTA files and tree minimization.'
+		description='K-mer propagation postprocessing – merging FASTA files and k-mer annotation.'
 	)
+
 	parser.add_argument (
 		'dir',
 		metavar='<propagation.dir>',
 		type=str,
 		help='directory with FASTA files'
 	)
+
 	parser.add_argument (
 		'index_fasta_fn',
 		type=str,
 		metavar='<index.fa>',
 		help='output fast file',
 	)
+
 	parser.add_argument (
 		'in_tree_fn',
 		type=str,
 		metavar='<in.tree.nw>',
 		help='input phylogenetic tree',
 	)
+
 	parser.add_argument (
 		'counts_fn',
 		type=str,
 		metavar='<counts.tsv>',
 		help='input phylogenetic tree',
 	)
+
 	parser.add_argument (
 		'out_tree_fn',
 		type=str,
 		metavar='<out.tree.nw>',
 		help='output phylogenetic tree',
 	)
+
 	#parser.add_argument (
 	#	'-D',
 	#	dest='nondel',

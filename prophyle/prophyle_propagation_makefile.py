@@ -2,6 +2,10 @@
 
 """Create a Makefile for ProPhyle k-mer propagation.
 
+This script first loads a phylogenetic tree, computes its minimal
+subtree (i.e., removes all nodes with one child), traverses the
+subtree and prints the corresponding k-mer propagation rules.
+
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
 Licence: MIT
@@ -176,7 +180,7 @@ class TreeIndex:
 		self.index_dir = index_dir
 		self.library_dir = library_dir
 		self.makefile_fn = makefile_fn
-		os.makedirs(self.index_dir, exist_ok=True)
+		pro.makedirs(self.index_dir)
 
 	@staticmethod
 	def _node_debug(node):
@@ -332,7 +336,7 @@ def main():
 		'newick_fn',
 		type=str,
 		metavar='<tree.nw>',
-		help='Taxonomic tree (in Newick/NHX).',
+		help='phylogenetic tree (in Newick/NHX).',
 	)
 	parser.add_argument(
 		'-k',
