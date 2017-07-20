@@ -3,3 +3,4 @@ wheel
 bitarray
 psutil
 pysam
+scipy

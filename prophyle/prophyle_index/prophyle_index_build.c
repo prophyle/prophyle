@@ -77,3 +77,32 @@ void build_index(const char *prefix, const prophyle_index_opt_t *opt, int sa_int
 		bwt_destroy_without_sa(bwt);
 	}
 }
+
+int debwtupdate(const char* bwt_input_file, const char* bwt_output_file) {
+	bwtint_t i, k, n_occ;
+	uint32_t *buf;
+	bwt_t *bwt = bwt_restore_bwt(bwt_input_file);
+	n_occ = (bwt->seq_len + OCC_INTERVAL - 1) / OCC_INTERVAL + 1;
+	// fprintf(stderr, "seq_len: %d n_occ: %d old_size: %d new_size: %d\n",
+	// 	bwt->seq_len, n_occ, bwt->bwt_size, bwt->bwt_size - n_occ * sizeof(bwtint_t));
+	bwt->bwt_size -= n_occ * sizeof(bwtint_t); // the new size
+	buf = (uint32_t*)calloc(bwt->bwt_size, 4); // will be the new bwt
+	// c[0] = c[1] = c[2] = c[3] = 0;
+	for (i = k = 0; i < bwt->seq_len; ++i) {
+		// fprintf(stderr, "i: %d k: %d\n", i, k);
+		if (i % OCC_INTERVAL == 0) {
+			// memcpy(buf + k, c, sizeof(bwtint_t) * 4);
+			k += sizeof(bwtint_t); // in fact: sizeof(bwtint_t)=4*(sizeof(bwtint_t)/4)
+		}
+		if (i % 16 == 0) buf[i/16] = bwt->bwt[k++]; // 16 == sizeof(uint32_t)/2
+		// ++c[bwt_B00(bwt, i)];
+	}
+	// fprintf(stderr, "end loop\n");
+	free(bwt->bwt);
+	bwt->bwt = buf;
+	// fprintf(stderr, "begore dump\n");
+	bwt_dump_bwt(bwt_output_file, bwt);
+	// fprintf(stderr, "after dump\n");
+	bwt_destroy(bwt);
+	return 0;
+}
