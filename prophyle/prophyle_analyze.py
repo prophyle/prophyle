@@ -248,23 +248,24 @@ def compute_histogram(tree, asgs, stats):
 		stats (str): statistics to use.
 	"""
 	hist={}
+	unique_hist={}
 	# propagate all assignments to leaves
 	if stats.endswith('l'):
 		asgs=asgs_to_leaves(tree, asgs)
 	for fn, asg_dict in asgs.items():
 		hist[fn]=Counter()
+		unique_hist[fn]=Counter()
 		for qname, ref in asg_dict.items():
 			# weighted score for multiple assignments
-			if stats.startswith('w'):
-				no_asg=float(len(ref))
-				for taxid in ref:
-					hist[fn][taxid]+=1/no_asg
+			no_asg=float(len(ref))
+			for taxid in ref:
+				hist[fn][taxid]+=1/no_asg
 			# unique assignments only
-			elif len(ref)==1:
+			if len(ref)==1:
 				taxid=ref[0]
-				hist[in_fn][taxid]+=1
+				unique_hist[fn][taxid]+=1
 
-	return hist
+	return hist, unique_hist
 
 
 # def compute_node_distances(tree, main_node_name):
@@ -328,7 +329,7 @@ def print_histogram(histogram, out_f, tax_tree=None):
 	header=["#OTU_ID"]+samples
 	if tax_tree is not None:
 		header+=KNOWN_RANKS
-	print ("\t".join(header), file=out_f)
+	print (*header, sep='\t', file=out_f)
 
 	for i, (node_name,w) in enumerate(merged_histo.most_common()):
 		sample_scores=[histogram[sample][node_name] for sample in samples]
@@ -350,7 +351,7 @@ def print_histogram(histogram, out_f, tax_tree=None):
 				except ValueError:
 					continue
 			out_line+=info
-		print("\t".join(out_line), file=out_f)
+		print(*out_line, sep='\t', file=out_f)
 
 
 def load_histo(in_fns, tree):
@@ -624,8 +625,10 @@ def print_kraken_report(otu_table, histogram, tree, out_f):
 			# indented scientific name
 			if rank in KNOWN_RANKS:
 				prev_or_curr_ind=KNOWN_RANKS.index(rank)
-			out_line.append(' '*prev_or_curr_ind + sci_name)
-			print('\t'.join(out_line), file=out_f)
+				out_line.append(' '*prev_or_curr_ind + sci_name)
+			elif node.is_leaf():
+				out_line.append(' '*(prev_or_curr_ind+1) + sci_name)
+			print(*out_line, sep='\t', file=out_f)
 	return tot_count
 
 def print_metaphlan_report(otu_table, tot_count, tree, out_f):
@@ -667,6 +670,44 @@ def print_metaphlan_report(otu_table, tot_count, tree, out_f):
 				out_line=[tax_string]+["{:.5f}".format(round(c*100/tot_count,5)) for c in counts]
 				print(*out_line, sep='\t', file=out_f)
 
+def print_centrifuge_report(otu_table, histogram, unique_histogram, tree, out_f):
+	header = ['#name', 'taxID', 'taxRank', 'kmerCount', 'numReads', 'numUniqueReads', 'abundance']
+	print(*header, sep='\t', file=out_f)
+	merged_histo=sum(histogram.values(), Counter())
+	merged_unique_histo=sum(unique_histogram.values(), Counter()) if unique_histogram is not None else None
+	merged_otu=sum(otu_table.values(), Counter())
+	for node in tree.traverse('preorder'):
+		try:
+			taxon=node.taxid
+			sci_name=node.sci_name
+		except AttributeError:
+			continue
+		count=merged_otu[taxon]
+		kmer_count=int(node.kmers_full) if hasattr(node,'kmers_full') else 0
+		if count > 0:
+			hits=merged_histo[taxon]
+			unique_hits=merged_unique_histo[taxon] if merged_unique_histo is not None else '0'
+			try:
+				rank=node.rank
+			except AttributeError:
+				rank='unclassified'
+			# Scientific name & taxid
+			out_line=[sci_name, taxon]
+			# Taxonomic rank
+			if node.is_leaf():
+				out_line.append('leaf')
+			else:
+				out_line.append(rank)
+			# K-mer count (full, before propagation)
+			out_line.append(str(kmer_count))
+			# Number of reads assigned directly to this taxon (with weighted multiple assignments)
+			out_line.append("{:.2f}".format(round(hits,2)) if isinstance(hits, float) else str(hits))
+			# Number of reads assigned UNIQUELY to this taxon
+			out_line.append(str(int(unique_hits)))
+			# Assigned reads/K-mer count ratio
+			out_line.append("{:.8f}".format(round(hits/kmer_count,8)) if kmer_count!=0 else 0)
+			print(*out_line, sep='\t', file=out_f)
+
 def main():
 	args=parse_args()
 	if os.path.isdir(args.index_dir):
@@ -679,12 +720,15 @@ def main():
 	if len(histo_fns)>0:
 		assert len(args.input_fns)==len(histo_fns), "Mixed histogram/assignments input formats not supported"
 		histogram=load_histo(histo_fns,tree)
+		unique_histogram=None
 	else:
-		histogram=compute_histogram(tree, asgs, args.stats)
+		histogram,unique_histogram=compute_histogram(tree, asgs, args.stats)
 	otu_table,ncbi=compute_otu_table(histogram,tree)
 	with open(args.out_prefix+'.rawhits.tsv', 'w') as f:
-		print_histogram(histogram, f, tree if ncbi else None)
-
+		if args.stats.startswith('w'):
+			print_histogram(histogram, f, tree if ncbi else None)
+		elif unique_histogram:
+			print_histogram(unique_histogram, f, tree if ncbi else None)
 	with open(args.out_prefix+'.otu.tsv', 'w') as f:
 		print_histogram(otu_table, f, tree if ncbi else None)
 	if ncbi:
@@ -692,6 +736,8 @@ def main():
 			tot_count=print_kraken_report(otu_table, histogram, tree, f)
 		with open(args.out_prefix+'.metaphlan.tsv', 'w') as f:
 			print_metaphlan_report(otu_table, tot_count, tree, f)
+		with open(args.out_prefix+'.centrifuge.tsv', 'w') as f:
+			print_centrifuge_report(otu_table, histogram, unique_histogram, tree, f)
 
 if __name__ == "__main__":
 	try:
