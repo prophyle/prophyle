@@ -624,7 +624,7 @@ def print_kraken_report(otu_table, histogram, tree, out_f):
 			# indented scientific name
 			if rank in KNOWN_RANKS:
 				prev_or_curr_ind=KNOWN_RANKS.index(rank)
-			out_line.append(' '*prev_or_curr_ind + sci_name)
+			out_line.append('  '*prev_or_curr_ind + sci_name)
 			print('\t'.join(out_line), file=out_f)
 	return tot_count
 
