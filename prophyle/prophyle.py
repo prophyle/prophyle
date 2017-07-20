@@ -867,6 +867,9 @@ def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
 	if in_format is not None:
 		cmd_analyze += ['-f', in_format]
 
+	pro.test_files(*filter(lambda x: x!="-",input_fns), test_nonzero=True)
+
+
 	pro.run_safe(cmd_analyze)
 
 
