@@ -53,6 +53,7 @@ setuptools.setup(
 			'wheel',
 			'bitarray',
 			'psutil',
+			'scipy',
 		],
 
 	package_data={
