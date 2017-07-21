@@ -534,12 +534,15 @@ def print_kraken_report(otu_table, histogram, unclassified, tree, out_f):
 	merged_histo=sum(histogram.values(), Counter())
 	merged_otu=sum(otu_table.values(), Counter())
 	tot_count=float(sum(merged_histo.values())+unclassified)
-	indentation={tree.name:0}
+	if tree.name=='merge_root':
+		indentation={n.name:0 for n in tree.children}
+	else:
+		indentation={tree.name:0}
 	unclass_line=["{:.2f}".format(round(unclassified*100/tot_count,2)),
 				str(unclassified), str(unclassified), 'U', '0', 'unclassified']
 	print(*unclass_line, sep='\t', file=out_f)
 	for node in tree.traverse('preorder'):
-		if node.up is not None:
+		if node.up is not None and node.name not in indentation:
 			indentation[node.name]=indentation[node.up.name]+1
 		if node.name!='merge_root':
 			try:
