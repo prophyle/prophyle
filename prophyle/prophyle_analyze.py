@@ -15,6 +15,7 @@ import operator
 import pysam
 
 from ete3 import Tree
+from ete3.coretype.tree import TreeError
 from collections import Counter
 
 IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken','histo']
@@ -229,7 +230,7 @@ def asgs_to_leaves(tree,asgs):
 				if tax!="merge_root":
 					try:
 						n=tree & tax
-					except:
+					except TreeError:
 						print("[prophyle_analyze] Node {} not found in the tree".format(n1_name), file=sys.stderr)
 						raise
 				if n.is_leaf():
