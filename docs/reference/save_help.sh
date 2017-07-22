@@ -1,10 +1,10 @@
 #! /usr/bin/env bash
 
-set -e -f -o pipefail
+#set -e -f -o pipefail
 
 cd $(dirname $0)
 
-for x in main download index classify ; do
+for x in main download index classify analyze compress decompress ; do
 	fn="$x.txt"
 	echo "$fn"
 
@@ -14,8 +14,18 @@ for x in main download index classify ; do
 
 	echo "$ prophyle $x -h" > $fn
 	echo >> $fn
-	prophyle $x -h >> $fn
+	../../prophyle/prophyle.py $x -h >> $fn
 done
+
+# prophyle_ncbi_tree.py
+
+fn="prophyle_ncbi_tree.txt"
+com="../../prophyle/prophyle_ncbi_tree.py"
+
+echo "$fn"
+echo "$ `basename $com` -h" > $fn
+echo >> $fn
+$com -h 2>&1 >>$fn
 
 # prophyle_index
 
@@ -54,3 +64,13 @@ echo "$fn"
 echo "$ `basename $com` -h" > $fn
 echo >> $fn
 $com -h >> $fn
+
+# prophyle_analyze
+
+fn="prophyle_analyze.txt"
+com="../../prophyle/prophyle_analyze.py"
+
+echo "$fn"
+echo "$ `basename $com` -h" > $fn
+echo >> $fn
+$com -h 2>&1 >>$fn
