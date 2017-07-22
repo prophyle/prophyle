@@ -1,7 +1,9 @@
 $ prophyle_index build -h
 
+
 Usage:   prophyle_index build <prefix>
 
-Options:  -k INT    length of k-mer
-         -s        construct klcp and sa in parallel
+Options: -k INT    length of k-mer
+         -s        construct k-LCP and SA in parallel
          -i        sampling distance for SA
+
