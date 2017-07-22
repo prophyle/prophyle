@@ -56,7 +56,8 @@ def open_log(fn):
 	global log_file
 	if fn is not None:
 		d = os.path.dirname(fn)
-		makedirs(d)
+		if d!="":
+			makedirs(d)
 		log_file = open(fn, "a+")
 
 
