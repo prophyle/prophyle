@@ -1,0 +1,10 @@
+$ prophyle compress -h
+
+usage: prophyle.py compress [-h] <index.dir> [<archive.tar.gz>]
+
+positional arguments:
+  <index.dir>       index directory
+  <archive.tar.gz>  output archive [<index.dir>.tar.gz]
+
+optional arguments:
+  -h, --help        show this help message and exit
