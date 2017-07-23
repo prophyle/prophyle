@@ -81,6 +81,7 @@ setuptools.setup(
    entry_points={
 		'console_scripts': [
 			'prophyle = prophyle.prophyle:main',
+			'prophyle_analyze.py = prophyle.prophyle_analyze:main',
 			'prophyle_assignment.py = prophyle.prophyle_assignment:main',
 			'prophyle_ncbi_tree.py = prophyle.prophyle_ncbi_tree:main',
 			'prophyle_otu_table.py = prophyle.prophyle_otu_table:main',
