@@ -1,6 +1,6 @@
 LIBRARIES = bacteria viruses plasmids hmp
-GIT_LIBS = $(addprefix .complete.git.,$LIBRARIES)
-PKG_LIBS = $(addprefix .complete.pkg.,$LIBRARIES)
+GIT_LIBS = $(addprefix .complete.git.,$(LIBRARIES))
+PKG_LIBS = $(addprefix .complete.pkg.,$(LIBRARIES))
 GIT_SEQS = seqs
 PKG_SEQS = pkg_seqs
 STATS = w u wl ul
