@@ -4,3 +4,4 @@ bitarray
 psutil
 pysam
 scipy
+six
