@@ -24,7 +24,7 @@ assembling contigs at each node, and matching using a standard full-text search 
 The analysis of shared *k*-mers between NGS reads and the genomes in the index determines
 which nodes are the best candidates for their classification.
 More information about the indexing scheme
-can be found in our `poster <http://brinda.cz/publications/2017_prophyle_hsph_poster_day.pdf>`_.
+can be found in our `poster <http://brinda.cz/publications/2017_prophyle_hitseq.pdf>`_.
 
 Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
 
