@@ -51,6 +51,21 @@ def _compl_l(fns):
 	return [_compl(x) for x in fns]
 
 
+def tree_size(tree):
+	"""Get the size of the tree (# of nodes).
+
+	Args:
+		tree: Tree.
+	"""
+	nodes=0
+	leaves=0
+	for n in tree.traverse():
+		nodes+=1
+		if n.is_leaf():
+			leaves+=1
+	return (nodes,leaves)
+
+
 def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_file_fn=None):
 	"""Print Makefile lines for merging FASTA files and removing empty lines.
 
@@ -135,6 +150,7 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
 				@echo starting propagation for $@
 				$(CMD_ASM_{nid})
 				@touch $@
+				-$(PRINT_PROGRESS)
 			""".format(
 		icompl=' '.join(_compl_l(input_files_fn)),
 		o=' '.join(output_files_fn),
@@ -253,6 +269,8 @@ class TreeIndex:
 			k (int): K-mer size.
 		"""
 
+		nodes,leaves=tree_size(self.tree)
+
 		with open(self.makefile_fn, 'w+') as f:
 			print(textwrap.dedent("""\
 					include params.mk\n
@@ -263,6 +281,13 @@ class TreeIndex:
 
 					PRG_ASM?=prophyle_assembler
 					PRG_DUST?=dustmasker
+
+					NODES={nodes}
+					LEAVES={leaves}
+					INTERNAL_NODES={internal_nodes}
+					DATETIME=$$(date '+%Y-%m-%d %H:%M:%S')
+					PRINT_PROGRESS=@echo "[prophyle_propagation]" $(DATETIME) "Progress of k-mer propagation:" $$(( $$(find . -name '*.full.fa.complete' | wc -l) - $(LEAVES) )) / $(INTERNAL_NODES)
+
 
 					$(info )
 					$(info /------------------------------------------------------------------)
@@ -324,6 +349,9 @@ class TreeIndex:
 				root_nonred_compl=_compl(self.nonreduced_fasta_fn(self.tree.get_tree_root())),
 				root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
 				root_red_compl=_compl(self.reduced_fasta_fn(self.tree.get_tree_root())),
+				nodes=nodes,
+				leaves=leaves,
+				internal_nodes=nodes-leaves,
 			)
 			), file=f)
 
