@@ -1,6 +1,9 @@
 #! /usr/bin/env python3
 
-vfn="prophyle/version.py"
+import os
+import sys
+
+vfn=os.path.join(os.path.dirname(sys.argv[0]),"version.py")
 
 exec(open(vfn).read())
 
