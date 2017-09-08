@@ -288,7 +288,7 @@ def print_histogram(histogram, out_f, tax_tree=None):
 		for node in tax_tree.traverse('preorder'):
 			if node.name!='merge_root':
 				try:
-					taxid=str(node.taxid).strip()
+					taxid=str(node.name).strip()
 					rank=node.rank.strip()
 					sci_name=node.sci_name.strip()
 					lineage=map(str.strip,node.lineage.split('|'))
@@ -369,7 +369,7 @@ def ncbi_tree_info(tree):
 	for node in tree.traverse('postorder'):
 		if node.name!='merge_root':
 			try:
-				taxid=str(node.taxid)
+				taxid=str(node.name)
 				rank=node.rank
 			except AttributeError:
 				print("""[prophyle_analyze] taxonomic annotations (taxid or
@@ -387,7 +387,7 @@ def ncbi_tree_info(tree):
 						ranked_desc_count[rank]['1']+=1
 					else:
 						try:
-							anc_taxid=str(anc.taxid)
+							anc_taxid=str(anc.name)
 							anc_rank=anc.rank
 						except AttributeError:
 							print("""[prophyle_analyze] taxonomic annotations (taxid or
@@ -411,16 +411,16 @@ def compute_otu_table(histogram, tree):
 		if ncbi:
 			for node in tree.traverse('postorder'):
 				if node.name!='merge_root':
-					taxid=str(node.taxid)
+					taxid=str(node.name)
 					rank=node.rank
 				count=histo[taxid]
 				if count!=0:
 					for anc in node.iter_ancestors():
 						if anc.name!='merge_root':
-							otu_t[str(anc.taxid)]+=count
+							otu_t[str(anc.name)]+=count
 					# leaves=node.get_leaves()
 					# for desc in node.iter_descendants():
-					# 	desc_taxid=str(desc.taxid)
+					# 	desc_taxid=str(desc.name)
 					# 	desc_rank=desc.rank
 					# 	# propagate weighted assigment count to descendants
 					# 	# (divided by no of nodes at each rank, or leaves count)
@@ -498,7 +498,7 @@ def compute_otu_table(histogram, tree):
 # 	for node in tree.traverse('preorder'):
 # 		if node.name!='merge_root':
 # 			try:
-# 				taxid=str(node.taxid).strip()
+# 				taxid=str(node.name).strip()
 # 				rank=node.rank.strip()
 # 				sci_name=node.sci_name.strip()
 # 				if rank in KNOWN_RANKS:
@@ -546,7 +546,7 @@ def print_kraken_report(otu_table, histogram, unclassified, tree, out_f):
 			indentation[node.name]=indentation[node.up.name]+1
 		if node.name!='merge_root':
 			try:
-				taxon=node.taxid
+				taxon=node.name
 				sci_name=node.sci_name
 				rank=node.rank
 			except AttributeError:
@@ -577,7 +577,7 @@ def print_metaphlan_report(otu_table, tot_count, tree, out_f):
 	print(*header, sep='\t', file=out_f)
 	for node in tree.traverse('preorder'):
 		try:
-			taxon=node.taxid
+			taxon=node.name
 			sci_name=node.sci_name
 		except AttributeError:
 			continue
@@ -618,7 +618,7 @@ def print_centrifuge_report(otu_table, histogram, unique_histogram, tree, out_f)
 	merged_otu=sum(otu_table.values(), Counter())
 	for node in tree.traverse('preorder'):
 		try:
-			taxon=node.taxid
+			taxon=node.name
 			sci_name=node.sci_name
 		except AttributeError:
 			continue
