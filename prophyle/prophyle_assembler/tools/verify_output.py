@@ -1,5 +1,12 @@
 #! /usr/bin/env python3
 
+"""A program to verify output of prophyle-assembler.
+
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
+"""
+
 import sys
 import re
 from Bio import SeqIO
@@ -14,31 +21,31 @@ k=int(sys.argv[6])
 reg_splitting=re.compile("[^ACGT]")
 
 comp_dict={
-		"A":"T",
-		"C":"G",
-		"G":"C",
-		"T":"A",
-	}
+        "A":"T",
+        "C":"G",
+        "G":"C",
+        "T":"A",
+    }
 
 def reverse_complement_str(dna):
-	reverse_complement="".join([comp_dict[x] for x in dna[::-1]])
-	return reverse_complement
+    reverse_complement="".join([comp_dict[x] for x in dna[::-1]])
+    return reverse_complement
 
 def get_canonical_kmers_from_fasta(fasta_fn, k):
-	kmers=set()
+    kmers=set()
 
-	reg_splitting=re.compile("[^ACGT]")
-	set_of_kmers=set()
-	fasta_sequences = SeqIO.parse(fasta_fn,'fasta')
-	for fasta_seq in fasta_sequences:
-		name, sequence = fasta_seq.id, str(fasta_seq.seq).upper()
-		sequences_ok=reg_splitting.split(sequence)
-		for seq in sequences_ok:
-			for i in range(len(seq)-k+1):
-				kmer=seq[i:i+k]
-				kmer_rc=reverse_complement_str(kmer)
-				set_of_kmers.add(min(kmer,kmer_rc))
-	return set_of_kmers
+    reg_splitting=re.compile("[^ACGT]")
+    set_of_kmers=set()
+    fasta_sequences = SeqIO.parse(fasta_fn,'fasta')
+    for fasta_seq in fasta_sequences:
+        name, sequence = fasta_seq.id, str(fasta_seq.seq).upper()
+        sequences_ok=reg_splitting.split(sequence)
+        for seq in sequences_ok:
+            for i in range(len(seq)-k+1):
+                kmer=seq[i:i+k]
+                kmer_rc=reverse_complement_str(kmer)
+                set_of_kmers.add(min(kmer,kmer_rc))
+    return set_of_kmers
 
 print("Loading {}".format(in1_fn))
 in1=get_canonical_kmers_from_fasta(in1_fn,k)
