@@ -32,7 +32,7 @@ Compared to other state-of-the-arts classifiers, ProPhyle provides several uniqu
 * **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic trees and reference genomes.
 * **Standard bioinformatics formats.** `Newick/NHX <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_ is used for representing phylogenetic trees and `SAM <https://samtools.github.io/hts-specs/SAMv1.pdf>`_ for reporting the assignments.
 * **Lossless k-mer indexing.** ProPhyle stores a list of *all* genomes containing a *k*-mer.  It can be, therefore, accurate even with trees containing similar genomes (e.g, phylogenetic trees for a single species).
-* **Deterministic behaviour.** ProPhyle is a fully deterministic classifier with a mathematically well-defined behavior.
+* **Deterministic behavior.** ProPhyle is a fully deterministic classifier with a mathematically well-defined behavior.
 
 For information about how to use ProPhyle, see the main `ProPhyle documentation <http://prophyle.rtfd.io>`_.
 
