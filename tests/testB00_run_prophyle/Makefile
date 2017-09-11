@@ -19,12 +19,12 @@ $(GIT_LIBS):
 	@echo "Download"
 	@echo "--------"
 	@echo
-	$(PROP) download -F -d $(SEQS) -l $(SEQS)/log_down_$(CUR_LIB).txt $(CUR_LIB)
+	$(PROP) download -F -d $(GIT_SEQS) -l $(GIT_SEQS)/log_down_$(CUR_LIB).txt $(CUR_LIB)
 	@echo
 	@echo "Index"
 	@echo "-----"
 	@echo
-	$(PROP) index -F $(SEQS)/$(CUR_LIB).nw idx_$(CUR_LIB) 2>log_idx_$(CUR_LIB).txt
+	$(PROP) index -F $(GIT_SEQS)/$(CUR_LIB).nw idx_$(CUR_LIB) 2>log_idx_$(CUR_LIB).txt
 	@echo
 	@echo "Classify"
 	@echo "--------"
@@ -77,12 +77,12 @@ $(PKG_LIBS):
 	@echo "Download"
 	@echo "--------"
 	@echo
-	$(PROP) download -d $(SEQS) -l $(SEQS)/log_down_all.txt all
+	$(PROP) download -d $(GIT_SEQS) -l $(GIT_SEQS)/log_down_all.txt all
 	@echo
 	@echo "Index"
 	@echo "-----"
 	@echo
-	$(PROP) index -F -K -M -k 13 -s 0.05 $(SEQS)/*.nw idx_all 2>log_idx_all.txt
+	$(PROP) index -F -K -M -k 13 -s 0.05 $(GIT_SEQS)/*.nw idx_all 2>log_idx_all.txt
 	@echo
 	@echo "Classify"
 	@echo "--------"
@@ -135,4 +135,4 @@ pkg: $(PKG_LIBS)
 all: git pkg .complete.git.all .complete.pkg.all diffs
 
 clean:
-	rm -fr .complete.* log_* idx_* pkg_idx_* $(SEQS) $(PKG_SEQS)
+	rm -fr .complete.* log_* idx_* pkg_idx_* $(GIT_SEQS) $(PKG_SEQS)
