@@ -12,7 +12,7 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 	:target: https://anaconda.org/bioconda/prophyle
 
 .. image:: https://badge.fury.io/py/prophyle.svg
-    :target: https://badge.fury.io/py/prophyle
+  :target: https://badge.fury.io/py/prophyle
 
 
 Introduction
@@ -40,10 +40,10 @@ For information about how to use ProPhyle, see the main `ProPhyle documentation 
 Quick example
 -------------
 
-1. Create a `Bioconda <https://bioconda.github.io/>`_ environment with ProPhyle and activate it: ::
+1. Clone the ProPhyle repository and add it to PATH: ::
 
-        $ conda create -c bioconda -n prophyle prophyle
-        $ source activate prophyle
+        git clone http://github.com/karel-brinda/prophyle
+        export PATH=$(pwd)/prophyle/prophyle:$PATH
 
 2. Download the `RefSeq <https://www.ncbi.nlm.nih.gov/refseq/>`_ bacterial database: ::
 
@@ -55,4 +55,4 @@ Quick example
 
 4. Classify your reads: ::
 
-	$ prophyle classify _index_ecoli reads.fq > result.sam
+        $ prophyle classify _index_ecoli reads.fq > result.sam
