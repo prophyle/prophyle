@@ -1,4 +1,4 @@
-.PHONY: all test clean prophyle
+.PHONY: all test clean prophyle inc
 
 all: prophyle
 
@@ -13,3 +13,6 @@ test:
 clean:
 	$(MAKE) -C prophyle clean
 	$(MAKE) -C tests clean
+
+inc:
+	./prophyle/increment_version.py
