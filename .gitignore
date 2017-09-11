@@ -1,6 +1,7 @@
 _index_*
 _test*
 *.tar.gz
+*.gch-*
 
 *.bak
 .snakemake
