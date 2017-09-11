@@ -35,7 +35,7 @@ $(GIT_LIBS):
 	@echo "Analyze"
 	@echo "-------"
 	@echo
-	@for s in $(STATS) ; do (cd idx_$(CUR_LIB) && $(PROP) analyze -s $$s . _test_analyze_$$s _test_class.sam) ; done
+	@for s in $(STATS) ; do (cd idx_$(CUR_LIB) && ../$(PROP) analyze -s $$s . _test_analyze_$$s _test_class.sam) ; done
 	touch $@
 
 $(PKG_LIBS):
@@ -92,7 +92,7 @@ $(PKG_LIBS):
 	@echo "Analyze"
 	@echo "-------"
 	@echo
-	@for s in $(STATS) ; do (cd idx_all && $(PROP) analyze -s $$s . _test_analyze_$$s _test_class.sam) ; done
+	@for s in $(STATS) ; do (cd idx_all && ../$(PROP) analyze -s $$s . _test_analyze_$$s _test_class.sam) ; done
 	touch $@
 
 # Add PKG_LIBS dependency to avoid parallel usage of the same seq directory
