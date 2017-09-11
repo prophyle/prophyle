@@ -3,16 +3,16 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 
 
 .. image:: https://travis-ci.org/karel-brinda/prophyle.svg?branch=master
-	:target: https://travis-ci.org/karel-brinda/prophyle
+        :target: https://travis-ci.org/karel-brinda/prophyle
 
 .. image:: https://readthedocs.org/projects/prophyle/badge/?version=latest
-	:target: http://prophyle.rtfd.org
+        :target: http://prophyle.rtfd.org
 
 .. image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square
-	:target: https://anaconda.org/bioconda/prophyle
+        :target: https://anaconda.org/bioconda/prophyle
 
 .. image:: https://badge.fury.io/py/prophyle.svg
-  :target: https://badge.fury.io/py/prophyle
+        :target: https://badge.fury.io/py/prophyle
 
 
 Introduction
@@ -29,11 +29,10 @@ can be found in our `poster <http://brinda.cz/publications/2017_prophyle_hitseq.
 Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
 
 * **Low memory requirements.** Compared to `Kraken <https://ccb.jhu.edu/software/kraken/>`_, ProPhyle has 9x smaller memory footprint for index construction and 5x smaller footprint for querying.
-* **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic tree or even multiple trees.
+* **Flexibility.** ProPhyle is easy to use with any user-provided phylogenetic trees and reference genomes.
 * **Standard bioinformatics formats.** `Newick/NHX <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_ is used for representing phylogenetic trees and `SAM <https://samtools.github.io/hts-specs/SAMv1.pdf>`_ for reporting the assignments.
-* **Lossless k-mer indexing.** ProPhyle stores a list of *all* genomes containing a *k*-mer.
-  It can be, therefore, accurate even with trees containing similar genomes
-  (e.g, phylogenetic trees for a single species).
+* **Lossless k-mer indexing.** ProPhyle stores a list of *all* genomes containing a *k*-mer.  It can be, therefore, accurate even with trees containing similar genomes (e.g, phylogenetic trees for a single species).
+* **Deterministic behaviour.** ProPhyle is a fully deterministic classifier with a mathematically well-defined behavior.
 
 For information about how to use ProPhyle, see the main `ProPhyle documentation <http://prophyle.rtfd.io>`_.
 
