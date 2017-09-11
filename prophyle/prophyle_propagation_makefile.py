@@ -81,8 +81,8 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
         cmd = textwrap.dedent("""\
 
                 {ocompl}: {i}
-                    cat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
-                    @touch $@
+                \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
+                \t@touch $@
 
             """.format(
             i=' '.join(input_files_fn),
@@ -94,8 +94,8 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
         cmd = textwrap.dedent("""\
 
                 {ocompl}: {icompl} {nhx}
-                    cat {i} > {o}
-                    @touch $@
+                \tcat {i} > {o}
+                \t@touch $@
 
             """.format(
             i=' '.join(input_files_fn),
@@ -147,10 +147,10 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
             endif
 
             {xcompl}: {icompl} {nhx}
-                @echo starting propagation for $@
-                $(CMD_ASM_{nid})
-                @touch $@
-                -$(PRINT_PROGRESS)
+            \t@echo starting propagation for $@
+            \t$(CMD_ASM_{nid})
+            \t@touch $@
+            \t-$(PRINT_PROGRESS)
             """.format(
         icompl=' '.join(_compl_l(input_files_fn)),
         o=' '.join(output_files_fn),
@@ -336,13 +336,14 @@ class TreeIndex:
                     all: {root_red_compl}
 
                     clean:
-                        rm -f *.complete
-                        rm -f *.fa
-                        rm -f *.tsv
+                    \trm -f *.complete
+                    \trm -f *.fa
+
+                    \trm -f *.tsv
 
                     {root_red_compl}: {root_nonred_compl}
-                        ln -s {root_nonred} {root_red}
-                        @touch $@
+                    \tln -s {root_nonred} {root_red}
+                    \t@touch $@
 
                     """.format(
                 root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
