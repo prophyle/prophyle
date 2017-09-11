@@ -1,5 +1,12 @@
 #! /usr/bin/env python3
 
+"""Generate all k-mers of a given length.
+
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
+"""
+
 import sys, os, argparse
 from itertools import product, repeat
 

@@ -1,5 +1,14 @@
 #! /usr/bin/env python3
 
+"""Compute k-mers from a FASTA file.
+
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
+"""
+
+
+
 import sys
 import os
 import argparse

@@ -1,5 +1,13 @@
 #! /usr/bin/env python3
 
+"""Normalize a FASTA file (in order to compare different FASTA files).
+
+Author: Karel Brinda <kbrinda@hsph.harvard.edu>
+
+Licence: MIT
+"""
+
+
 import sys
 import os
 import argparse
