@@ -10,6 +10,9 @@ test:
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests
 
+pypi:
+	/usr/bin/env python3 setup.py sdist bdist_wheel upload
+
 docs:
 	$(MAKE) -C docs html
 	open docs/.build/html/index.html || true
