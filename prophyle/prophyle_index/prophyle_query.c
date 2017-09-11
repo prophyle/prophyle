@@ -382,12 +382,17 @@ void process_sequence(void* data, int i, int tid) {
 					}
 				}
 				if (end_pos - last_ambiguous_index == opt->kmer_length) {
+					k = 0;
+					l = 0;
+					prev_k = 1;
+					prev_l = 0;
+					prev_nodes_count = 0;
 					ambiguous_streak_just_ended = 1;
 				} else {
 					ambiguous_streak_just_ended = 0;
 				}
 			}
-			if (start_pos == 0) {
+			if (start_pos == 0 || ambiguous_streak_just_ended) {
 				k = 0;
 				l = 0;
 				calculate_sa_interval_restart(bwt, opt->kmer_length, seq.seq, &k, &l, start_pos);
