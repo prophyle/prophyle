@@ -1336,14 +1336,14 @@ def parser():
 
     parser_decompress.add_argument(
         'archive',
-        metavar='archive.tar.gz',
+        metavar='<archive.tar.gz>',
         type=str,
         help='output archive',
     )
 
     parser_decompress.add_argument(
         'output_dir',
-        metavar='output.dir',
+        metavar='<output.dir>',
         type=str,
         nargs="?",
         default="./",
