@@ -1,22 +1,23 @@
 $ prophyle classify -h
 
-usage: prophyle classify [-h] [-k INT] [-R] [-m {h1,c1}] [-f {kraken,sam}]
-                         [-l STR] [-A] [-L] [-M]
-                         <index.dir> <reads.fq>
+usage: prophyle.py classify [-h] [-k INT] [-K] [-m {h1,c1}] [-f {kraken,sam}]
+                            [-l STR] [-A] [-L] [-P] [-C]
+                            <index.dir> <reads1.fq> [<reads2.fq>]
 
 positional arguments:
   <index.dir>      index directory
-  <reads.fq>       file with reads in FASTA or FASTQ (use - for standard
-                   input)
+  <reads1.fq>      first file with reads in FASTA/FASTQ (- for standard input)
+  <reads2.fq>      second file with reads in FASTA/FASTQ
 
 optional arguments:
   -h, --help       show this help message and exit
-  -k INT           k-mer length [detect automatically]
-  -R               use restarted search for matching rather than rolling
+  -k INT           k-mer length [detect automatically from the index]
+  -K               use restarted search for matching rather than rolling
                    window (slower, but k-LCP is not needed)
   -m {h1,c1}       measure: h1=hit count, c1=coverage [h1]
   -f {kraken,sam}  output format [sam]
   -l STR           log file
-  -A               annotate assignments
+  -A               annotate assignments (using tax. information from NHX)
   -L               use LCA when tie (multiple hits with the same score)
-  -M               mimic Kraken algorithm and output (for debugging purposes)
+  -P               incorporate sequences and qualities into SAM records
+  -C               use C++ impl. of the assignment algorithm (experimental)

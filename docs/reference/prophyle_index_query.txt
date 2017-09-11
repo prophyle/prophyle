@@ -1,10 +1,13 @@
 $ prophyle_index query -h
 
+
 Usage:   prophyle_index query [options] <prefix> <in.fq>
 
 Options: -k INT    length of k-mer
-        	-u        use klcp for querying
-          -v        output set of chromosomes for every k-mer
-          -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output
-          -l char*  log file name to output statistics
-          -t INT    number of threads [1]
+         -u        use k-LCP for querying
+         -v        output set of chromosomes for every k-mer
+         -p        do not check whether k-mer is on border of two contigs, and show such k-mers in output
+         -b        print sequences and base qualities
+         -l STR    log file name to output statistics
+         -t INT    number of threads [1]
+

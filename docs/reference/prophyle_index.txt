@@ -1,7 +1,11 @@
 $ prophyle_index -h
 
+
 Program: prophyle_index (alignment of k-mers)
+Contact: Kamil Salikhov <kamil.salikhov@univ-mlv.fr>
+
 Usage:   prophyle_index command [options]
 
-Command: build         construct index
-Command: query         query reads against index
+Command: build     construct index
+         query     query reads against index
+

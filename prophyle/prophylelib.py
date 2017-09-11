@@ -10,6 +10,7 @@ Licence: MIT
 import datetime
 import ete3
 import glob
+import json
 import os
 import psutil
 import re
@@ -55,7 +56,8 @@ def open_log(fn):
 	global log_file
 	if fn is not None:
 		d = os.path.dirname(fn)
-		makedirs(d)
+		if d!="":
+			makedirs(d)
 		log_file = open(fn, "a+")
 
 
@@ -160,6 +162,8 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 		ValueError: The tree is not valid.
 	"""
 
+	assert isinstance(tree, ete3.Tree), tree
+
 	error = False
 
 	existing_names = []
@@ -239,6 +243,13 @@ def minimal_subtree(tree):
 
 	new_tree = new_root.detach()
 	return new_tree
+
+
+def has_attribute(tree, attribute):
+	for n in tree.traverse():
+		if hasattr(n, attribute):
+			return True
+	return False
 
 
 #####################
@@ -422,10 +433,10 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 	while error_code is None:
 		try:
 			max_rss = max(max_rss, ps_p.memory_info().rss)
-		except psutil.ZombieProcess:
+		except (psutil.ZombieProcess, OSError, IOError):
 			pass
-		# wait 0.02 s
-		time.sleep(0.02)
+		# wait 0.2 s
+		time.sleep(0.2)
 		error_code = p.poll()
 
 	out_fo.flush()
@@ -449,27 +460,37 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 		sys.exit(1)
 
 
+def save_config (index_dir, data):
+	"""Save a configuration dictionary (index.json in the index directory).
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+
+	with open(os.path.join(index_dir, 'index.json'),"w+") as data_file:
+		json.dump(data, data_file, indent=4)
+
+
+def load_config (index_dir):
+	"""Load a configuration dictionary (index.json in the index directory).
+
+	Args:
+		index_dir (str): Index directory.
+	"""
+	with open(os.path.join(index_dir, 'index.json')) as data_file:
+		data = json.load(data_file)
+	return data
+
+
 def detect_k_from_index(index_dir):
 	"""Detect k-mer size from a ProPhyle index.
 
 	Args:
 		index_dir (str): Index directory.
-
-	Raises:
-		AssertionError: k cannot be detected.
 	"""
 
-	klcps = glob.glob(os.path.join(index_dir, "*.klcp"))
-
-	assert len(
-		klcps) < 2, "K-mer length could not be detected (several k-LCP files exist). Please use the '-k' parameter."
-	assert len(klcps) > 0, "K-mer length could not be detected (no k-LCP file exists). Please use the '-k' parameter."
-	klcp = klcps[0]
-
-	re_klcp = re.compile(r'.*/index\.fa\.([0-9]+)\.klcp$')
-	klcp_match = re_klcp.match(klcp)
-	k = int(klcp_match.group(1))
-	return k
+	config=load_config(index_dir)
+	return config['k']
 
 
 def lower_nonsigleton(node):

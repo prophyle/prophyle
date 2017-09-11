@@ -1,0 +1,22 @@
+$ prophyle_ncbi_tree.py -h
+
+usage: prophyle_ncbi_tree.py [-h] [-l log_file] [-r red_factor] [-u root]
+                             <library> <library_dir> <output_file> <taxid_map>
+
+Program: prophyle_ncbi_tree Build a taxonomic tree in the New Hampshire newick
+format #1 for NCBI sequences
+
+positional arguments:
+  <library>      directory with the library sequences (e.g. bacteria, viruses
+                 etc.)
+  <library_dir>  library path (parent of library, e.g. main ProPhyle
+                 directory)
+  <output_file>  output file
+  <taxid_map>    tab separated accession number to taxid map
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -l log_file    log file [stderr]
+  -r red_factor  build reduced tree (one sequence every n)
+  -u root        root of the tree (e.g. Bacteria); will exclude sequences
+                 which are not its descendants

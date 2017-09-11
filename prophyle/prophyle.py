@@ -32,6 +32,8 @@ import hashlib
 import multiprocessing
 import os
 import sys
+import tarfile
+import tempfile
 import textwrap
 
 sys.path.append(os.path.dirname(__file__))
@@ -53,6 +55,7 @@ C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
 # git
 if GITDIR:
+	PROPHYLE = os.path.join(C_D, "prophyle.py")
 	PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
 	ANALYZE = os.path.join(C_D, "prophyle_analyze.py")
 	PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
@@ -66,6 +69,7 @@ if GITDIR:
 
 # package
 else:
+	PROPHYLE = "prophyle"
 	PY_ASSIGN = "prophyle_assignment.py"
 	ANALYZE = "prophyle_analyze.py"
 	PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
@@ -99,8 +103,22 @@ LIBRARIES = [
 
 FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
 
-ANALYZE_IN_FMTS=['sam','kraken']
+ANALYZE_IN_FMTS=['sam','bam','cram','uncompressed_bam','kraken','histo']
 ANALYZE_STATS=['w','u','wl','ul']
+
+FILES_TO_ARCHIVE=[
+		".complete.1",
+		".complete.2",
+		".complete.3",
+		"tree.nw",
+		"tree.preliminary.nw",
+		"index.json",
+		"index.fa.bwt",
+		"index.fa.ann",
+		"index.fa.amb", # but will be empty
+		'index.fa.kmers.tsv'
+	]
+
 
 
 def _file_md5(fn, block_size=2 ** 20):
@@ -136,7 +154,7 @@ def _test_tree(fn):
 		AssertionError: The tree is not valid.
 	"""
 	tree = pro.load_nhx_tree(fn, validate=False)
-	assert pro.validate_prophyle_nhx_tree(tree, verbose=False, throw_exceptions=False, output_fo=sys.stderr)
+	assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
 
 
 def _compile_prophyle_bin():
@@ -187,7 +205,7 @@ def _mark_complete(d, i=1, name=None):
 	pro.touch(__mark_fn(d, i, name))
 
 
-def _is_complete(d, i=1, name=None):
+def _is_complete(d, i=1, name=None, dont_check_previous=False):
 	"""Check if a mark file i exists AND is newer than the mark file (i-1).
 
 	Args:
@@ -200,7 +218,7 @@ def _is_complete(d, i=1, name=None):
 	fn = __mark_fn(d, i, name)
 	fn0 = __mark_fn(d, i - 1, name)
 
-	if i == 1:
+	if i == 1 or dont_check_previous:
 		return os.path.isfile(fn)
 	else:
 		return pro.existing_and_newer(fn0, fn)
@@ -428,6 +446,13 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 	# pro.test_files(NEWICK2MAKEFILE, tree_fn)
 	command = [NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './', makefile]
 
+	config={
+		'prophyle-version': version.VERSION,
+		'k': k,
+	}
+
+	pro.save_config(index_dir, config)
+
 	with open(os.path.join(propagation_dir, "params.mk"), "w+") as f:
 		f.write('PRG_ASM="{}"\n'.format(ASM))
 		f.write("K={}\n".format(k))
@@ -481,7 +506,7 @@ def _kmer_stats(index_dir):
 	)
 
 
-def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate):
+def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate, autocomplete):
 	"""Merge input trees into a single tree.
 
 	Args:
@@ -500,6 +525,8 @@ def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate):
 	command += in_trees + [out_tree]
 	if no_prefixes:
 		command += ['-P']
+	if autocomplete:
+		command += ['-A']
 	pro.run_safe(
 		command,
 		err_msg="The main tree could not be generated.",
@@ -617,7 +644,7 @@ def _bwtocc2sa(fa_fn):
 	"""
 
 	pro.message('Generating sampled SA')
-	pro.test_files(BWA, fa_fn + ".bwt", remark="with OCC")
+	pro.test_files(BWA, fa_fn + ".bwt")
 	command = [BWA, 'bwt2sa', fa_fn + ".bwt", fa_fn + ".sa"]
 	pro.run_safe(
 		command,
@@ -667,7 +694,7 @@ def _bwtocc2sa_klcp(fa_fn, k):
 
 
 def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats,
-		keep_tmp_files, sampling_rate):
+		keep_tmp_files, sampling_rate, autocomplete):
 	"""Build a ProPhyle index.
 
 	Args:
@@ -682,6 +709,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		mask_repeats (bool): Mask repeats using DustMasker.
 		keep_tmp_files (bool): Keep temporary files from k-mer propagation.
 		sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
+		autocomplete (bool): Autocomplete names of internal nodes and fasta paths.
 	"""
 
 	assert isinstance(k, int)
@@ -707,23 +735,27 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 	# 1) Newick
 	#
 
-	if not _is_complete(index_dir, 1) or not pro.existing_and_newer_list(trees_fn, index_tree_1):
+	#if not _is_complete(index_dir, 1) or not pro.existing_and_newer_list(trees_fn, index_tree_1):
+	if not _is_complete(index_dir, 1):
 		recompute = True
 
 	if recompute:
-		pro.message('[1/5] Copying/merging trees', upper=True)
+		pro.message('[1/6] Copying/merging trees', upper=True)
 		for tree_fn in trees_fn:
 			tree_fn, _, root = tree_fn.partition("@")
-			tree = pro.load_nhx_tree(tree_fn)
-			pro.validate_prophyle_nhx_tree(tree)
+			tree = pro.load_nhx_tree(tree_fn, validate=False)
+			# postpone for autocomplete
+			if not autocomplete:
+				pro.validate_prophyle_nhx_tree(tree)
 			if root != "":
 				assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
 		if len(trees_fn) != 1:
 			pro.message('Merging {} trees'.format(len(trees_fn)))
-		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate)
+		_propagation_preprocessing(trees_fn, index_tree_1, no_prefixes=no_prefixes, sampling_rate=sampling_rate, autocomplete=autocomplete)
+		_test_tree(index_tree_1)
 		_mark_complete(index_dir, 1)
 	else:
-		pro.message('[1/5] Tree already exists, skipping copying', upper=True)
+		pro.message('[1/6] Tree already exists, skipping its creation', upper=True)
 
 	#
 	# 2) Create and run Makefile for propagation, and merge FASTA files
@@ -733,10 +765,11 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 		recompute = True
 
 	if recompute:
-		pro.message('[2/5] Running k-mer propagation', upper=True)
+		pro.message('[2/6] Running k-mer propagation', upper=True)
 		_create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
 		_propagate(index_dir, threads=threads)
 		_propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
+		_test_tree(index_tree_2)
 		_kmer_stats(index_dir)
 		if not keep_tmp_files:
 			_remove_tmp_propagation_files(index_dir)
@@ -744,26 +777,37 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 			pro.message('Keeping temporary files')
 		_mark_complete(index_dir, 2)
 	else:
-		pro.message('[2/5] K-mers have already been propagated, skipping propagation', upper=True)
+		pro.message('[2/6] K-mers have already been propagated, skipping propagation', upper=True)
 
 	#
-	# 3) BWT + OCC
+	# 3) BWT
 	#
 
-	if not _is_complete(index_dir, 3):
+	if not _is_complete(index_dir, 3) and not _is_complete(index_dir, 4, dont_check_previous=True):
 		recompute = True
 
-	# if ccontinue and os.path.isfile(index_fa+'.bwt') and os.path.isfile(index_fa+'.bwt.complete'):
-
 	if recompute:
-		pro.message('[3/5] Constructing BWT+OCC', upper=True)
+		pro.message('[3/6] Constructing BWT', upper=True)
 		pro.rm(index_fa + '.bwt', index_fa + '.bwt.complete')
 		_fa2pac(index_fa)
 		_pac2bwt(index_fa)
-		_bwt2bwtocc(index_fa)
 		_mark_complete(index_dir, 3)
 	else:
-		pro.message('[3/5] BWT and OCC already exist, skipping their construction', upper=True)
+		pro.message('[3/6] BWT already exists, skipping its construction', upper=True)
+
+	#
+	# 3) OCC
+	#
+
+	if not _is_complete(index_dir, 4):
+		recompute = True
+
+	if recompute:
+		pro.message('[4/6] Constructing OCC', upper=True)
+		_bwt2bwtocc(index_fa)
+		_mark_complete(index_dir, 4)
+	else:
+		pro.message('[4/6] OCC already exists, skipping their construction', upper=True)
 
 	#
 	# 4) SA + 5) KLCP (compute SA + KLCP in parallel)
@@ -773,44 +817,44 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 
 	if construct_klcp:
 
-		if not _is_complete(index_dir, 4):
+		if not _is_complete(index_dir, 5):
 			# SA not computed yet => compute it in parallel with KLCP
 			recompute = True
 
 		if recompute:
-			pro.message('[4/5],[5/5] Constructing SA + KLCP in parallel ', upper=True)
+			pro.message('[5/6],[6/6] Constructing SA + KLCP in parallel ', upper=True)
 			_bwtocc2sa_klcp(index_fa, k)
-			_mark_complete(index_dir, 4)
 			_mark_complete(index_dir, 5)
+			_mark_complete(index_dir, 6)
 			return
 
 	#
-	# 4) SA (compute only SA)
+	# 5) SA (compute only SA)
 	#
 
-	if not _is_complete(index_dir, 4):
+	if not _is_complete(index_dir, 5):
 		recompute = True
 
 	if recompute:
-		pro.message('[4/5] Constructing SA', upper=True)
+		pro.message('[5/6] Constructing SA', upper=True)
 		_bwtocc2sa(index_fa)
 	else:
-		pro.message('[4/5] SA already exists, skipping its construction', upper=True)
+		pro.message('[5/6] SA already exists, skipping its construction', upper=True)
 
 	#
-	# 5) KLCP (compute only KLCP)
+	# 6) KLCP (compute only KLCP)
 	#
 
 	if construct_klcp:
-		if not _is_complete(index_dir, 5):
+		if not _is_complete(index_dir, 6):
 			recompute = True
 
 		if recompute:
-			pro.message('[5/5] Constructing k-LCP', upper=True)
+			pro.message('[6/6] Constructing k-LCP', upper=True)
 			_bwtocc2klcp(index_fa, k)
-			_mark_complete(index_dir, 5)
+			_mark_complete(index_dir, 6)
 		else:
-			pro.message('[5/5] k-LCP already exists, skipping its construction', upper=True)
+			pro.message('[6/6] k-LCP already exists, skipping its construction', upper=True)
 
 
 #####################
@@ -851,19 +895,19 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	elif fq_fn != '-':
 		pro.test_files(fq_fn)
 
-	pro.test_files(index_fa, IND)
+	pro.test_files(IND)
 
 	pro.test_files(
 		index_fa + '.bwt',
-		index_fa + '.pac',
+		#index_fa + '.pac',
 		index_fa + '.sa',
 		index_fa + '.ann',
-		index_fa + '.amb',
+		#index_fa + '.amb',
 	)
 
-	(bwt_s, sa_s, pac_s) = pro.file_sizes(index_fa + '.bwt', index_fa + '.sa', index_fa + '.pac')
+	(bwt_s, sa_s) = pro.file_sizes(index_fa + '.bwt', index_fa + '.sa')
 	assert abs(bwt_s - 2 * sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
-	assert abs(bwt_s - 2 * pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
+	#assert abs(bwt_s - 2 * pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
 	if use_rolling_window:
 		klcp_fn = "{}.{}.klcp".format(index_fa, k)
@@ -901,29 +945,90 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
 	command = cmd_read + cmd_query + cmd_assign
 	pro.run_safe(command)
 
+
 ####################
 # PROPHYLE ANALYZE #
 ####################
 
-def prophyle_analyze(tree, asgs_list, histograms, in_format, stats, out_prefix,
-					max_lines, otu_suffix, ncbi):
+def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
 
-	cmd_analyze = [ANALYZE, tree]
+	cmd_analyze = [ANALYZE, '-s', stats, index_dir, out_prefix] + input_fns
 
-	if asgs_list and len(asgs_list) > 0:
-		cmd_analyze += ['-f', in_format, '-i'] + asgs_list
-	elif histograms and len(histograms) > 0:
-		cmd_analyze += ['-s', stats, '-g'] + histograms
-	else:
-		print("[prophyle_analyze] Invalid command", sys.stderr)
-		sys.exit(1)
+	if in_format is not None:
+		cmd_analyze += ['-f', in_format]
 
-	cmd_analyze += ['-o', out_prefix, '-l', max_lines, '-t', otu_suffix]
+	pro.test_files(*filter(lambda x: x!="-",input_fns), test_nonzero=True)
 
-	if ncbi:
-		cmd_analyze += ['-N']
 
 	pro.run_safe(cmd_analyze)
+
+
+#####################
+# PROPHYLE COMPRESS #
+#####################
+
+def prophyle_compress(index_dir, archive):
+	_compile_prophyle_bin()
+	tmp_dir=tempfile.mkdtemp()
+	arcdir=index_dir.rstrip("/").split("/")[-1]
+	tmp_arc_dir=os.path.join(tmp_dir, arcdir)
+
+	# todo: should create a correct directory
+
+	pro.message("Creating a temporary directory for files to compress")
+	pro.makedirs(tmp_arc_dir)
+
+	for x in FILES_TO_ARCHIVE:
+		if x == "index.fa.bwt":
+			continue
+		pro.cp_to_dir(os.path.join(index_dir,x), tmp_arc_dir)
+
+	bwt_fn_1=os.path.join(index_dir,"index.fa.bwt")
+	bwt_fn_2=os.path.join(tmp_arc_dir,"index.fa.bwt")
+	cmd = [IND, "debwtupdate", bwt_fn_1, bwt_fn_2]
+	pro.run_safe(cmd)
+
+	pro.message("Creating '{}'".format(archive))
+	with tarfile.open(archive, "w:gz") as tar:
+		tar.add(tmp_arc_dir, arcname=arcdir)
+	pro.message("File '{}' has been created".format(archive))
+
+
+#######################
+# PROPHYLE DECOMPRESS #
+#######################
+
+def prophyle_decompress(archive, output_dir, klcp):
+	pro.test_files(archive)
+
+	_compile_prophyle_bin()
+
+	with tarfile.open(archive) as tar:
+		names=tar.getnames()
+		index_name=names[0]
+		for x in FILES_TO_ARCHIVE:
+			assert os.path.join(index_name, x) in names, "File '{}' is missing in the archive".format(x)
+
+	index_dir=os.path.join(output_dir, index_name)
+
+
+	pro.message("Decompressing index core files")
+
+	cmd = ["tar", "xvf", archive, "-C", output_dir]
+	pro.run_safe(cmd)
+	pro.message("Core files have been decompressed, reconstructing the index")
+
+	pro.touch(os.path.join(index_dir, "index.fa"))
+	pro.touch(os.path.join(index_dir, "index.fa.pac"))
+
+	if klcp:
+		config=pro.load_config(index_dir)
+		cmd = [PROPHYLE, "index", "-k", config['k'], os.path.join(index_dir, "tree.nw"), index_dir]
+	else:
+		cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "tree.nw"), index_dir]
+
+	pro.run_safe(cmd)
+	pro.message("Index reconstruction finished")
 
 
 ########
@@ -1093,7 +1198,7 @@ def parser():
 		'-K',
 		dest='klcp',
 		action='store_false',
-		help='skip k-LCP construction',
+		help='skip k-LCP construction (then restarted search only)',
 	)
 
 	parser_index.add_argument(
@@ -1102,6 +1207,14 @@ def parser():
 		action='store_true',
 		help='keep temporary files from k-mer propagation',
 	)
+
+	parser_index.add_argument('-A',
+		help='autocomplete tree (names of internal nodes and FASTA paths)',
+		dest='autocomplete',
+		action='store_true',
+	)
+
+
 
 	##########
 
@@ -1123,14 +1236,14 @@ def parser():
 		'reads',
 		metavar='<reads1.fq>',
 		type=str,
-		help='first file with reads in FASTA or FASTQ (use - for standard input)',
+		help='first file with reads in FASTA/FASTQ (- for standard input)',
 	)
 
 	parser_classify.add_argument(
 		'reads_pe',
 		metavar='<reads2.fq>',
 		type=str,
-		help='second file with reads in FASTA or FASTQ',
+		help='second file with reads in FASTA/FASTQ',
 		nargs='?',
 		default=None,
 	)
@@ -1145,7 +1258,7 @@ def parser():
 	)
 
 	parser_classify.add_argument(
-		'-R',
+		'-K',
 		dest='rolling_window',
 		action='store_false',
 		help='use restarted search for matching rather than rolling window (slower, but k-LCP is not needed)',
@@ -1180,7 +1293,7 @@ def parser():
 		'-A',
 		dest='annotate',
 		action='store_true',
-		help='annotate assignments',
+		help='annotate assignments (using tax. information from NHX)',
 	)
 
 	parser_classify.add_argument(
@@ -1202,14 +1315,14 @@ def parser():
 		'-P',
 		dest='print_seq',
 		action='store_true',
-		help='print sequences and qualities in SAM (otherwise \'*\' is used)',
+		help='incorporate sequences and qualities into SAM records',
 	)
 
 	parser_classify.add_argument(
 		'-C',
 		dest='cimpl',
 		action='store_true',
-		help='use the C++ implementation of the assignment algorithm (highly experimental so far)',
+		help='use C++ impl. of the assignment algorithm (experimental)',
 		#help=argparse.SUPPRESS,
 	)
 
@@ -1217,96 +1330,115 @@ def parser():
 
 	parser_analyze = subparsers.add_parser(
 		'analyze',
-		help='analyze results',
+		help='analyze results (experimental)',
 		formatter_class=fc,
 	)
 
-	parser_analyze.add_argument('tree',
-			metavar='<tree.nhx>',
+	parser_analyze.add_argument('index_dir',
+			metavar='{index_dir, tree.nw}',
 			type=str,
-			help='Newick/NHX tree used for classification'
+			help='index directory or phylogenetic tree'
 		)
 
-	parser_analyze_subgroup = parser_analyze.add_mutually_exclusive_group(required=True)
-
-	parser_analyze_subgroup.add_argument('-i',
-			metavar='STR',
+	parser_analyze.add_argument('out_prefix',
+			metavar='<out.pref>',
 			type=str,
-			dest='asgs_list',
+			help="output prefix"
+			#"""Prefix for output files (the complete file names will be
+			#		<out_prefix>.tsv for histograms and
+			#		<out_prefix>_<otu_suffix>.tsv for otu tables)"""
+		)
+
+	parser_analyze.add_argument('input_fns',
+			metavar='<classified.bam>',
+			type=str,
 			nargs='+',
 			default=None,
-			help="""ProPhyle output files in the format specified with the -f
-					option (default SAM, use - for stdin or one file for each
-					sample)"""
-		)
-
-	parser_analyze_subgroup.add_argument('-g',
-			metavar='STR',
-			type=str,
-			dest='histograms',
-			nargs='+',
-			default=None,
-			help="""Histograms previously computed using prophyle analyze.
-					Compute OTU table direcly from them (assignment files are
-					not required)"""
-		)
-
-	parser_analyze.add_argument('-f',
-			metavar='STR',
-			type=str,
-			dest='in_format',
-			choices=ANALYZE_IN_FMTS,
-			default=ANALYZE_IN_FMTS[0],
-			help='Input format of assignments ['+ANALYZE_IN_FMTS[0]+']'
+			help="classified reads (use '-' for stdin)",
+			#""ProPhyle output files whose format is chosen with the -f
+			#		option. Use '-' for stdin or multiple files with the same
+			#		format (one per sample)"""
 		)
 
 	parser_analyze.add_argument('-s',
-			metavar='STR',
+			metavar=ANALYZE_STATS,
 			type=str,
 			dest='stats',
 			choices=ANALYZE_STATS,
 			default=ANALYZE_STATS[0],
-			help=textwrap.dedent("""Statistics to use for the computation of histograms:\n
-                    w (default): weighted assignments\n
-    				u: unique assignments, non-weighted\n
-    				wl: weighted assignments, propagated to leaves\n
-    				ul: unique assignments, propagated to leaves"""
-                )
+			help="""statistics to use for the computation of histograms:
+					w (default) => weighted assignments;
+					u => unique assignments, non-weighted;
+					wl => weighted assignments, propagated to leaves;
+					ul => unique assignments, propagated to leaves."""
+		)
+
+	parser_analyze.add_argument('-f',
+			metavar=ANALYZE_IN_FMTS,
+			type=str,
+			dest='in_format',
+			choices=ANALYZE_IN_FMTS,
+			default=None,
+			help="""Input format of assignments [auto]"""
+		)
+
+	##########
+
+	parser_compress = subparsers.add_parser(
+		'compress',
+		help='compress a ProPhyle index (experimental)',
+		formatter_class=fc,
 	)
 
-	parser_analyze.add_argument('-o',
-			metavar='STR',
-			type=str,
-			dest='out_prefix',
-			required=True,
-			help="""Prefix for output files (the complete file name will be
-					<prefix>.tsv for histograms and <prefix>_<otu_suffix>.tsv
-					for otu tables)"""
+	parser_compress.add_argument(
+		'index_dir',
+		metavar='<index.dir>',
+		type=str,
+		help='index directory',
 	)
 
-	parser_analyze.add_argument('-l',
-			type=int,
-			metavar='INT',
-			dest='max_lines',
-			default=-1,
-			help='Output only the n nodes with the highest score [all]'
-		)
+	parser_compress.add_argument(
+		'archive',
+		metavar='<archive.tar.gz>',
+		type=str,
+		default=None,
+		nargs="?",
+		help='output archive [<index.dir>.tar.gz]',
+	)
 
-	parser_analyze.add_argument('-t',
-			type=str,
-			metavar='STR',
-			dest='otu_suffix',
-			default='otu',
-			help='Suffix for otu table file [otu]'
-		)
 
-	parser_analyze.add_argument('-N',
-			action='store_true',
-			dest='ncbi',
-			help="""Use NCBI taxonomic information to calculate abundances at
-					every rank for otu tables [default: propagate weighted
-					assigments to leaves and do not output internal nodes]"""
-		)
+	##########
+
+	parser_decompress = subparsers.add_parser(
+		'decompress',
+		help='decompress a compressed ProPhyle index (experimental)',
+		formatter_class=fc,
+	)
+
+
+	parser_decompress.add_argument(
+		'archive',
+		metavar='archive.tar.gz',
+		type=str,
+		help='output archive',
+	)
+
+	parser_decompress.add_argument(
+		'output_dir',
+		metavar='output.dir',
+		type=str,
+		nargs="?",
+		default="./",
+		help='output directory [./]',
+	)
+
+	parser_decompress.add_argument(
+		'-K',
+		dest='klcp',
+		action='store_false',
+		help='skip k-LCP construction',
+	)
+
 
 	##########
 
@@ -1354,6 +1486,7 @@ def main():
 				mask_repeats=args.mask_repeats,
 				keep_tmp_files=args.keep_tmp_files,
 				sampling_rate=args.sampling_rate,
+				autocomplete=args.autocomplete,
 			)
 			pro.message('Index construction finished')
 			pro.close_log()
@@ -1384,22 +1517,39 @@ def main():
 		elif subcommand == "analyze":
 
 			prophyle_analyze(
-				tree=args.tree,
-				asgs_list=args.asgs_list,
-				histograms=args.histograms,
-				in_format=args.in_format,
-				stats=args.stats,
+				index_dir=args.index_dir,
 				out_prefix=args.out_prefix,
-				max_lines=args.max_lines,
-				otu_suffix=args.otu_suffix,
-				ncbi=args.ncbi,
+				input_fns=args.input_fns,
+				stats=args.stats,
+				in_format=args.in_format,
+			)
+
+		elif subcommand == "compress":
+
+			if args.archive is None:
+				archive=args.index_dir.rstrip("/")+".tar.gz"
+			else:
+				archive=args.archive
+
+			prophyle_compress(
+				index_dir=args.index_dir,
+				archive=archive,
+			)
+
+		elif subcommand == "decompress":
+
+			prophyle_decompress(
+				archive=args.archive,
+				output_dir=args.output_dir,
+				klcp=args.klcp,
 			)
 
 		else:
 			msg_lns = par.format_help().split("\n")[2:]
 			msg_lns = [x for x in msg_lns if x.find("optional arguments") == -1 and x.find("--") == -1]
 			msg = "\n".join(msg_lns)
-			msg = msg.replace("\n\n", '\n').replace("subcommands:\n", "Command:").replace("Usage", "\nUsage")
+			msg = msg.replace("\n\n", '\n').replace("subcommands:\n", "Command:\n").replace("Usage", "\nUsage")
+			msg = msg.replace("\n    compress","\n\n    compress")
 			print(file=sys.stderr)
 			print(msg, file=sys.stderr)
 			sys.exit(1)
