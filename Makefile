@@ -21,6 +21,8 @@ readme:
 	rst2html.py README.rst > README.html
 
 clean:
+	rm -fr build dist prophyle.egg-info
+	rm -fr _index_test/ _test_*
 	$(MAKE) -C prophyle clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C docs clean
