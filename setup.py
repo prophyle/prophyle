@@ -55,6 +55,7 @@ setuptools.setup(
 			'psutil',
 			'pysam',
 			'scipy',
+			'six',
 		],
 
 	package_data={
