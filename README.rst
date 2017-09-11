@@ -41,7 +41,7 @@ Quick example
 
 1. Clone the ProPhyle repository and add it to PATH: ::
 
-        git clone http://github.com/karel-brinda/prophyle
+        git clone --recursive http://github.com/karel-brinda/prophyle
         export PATH=$(pwd)/prophyle/prophyle:$PATH
 
 2. Download the `RefSeq <https://www.ncbi.nlm.nih.gov/refseq/>`_ bacterial database: ::
