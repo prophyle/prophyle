@@ -941,6 +941,14 @@ def prophyle_decompress(archive, output_dir, klcp):
 	pro.message("Index reconstruction finished")
 
 
+####################
+# PROPHYLE COMPILE #
+####################
+
+def prophyle_compile():
+	_compile_prophyle_bin()
+
+
 ########
 # MAIN #
 ########
@@ -958,7 +966,7 @@ def parser():
 		Program: prophyle (phylogeny-based metagenomic classification)
 		Version: {V}
 		Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
-                 Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+		         Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
 
 		Usage:   prophyle <command> [options]
 		""".format(V=version.VERSION)
@@ -1352,6 +1360,15 @@ def parser():
 
 	##########
 
+	parser_compress = subparsers.add_parser(
+		'compile',
+		help='compile auxiliary ProPhyle programs',
+		formatter_class=fc,
+	)
+
+
+	##########
+
 	return parser
 
 
@@ -1452,6 +1469,11 @@ def main():
 				archive=args.archive,
 				output_dir=args.output_dir,
 				klcp=args.klcp,
+			)
+
+		elif subcommand == "compile":
+
+			prophyle_compile(
 			)
 
 		else:
