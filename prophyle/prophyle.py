@@ -62,8 +62,10 @@ if GITDIR:
 	PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
 	NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
 	READ = os.path.join(C_D, "prophyle_paired_end.py")
+	BUILD_TREE = os.path.join(C_D, "prophyle_ncbi_tree.py")
 	TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
 	SPLIT_FA = os.path.join(C_D, "prophyle_split_allseq.py")
+	AWK_ASB_SUM = os.path.join(C_D, "_awk_assembly_summary.sh")
 
 # package
 else:
@@ -74,8 +76,10 @@ else:
 	PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
 	NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
 	READ = "prophyle_paired_end.py"
+	BUILD_TREE = "prophyle_ncbi_tree.py"
 	TEST_TREE = "prophyle_validate_tree.py"
 	SPLIT_FA = "prophyle_split_allseq.py"
+	AWK_ASB_SUM = "_awk_assembly_summary.sh"
 
 DEFAULT_K = 31
 DEFAULT_THREADS = multiprocessing.cpu_count()
@@ -84,7 +88,18 @@ DEFAULT_MEASURE = 'h1'
 DEFAULT_OUTPUT_FORMAT = 'sam'
 DEFAULT_HOME_DIR = os.path.join(os.path.expanduser('~'), 'prophyle')
 
-LIBRARIES = ['bacteria', 'viruses', 'plasmids', 'hmp']
+LIBRARIES = [
+	'archaea',
+	'bacteria',
+	'fungi',
+	'invertebrate',
+	'plant',
+	'protozoa',
+	'unknown',
+	'vertebrate_mammalian',
+	'vertebrate_other',
+	'viral'
+]
 
 FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
 
@@ -253,6 +268,81 @@ def _pseudo_fai(d):
 
 
 def prophyle_download(library, library_dir, force=False):
+	"""Create a library Download genomic library and copy the corresponding tree.
+
+	Args:
+		library (str): Library to download (bacteria / viruses / ...)
+		library_dir (str): Directory where download files will be downloaded.
+
+	TODO:
+		* Add support for alternative URLs (http / ftp, backup refseq sites, etc.).
+			* http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
+			* ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
+	"""
+
+	if library == "all":
+		for l in LIBRARIES:
+			prophyle_download(l, library_dir, force)
+		return
+	else:
+		assert library in LIBRARIES
+
+	if library_dir is None:
+		d = os.path.join(os.path.expanduser("~/prophyle"), library)
+	else:
+		d = os.path.join(library_dir, library)
+	# print('making',d, file=sys.stderr)
+	# os.makedirs(d, exist_ok=True)
+	pro.makedirs(d)
+
+	# cmd = ['awk', '-F', '\"\\t\"', '-v', 'OFS=\"\\t\"',
+	# 	'\'$12==\"Complete', 'Genome\"', '&&', '$11==\"latest\"', '{print',
+	# 	'$1,', '$7,', '$20}\'', assembly_summary_fn, '>', ftpselection_fn]
+	# pro.run_safe(cmd)
+	# cmd = ['cd', d, '&&', 'cut', '-f', '3', 'ftpselection.tsv', '|',
+	# 	'awk', '\'BEGIN{FS=OFS=\"/\";filesuffix=\"genomic.fna.gz\"}',
+	# 	'{ftpdir=$0;asm=$10;file=asm\"_\"filesuffix;print',
+	# 	'ftpdir,file}\'', '>ftpfilepaths.tsv']
+	# pro.run_safe(cmd)
+	# cmd = ['cd', d, '&&', 'cut', '-f', '1,2', 'ftpselection.tsv', '>acc2taxid.tsv']
+	# pro.run_safe(cmd)
+
+	pro.message("Checking library '{}' in '{}'".format(library, d))
+
+	lib_missing = _missing_library(d)
+
+	if lib_missing or force:
+		assembly_summary_fn = os.path.join(d,'assembly_summary.txt')
+		ftpselection_fn = os.path.join(d,'ftpselection.tsv')
+		ftpfilepaths_fn = os.path.join(d,'ftpfilepaths.tsv')
+		acc2taxid_fn = os.path.join(d,'acc2taxid.tsv')
+		tree_fn = os.path.join(library_dir,library+'.nw')
+		tree_log_fn = os.path.join(library_dir,library+'_tree.log')
+		# remove files needed from old builds
+		pro.rm(assembly_summary_fn, ftpselection_fn, ftpfilepaths_fn, acc2taxid_fn, tree_fn)
+
+		cmd = ['cd', d, '&&', 'wget', FTP_NCBI + '/genomes/refseq/'+library+'/assembly_summary.txt']
+		pro.run_safe(cmd)
+		cmd = ['cd', d, '&&', AWK_ASB_SUM]
+		pro.run_safe(cmd)
+
+		cmd = ['cd', d, '&&', 'parallel', '--gnu', '-a', 'ftpfilepaths.tsv', 'wget']
+		#cmd = ['cd', d, '&&', 'wget', '-i', 'ftpfilepaths.tsv']
+		pro.run_safe(cmd)
+
+		cmd = ['cd', d, '&&', 'parallel', '--gnu', '-a', 'ftpfilepaths.tsv', 'gunzip', '{/}']
+		pro.run_safe(cmd)
+
+		cmd = ['find', d, '-name', '\'*.fna\'', '|', 'parallel', 'samtools', 'faidx', '{}']
+		pro.run_safe(cmd)
+
+		cmd = [BUILD_TREE, library, library_dir, tree_fn, acc2taxid_fn, '-l', tree_log_fn]
+		pro.run_safe(cmd)
+
+		_mark_complete(d, 1)
+
+
+def prophyle_download_old(library, library_dir, force=False):
 	"""Create a library Download genomic library and copy the corresponding tree.
 
 	Args:
