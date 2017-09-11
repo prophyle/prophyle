@@ -4,20 +4,20 @@
 
 ### ProPhyle subcommands
 
-* The steps which are supposed to be done by the end user should be implemented through subcommands.
-* All other procedures should be implemented through prophyle\_.py scripts.
+* All steps of downstream analysis that are expected to be done by the end users should be implemented through subcommands (e.g., `prophyle index`). Please, keep the main script, `prophyle`, as simple as possible.
+* All other (auxiliary) procedures should be available only through prophyle\_.py scripts.
 
 
 ### CLI
 
-* Only short command-line parameters should be used (e.g., `-L`).
-* CLI parameters with a capital letter are switchers without arguments (e.g., `-R`).
-* When possible, required program arguments should be passed through positional arguments
+* Only short command-line parameters should be used (e.g., `-l`, not `--log-file`).
+* CLI parameters with a capital letter are switchers without argument (e.g., `-R`).
+* When possible, all required program arguments should be passed through positional arguments.
 
 
 ### Source codes
 
-* Each program or script should contain a name of the author and the license (ideally MIT).
+* Each program or script should contain the name of the author(s) and the license (ideally MIT).
 * Python scripts should follow the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html).
 
 
@@ -30,7 +30,7 @@
 ### Packaged Python scripts
 
 * Scripts used by prophyle should be named prophyle\_\*
-* Auxiliary scripts (e.g., those used only in the tests) should not be included in the ProPhyle package
+* Auxiliary testing scripts should not be included in the ProPhyle package.
 
 
 ## FAQs
@@ -38,3 +38,4 @@
 > Travis tests don't pass due to missing packages even though everything seems to be fine.
 
 Try to remove Travis caches (see the button _More options_).
+

@@ -1240,7 +1240,7 @@ def parser():
 
 	parser_analyze = subparsers.add_parser(
 		'analyze',
-		help='analyze results',
+		help='analyze results (experimental)',
 		formatter_class=fc,
 	)
 
