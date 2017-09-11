@@ -13,4 +13,4 @@ numbers[-1]=str(int(numbers[-1])+1)
 version=".".join(numbers)
 
 with open(vfn,"w") as f:
-	f.write('VERSION="{}"'.format(version))
+    f.write('VERSION="{}"'.format(version))
