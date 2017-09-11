@@ -4,6 +4,7 @@ SHELL=/bin/bash -e -u -o pipefail
 
 PROP_DIR=../../prophyle
 PROP=${PROP_DIR}/prophyle.py
+PROP_PKG=prophyle
 
 ASM=$(PROP_DIR)/prophyle_assembler/prophyle_assembler
 IND=$(PROP_DIR)/prophyle_index/prophyle_index
