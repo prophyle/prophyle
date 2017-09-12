@@ -117,7 +117,7 @@ def create_fasta(propagation_dir, index_fasta_fn, suffix, verbose=False):
 def main():
 
     parser = argparse.ArgumentParser (
-        description='K-mer propagation postprocessing – merging FASTA files and k-mer annotation.'
+        description='K-mer propagation postprocessing: merging FASTA files and k-mer annotation.'
     )
 
     parser.add_argument (
