@@ -92,7 +92,6 @@ setuptools.setup(
             'prophyle_propagation_postprocessing.py = prophyle.prophyle_propagation_postprocessing:main',
             'prophyle_propagation_preprocessing.py = prophyle.prophyle_propagation_preprocessing:main',
             'prophyle_split_allseq.py = prophyle.prophyle_split_allseq:main',
-            'prophyle_test_tree.py = prophyle.prophyle_test_tree:main',
         ],
     },
 )
