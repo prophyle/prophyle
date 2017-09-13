@@ -1,5 +1,12 @@
 # see https://github.com/pypa/sampleproject
 
+"""Installation script for ProPhyle.
+
+To include binaries into the package, run make and set the system variable
+PROPHYLE_PACKBIN to a non-zero value.
+"""
+
+
 import setuptools
 
 import os
@@ -17,6 +24,11 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 # Get the current version
 exec(open("prophyle/version.py").read())
+
+try:
+    packbin=os.environ['PROPHYLE_PACKBIN']
+except KeyError:
+    packbin=False
 
 setuptools.setup(
     name='prophyle',
@@ -76,7 +88,14 @@ setuptools.setup(
             'prophyle_assignment/Makefile',
             'prophyle_index/bwa/Makefile',
             'trees/*.nw',
-        ],
+        ]+
+            [
+                'prophyle_index/prophyle_index',
+                'prophyle_assembler/prophyle_assembler',
+                'prophyle_assignment/prophyle_assignment',
+                ]
+            if packbin else []
+        ,
     },
 
    entry_points={
