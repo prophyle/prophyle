@@ -3,7 +3,8 @@
 """Installation script for ProPhyle.
 
 To include binaries into the package, run make and set the system variable
-PROPHYLE_PACKBIN to a non-zero value.
+PROPHYLE_PACKBIN to a non-zero value, e.g.,
+PROPHYLE_PACKBIN=1 python3 setup.py install
 """
 
 
