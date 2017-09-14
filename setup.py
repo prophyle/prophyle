@@ -34,6 +34,37 @@ except KeyError:
 if packbin:
     print("Adding executables and *.o files to the package", file=sys.stderr)
 
+prophyle_files=[
+            'Makefile',
+            '*.py',
+            'prophyle_assembler/*.cpp',
+            'prophyle_assembler/*.h',
+            'prophyle_assembler/Makefile',
+            'prophyle_index/*.c',
+            'prophyle_index/*.h',
+            'prophyle_index/Makefile',
+            'prophyle_index/bwa/*.c',
+            'prophyle_index/bwa/*.h',
+            'prophyle_assignment/*.cpp',
+            'prophyle_assignment/*.c',
+            'prophyle_assignment/*.h',
+            'prophyle_assignment/Makefile',
+            'prophyle_index/bwa/Makefile',
+            'trees/*.nw',
+        ]+(
+            [
+                'prophyle_index/prophyle_index',
+                'prophyle_assembler/prophyle_assembler',
+                'prophyle_assignment/prophyle_assignment',
+                'prophyle_assembler/*.o',
+                'prophyle_index/*.o',
+                'prophyle_index/bwa/*.o',
+                'prophyle_assignment/*.o',
+                ]
+            if packbin else
+            []
+        )
+
 setuptools.setup(
     name='prophyle',
 
@@ -75,35 +106,7 @@ setuptools.setup(
         ],
 
     package_data={
-        'prophyle': [
-            'Makefile',
-            '*.py',
-            'prophyle_assembler/*.cpp',
-            'prophyle_assembler/*.h',
-            'prophyle_assembler/Makefile',
-            'prophyle_index/*.c',
-            'prophyle_index/*.h',
-            'prophyle_index/Makefile',
-            'prophyle_index/bwa/*.c',
-            'prophyle_index/bwa/*.h',
-            'prophyle_assignment/*.cpp',
-            'prophyle_assignment/*.c',
-            'prophyle_assignment/*.h',
-            'prophyle_assignment/Makefile',
-            'prophyle_index/bwa/Makefile',
-            'trees/*.nw',
-        ]+
-            [
-                'prophyle_index/prophyle_index',
-                'prophyle_assembler/prophyle_assembler',
-                'prophyle_assignment/prophyle_assignment',
-                'prophyle_assembler/*.o',
-                'prophyle_index/*.o',
-                'prophyle_index/bwa/*.o',
-                'prophyle_assignment/*.o',
-                ]
-            if packbin else []
-        ,
+        'prophyle': prophyle_files
     },
 
    entry_points={
