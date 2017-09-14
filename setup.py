@@ -30,6 +30,9 @@ try:
 except KeyError:
     packbin=False
 
+if packbin:
+    print("Adding executables and *.o files to the package", file=sys.stderr)
+
 setuptools.setup(
     name='prophyle',
 
@@ -93,6 +96,10 @@ setuptools.setup(
                 'prophyle_index/prophyle_index',
                 'prophyle_assembler/prophyle_assembler',
                 'prophyle_assignment/prophyle_assignment',
+                'prophyle_assembler/*.o',
+                'prophyle_index/*.o',
+                'prophyle_index/bwa/*.o',
+                'prophyle_assignment/*.o',
                 ]
             if packbin else []
         ,
