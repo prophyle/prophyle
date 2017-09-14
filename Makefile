@@ -1,4 +1,4 @@
-.PHONY: all test clean prophyle inc docs readme
+.PHONY: all test clean prophyle inc docs readme wpypi wconda
 
 all: prophyle
 
@@ -29,3 +29,9 @@ clean:
 
 inc:
 	./prophyle/increment_version.py
+
+wpypi:
+	open https://pypi.python.org/pypi/prophyle
+
+wconda:
+	open https://bioconda.github.io/recipes/prophyle/README.html
