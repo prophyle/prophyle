@@ -45,21 +45,22 @@ prophyle_files=[
             'prophyle_index/Makefile',
             'prophyle_index/bwa/*.c',
             'prophyle_index/bwa/*.h',
+            'prophyle_index/bwa/Makefile',
             'prophyle_assignment/*.cpp',
             'prophyle_assignment/*.c',
             'prophyle_assignment/*.h',
             'prophyle_assignment/Makefile',
-            'prophyle_index/bwa/Makefile',
             'trees/*.nw',
         ]+(
             [
                 'prophyle_index/prophyle_index',
-                'prophyle_assembler/prophyle_assembler',
-                'prophyle_assignment/prophyle_assignment',
-                'prophyle_assembler/*.o',
                 'prophyle_index/*.o',
-                'prophyle_index/bwa/*.o',
+                'prophyle_assembler/prophyle_assembler',
+                'prophyle_assembler/*.o',
+                'prophyle_assignment/prophyle_assignment',
                 'prophyle_assignment/*.o',
+                'prophyle_index/bwa/bwa',
+                'prophyle_index/bwa/*.o',
                 ]
             if packbin else
             []
