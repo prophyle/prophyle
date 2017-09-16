@@ -647,11 +647,19 @@ def main():
     except KeyboardInterrupt:
         pro.message("Error: Keyboard interrupt")
         pro.close_log()
-        exit(1)
+        exit(2)
 
     finally:
-        sys.stderr.close()
-        sys.stdout.close()
+        try:
+            sys.stdout.flush()
+        finally:
+            try:
+                sys.stdout.close()
+            finally:
+                try:
+                    sys.stderr.flush()
+                finally:
+                    sys.stderr.close()
 
 if __name__ == "__main__":
     main()
