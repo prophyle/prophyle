@@ -66,7 +66,10 @@ def close_log():
 
     global log_file
     if log_file is not None:
-        log_file.close()
+        try:
+            log_file.flush()
+        finally:
+            log_file.close()
 
 
 def message(*msg, subprogram='', upper=False, only_log=False):
