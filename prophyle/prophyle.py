@@ -1498,16 +1498,8 @@ def main():
         exit(1)
 
     finally:
-        try:
-            sys.stdout.flush()
-        finally:
-            try:
-                sys.stdout.close()
-            finally:
-                try:
-                    sys.stderr.flush()
-                finally:
-                    sys.stderr.close()
+        sys.stdout.flush()
+        sys.stderr.flush()
 
 if __name__ == "__main__":
     main()
