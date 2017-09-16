@@ -165,7 +165,7 @@ class Read:
             hit = asg['hitmask'].count()
             asg['h1'] = hit
             asg['hf'] = hit/(self.qlen-self.k+1)
-            asg['h2'] = hit/self.tree.taxid_dict[rname]
+            asg['h2'] = hit/self.tree.kmer_count_dict[rname]
 
             """
             2. coverage
@@ -173,7 +173,7 @@ class Read:
             cov = asg['covmask'].count()
             asg['c1'] = cov
             asg['cf'] = cov/self.qlen
-            asg['c2'] = cov/self.tree.taxid_dict[rname]
+            asg['c2'] = cov/self.tree.kmer_count_dict[rname]
 
             """
             3. other values
@@ -306,18 +306,22 @@ class Read:
 
             if asg['h1']:
                 columns.append("h1:i:{}".format(asg['h1']))
-            if asg['c1']:
-                columns.append("c1:i:{}".format(asg['c1']))
-
-            if asg['hf']:
-                columns.append("hf:f:{}".format(asg['hf']))
-            if asg['cf']:
-                columns.append("cf:f:{}".format(asg['cf']))
 
             if asg['h2']:
                 columns.append("h2:f:{}".format(asg['h2']))
+
+            if asg['hf']:
+                columns.append("hf:f:{}".format(asg['hf']))
+
+            if asg['c1']:
+                columns.append("c1:i:{}".format(asg['c1']))
+
             if asg['c2']:
                 columns.append("c2:f:{}".format(asg['c2']))
+
+            if asg['cf']:
+                columns.append("cf:f:{}".format(asg['cf']))
+
 
             if asg['ln']:
                 columns.append("ln:i:{}".format(asg['ln']))
@@ -432,7 +436,7 @@ class TreeIndex:
         for node in self.tree.traverse("postorder"):
             rname = node.name
             self.name_dict[rname] = node
-            self.kmer_count_dict[rname] = node.kmer_full
+            self.kmer_count_dict[rname] = int(node.kmers_full)
 
             # annotations
             tags_parts = []
@@ -653,16 +657,8 @@ def main():
         exit(1)
 
     finally:
-        try:
-            sys.stdout.flush()
-        finally:
-            try:
-                sys.stdout.close()
-            finally:
-                try:
-                    sys.stderr.flush()
-                finally:
-                    sys.stderr.close()
+        sys.stdout.flush()
+        sys.stderr.flush()
 
 if __name__ == "__main__":
     main()
