@@ -165,7 +165,7 @@ class Read:
             hit = asg['hitmask'].count()
             asg['h1'] = hit
             asg['hf'] = hit/(self.qlen-self.k+1)
-            asg['h2'] = None
+            asg['h2'] = hit/self.tree.taxid_dict[rname]
 
             """
             2. coverage
@@ -173,7 +173,7 @@ class Read:
             cov = asg['covmask'].count()
             asg['c1'] = cov
             asg['cf'] = cov/self.qlen
-            asg['c2'] = None
+            asg['c2'] = cov/self.tree.taxid_dict[rname]
 
             """
             3. other values
@@ -427,9 +427,12 @@ class TreeIndex:
         self.sam_annotations_dict = {}
         self.upnodes_dict = {}
 
+        self.kmer_count_dict = {}
+
         for node in self.tree.traverse("postorder"):
             rname = node.name
             self.name_dict[rname] = node
+            self.kmer_count_dict[rname] = node.kmer_full
 
             # annotations
             tags_parts = []
