@@ -638,10 +638,20 @@ def main():
 
     # Karel: I don't remember why I was considering also IOError here
     # except (BrokenPipeError, IOError):
-    except (BrokenPipeError, KeyboardInterrupt):
+    except BrokenPipeError:
         # pipe error (e.g., when head is used)
-        # sys.stderr.close()
+        sys.stderr.close()
+        sys.stdout.close()
         exit(0)
+
+    except KeyboardInterrupt:
+        pro.message("Error: Keyboard interrupt")
+        pro.close_log()
+        exit(1)
+
+    finally:
+        sys.stderr.close()
+        sys.stdout.close()
 
 if __name__ == "__main__":
     main()
