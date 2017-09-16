@@ -82,7 +82,7 @@ class Read:
         self.load_krakline(krakline)
         self.find_assignments()
         # print(self.asgs)
-        self.filter_assignments()
+        self.filter_assignments(crit)
         self.print_assignments(form, crit)
 
 
@@ -143,18 +143,18 @@ class Read:
                 self.asgs[rname]['covmask'] |= covmasks[p_rname]
 
 
-    def filter_assignments(self):
+    def filter_assignments(self, crit):
         """
         Find the best assignments & compute characteristics (h1, etc.).
 
         rname=None => unassigned
+
+        Args:
+            crit (str): Criterion (h1/c1/...).
         """
 
-        self.max_hit = 0
-        self.max_cov = 0
-
-        self.max_hit_rnames = []
-        self.max_cov_rnames = []
+        self.max_crit_val = 0
+        self.max_crit_rnames = []
 
         for rname in self.asgs:
             asg = self.asgs[rname]
@@ -164,33 +164,35 @@ class Read:
             """
             hit = asg['hitmask'].count()
             asg['h1'] = hit
-
-            if hit > self.max_hit:
-                self.max_hit = hit
-                self.max_hit_rnames = [rname]
-            elif hit == self.max_hit:
-                self.max_hit_rnames.append(rname)
+            asg['hf'] = hit/(self.qlen-self.k+1)
+            asg['h2'] = None
 
             """
             2. coverage
             """
             cov = asg['covmask'].count()
             asg['c1'] = cov
-
-            if cov > self.max_cov:
-                self.max_cov = cov
-                self.max_cov_rnames = [rname]
-            elif cov == self.max_cov:
-                self.max_cov_rnames.append(rname)
+            asg['cf'] = cov/self.qlen
+            asg['c2'] = None
 
             """
             3. other values
             """
-            asg['h2'] = None
-            asg['c2'] = None
-            asg['hf'] = None
-            asg['cf'] = None
+            asg['ln'] = self.qlen
 
+            """
+            4. update winners
+            """
+            if asg[crit] > self.max_crit_val:
+                self.max_crit_val = asg[crit]
+                self.max_crit_rnames = [rname]
+            elif cov == self.max_cov:
+                self.max_crit_rnames.append(rname)
+
+        for i,rname in enumerate(self.max_crit_rnames):
+            asg = self.asgs[rname]
+            asg['ii']=i+1
+            asg['is']=len(self.max_crit_rnames)
 
     def print_assignments(self, form, crit):
         """Print the best assignments.
@@ -201,10 +203,7 @@ class Read:
         """
 
 
-        if crit == "c1":
-            winners = self.max_cov_rnames
-        elif crit == "h1":
-            winners = self.max_hit_rnames
+        winners = self.max_crit_rnames
 
         # No assignments
         if len(winners)==0:
@@ -216,6 +215,9 @@ class Read:
 
         # Transformation to LCA
         if self.tie_lca:
+            #
+            # todo: test
+            #
             # multiple winners => compute LCA and set only those values that are known
             if len(winners) > 1:
                 tie_solved = True
@@ -225,12 +227,24 @@ class Read:
                 asg = self.asgs[lca] = {}
                 asg['covcigar'] = None
                 asg['hitcigar'] = None
+
                 if crit == "h1":
+                    asg['h1'] = winners[0]['h1']
+                    asg['h2'] = winners[0]['h2']
+                    asg['hf'] = winners[0]['hf']
+
                     asg['c1'] = None
-                    asg['h1'] = self.max_hit
+                    asg['c2'] = None
+                    asg['cf'] = None
+
                 elif crit == "c1":
-                    asg['c1'] = self.max_cov
+                    asg['c1'] = winners[0]['c1']
+                    asg['c2'] = winners[0]['c2']
+                    asg['cf'] = winners[0]['cf']
+
                     asg['h1'] = None
+                    asg['h2'] = None
+                    asg['hf'] = None
             # one winner => no
             else:
                 pass
@@ -304,6 +318,15 @@ class Read:
                 columns.append("h2:f:{}".format(asg['h2']))
             if asg['c2']:
                 columns.append("c2:f:{}".format(asg['c2']))
+
+            if asg['ln']:
+                columns.append("ln:i:{}".format(asg['ln']))
+
+            if asg['ii']:
+                columns.append("ii:i:{}".format(asg['ii']))
+
+            if asg['is']:
+                columns.append("is:i:{}".format(asg['is']))
 
             if asg['hitcigar']:
                 columns.append("hc:Z:{}".format(asg['hitcigar']))
