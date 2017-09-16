@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""ProPhyle assignment algorithm (a prototype implementation, to be reimplemented in C).
+"""ProPhyle assignment algorithm (Python reference implementation).
 
 Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
@@ -8,7 +8,6 @@ License: MIT
 
 TODO:
     * Allow to use c2 and h2 (when k-mer annotations exist in the NHX tree)
-    * Add docstrings
 """
 
 import os
@@ -23,14 +22,25 @@ import ete3
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
+import version
 
-# this should be longer than any possible read
+# this should be longer than any possible read, because of CRAM (non-tested yet)
 FAKE_CONTIG_LENGTH = 42424242
 
 
 def cigar_from_mask(mask):
+    """Create a CIGAR from a binary mask.
+
+    Args:
+        mask (list): Mask.
+
+    Return:
+        cigar (str): Cigar string (X/= ops).
+    """
+
     c = []
-    runs = itertools.groupby(mask)
+    mask_bin=map(bool,mask)
+    runs = itertools.groupby(mask_bin)
     for run in runs:
         c.append(str(len(list(run[1]))))
         c.append('=' if run[0] else 'X')
@@ -38,7 +48,20 @@ def cigar_from_mask(mask):
 
 
 class Read:
-    def __init__(self, tree, simulate_lca=False, annotate=False, tie_lca=False, dont_translate_blocks=False):
+    """Class for handling a single read.
+
+    Attributes:
+        output (file): Output file object.
+        tree (ete3.Tree): Phylogenetic tree.
+        simulate_lca (bool): Simulate LCA on the k-mer level.
+        tie_lca (bool): If a tie (multiple best nodes), compute LCA.
+        annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
+        dont_translate_blocks (bool): ?
+    """
+
+
+    def __init__(self, output, tree, simulate_lca=False, tie_lca=False, annotate=False, dont_translate_blocks=False):
+        self.output = output
         self.tree = tree
         self.k = tree.k
         self.simulate_lca = simulate_lca
@@ -46,14 +69,30 @@ class Read:
         self.tie_lca = tie_lca
         self.dont_translate_blocks = dont_translate_blocks
 
+
     def process_krakline(self, krakline, form, crit):
+        """Process one Kraken-like line.
+
+        Args:
+            krakline (str): Kraken-like line.
+            form (str): Expected output format (sam/kraken).
+            crit (str): Criterion (h1/c1).
+        """
+
         self.load_krakline(krakline)
         self.find_assignments()
         # print(self.asgs)
         self.filter_assignments()
         self.print_assignments(form, crit)
 
+
     def load_krakline(self, krakline):
+        """Load a krakline to the current object.
+
+        Args:
+            krakline (str): Kraken-like line.
+        """
+
         parts = krakline.strip().split("\t")
         self.qname, _, qlen, self.krakmers = parts[1:5]
         self.qlen = int(qlen)
@@ -61,8 +100,8 @@ class Read:
             self.seq = parts[5]
             self.qual = parts[6]
         else:
-            self.seq = "*"
-            self.qual = "*"
+            self.seq = None
+            self.qual = None
 
         # self.hitmasks=None
         self.asgs = {}
@@ -81,7 +120,11 @@ class Read:
             self.kmer_blocks.append((rnames, count))
         assert self.qlen == b_sum + self.k - 1 or self.qlen < self.k, krakline
 
+
     def find_assignments(self):
+        """Compute possible assignments of the loaded read.
+        """
+
         # hits before top-down propagation
         hitmasks, covmasks = self.tree.masks_from_kmer_blocks(self.kmer_blocks, simulate_lca=self.simulate_lca)
 
@@ -99,9 +142,10 @@ class Read:
                 self.asgs[rname]['hitmask'] |= hitmasks[p_rname]
                 self.asgs[rname]['covmask'] |= covmasks[p_rname]
 
+
     def filter_assignments(self):
         """
-        Annotate & filter assignment to a node.
+        Find the best assignments & compute characteristics (h1, etc.).
 
         rname=None => unassigned
         """
@@ -139,78 +183,140 @@ class Read:
             elif cov == self.max_cov:
                 self.max_cov_rnames.append(rname)
 
+            """
+            3. other values
+            """
+            asg['h2'] = None
+            asg['c2'] = None
+            asg['hf'] = None
+            asg['cf'] = None
+
+
     def print_assignments(self, form, crit):
+        """Print the best assignments.
+
+        Args:
+            form (str): Expected output format (sam/kraken).
+            crit (str): Criterion (h1/c1).
+        """
+
+
         if crit == "c1":
             winners = self.max_cov_rnames
         elif crit == "h1":
             winners = self.max_hit_rnames
 
-        tie_solved = False
-
-        if self.tie_lca and len(winners) > 1:
-            tie_solved = True
-            lca = self.tree.lca(winners)
-            winners = [lca]
-            # fix what if this node exists!
-            asg = self.asgs[lca] = {}
-            asg['covcigar'] = "{}I".format(self.qlen)
-            asg['hitcigar'] = "{}I".format(self.qlen)
-            if crit == "h1":
-                asg['c1'] = -1
-                asg['h1'] = self.max_hit
-            elif crit == "c1":
-                asg['c1'] = self.max_cov
-                asg['h1'] = -1
-
-        if len(self.max_hit_rnames) > 0:
-            for rname in winners:
-                asg = self.asgs[rname]
-                if form == "sam":
-                    # compute cigar
-                    if not tie_solved:
-                        asg['covcigar'] = cigar_from_mask(asg['covmask'])
-                        asg['hitcigar'] = cigar_from_mask(asg['hitmask'])
-                    self.print_sam_line(rname, self.tree.sam_annotations_dict[rname] if self.annotate else "")
-                elif form == "kraken":
-                    self.print_kraken_line(rname)
-
-        else:
+        # No assignments
+        if len(winners)==0:
             if form == "sam":
                 self.print_sam_line(None)
             elif form == "kraken":
                 self.print_kraken_line(None)
+            return
 
-    def print_sam_line(self, rname, suffix="", file=sys.stdout):
+        # Transformation to LCA
+        if self.tie_lca:
+            # multiple winners => compute LCA and set only those values that are known
+            if len(winners) > 1:
+                tie_solved = True
+                lca = self.tree.lca(winners)
+                winners = [lca]
+                # fix what if this node exists!
+                asg = self.asgs[lca] = {}
+                asg['covcigar'] = None
+                asg['hitcigar'] = None
+                if crit == "h1":
+                    asg['c1'] = None
+                    asg['h1'] = self.max_hit
+                elif crit == "c1":
+                    asg['c1'] = self.max_cov
+                    asg['h1'] = None
+            # one winner => no
+            else:
+                pass
+
+        for rname in winners:
+            asg = self.asgs[rname]
+            if form == "sam":
+                # compute cigar
+                if self.tie_lca and len(winners) > 1:
+                    asg['covcigar'] = None
+                    asg['hitcigar'] = None
+                else:
+                    asg['covcigar'] = cigar_from_mask(asg['covmask'])
+                    asg['hitcigar'] = cigar_from_mask(asg['hitmask'])
+                self.print_sam_line(rname, self.tree.sam_annotations_dict[rname] if self.annotate else "")
+            elif form == "kraken":
+                self.print_kraken_line(rname)
+
+
+    def print_sam_line(self, rname, suffix):
+        """Print a single SAM record.
+
+        Args:
+            rname (str): Node name. None if unassigned.
+            suffix (str): Suffix with additional tags.
+        """
+
         tags = []
         qname = self.qname
-        if rname is None:
-            flag = 4
-            rname = "*"
-            pos = "0"
-            mapq = "0"
-            cigar = "*"
-        else:
+
+        if rname:
             flag = 0
             mapq = "60"
             pos = "1"
             cigar = self.asgs[rname]['covcigar']
+        else:
+            flag = 4
+            rname = None
+            pos = None
+            mapq = None
+            cigar = None
 
         columns = [
-            qname, str(flag), rname,
-            pos, mapq, cigar,
-            "*", "0", "0", self.seq, self.qual,
+            qname, # QNAME
+            str(flag), # FLAG
+            rname if rname else "*", # RNAME
+            pos if pos else "0", # POS
+            mapq if mapq else "0", # MAPQ
+            cigar if cigar else "*", # CIGAR
+            "*", # RNEXT
+            "0", # PNEXT
+            "0", # TLEN
+            self.seq if self.seq else "*", # SEQ
+            self.qual if self.qual else "*", # QUAL
         ]
 
-        if rname != "*":
+        if rname is not None:
             asg = self.asgs[rname]
-            for tag in ['h1', 'c1']:
-                columns.append("".join([tag, ":i:", str(asg[tag])]))
-            columns.append("hc:Z:{}".format(asg['hitcigar']))
 
-        print("\t".join(columns), suffix, file=file, sep="")
+            if asg['h1']:
+                columns.append("h1:i:{}".format(asg['h1']))
+            if asg['c1']:
+                columns.append("c1:i:{}".format(asg['c1']))
 
-    def print_sam_header(self, file=sys.stdout):
-        print("@HD\tVN:1.5\tSO:unsorted", file=file)
+            if asg['hf']:
+                columns.append("hf:f:{}".format(asg['hf']))
+            if asg['cf']:
+                columns.append("cf:f:{}".format(asg['cf']))
+
+            if asg['h2']:
+                columns.append("h2:f:{}".format(asg['h2']))
+            if asg['c2']:
+                columns.append("c2:f:{}".format(asg['c2']))
+
+            if asg['hitcigar']:
+                columns.append("hc:Z:{}".format(asg['hitcigar']))
+
+        print("\t".join(columns), suffix, file=self.output, sep="")
+
+
+    def print_sam_header(self):
+        """Print SAM headers.
+        """
+
+        print("@PG","PN:prophyle","ID:prophyle", "VN:{}".format(version.VERSION), sep="\t", file=self.output)
+        print("@HD","VN:1.5","SO:unsorted", sep="\t", file=self.output)
         for node in self.tree.tree.traverse("postorder"):
             self.tree.name_dict[node.name] = node
 
@@ -236,9 +342,16 @@ class Read:
                     as_=as_,
                     ur=ur,
                     sp=sp,
-                ), file=file)
+                ), file=self.output)
 
-    def print_kraken_line(self, rname, file=sys.stdout):
+
+    def print_kraken_line(self, rname):
+        """Print a single Kraken-like record.
+
+        Args:
+            rname (str): Node name. None is unassigned.
+        """
+
         if rname is None:
             stat = "U"
             rname = "0"
@@ -274,7 +387,7 @@ class Read:
         else:
             columns = [stat, self.qname, rname, str(self.qlen), self.krakmers]
 
-        print("\t".join(columns), file=file)
+        print("\t".join(columns), file=self.output)
 
 
 class TreeIndex:
@@ -397,6 +510,7 @@ def assign(
     )
 
     read = Read(
+        output=sys.stdout,
         tree=ti,
         simulate_lca=lca,
         annotate=annotate,
@@ -498,13 +612,13 @@ def main():
             tie=tie,
             dont_translate_blocks=d,
         )
+
     # Karel: I don't remember why I was considering also IOError here
     # except (BrokenPipeError, IOError):
-    except BrokenPipeError:
+    except (BrokenPipeError, KeyboardInterrupt):
         # pipe error (e.g., when head is used)
-        sys.stderr.close()
+        # sys.stderr.close()
         exit(0)
-
 
 if __name__ == "__main__":
     main()
