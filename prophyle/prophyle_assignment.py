@@ -647,7 +647,7 @@ def main():
     except KeyboardInterrupt:
         pro.message("Error: Keyboard interrupt")
         pro.close_log()
-        exit(2)
+        exit(1)
 
     finally:
         try:
