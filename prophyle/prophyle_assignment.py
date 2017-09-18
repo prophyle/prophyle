@@ -186,7 +186,7 @@ class Read:
             if asg[crit] > self.max_crit_val:
                 self.max_crit_val = asg[crit]
                 self.max_crit_rnames = [rname]
-            elif cov == self.max_cov:
+            elif asg[crit] == self.max_crit_val:
                 self.max_crit_rnames.append(rname)
 
         for i,rname in enumerate(self.max_crit_rnames):
