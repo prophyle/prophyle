@@ -220,6 +220,7 @@ class Read:
             #
             # multiple winners => compute LCA and set only those values that are known
             if len(winners) > 1:
+                first_winner=self.asgs[winners[0]]
                 tie_solved = True
                 lca = self.tree.lca(winners)
                 winners = [lca]
@@ -229,18 +230,18 @@ class Read:
                 asg['hitcigar'] = None
 
                 if crit == "h1":
-                    asg['h1'] = winners[0]['h1']
-                    asg['h2'] = winners[0]['h2']
-                    asg['hf'] = winners[0]['hf']
+                    asg['h1'] = first_winner['h1']
+                    asg['h2'] = first_winner['h2']
+                    asg['hf'] = first_winner['hf']
 
                     asg['c1'] = None
                     asg['c2'] = None
                     asg['cf'] = None
 
                 elif crit == "c1":
-                    asg['c1'] = winners[0]['c1']
-                    asg['c2'] = winners[0]['c2']
-                    asg['cf'] = winners[0]['cf']
+                    asg['c1'] = first_winner['c1']
+                    asg['c2'] = first_winner['c2']
+                    asg['cf'] = first_winner['cf']
 
                     asg['h1'] = None
                     asg['h2'] = None
