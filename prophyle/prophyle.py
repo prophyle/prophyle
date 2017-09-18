@@ -1489,6 +1489,7 @@ def main():
     except BrokenPipeError:
         # pipe error (e.g., when head is used)
         sys.stderr.close()
+        sys.stdout.close()
         exit(0)
 
     except KeyboardInterrupt:
@@ -1496,6 +1497,9 @@ def main():
         pro.close_log()
         exit(1)
 
+    finally:
+        sys.stdout.flush()
+        sys.stderr.flush()
 
 if __name__ == "__main__":
     main()
