@@ -13,7 +13,9 @@ all:
 	samtools view _test_c.1.sam | sort -k 3 | sort >_test_c.2.sam
 	#
 	$(PY_ASS) -f sam -m h1 -A $(tree) $(K) $(match) >_test_py.1.sam
-	samtools view _test_py.1.sam | sort -k 3 | sort >_test_py.2.sam
+	samtools view \
+	-x h2 -x c2 -x hf -x cf -x ln -x ii -x is \
+	_test_py.1.sam | sort -k 3 | sort >_test_py.2.sam
 	#
 	diff _test_c.2.sam _test_py.2.sam > diff_sam.txt
 	#
