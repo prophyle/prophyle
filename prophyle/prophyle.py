@@ -1309,7 +1309,7 @@ def parser():
 
     parser_compress = subparsers.add_parser(
         'compress',
-        help='compress a ProPhyle index (experimental)',
+        help='compress a ProPhyle index',
         formatter_class=fc,
     )
 
@@ -1334,7 +1334,7 @@ def parser():
 
     parser_decompress = subparsers.add_parser(
         'decompress',
-        help='decompress a compressed ProPhyle index (experimental)',
+        help='decompress a compressed ProPhyle index',
         formatter_class=fc,
     )
 
