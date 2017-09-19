@@ -21,9 +21,6 @@ Example:
         $ prophyle classify test_idx reads.fq > result.sam
 
 TODO:
-    * save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
-    * _is_complete should be combined with a test of files: is_missing => remove mark
-    * index: kmer annotation to the tree
     * classification: support for c2, h2
 """
 
@@ -1184,8 +1181,8 @@ def parser():
     parser_classify.add_argument(
         '-m',
         dest='measure',
-        choices=['h1', 'c1'],
-        help='measure: h1=hit count, c1=coverage [{}]'.format(DEFAULT_MEASURE),
+        choices=['h1', 'c1', 'h2', 'c2'],
+        help='measure: h1=hit count, c1=coverage, h2=norm.hit count, c2=norm.coverage [{}]'.format(DEFAULT_MEASURE),
         default=DEFAULT_MEASURE,
     )
 
