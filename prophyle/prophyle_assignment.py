@@ -76,7 +76,7 @@ class Read:
         Args:
             krakline (str): Kraken-like line.
             form (str): Expected output format (sam/kraken).
-            crit (str): Criterion (h1/c1).
+            crit (str): Criterion (h1/c1/h2/c2).
         """
 
         self.load_krakline(krakline)
@@ -150,7 +150,7 @@ class Read:
         rname=None => unassigned
 
         Args:
-            crit (str): Criterion (h1/c1/...).
+            crit (str): Criterion (h1/c1/h2/c2).
         """
 
         self.max_crit_val = 0
@@ -194,14 +194,14 @@ class Read:
             asg['ii']=i+1
             asg['is']=len(self.max_crit_rnames)
 
+
     def print_assignments(self, form, crit):
         """Print the best assignments.
 
         Args:
             form (str): Expected output format (sam/kraken).
-            crit (str): Criterion (h1/c1).
+            crit (str): Criterion (h1/c1/h2/c2).
         """
-
 
         winners = self.max_crit_rnames
 
@@ -229,7 +229,7 @@ class Read:
                 asg['covcigar'] = None
                 asg['hitcigar'] = None
 
-                if crit == "h1":
+                if crit=="h1" or crit=="h2":
                     asg['h1'] = first_winner['h1']
                     asg['h2'] = first_winner['h2']
                     asg['hf'] = first_winner['hf']
@@ -238,7 +238,7 @@ class Read:
                     asg['c2'] = None
                     asg['cf'] = None
 
-                elif crit == "c1":
+                elif crit=="c1" or crit=="c2":
                     asg['c1'] = first_winner['c1']
                     asg['c2'] = first_winner['c2']
                     asg['cf'] = first_winner['cf']
@@ -246,6 +246,7 @@ class Read:
                     asg['h1'] = None
                     asg['h2'] = None
                     asg['hf'] = None
+
             # one winner => no
             else:
                 pass
@@ -584,10 +585,10 @@ def parse_args():
     )
 
     parser.add_argument('-m',
-        choices=['h1', 'c1'],
+        choices=['h1', 'c1', 'c2', 'h2'],
         default='h1',
         dest='crit',
-        help='measure: h1=hitnumber, c1=coverage [h1]',
+        help='measure: h1=hit count, c1=coverage, h2=norm.hit count, c2=norm.coverage [h1]',
     )
 
     parser.add_argument('-A',
