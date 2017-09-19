@@ -41,7 +41,7 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel psutil samtools || true
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.5 ete3 bitarray parallel psutil samtools=1.2 || true
         - source activate prophyle
 
 script:
