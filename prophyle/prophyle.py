@@ -771,8 +771,8 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate,
-        tie_lca, print_seq, cimpl):
+def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, measure, annotate,
+        tie_lca, print_seq, cimpl, force_restarted_search):
     """Run ProPhyle classification.
 
     Args:
@@ -780,7 +780,6 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
         fq_fn (str): Input reads (single-end or first of paired-end).
         fq_pe_fn (str): Input reads (second paired-end, None if single-end)
         k (int): K-mer size (None => detect automatically).
-        use_rolling_window (bool): Use rolling window.
         out_format (str): Output format: sam / kraken.
         mimic_kraken (bool): Mimic Kraken algorithm (compute LCA for each k-mer).
         measure (str): Measure used for classification (h1 / h2 / c1 / c2).
@@ -788,6 +787,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
         tie_lca (bool): If multiple equally good assignments found, compute their LCA.
         print_seq (bool): Print sequencing in SAM.
         cimpl (bool): Use the C++ implementation.
+        force_restarted_search (bool): Force restarted search.
     """
 
     _compile_prophyle_bin()
@@ -819,13 +819,19 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
     assert abs(bwt_s - 2 * sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
     #assert abs(bwt_s - 2 * pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
-    if use_rolling_window:
-        klcp_fn = "{}.{}.klcp".format(index_fa, k)
-        pro.test_files(klcp_fn)
-        (klcp_s,) = pro.file_sizes(klcp_fn)
-        assert abs(bwt_s - 4 * klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
-
-
+    klcp_fn = "{}.{}.klcp".format(index_fa, k)
+    if force_restarted_search:
+        pro.message("Restarted search forced")
+        use_rolling_window=False
+    else:
+        use_rolling_window=os.path.isfile(klcp_fn)
+        if use_rolling_window:
+            pro.message("k-LCP file found, going to use rolling window")
+            pro.test_files(klcp_fn)
+            (klcp_s,) = pro.file_sizes(klcp_fn)
+            assert abs(bwt_s - 4 * klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
+        else:
+            pro.message("k-LCP file not found, going to use restarted search")
 
     if cimpl:
         ASSIGN=C_ASSIGN
@@ -1176,13 +1182,6 @@ def parser():
     )
 
     parser_classify.add_argument(
-        '-K',
-        dest='rolling_window',
-        action='store_false',
-        help='use restarted search for matching rather than rolling window (slower, but k-LCP is not needed)',
-    )
-
-    parser_classify.add_argument(
         '-m',
         dest='measure',
         choices=['h1', 'c1'],
@@ -1244,6 +1243,13 @@ def parser():
         #help=argparse.SUPPRESS,
     )
 
+    parser_classify.add_argument(
+        '-K',
+        dest='force_restarted_search',
+        action='store_true',
+        help='force restarted search (slower, slightly lower memory footprint)',
+    )
+
     ##########
 
     parser_analyze = subparsers.add_parser(
@@ -1252,53 +1258,52 @@ def parser():
         formatter_class=fc,
     )
 
-    parser_analyze.add_argument('index_dir',
-            metavar='{index_dir, tree.nw}',
-            type=str,
-            help='index directory or phylogenetic tree'
-        )
+    parser_analyze.add_argument(
+        'index_dir',
+        metavar='{index_dir, tree.nw}',
+        type=str,
+        help='index directory or phylogenetic tree'
+    )
 
-    parser_analyze.add_argument('out_prefix',
-            metavar='<out.pref>',
-            type=str,
-            help="output prefix"
-            #"""Prefix for output files (the complete file names will be
-            #       <out_prefix>.tsv for histograms and
-            #       <out_prefix>_<otu_suffix>.tsv for otu tables)"""
-        )
+    parser_analyze.add_argument(
+        'out_prefix',
+        metavar='<out.pref>',
+        type=str,
+        help="output prefix",
+    )
 
-    parser_analyze.add_argument('input_fns',
-            metavar='<classified.bam>',
-            type=str,
-            nargs='+',
-            default=None,
-            help="classified reads (use '-' for stdin)",
-            #""ProPhyle output files whose format is chosen with the -f
-            #       option. Use '-' for stdin or multiple files with the same
-            #       format (one per sample)"""
-        )
+    parser_analyze.add_argument(
+        'input_fns',
+        metavar='<classified.bam>',
+        type=str,
+        nargs='+',
+        default=None,
+        help="classified reads (use '-' for stdin)",
+    )
 
-    parser_analyze.add_argument('-s',
-            metavar=ANALYZE_STATS,
-            type=str,
-            dest='stats',
-            choices=ANALYZE_STATS,
-            default=ANALYZE_STATS[0],
-            help="""statistics to use for the computation of histograms:
-                    w (default) => weighted assignments;
-                    u => unique assignments, non-weighted;
-                    wl => weighted assignments, propagated to leaves;
-                    ul => unique assignments, propagated to leaves."""
-        )
+    parser_analyze.add_argument(
+        '-s',
+        metavar=ANALYZE_STATS,
+        type=str,
+        dest='stats',
+        choices=ANALYZE_STATS,
+        default=ANALYZE_STATS[0],
+        help="""statistics to use for the computation of histograms:
+                w (default) => weighted assignments;
+                u => unique assignments, non-weighted;
+                wl => weighted assignments, propagated to leaves;
+                ul => unique assignments, propagated to leaves."""
+    )
 
-    parser_analyze.add_argument('-f',
-            metavar=ANALYZE_IN_FMTS,
-            type=str,
-            dest='in_format',
-            choices=ANALYZE_IN_FMTS,
-            default=None,
-            help="""Input format of assignments [auto]"""
-        )
+    parser_analyze.add_argument(
+        '-f',
+        metavar=ANALYZE_IN_FMTS,
+        type=str,
+        dest='in_format',
+        choices=ANALYZE_IN_FMTS,
+        default=None,
+        help="""Input format of assignments [auto]"""
+    )
 
     ##########
 
@@ -1332,7 +1337,6 @@ def parser():
         help='decompress a compressed ProPhyle index (experimental)',
         formatter_class=fc,
     )
-
 
     parser_decompress.add_argument(
         'archive',
@@ -1429,7 +1433,6 @@ def main():
                 fq_fn=args.reads,
                 fq_pe_fn=args.reads_pe,
                 k=args.k,
-                use_rolling_window=args.rolling_window,
                 out_format=args.oform,
                 mimic_kraken=args.mimic,
                 measure=args.measure,
@@ -1437,6 +1440,7 @@ def main():
                 annotate=args.annotate,
                 print_seq=args.print_seq,
                 cimpl=args.cimpl,
+                force_restarted_search=args.force_restarted_search,
             )
             pro.message('Classification finished')
             pro.close_log()
