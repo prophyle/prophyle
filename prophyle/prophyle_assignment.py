@@ -208,7 +208,7 @@ class Read:
         # No assignments
         if len(winners)==0:
             if form == "sam":
-                self.print_sam_line(None)
+                self.print_sam_line(None, "")
             elif form == "kraken":
                 self.print_kraken_line(None)
             return
