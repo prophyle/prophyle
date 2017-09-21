@@ -21,7 +21,7 @@ def find_seqid(seqname):
     l = seqname.split('|')
     for sep in ['ref', 'gb', 'emb', 'dbj']:
         if sep in l:
-            return l[l.index(sep)+1].split('.')[0]
+            return l[l.index(sep)+1].split('.')[0].strip()
     return None
 
 def main():
