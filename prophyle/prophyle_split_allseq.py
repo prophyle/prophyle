@@ -17,44 +17,45 @@ import sys
 import argparse
 
 
-def split_fs(output_dir_fn):
-    i = 0
-    while True:
-        i += 1
-        fn = os.path.join(output_dir_fn, str(i)+'.fna')
-        yield open(fn, 'w'), i
+def find_seqid(seqname):
+    l = seqname.split('|')
+    for sep in ['ref', 'gb', 'emb', 'dbj']:
+        if sep in l:
+            return l[l.index(sep)+1].split('.')[0]
+    return None
 
 def main():
-        parser = argparse.ArgumentParser(
-            description='Split a fasta file containing multiple sequences in multiple files containing one sequence')
-        parser.add_argument('output_dir',
-            type=str,
-            help='Path to the output directory')
-        parser.add_argument('-i',
-            dest='input_file',
-            metavar='STR',
-            type=argparse.FileType('r'),
-            default=sys.stdin,
-            help='Fasta file [stdin]')
-        args = parser.parse_args()
 
-        input_f = args.input_file
-        output_dir_fn = args.output_dir
+    parser = argparse.ArgumentParser(
+        description='Split a fasta file containing multiple sequences in multiple files containing one sequence')
+    parser.add_argument('output_dir',
+        type=str,
+        help='Path to the output directory')
+    parser.add_argument('-i',
+        dest='input_file',
+        metavar='STR',
+        type=argparse.FileType('r'),
+        default=sys.stdin,
+        help='Fasta file [stdin]')
 
-        start_seq = '>'
-        split_f = split_fs(output_dir_fn)
-        outfile = None
+    args = parser.parse_args()
 
-        for line in input_f:
-            if start_seq not in line:
-                outfile.write(line)
-            else:
-                if outfile:
-                    outfile.close()
-                outfile, i = next(split_f)
-                outfile.write(line)
+    input_f = args.input_file
+    output_dir_fn = args.output_dir
 
-        outfile.close()
+    start_seq = '>'
+    outfile = None
+
+    for line in input_f:
+        if start_seq not in line:
+            outfile.write(line)
+        else:
+            if outfile:
+                outfile.close()
+            outfile = open(os.path.join(output_dir_fn, find_seqid(line)+'.fna'), 'w')
+            outfile.write(line)
+
+    outfile.close()
 
 
 if __name__ == "__main__":
