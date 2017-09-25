@@ -139,12 +139,25 @@ def _test_tree(fn):
     assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
 
 
-def _compile_prophyle_bin():
+def _compile_prophyle_bin(clean=False, parallel=False):
     """Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
+
+    Args:
+        clean (bool): Run make clean instead of make.
+        parallel (bool): Run make in parallel.
     """
 
     try:
-        command = ["make", "-C", C_D]
+        command = ["make"]
+
+        if parallel:
+            command+=['-j']
+
+        command+=["-C", C_D]
+
+        if clean:
+            command+=['clean']
+
         pro.run_safe(command, output_fo=sys.stderr)
     except RuntimeError:
         if not os.path.isfile(IND) or not os.path.isfile(ASM):
@@ -625,7 +638,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
     assert threads > 0
     assert sampling_rate is None or 0.0 <= float(sampling_rate) <= 1.0
 
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
 
     index_fa = os.path.join(index_dir, 'index.fa')
     index_tree_1 = os.path.join(index_dir, 'tree.preliminary.nw')
@@ -787,7 +800,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
         force_restarted_search (bool): Force restarted search.
     """
 
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
     index_fa = os.path.join(index_dir, 'index.fa')
     index_tree = os.path.join(index_dir, 'tree.nw')
 
@@ -881,7 +894,7 @@ def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
 #####################
 
 def prophyle_compress(index_dir, archive):
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
     tmp_dir=tempfile.mkdtemp()
     arcdir=index_dir.rstrip("/").split("/")[-1]
     tmp_arc_dir=os.path.join(tmp_dir, arcdir)
@@ -914,7 +927,7 @@ def prophyle_compress(index_dir, archive):
 def prophyle_decompress(archive, output_dir, klcp):
     pro.test_files(archive)
 
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
 
     with tarfile.open(archive) as tar:
         names=tar.getnames()
@@ -948,8 +961,8 @@ def prophyle_decompress(archive, output_dir, klcp):
 # PROPHYLE COMPILE #
 ####################
 
-def prophyle_compile():
-    _compile_prophyle_bin()
+def prophyle_compile(clean, parallel):
+    _compile_prophyle_bin(clean=clean, parallel=parallel)
 
 
 ########
@@ -1361,12 +1374,26 @@ def parser():
 
     ##########
 
-    parser_compress = subparsers.add_parser(
+    parser_compile = subparsers.add_parser(
         'compile',
         help='compile auxiliary ProPhyle programs',
         formatter_class=fc,
     )
 
+
+    parser_compile.add_argument(
+        '-C',
+        dest='clean',
+        action='store_true',
+        help='clean files instead of compiling',
+    )
+
+    parser_compile.add_argument(
+        '-P',
+        dest='parallel',
+        action='store_true',
+        help='run compilation in parallel',
+    )
 
     ##########
 
@@ -1475,6 +1502,8 @@ def main():
         elif subcommand == "compile":
 
             prophyle_compile(
+                clean=args.clean,
+                parallel=args.parallel,
             )
 
         else:

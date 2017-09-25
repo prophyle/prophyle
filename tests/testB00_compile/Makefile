@@ -6,6 +6,7 @@ include ../conf.mk
 all: compile
 
 compile:
-	$(PROP) compile
+	$(PROP) compile -P -C
+	$(PROP) compile -P
 
 clean:
