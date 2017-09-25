@@ -1,22 +1,24 @@
 A = $(wildcard testA*/.)
 B = $(wildcard testB*/.)
-AB = $(A) $(B)
+C = $(wildcard testB*/.)
 
-PROP=../prophyle/prophyle.py
-SUBCOMMANDS = $(shell $(PROP) -h 2>1 | grep -E "^ {4}[^ ]" | awk '{print $$1}' | xargs echo)
+ABC = $(A) $(B) $(C)
+
 $(info $(SUBCOMMANDS))
 
-.PHONY : all clean big $(AB) A B src
+.PHONY : all clean big $(ABC) A B C src
 
 V=1
 
-all: A helpmsg
+all: A B
 
 A: $(A)
 
 B: $(B)
 
-$(AB): src
+C: $(C)
+
+$(ABC): src
 	@echo
 	@echo "========================================="
 	@echo "$@"
@@ -28,11 +30,7 @@ src:
 	$(MAKE) -C ../prophyle
 
 clean:
-	@for a in $(AB); do \
+	@for a in $(ABC); do \
 		$(MAKE) -C $$a clean; \
 	done;
 
-helpmsg:
-	for x in $(SUBCOMMANDS); do \
-		$(PROP) $$x -h; \
-	done
