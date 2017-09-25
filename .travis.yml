@@ -45,8 +45,15 @@ matrix:
         - source activate prophyle
 
 script:
+  # see Makefile for details
   - unset PYTHONPATH
-  - make test
+  # tests in the repo dir
+  - make clean
+  - make test_repo
+  # tests in the package dir
+  - make clean
+  - make install
+  - make test_package
 
 cache:
   directories:
