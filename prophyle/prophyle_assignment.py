@@ -221,13 +221,17 @@ class Read:
             # multiple winners => compute LCA and set only those values that are known
             if len(winners) > 1:
                 first_winner=self.asgs[winners[0]]
+                print("winner rec" ,first_winner, file=sys.stderr)
                 tie_solved = True
                 lca = self.tree.lca(winners)
                 winners = [lca]
                 # fix what if this node exists!
                 asg = self.asgs[lca] = {}
-                asg['covcigar'] = None
-                asg['hitcigar'] = None
+                asg['covmask'] = None
+                asg['hitmask'] = None
+                #asg['covcigar'] = None
+
+                #asg['hitcigar'] = None
 
                 if crit=="h1" or crit=="h2":
                     asg['h1'] = first_winner['h1']
@@ -255,15 +259,28 @@ class Read:
             asg = self.asgs[rname]
             if form == "sam":
                 # compute cigar
-                if self.tie_lca and len(winners) > 1:
+                if asg['covmask'] is None:
                     asg['covcigar'] = None
+                else:
+                    asg['covcigar'] = cigar_from_mask(asg['covmask'])
+
+
+                if asg['hitmask'] is None:
                     asg['hitcigar'] = None
                 else:
-                    print(winners,file=sys.stderr)
-                    print(asg,file=sys.stderr)
-                    print(self.asgs,file=sys.stderr)
-                    asg['covcigar'] = cigar_from_mask(asg['covmask'])
                     asg['hitcigar'] = cigar_from_mask(asg['hitmask'])
+
+#                if self.tie_lca and len(winners) > 1:
+#                    asg['covcigar'] = None
+#                    asg['hitcigar'] = None
+#                else:
+#                    print(winners,file=sys.stderr)
+#                    print(asg,file=sys.stderr)
+#                    print(self.asgs,file=sys.stderr)
+#
+#                    if asg['covmask'] is not None:
+#                        asg['covcigar'] = cigar_from_mask(asg['covmask'])
+#                    asg['hitcigar'] = cigar_from_mask(asg['hitmask'])
                 self.print_sam_line(rname, self.tree.sam_annotations_dict[rname] if self.annotate else "")
             elif form == "kraken":
                 self.print_kraken_line(rname)
