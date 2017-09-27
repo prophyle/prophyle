@@ -259,6 +259,9 @@ class Read:
                     asg['covcigar'] = None
                     asg['hitcigar'] = None
                 else:
+                    print(winners,file=sys.stderr)
+                    print(asg,file=sys.stderr)
+                    print(self.asgs,file=sys.stderr)
                     asg['covcigar'] = cigar_from_mask(asg['covmask'])
                     asg['hitcigar'] = cigar_from_mask(asg['hitmask'])
                 self.print_sam_line(rname, self.tree.sam_annotations_dict[rname] if self.annotate else "")
