@@ -19,7 +19,7 @@ clean:
 	rm -fr _index_test/ _test_*
 	$(MAKE) -C prophyle clean
 	$(MAKE) -C tests clean
-	$(MAKE) -C docs clean
+	($(MAKE) -C docs clean || True) > /dev/null 2> /dev/null
 
 install:
 	pip install --upgrade .
