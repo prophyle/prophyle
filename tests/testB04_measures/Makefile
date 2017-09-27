@@ -2,7 +2,7 @@
 
 include ../conf.mk
 
-K=2
+K=3
 tree=tree.nw
 index=index
 
