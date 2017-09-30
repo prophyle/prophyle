@@ -70,20 +70,20 @@ class Read:
         self.dont_translate_blocks = dont_translate_blocks
 
 
-    def process_krakline(self, krakline, form, crit):
+    def process_krakline(self, krakline, form, measure):
         """Process one Kraken-like line.
 
         Args:
             krakline (str): Kraken-like line.
             form (str): Expected output format (sam/kraken).
-            crit (str): Criterion (h1/c1/h2/c2).
+            measure (str): Measure (h1/c1/h2/c2).
         """
 
         self.load_krakline(krakline)
-        self.find_assignments()
+        self.compute_masks()
         # print(self.asgs)
-        self.filter_assignments(crit)
-        self.print_assignments(form, crit)
+        self.filter_assignments(measure)
+        self.print_assignments(form, measure)
 
 
     def load_krakline(self, krakline):
@@ -121,7 +121,7 @@ class Read:
         assert self.qlen == b_sum + self.k - 1 or self.qlen < self.k, krakline
 
 
-    def find_assignments(self):
+    def find_compute_masks(self):
         """Compute possible assignments of the loaded read.
         """
 
@@ -143,18 +143,18 @@ class Read:
                 self.asgs[rname]['covmask'] |= covmasks[p_rname]
 
 
-    def filter_assignments(self, crit):
+    def filter_assignments(self, measure):
         """
         Find the best assignments & compute characteristics (h1, etc.).
 
         rname=None => unassigned
 
         Args:
-            crit (str): Criterion (h1/c1/h2/c2).
+            measure (str): Measure (h1/c1/h2/c2).
         """
 
-        self.max_crit_val = 0
-        self.max_crit_rnames = []
+        self.max_val = 0
+        self.max_rnames = []
 
         for rname in self.asgs:
             asg = self.asgs[rname]
@@ -183,27 +183,27 @@ class Read:
             """
             4. update winners
             """
-            if asg[crit] > self.max_crit_val:
-                self.max_crit_val = asg[crit]
-                self.max_crit_rnames = [rname]
-            elif asg[crit] == self.max_crit_val:
-                self.max_crit_rnames.append(rname)
+            if asg[measure] > self.max_val:
+                self.max_val = asg[measure]
+                self.max_rnames = [rname]
+            elif asg[measure] == self.max_val:
+                self.max_rnames.append(rname)
 
-        for i,rname in enumerate(self.max_crit_rnames):
+        for i,rname in enumerate(self.max_rnames):
             asg = self.asgs[rname]
             asg['ii']=i+1
-            asg['is']=len(self.max_crit_rnames)
+            asg['is']=len(self.max_rnames)
 
 
-    def print_assignments(self, form, crit):
+    def print_assignments(self, form, measure):
         """Print the best assignments.
 
         Args:
             form (str): Expected output format (sam/kraken).
-            crit (str): Criterion (h1/c1/h2/c2).
+            measure (str): Measure (h1/c1/h2/c2).
         """
 
-        winners = self.max_crit_rnames
+        winners = self.max_rnames
 
         # No assignments
         if len(winners)==0:
@@ -233,7 +233,7 @@ class Read:
 
                 #asg['hitcigar'] = None
 
-                if crit=="h1" or crit=="h2":
+                if measure=="h1" or measure=="h2":
                     asg['h1'] = first_winner['h1']
                     asg['h2'] = first_winner['h2']
                     asg['hf'] = first_winner['hf']
@@ -242,7 +242,7 @@ class Read:
                     asg['c2'] = None
                     asg['cf'] = None
 
-                elif crit=="c1" or crit=="c2":
+                elif measure=="c1" or measure=="c2":
                     asg['c1'] = first_winner['c1']
                     asg['c2'] = first_winner['c2']
                     asg['cf'] = first_winner['cf']
@@ -549,7 +549,7 @@ def assign(
         lca,
         form,
         k,
-        crit,
+        measure,
         annotate,
         tie,
         dont_translate_blocks,
@@ -573,7 +573,7 @@ def assign(
         read.print_sam_header()
 
     for x in inp_fo:
-        read.process_krakline(x, form=form, crit=crit)
+        read.process_krakline(x, form=form, measure=measure)
 
 
 def parse_args():
@@ -607,7 +607,7 @@ def parse_args():
     parser.add_argument('-m',
         choices=['h1', 'c1', 'c2', 'h2'],
         default='h1',
-        dest='crit',
+        dest='measure',
         help='measure: h1=hit count, c1=coverage, h2=norm.hit count, c2=norm.coverage [h1]',
     )
 
@@ -647,7 +647,7 @@ def main():
     lca = args.lca
     form = args.format
     k = args.k
-    crit = args.crit
+    measure = args.measure
     annotate = args.annotate
     tie = args.tie
     d = args.donttransl
@@ -659,7 +659,7 @@ def main():
             lca=lca,
             form=form,
             k=k,
-            crit=crit,
+            measure=measure,
             annotate=annotate,
             tie=tie,
             dont_translate_blocks=d,
