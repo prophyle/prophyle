@@ -26,7 +26,8 @@ import version
 
 # this should be longer than any possible read, because of CRAM (non-tested yet)
 FAKE_CONTIG_LENGTH = 42424242
-DIAGNOSTICS        = True
+DIAGNOSTICS        = False
+#DIAGNOSTICS        = True
 
 ###############################################################################################
 ###############################################################################################
@@ -49,8 +50,8 @@ class Assignment:
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
         krakline_parser (KraklineParser): Parser of kraklines.
-        hit_masks_dict (dict): Hit masks
-        cov_masks_dict (dict): Cov masks.
+        hitmasks_dict (dict): Hit masks
+        covmasks_dict (dict): Cov masks.
         ass_dict (dict): Assignment dictionary.
         max_nodenames (list of str): List of nodenames of winners.
         max_val (int/float): Maximal value of the measure.
@@ -66,12 +67,12 @@ class Assignment:
 
         self.krakline_parser = KraklineParser ()
 
-        self.hit_masks_dict = {}
-        self.cov_masks_dict = {}
+        self.hitmasks_dict = {}
+        self.covmasks_dict = {}
         self.ass_dict = {}
 
         self.max_nodenames=[]
-        self.max_val=-1
+        self.max_val=0
 
 
     def process_read(self, krakline, form, measure):
@@ -88,16 +89,18 @@ class Assignment:
             self.krakline_parser.diagnostics()
 
         self.blocks_to_masks(self.krakline_parser.kmer_blocks, self.kmer_lca)
-
+        if DIAGNOSTICS:
+            self.diagnostics()
 
         self.compute_assignments()
-
+        if DIAGNOSTICS:
+            self.diagnostics()
 
         self.select_best_assignments(measure)
-
+        if DIAGNOSTICS:
+            self.diagnostics()
 
         self.print_selected_assignments(form)
-
 
 
     def blocks_to_masks(self, kmer_blocks, kmer_lca):
@@ -149,7 +152,7 @@ class Assignment:
         """
 
         # TODO: what if no assignment exists
-        nodenames=self.hit_masks_dict.keys()
+        nodenames=self.hitmasks_dict.keys()
         self.ass_dict={
             nodename: self.evaluate_single_assignment(nodename) for nodename in nodenames
         }
@@ -165,20 +168,18 @@ class Assignment:
             assignment (dict): Assignment dictionary.
         """
 
-        # TODO: fix tree (it should be tree index)
-
         #################################
         # A) Start with the current masks
         #################################
-        hitmask = bitarray.bitarray(self.hitmasks_dict[nodename]),
-        covmask = bitarray.bitarray(self.covmasks_dict[nodename]),
+        hitmask = bitarray.bitarray(self.hitmasks_dict[nodename])
+        covmask = bitarray.bitarray(self.covmasks_dict[nodename])
 
-        node = self.tree.nodename_to_node[nodename]
+        node = self.tree_index.nodename_to_node[nodename]
 
         #################################
         # B) Update from ancestors
         #################################
-        ancestors=self.tree.nodename_to_upnodenames[nodename] & nodenames
+        ancestors=self.tree_index.nodename_to_upnodenames[nodename] & self.hitmasks_dict.keys()
         for anc_nodename in ancestors:
             hitmask |= hitmasks[anc_nodename]
             covmask |= covmasks[anc_nodename]
@@ -186,26 +187,27 @@ class Assignment:
         #################################
         # C) Calculate characteristics
         #################################
-        hit = asg['hitmask'].count()
-        cov = asg['covmask'].count()
+        hit = hitmask.count()
+        cov = covmask.count()
+        readlen = self.krakline_parser.readlen
 
         assignment= {
             # 1. hit count
             'hitmask': hitmask,
             'hitcigar': self.cigar_from_bitmask(hitmask),
             'h1': [hit],
-            'hf': [hit / (self.qlen - self.k + 1)],
-            'h2': [hit / self.tree.nodename_to_kmercount[nodename]],
+            'hf': [hit / (readlen - self.k + 1)],
+            'h2': [hit / self.tree_index.nodename_to_kmercount[nodename]],
 
             # 2. coverage
             'covmask': covmask,
             'covcigar': self.cigar_from_bitmask(covmask),
             'c1': [cov],
-            'cf': [cov / self.readlen],
-            'c2': [cov / self.tree.nodename_to_kmercount[nodename]],
+            'cf': [cov / readlen],
+            'c2': [cov / self.tree_index.nodename_to_kmercount[nodename]],
 
             # 3. other values
-            'ln' : [self.readlen],
+            'ln' : readlen,
         }
 
         return assignment
@@ -218,21 +220,21 @@ class Assignment:
             measure (str): Measure (h1/c1/h2/c2).
         """
 
-        self.max_val = -1
+        self.max_val = 0
         self.max_nodenames = []
 
         for nodename in self.ass_dict:
             ass=self.ass_dict[nodename]
 
-            if ass[measure] > self.max_val:
-                self.max_val = ass[measure]
+            if ass[measure][0] > self.max_val:
+                self.max_val = ass[measure][0]
                 self.max_nodenames = [nodename]
 
-            elif asg[measure] == self.max_val:
+            elif ass[measure][0] == self.max_val:
                 self.max_nodenames.append(nodename)
 
         for i, rname in enumerate(self.max_nodenames):
-            asg = self.asgs[nodename]
+            asg = self.ass_dict[nodename]
             asg['ii'] = i + 1
             asg['is'] = len(self.max_nodenames)
 
@@ -243,13 +245,13 @@ class Assignment:
         #
         # multiple winners => compute LCA and set only those values that are known
         if len(winners) > 1:
-            first_winner = self.asgs[winners[0]]
+            first_winner = self.ass[winners[0]]
             print("winner rec", first_winner, file=sys.stderr)
             tie_solved = True
             lca = self.tree_index.lca(winners)
             winners = [lca]
             # fix what if this node exists!
-            asg = self.asgs[lca] = {}
+            asg = self.ass_dict[lca] = {}
             asg['covmask'] = None
             asg['hitmask'] = None
             # asg['covcigar'] = None
@@ -290,16 +292,16 @@ class Assignment:
                 if ass['covmask'] is None:
                     ass['covcigar'] = None
                 else:
-                    ass['covcigar'] = self.cigar_from_bitmask(asg['covmask'])
+                    ass['covcigar'] = self.cigar_from_bitmask(ass['covmask'])
 
                 if ass['hitmask'] is None:
                     ass['hitcigar'] = None
                 else:
-                    ass['hitcigar'] = self.cigar_from_bitmask(asg['hitmask'])
+                    ass['hitcigar'] = self.cigar_from_bitmask(ass['hitmask'])
 
                 suffix_parts=["ii:i:{}\tis:i:{}".format(tag_ii, tag_is)]
                 if self.annotate:
-                    suffix_parts.append(self.tree.nodename_to_samannot[nodename])
+                    suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
                 self.print_sam_line(nodename, "\t".join(suffix_parts))
             elif form == "kraken":
                 self.print_kraken_line(nodename)
@@ -317,8 +319,8 @@ class Assignment:
         """
 
         c = []
-        mask_bin = map(bool, mask)
-        runs = itertools.groupby(mask_bin)
+        bitmask = map(bool, bitmask)
+        runs = itertools.groupby(bitmask)
         for run in runs:
             c.append(str(len(list(run[1]))))
             c.append('=' if run[0] else 'X')
@@ -334,13 +336,13 @@ class Assignment:
         """
 
         tags = []
-        qname = self.readname
+        qname = self.krakline_parser.readname
 
         if node_name is not None:
             flag = 0
             mapq = "60"
             pos = "1"
-            cigar = self.asgs[node_name]['covcigar']
+            cigar = self.ass_dict[node_name]['covcigar']
         else:
             flag = 4
             node_name = None
@@ -358,17 +360,18 @@ class Assignment:
             "*",  # RNEXT
             "0",  # PNEXT
             "0",  # TLEN
-            self.seq if self.seq else "*",  # SEQ
-            self.qual if self.qual else "*",  # QUAL
+            self.krakline_parser.seq if self.krakline_parser.seq else "*",  # SEQ
+            self.krakline_parser.qual if self.krakline_parser.qual else "*",  # QUAL
         ]
 
         if node_name is not None:
-            asg = self.asgs[node_name]
+            asg = self.ass_dict[node_name]
 
-            for tag in ['h1', 'h2', 'hf', 'c1', 'c2', 'cf', 'ln']:
+            for tag in ['h1', 'h2', 'hf', 'c1', 'c2', 'cf']:
                 for val in asg[tag]:
                     columns.append("{}:i:{}".format(tag, val))
 
+            columns.append("ln:i:{}".format(asg['ln']))
             columns.append("ii:i:{}".format(asg['ii']))
             columns.append("is:i:{}".format(asg['is']))
 
@@ -425,8 +428,8 @@ class Assignment:
             stat = "C"
 
         if self.tie_lca:
-            lca_rnames = []
-            for [node_names, count] in self.kmer_blocks:
+            lca_nodenames = []
+            for [nodenames, count] in self.kmer_blocks:
                 assert len(rnames) == 1
 
                 # todo: ???????
@@ -472,6 +475,18 @@ class Assignment:
         """
         return bitarray.bitarray(pos*[False] + blen*[True] + (alen - pos - blen) * [False])
 
+
+    def diagnostics(self):
+        """Print debug messages.
+        """
+        print("---------------------", file=sys.stderr)
+        print("Alignment diagnostics", file=sys.stderr)
+        print("---------------------", file=sys.stderr)
+        print("Alignment.hitmasks_dict: ", dict(self.hitmasks_dict), file=sys.stderr)
+        print("Alignment.covmasks_dict: ", dict(self.covmasks_dict), file=sys.stderr)
+        print("Alignment.ass_dict:      ", dict(self.ass_dict), file=sys.stderr)
+        print("Alignment.max_nodenames: ", self.max_nodenames, file=sys.stderr)
+        print("Alignment.max_val:       ", self.max_val, file=sys.stderr)
 
 
 ###############################################################################################
@@ -602,7 +617,7 @@ class KraklineParser():
 
         self.krakline=krakline
         parts = krakline.strip().split("\t")
-        self.readname, _, readlen, krakmers = parts[1:5]
+        self.readname, _, readlen, self.krakmers = parts[1:5]
         self.readlen = int(readlen)
         if len(parts) == 7:
             self.seq = parts[5]
@@ -614,25 +629,11 @@ class KraklineParser():
         # list of (count,list of nodes)
         self.kmer_blocks = []
 
-        for block in krakmers.split(" "):
+        for block in self.krakmers.split(" "):
             (ids, count) = block.split(":")
             count = int(count)
             nodenames = ids.split(",")
             self.kmer_blocks.append((nodenames, count))
-
-
-    def diagnostics(self):
-        """Print debug messages.
-        """
-        print("--------------------------", file=sys.stderr)
-        print("KraklineParser diagnostics", file=sys.stderr)
-        print("--------------------------", file=sys.stderr)
-        print("KraklineParser.krakline:    ", self.krakline.strip(), file=sys.stderr)
-        print("KraklineParser.readname:    ", self.readname, file=sys.stderr)
-        print("KraklineParser.readlen:     ", self.readlen, file=sys.stderr)
-        print("KraklineParser.seq:         ", self.seq, file=sys.stderr)
-        print("KraklineParser.qual:        ", self.qual, file=sys.stderr)
-        print("KraklineParser.kmer_blocks: ", self.kmer_blocks, file=sys.stderr)
 
 
     def check_consistency (self, k):
@@ -656,6 +657,21 @@ class KraklineParser():
             return False
 
         return True
+
+
+    def diagnostics(self):
+        """Print debug messages.
+        """
+        print("--------------------------", file=sys.stderr)
+        print("KraklineParser diagnostics", file=sys.stderr)
+        print("--------------------------", file=sys.stderr)
+        #print("KraklineParser.krakline:    ", self.krakline.strip(), file=sys.stderr)
+        print("KraklineParser.readname:    ", self.readname, file=sys.stderr)
+        print("KraklineParser.krakmers:    ", self.krakmers, file=sys.stderr)
+        print("KraklineParser.readlen:     ", self.readlen, file=sys.stderr)
+        print("KraklineParser.seq:         ", self.seq, file=sys.stderr)
+        print("KraklineParser.qual:        ", self.qual, file=sys.stderr)
+        print("KraklineParser.kmer_blocks: ", self.kmer_blocks, file=sys.stderr)
 
 
 ###############################################################################################
