@@ -32,15 +32,15 @@ class Assignment:
     """Class for handling a single read.
 
     Args:
-        output (file): Output file object.
+        output_fo (file): Output file object.
         tree (ete3.Tree): Phylogenetic tree.
-        simulate_lca (bool): Simulate LCA on the k-mer level.
+        kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
         dont_translate_blocks (bool): ?
 
     Attributes:
-        output (file): Output file object.
+        output_fo (file): Output file object.
         tree (ete3.Tree): Phylogenetic tree.
         k (int): k-mer size.
         kmer_lca (bool): Simulate LCA on the k-mer level.
@@ -53,8 +53,8 @@ class Assignment:
         ass_dict (dict): Assignment dictionary.
     """
 
-    def __init__(self, output, tree, kmer_lca=False, tie_lca=False, annotate=False, dont_translate_blocks=False):
-        self.output = output
+    def __init__(self, output_fo, tree, kmer_lca=False, tie_lca=False, annotate=False, dont_translate_blocks=False):
+        self.output_fo = output_fo
         self.tree = tree
         self.k = tree.k
         self.kmer_lca = kmer_lca
@@ -80,36 +80,31 @@ class Assignment:
 
         self.krakline_parser.parse_krakline(krakline)
         self.blocks_to_masks(self.krakline_parser.kmer_blocks, self.kmer_lca)
-        self.masks_to_propmasks()
-        # print(self.asgs)
+        self.compute_assignments(measure)
         self.filter_assignments(measure)
         self.print_assignments(form, measure)
 
 
     def blocks_to_masks(self, kmer_blocks, kmer_lca):
-        """Extract hit and coverage masks from krakline blocks (without propagation).
+        """Extract hit and coverage masks from krakline blocks (without propagation) and store them in self.{hit,cov}masks_dict.
 
         Args:
             kmer_blocks (list): List of assigned k-mers, i.e., list of (list of node_names, count).
             simulate_kmer_lca (bool): Simulate k-mer LCA on the k-mer level.
-
-        Returns:
-            hit_masks_dict (dict): Dict of hit masks.
-            cov_masks_dict (dict): Dict of coverage masks.
         """
 
         readlen = sum([x[1] for x in kmer_blocks])
 
-        hit_mask_len = readlen
-        cov_mask_len = readlen + self.k - 1
+        hitmask_len = readlen
+        covmask_len = readlen + self.k - 1
 
         # zero masks
-        hit_mask_empty = bitarray_block(hit_mask_len, 0, 0)
-        cov_mask_empty = bitarray_block(cov_mask_len, 0, 0)
+        hitmask_empty = self.bitarray_block(hitmask_len, 0, 0)
+        covmask_empty = self.bitarray_block(covmask_len, 0, 0)
 
         # fast copying (bitarray trick)
-        hit_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(hit_mask_empty))
-        cov_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(cov_mask_empty))
+        hitmasks_dict = collections.defaultdict(lambda: bitarray.bitarray(hitmask_empty))
+        covmasks_dict = collections.defaultdict(lambda: bitarray.bitarray(covmask_empty))
 
         pos = 0
 
@@ -118,23 +113,24 @@ class Assignment:
             # Kraken output format: 0 and A have special meanings, no blocks
             if node_names != ["0"] and node_names != ["A"]:
 
-                hit_mask_1block = bitarray_block(hit_mask_len, count, pos)
-                cov_mask_1block = bitarray_block(cov_mask_len, count+self.k-1, pos)
+                hitmask_1block = bitarray_block(hitmask_len, count, pos)
+                covmask_1block = bitarray_block(covmask_len, count+self.k-1, pos)
 
                 if kmer_lca:
-                    node_names=[self.ti.lca(*node_names)]
+                    node_names = [self.ti.lca(*node_names)]
 
                 for node_name in node_names:
-                    hit_masks_dict[node_name] |= hit_mask_1block
-                    cov_masks_dict[node_name] |= cov_mask_1block
+                    hitmasks_dict[node_name] |= hitmask_1block
+                    covmasks_dict[node_name] |= covmask_1block
 
             pos += count
 
-        return (hit_masks_dict, cov_masks_dict)
+        self.hitmasks_dict = hitmasks_dict
+        self.covmasks_dict = covmasks_dict
 
 
     def compute_assignments (self):
-        """Compute assignments and their characteristics.
+        """Compute assignments and their characteristics from hitmasks and store them in self.ass_dict.
         """
 
         # TODO: what if no assignment exists
@@ -159,8 +155,8 @@ class Assignment:
         #################################
         # A) Start with the current masks
         #################################
-        hitmask = bitarray.bitarray(hitmasks[nodename]),
-        covmask = bitarray.bitarray(covmasks[nodename]),
+        hitmask = bitarray.bitarray(self.hitmasks_dict[nodename]),
+        covmask = bitarray.bitarray(self.covmasks_dict[nodename]),
 
         node = self.tree.nodename_to_node[nodename]
 
@@ -361,23 +357,20 @@ class Assignment:
                 for val in asg[tag]:
                     columns.append("{}:i:{}".format(tag, val))
 
-            if asg['ii'] is not None:
-                columns.append("ii:i:{}".format(asg['ii']))
-
-            if asg['is'] is not None:
-                columns.append("is:i:{}".format(asg['is']))
+            columns.append("ii:i:{}".format(asg['ii']))
+            columns.append("is:i:{}".format(asg['is']))
 
             if asg['hitcigar']:
                 columns.append("hc:Z:{}".format(asg['hitcigar']))
 
-        print("\t".join(columns), suffix, file=self.output, sep="")
+        print("\t".join(columns), suffix, file=self.output_fo, sep="")
 
 
     def print_sam_header(self):
         """Print SAM headers.
         """
-        print("@PG", "PN:prophyle", "ID:prophyle", "VN:{}".format(version.VERSION), sep="\t", file=self.output)
-        print("@HD", "VN:1.5", "SO:unsorted", sep="\t", file=self.output)
+        print("@PG", "PN:prophyle", "ID:prophyle", "VN:{}".format(version.VERSION), sep="\t", file=self.output_fo)
+        print("@HD", "VN:1.5", "SO:unsorted", sep="\t", file=self.output_fo)
         for node in self.tree.tree.traverse("postorder"):
             self.tree.name_dict[node.name] = node
 
@@ -403,7 +396,7 @@ class Assignment:
                     as_=as_,
                     ur=ur,
                     sp=sp,
-                ), file=self.output)
+                ), file=self.output_fo)
 
 
     # TODO: deeply check the entire functino,
@@ -451,7 +444,7 @@ class Assignment:
         else:
             columns = [stat, self.qname, node_name, str(self.qlen), self.krakmers]
 
-        print("\t".join(columns), file=self.output)
+        print("\t".join(columns), file=self.output_fo)
 
 
 
@@ -649,24 +642,26 @@ def assign_all_reads(
 ):
     assert form in ["kraken", "sam"]
     assert k > 1
-    ti = TreeIndex(
+
+    tree_index = TreeIndex(
         tree_newick_fn=tree_fn,
         k=k,
     )
 
-    read = Read(
+    assignment = Assignment(
         output=sys.stdout,
-        tree=ti,
+        tree_index=tree_index,
         simulate_lca=lca,
         annotate=annotate,
         tie_lca=tie,
         dont_translate_blocks=dont_translate_blocks,
     )
+
     if form == "sam":
-        read.print_sam_header()
+        assignment.print_sam_header()
 
     for krakline in inp_fo:
-        read.process_read(krakline, form=form, measure=measure)
+        assignment.process_read(krakline, form=form, measure=measure)
 
 
 def parse_args():
