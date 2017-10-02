@@ -8,12 +8,12 @@ License: MIT
 """
 
 import argparse
+import bitarray
+import collections
+import ete3
 import itertools
 import os
 import sys
-
-import bitarray
-import ete3
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
@@ -49,6 +49,8 @@ class Assignment:
         hit_masks_dict (dict): Hit masks
         cov_masks_dict (dict): Cov masks.
         ass_dict (dict): Assignment dictionary.
+        max_nodenames (list of str): List of nodenames of winners.
+        max_val (int/float): Maximal value of the measure.
     """
 
     def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
@@ -65,6 +67,9 @@ class Assignment:
         self.cov_masks_dict = {}
         self.ass_dict = {}
 
+        self.max_nodenames=[]
+        self.max_val=-1
+
 
     def process_read(self, krakline, form, measure):
         """Process one Kraken-like line.
@@ -77,9 +82,9 @@ class Assignment:
 
         self.krakline_parser.parse_krakline(krakline)
         self.blocks_to_masks(self.krakline_parser.kmer_blocks, self.kmer_lca)
-        self.compute_assignments(measure)
-        self.filter_assignments(measure)
-        self.print_assignments(form, measure)
+        self.compute_assignments()
+        self.select_best_assignments(measure)
+        self.print_selected_assignments(form)
 
 
     def blocks_to_masks(self, kmer_blocks, kmer_lca):
@@ -110,8 +115,8 @@ class Assignment:
             # Kraken output format: 0 and A have special meanings, no blocks
             if node_names != ["0"] and node_names != ["A"]:
 
-                hitmask_1block = bitarray_block(hitmask_len, count, pos)
-                covmask_1block = bitarray_block(covmask_len, count+self.k-1, pos)
+                hitmask_1block = self.bitarray_block(hitmask_len, count, pos)
+                covmask_1block = self.bitarray_block(covmask_len, count+self.k-1, pos)
 
                 if kmer_lca:
                     node_names = [self.tree_index.lca(*node_names)]
@@ -160,7 +165,7 @@ class Assignment:
         #################################
         # B) Update from ancestors
         #################################
-        ancestors=self.tree.upnodenames[nodename] & nodenames
+        ancestors=self.tree.nodename_to_upnodenames[nodename] & nodenames
         for anc_nodename in ancestors:
             hitmask |= hitmasks[anc_nodename]
             covmask |= covmasks[anc_nodename]
@@ -193,10 +198,8 @@ class Assignment:
         return assignment
 
 
-    def filter_assignments(self, measure):
-        """Find the best assignments.
-
-        rname=None => unassigned
+    def select_best_assignments(self, measure):
+        """Find the best assignments and store it in self.max_nodenames (val: self.max_val).
 
         Args:
             measure (str): Measure (h1/c1/h2/c2).
@@ -230,7 +233,7 @@ class Assignment:
             first_winner = self.asgs[winners[0]]
             print("winner rec", first_winner, file=sys.stderr)
             tie_solved = True
-            lca = self.tree.lca(winners)
+            lca = self.tree_index.lca(winners)
             winners = [lca]
             # fix what if this node exists!
             asg = self.asgs[lca] = {}
@@ -259,16 +262,15 @@ class Assignment:
                 asg['hf'] = None
 
 
-    def print_assignments(self, form, measure, winners):
+    def print_selected_assignments(self, form):
         """Print the best assignments.
 
         Args:
             form (str): Expected output format (sam/kraken).
-            measure (str): Measure (h1/c1/h2/c2).
         """
 
-        tag_is=len(self.max_rnames)
-        for tag_ii, nodename in enumerate(self.max_rnames, 1):
+        tag_is=len(self.max_nodenames)
+        for tag_ii, nodename in enumerate(self.max_nodenames, 1):
             ass = self.ass_dict[nodename]
             if form == "sam":
                 # compute cigar
@@ -283,7 +285,7 @@ class Assignment:
                     ass['hitcigar'] = self.cigar_from_bitmask(asg['hitmask'])
 
                 suffix_parts=["ii:i:{}\tis:i:{}".format(tag_ii, tag_is)]
-                self.annotate:
+                if self.annotate:
                     suffix_parts.append(self.tree.nodename_to_samannot[nodename])
                 self.print_sam_line(nodename, "\t".join(suffix_parts))
             elif form == "kraken":
@@ -368,8 +370,7 @@ class Assignment:
         """
         print("@PG", "PN:prophyle", "ID:prophyle", "VN:{}".format(version.VERSION), sep="\t", file=self.output_fo)
         print("@HD", "VN:1.5", "SO:unsorted", sep="\t", file=self.output_fo)
-        for node in self.tree.tree.traverse("postorder"):
-            self.tree.name_dict[node.name] = node
+        for node in self.tree_index.tree.traverse("postorder"):
 
             try:
                 ur = "\tUR:{}".format(node.fastapath)
@@ -419,7 +420,7 @@ class Assignment:
                 if node_names[0] == "A" or node_names[0] == "0" or self.dont_translate_blocks:
                     taxid = node_names[0]
                 else:
-                    taxid = int(self.tree.taxid_dict[node_names[0]])
+                    taxid = int(self.tree_index.nodename_to_taxid[node_names[0]])
                 lca_rnames.extend(count * [taxid])
             c = []
             runs = itertools.groupby(lca_rnames)
@@ -431,7 +432,7 @@ class Assignment:
             pseudokrakenmers = " ".join(c)
 
             if stat == "C":
-                taxid = str(self.tree.taxid_dict[rname])
+                taxid = str(self.tree_index.nodename_to_taxid[nodename])
             else:
                 taxid = "0"
 
@@ -442,6 +443,21 @@ class Assignment:
             columns = [stat, self.qname, node_name, str(self.qlen), self.krakmers]
 
         print("\t".join(columns), file=self.output_fo)
+
+
+    @staticmethod
+    def bitarray_block(alen, blen, pos):
+        """Create a bitarray containing a block of one's.
+
+        Args:
+            alen (int): Array length.
+            blen (int): Block length (within the array).
+            pos (int): Position of the block (0-based).
+
+        Return:
+            bitarray (bitarray.bitarray)
+        """
+        return bitarray.bitarray(pos*[False] + blen*[True] + (alen - pos - blen) * [False])
 
 
 
@@ -535,21 +551,6 @@ class TreeIndex:
         return lca.name
 
 
-    @staticmethod
-    def bitarray_block(alen, blen, pos):
-        """Create a bitarray containing a block of one's.
-
-        Args:
-            alen (int): Array length.
-            blen (int): Block length (within the array).
-            pos (int): Position of the block (0-based).
-
-        Return:
-            bitarray (bitarray.bitarray)
-        """
-        return bitarray.bitarray(pos*[False] + blen*[True] + (alen - pos - blen) * [False])
-
-
 ###############################################################################################
 ###############################################################################################
 
@@ -569,7 +570,7 @@ class KraklineParser():
         self.readlen=None
         self.seq=None
         self.qual=None
-        self.kmer_blocks=None
+        self.kmer_blocks = []
 
 
     def parse_krakline(self, krakline):
@@ -592,7 +593,7 @@ class KraklineParser():
         # list of (count,list of nodes)
         self.kmer_blocks = []
 
-        for blocks in self.krakmers.split(" "):
+        for block in krakmers.split(" "):
             (ids, count) = block.split(":")
             count = int(count)
             nodenames = ids.split(",")
@@ -645,7 +646,7 @@ def assign_all_reads(
     )
 
     assignment = Assignment(
-        output=sys.stdout,
+        output_fo=sys.stdout,
         tree_index=tree_index,
         kmer_lca=kmer_lca,
         tie_lca=tie_lca,
@@ -662,7 +663,7 @@ def assign_all_reads(
 def parse_args():
     parser = argparse.ArgumentParser(description='Implementation of assignment algorithm')
 
-    parser.add_argument('newick_fn',
+    parser.add_argument('tree_fn',
         type=str,
         metavar='<tree.nhx>',
         help='phylogenetic tree (Newick/NHX)',
@@ -721,8 +722,8 @@ def main():
 
     try:
         assign_all_reads(
-            tree_fn=newick_fn,
-            inp_fo=args.inp_file,
+            tree_fn=args.tree_fn,
+            inp_fo=args.input_file,
             form=args.format,
             k=args.k,
             measure=args.measure,
