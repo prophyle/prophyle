@@ -2,6 +2,8 @@
 
 """ProPhyle assignment algorithm (reference implementation).
 
+Example: ./prophyle/prophyle_index/prophyle_index query -k 5 -u -b _index_test/index.fa tests/simulation_bacteria.1000.fq |./prophyle/prophyle_assignment.py -m h1 -f sam _index_test/tree.nw 5 -
+
 Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
 License: MIT
@@ -81,10 +83,19 @@ class Assignment:
         """
 
         self.krakline_parser.parse_krakline(krakline)
+        self.krakline_parser.diagnostics()
+
         self.blocks_to_masks(self.krakline_parser.kmer_blocks, self.kmer_lca)
+
+
         self.compute_assignments()
+
+
         self.select_best_assignments(measure)
+
+
         self.print_selected_assignments(form)
+
 
 
     def blocks_to_masks(self, kmer_blocks, kmer_lca):
@@ -558,6 +569,7 @@ class KraklineParser():
     """Class for parsing Kraken-like input into a structure.
 
     Attributes:
+        krakline (str): Original krakline.
         readname (str): Name of the read.
         raedlen (str): Length of the read.
         seq (str): Sequence of nucleotides. None if unknown.
@@ -566,6 +578,7 @@ class KraklineParser():
     """
 
     def __init__(self):
+        self.krakline=None
         self.readname=None
         self.readlen=None
         self.seq=None
@@ -580,6 +593,7 @@ class KraklineParser():
             krakline (str): Kraken-like line.
         """
 
+        self.krakline=krakline
         parts = krakline.strip().split("\t")
         self.readname, _, readlen, krakmers = parts[1:5]
         self.readlen = int(readlen)
@@ -598,6 +612,20 @@ class KraklineParser():
             count = int(count)
             nodenames = ids.split(",")
             self.kmer_blocks.append((nodenames, count))
+
+
+    def diagnostics(self):
+        """Print debug messages.
+        """
+        print("--------------------------", file=sys.stderr)
+        print("KraklineParser diagnostics", file=sys.stderr)
+        print("--------------------------", file=sys.stderr)
+        print("KraklineParser.krakline:", self.krakline.strip(), file=sys.stderr)
+        print("KraklineParser.readname:", self.readname, file=sys.stderr)
+        print("KraklineParser.readlen:", self.readlen, file=sys.stderr)
+        print("KraklineParser.seq:", self.seq, file=sys.stderr)
+        print("KraklineParser.qual:", self.qual, file=sys.stderr)
+        print("KraklineParser.kmer_blocks:", self.kmer_blocks, file=sys.stderr)
 
 
     def check_consistency (self, k):
