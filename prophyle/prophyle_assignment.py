@@ -176,17 +176,17 @@ class Assignment:
 
         node = self.tree_index.nodename_to_node[nodename]
 
-        #################################
+        ##########################
         # B) Update from ancestors
-        #################################
+        ##########################
         ancestors=self.tree_index.nodename_to_upnodenames[nodename] & self.hitmasks_dict.keys()
         for anc_nodename in ancestors:
             hitmask |= hitmasks[anc_nodename]
             covmask |= covmasks[anc_nodename]
 
-        #################################
+        ##############################
         # C) Calculate characteristics
-        #################################
+        ##############################
         hit = hitmask.count()
         cov = covmask.count()
         readlen = self.krakline_parser.readlen
@@ -214,7 +214,7 @@ class Assignment:
 
 
     def select_best_assignments(self, measure):
-        """Find the best assignments and store it in self.max_nodenames (val: self.max_val).
+        """Find the best assignments and save it to self.max_nodenames (max value: self.max_val).
 
         Args:
             measure (str): Measure (h1/c1/h2/c2).
@@ -233,48 +233,44 @@ class Assignment:
             elif ass[measure][0] == self.max_val:
                 self.max_nodenames.append(nodename)
 
-        for i, rname in enumerate(self.max_nodenames):
-            asg = self.ass_dict[nodename]
-            asg['ii'] = i + 1
-            asg['is'] = len(self.max_nodenames)
-
 
     def make_lca_from_winners(self):
-        #
-        # todo: test
-        #
-        # multiple winners => compute LCA and set only those values that are known
-        if len(winners) > 1:
-            first_winner = self.ass[winners[0]]
-            print("winner rec", first_winner, file=sys.stderr)
-            tie_solved = True
-            lca = self.tree_index.lca(winners)
-            winners = [lca]
-            # fix what if this node exists!
-            asg = self.ass_dict[lca] = {}
-            asg['covmask'] = None
-            asg['hitmask'] = None
-            # asg['covcigar'] = None
+        """Create LCA from winners.
 
-            # asg['hitcigar'] = None
+        Assemble the characteristics of the LCA from the characteristics
+        of the winning node. Output mutliple tag measures (e.g., h1 or c1).
+        """
 
-            if measure == "h1" or measure == "h2":
-                asg['h1'] = first_winner['h1']
-                asg['h2'] = first_winner['h2']
-                asg['hf'] = first_winner['hf']
+        # all characteristics are already computed
+        if len(max_nodenames) == 1:
+            return
 
-                asg['c1'] = None
-                asg['c2'] = None
-                asg['cf'] = None
+        first_winner = self.ass_dict[max_nodenames[0]]
+        lca = self.tree_index.lca(winners)
 
-            elif measure == "c1" or measure == "c2":
-                asg['c1'] = first_winner['c1']
-                asg['c2'] = first_winner['c2']
-                asg['cf'] = first_winner['cf']
+        self.max_nodenames = [lca]
 
-                asg['h1'] = None
-                asg['h2'] = None
-                asg['hf'] = None
+        asg = self.ass_dict[lca] = {}
+        asg['covmask'] = None
+        asg['hitmask'] = None
+
+        if measure == "h1" or measure == "h2":
+            asg['h1'] = first_winner['h1']
+            asg['h2'] = first_winner['h2']
+            asg['hf'] = first_winner['hf']
+
+            asg['c1'] = None
+            asg['c2'] = None
+            asg['cf'] = None
+
+        elif measure == "c1" or measure == "c2":
+            asg['c1'] = first_winner['c1']
+            asg['c2'] = first_winner['c2']
+            asg['cf'] = first_winner['cf']
+
+            asg['h1'] = None
+            asg['h2'] = None
+            asg['hf'] = None
 
 
     def print_selected_assignments(self, form):
@@ -370,10 +366,6 @@ class Assignment:
             for tag in ['h1', 'h2', 'hf', 'c1', 'c2', 'cf']:
                 for val in asg[tag]:
                     columns.append("{}:i:{}".format(tag, val))
-
-            columns.append("ln:i:{}".format(asg['ln']))
-            columns.append("ii:i:{}".format(asg['ii']))
-            columns.append("is:i:{}".format(asg['is']))
 
             if asg['hitcigar']:
                 columns.append("hc:Z:{}".format(asg['hitcigar']))
