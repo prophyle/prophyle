@@ -23,11 +23,11 @@ import version
 FAKE_CONTIG_LENGTH = 42424242
 
 
-def cigar_from_mask(mask):
+def cigar_from_bitmask(bitmask):
     """Create a CIGAR from a binary mask.
 
     Args:
-        mask (list): Mask.
+        mask (list): Bitmask.
 
     Return:
         cigar (str): Cigar string (X/= ops).
@@ -268,12 +268,12 @@ class Read:
                 if asg['covmask'] is None:
                     asg['covcigar'] = None
                 else:
-                    asg['covcigar'] = cigar_from_mask(asg['covmask'])
+                    asg['covcigar'] = cigar_from_bitmask(asg['covmask'])
 
                 if asg['hitmask'] is None:
                     asg['hitcigar'] = None
                 else:
-                    asg['hitcigar'] = cigar_from_mask(asg['hitmask'])
+                    asg['hitcigar'] = cigar_from_bitmask(asg['hitmask'])
 
                 # if self.tie_lca and len(winners) > 1:
                 #                    asg['covcigar'] = None
@@ -396,7 +396,7 @@ class Read:
                 ), file=self.output)
 
 
-    # TODO: deeply check the entire functino, 
+    # TODO: deeply check the entire functino,
     def print_kraken_line(self, node_name):
         """Print a single record in Kraken format.
 
@@ -445,20 +445,20 @@ class Read:
 
 
 class TreeIndex:
-    """Class for a Phylogenetic tree.
+    """Class for an indexed Phylogenetic tree.
 
     Args:
-        tree_newick_fn (str): Filename fo the phylogenetic tree.
+        tree_newick_fn (str): Filename of the phylogenetic tree.
         k (int): K-mer size.
 
     Attributes:
         tree (ete3.Tree): Minimal subtree of the original phylogenetic tree.
         k (int): K-mer size.
-        name_dict (dict): node name => node.
-        taxid_dict (dict): node name => taxid (annotations from the tree).
-        sam_annotations_dict (dict): node name => string to append in SAM.
-        upnodes_dict (dict): node name => set of node names of ancestors.
-        kmer_count_dict (dict): nname => number of k-mers (full set).
+        nodename_to_node (dict): node name => node.
+        nodename_to_taxid (dict): node name => taxid (annotations from the tree).
+        nodename_to_samannot (dict): node name => string to append in SAM.
+        nodename_to_upnodenames (dict): node name => set of node names of ancestors.
+        nodename_to_kmercount (dict): nname => number of k-mers (full set).
     """
 
     def __init__(self, tree_newick_fn, k):
@@ -467,18 +467,19 @@ class TreeIndex:
 
         self.k = k
 
-        self.name_dict = {}
+        self.nodename_to_node = {}
+        self.nodename_to_kmercount = {}
 
-        self.taxid_dict = {}
-        self.sam_annotations_dict = {}
-        self.upnodes_dict = {}
+        self.nodename_to_taxid = {}
+        self.nodename_to_samannot = {}
 
-        self.kmer_count_dict = {}
+        self.nodename_to_upnodenames = collections.defaultdict(lambda: set())
+
 
         for node in self.tree.traverse("postorder"):
-            rname = node.name
-            self.name_dict[rname] = node
-            self.kmer_count_dict[rname] = int(node.kmers_full)
+            nodename = node.name
+            self.nodename_to_node[nodename] = node
+            self.nodename_to_kmercount[nodename] = int(node.kmers_full)
 
             # annotations
             tags_parts = []
@@ -489,7 +490,7 @@ class TreeIndex:
 
             try:
                 tags_parts.extend(["\tti:Z:", node.taxid])
-                self.taxid_dict[rname] = node.taxid
+                self.nodename_to_taxid[nodename] = node.taxid
             except AttributeError:
                 pass
 
@@ -503,26 +504,15 @@ class TreeIndex:
             except AttributeError:
                 pass
 
-            self.sam_annotations_dict[rname] = "".join(tags_parts)
+            self.nodename_to_samannot[nodename] = "".join(tags_parts)
 
             # set of upper nodes
-            self.upnodes_dict[rname] = set()
             while node.up:
                 node = node.up
-                self.upnodes_dict[rname].add(node.name)
+                self.nodename_to_upnodenames[nodename].add(node.name)
 
-    """
-        kmers_assigned_l:
-            list of (list_of_nodes, count)
 
-        dict:
-            [
-                node => hit_vector,
-                node => cov_vector
-            ]
-    """
-
-    def masks_from_kmer_blocks(self, kmers_assigned, simulate_kmer_lca=False):
+    def masks_from_kmer_blocks(self, kmers_assigned, simulate_kmer_lca):
     """Extract hit and coverage masks from krakline blocks (without propagation).
 
     Args:
@@ -539,18 +529,25 @@ class TreeIndex:
         hit_mask_len = npos
         cov_mask_len = npos + self.k - 1
 
-        hit_masks_dict = collections.defaultdict(bitarray.bitarray(hit_mask_len*[False]))
-        cov_masks_dict = collections.defaultdict(bitarray.bitarray(cov_mask_len*[False]))
+        # zero masks
+        hit_mask_empty = bitarray_block(hit_mask_len, 0, 0)
+        cov_mask_empty = bitarray_block(cov_mask_len, 0, 0)
+
+        # fast copying (bitarray trick)
+        hit_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(hit_mask_empty))
+        cov_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(cov_mask_empty))
 
         pos = 0
         for (node_names, count) in kmers_assigned:
+
+            # Kraken output format: 0 and A have special meanings, no blocks
             if node_names != ["0"] and node_names != ["A"]:
 
                 if simulate_kmer_lca:
                     node_names=[self.lca(*node_names)]
 
-                hit_mask_1block = bitarray.bitarray(pos * [False] + count * [True] + (npos - pos - count) * [False])
-                cov_mask_1block = bitarray.bitarray(pos * [False] + (count + self.k - 1) * [True] + (npos - pos - count) * [False])
+                hit_mask_1block = bitarray_block(hit_mask_len, count, pos)
+                cov_mask_1block = bitarray_block(cov_mask_len, count+self.k-1, pos)
 
                 for node_name in node_names:
                     hit_masks_dict[node_name] |= hit_mask_1block
@@ -563,6 +560,8 @@ class TreeIndex:
 
     def lca(self, *node_names):
         """Return LCA for a given list of nodes.
+
+        *node_names (list of str): List of node names.
         """
         assert len(node_names) > 0
         if len(node_names) == 1:
@@ -573,7 +572,24 @@ class TreeIndex:
         if lca.is_root() and len(lca.children) == 1:
             lca = lca.children[0]
         assert lca.name != "" #, [x.name for x in lca.children]
+
         return lca.name
+
+
+    @staticmethod
+    def bitarray_block(alen, blen, pos):
+        """Create a bitarray containing a block of one's.
+
+        Args:
+            alen (int): Array length.
+            blen (int): Block length (within the array).
+            pos (int): Position of the block (0-based).
+
+        Return:
+            bitarray (bitarray.bitarray)
+        """
+        return bitarray.bitarray(pos*[False] + blen*[True] + (alen - pos - blen) * [False])
+
 
 
 def process_all_reads(
