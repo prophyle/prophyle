@@ -33,34 +33,31 @@ class Assignment:
 
     Args:
         output_fo (file): Output file object.
-        tree (ete3.Tree): Phylogenetic tree.
+        tree_index (TreeIndex): Tree index.
         kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
-        dont_translate_blocks (bool): ?
 
     Attributes:
         output_fo (file): Output file object.
-        tree (ete3.Tree): Phylogenetic tree.
+        tree_index (TreeIndex): Tree index.
         k (int): k-mer size.
         kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
-        dont_translate_blocks (bool): ?
         krakline_parser (KraklineParser): Parser of kraklines.
         hit_masks_dict (dict): Hit masks
         cov_masks_dict (dict): Cov masks.
         ass_dict (dict): Assignment dictionary.
     """
 
-    def __init__(self, output_fo, tree, kmer_lca=False, tie_lca=False, annotate=False, dont_translate_blocks=False):
+    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
         self.output_fo = output_fo
-        self.tree = tree
-        self.k = tree.k
+        self.tree_index = tree_index
+        self.k = self.tree_index.k
         self.kmer_lca = kmer_lca
         self.annotate = annotate
         self.tie_lca = tie_lca
-        self.dont_translate_blocks = dont_translate_blocks
 
         self.krakline_parser = KraklineParser ()
 
@@ -117,7 +114,7 @@ class Assignment:
                 covmask_1block = bitarray_block(covmask_len, count+self.k-1, pos)
 
                 if kmer_lca:
-                    node_names = [self.ti.lca(*node_names)]
+                    node_names = [self.tree_index.lca(*node_names)]
 
                 for node_name in node_names:
                     hitmasks_dict[node_name] |= hitmask_1block
@@ -322,9 +319,9 @@ class Assignment:
         """
 
         tags = []
-        qname = self.qname
+        qname = self.readname
 
-        if node_name:
+        if node_name is not None:
             flag = 0
             mapq = "60"
             pos = "1"
@@ -399,7 +396,7 @@ class Assignment:
                 ), file=self.output_fo)
 
 
-    # TODO: deeply check the entire functino,
+    # TODO: deeply check the entire functin does
     def print_kraken_line(self, node_name):
         """Print a single record in Kraken format.
 
@@ -413,7 +410,7 @@ class Assignment:
         else:
             stat = "C"
 
-        if self.assignment_lca:
+        if self.tie_lca:
             lca_rnames = []
             for [node_names, count] in self.kmer_blocks:
                 assert len(rnames) == 1
@@ -632,13 +629,12 @@ class KraklineParser():
 def assign_all_reads(
     tree_fn,
     inp_fo,
-    lca,
+    kmer_lca,
+    tie_lca,
     form,
     k,
     measure,
     annotate,
-    tie,
-    dont_translate_blocks,
 ):
     assert form in ["kraken", "sam"]
     assert k > 1
@@ -651,10 +647,9 @@ def assign_all_reads(
     assignment = Assignment(
         output=sys.stdout,
         tree_index=tree_index,
-        simulate_lca=lca,
+        kmer_lca=kmer_lca,
+        tie_lca=tie_lca,
         annotate=annotate,
-        tie_lca=tie,
-        dont_translate_blocks=dont_translate_blocks,
     )
 
     if form == "sam":
@@ -707,20 +702,14 @@ def parse_args():
 
     parser.add_argument('-L',
         action='store_true',
-        dest='tie',
-        help='use LCA when tie (multiple hits with the same score)',
+        dest='tie_lca',
+        help='use LCA when tie (multiple assignments with the same score)',
     )
 
     parser.add_argument('-X',
         action='store_true',
-        dest='lca',
-        help='replace k-mer matches by their LCA',
-    )
-
-    parser.add_argument('-D',
-        action='store_true',
-        dest='donttransl',
-        help='do not translate blocks from node to tax IDs',
+        dest='kmer_lca',
+        help='use LCA for k-mers (multiple hits of a k-mer)',
     )
 
     args = parser.parse_args()
@@ -730,27 +719,16 @@ def parse_args():
 def main():
     args = parse_args()
 
-    newick_fn = args.newick_fn
-    inp_fo = args.input_file
-    lca = args.lca
-    form = args.format
-    k = args.k
-    measure = args.measure
-    annotate = args.annotate
-    tie = args.tie
-    d = args.donttransl
-
     try:
         assign_all_reads(
             tree_fn=newick_fn,
-            inp_fo=inp_fo,
-            lca=lca,
-            form=form,
-            k=k,
-            measure=measure,
-            annotate=annotate,
-            tie=tie,
-            dont_translate_blocks=d,
+            inp_fo=args.inp_file,
+            form=args.format,
+            k=args.k,
+            measure=args.measure,
+            annotate=args.annotate,
+            tie_lca=args.tie_lca,
+            kmer_lca=args.kmer_lca,
         )
 
     # Karel: I don't remember why I was considering also IOError here
