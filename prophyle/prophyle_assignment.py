@@ -26,6 +26,7 @@ import version
 
 # this should be longer than any possible read, because of CRAM (non-tested yet)
 FAKE_CONTIG_LENGTH = 42424242
+DIAGNOSTICS        = True
 
 ###############################################################################################
 ###############################################################################################
@@ -83,7 +84,8 @@ class Assignment:
         """
 
         self.krakline_parser.parse_krakline(krakline)
-        self.krakline_parser.diagnostics()
+        if DIAGNOSTICS:
+            self.krakline_parser.diagnostics()
 
         self.blocks_to_masks(self.krakline_parser.kmer_blocks, self.kmer_lca)
 
@@ -428,10 +430,10 @@ class Assignment:
                 assert len(rnames) == 1
 
                 # todo: ???????
-                if node_names[0] == "A" or node_names[0] == "0" or self.dont_translate_blocks:
+                if node_names[0] == "A" or node_names[0] == "0":
                     taxid = node_names[0]
                 else:
-                    taxid = int(self.tree_index.nodename_to_taxid[node_names[0]])
+                    taxid = node_names[0]
                 lca_rnames.extend(count * [taxid])
             c = []
             runs = itertools.groupby(lca_rnames)
@@ -443,7 +445,7 @@ class Assignment:
             pseudokrakenmers = " ".join(c)
 
             if stat == "C":
-                taxid = str(self.tree_index.nodename_to_taxid[nodename])
+                taxid = nodename
             else:
                 taxid = "0"
 
@@ -487,7 +489,6 @@ class TreeIndex:
         tree (ete3.Tree): Minimal subtree of the original phylogenetic tree.
         k (int): K-mer size.
         nodename_to_node (dict): node name => node.
-        nodename_to_taxid (dict): node name => taxid (annotations from the tree).
         nodename_to_samannot (dict): node name => string to append in SAM.
         nodename_to_upnodenames (dict): node name => set of node names of ancestors.
         nodename_to_kmercount (dict): nname => number of k-mers (full set).
@@ -502,7 +503,6 @@ class TreeIndex:
         self.nodename_to_node = {}
         self.nodename_to_kmercount = {}
 
-        self.nodename_to_taxid = {}
         self.nodename_to_samannot = {}
 
         self.nodename_to_upnodenames = collections.defaultdict(lambda: set())
@@ -517,12 +517,6 @@ class TreeIndex:
             tags_parts = []
             try:
                 tags_parts.extend(["\tgi:Z:", node.gi])
-            except AttributeError:
-                pass
-
-            try:
-                tags_parts.extend(["\tti:Z:", node.taxid])
-                self.nodename_to_taxid[nodename] = node.taxid
             except AttributeError:
                 pass
 
@@ -560,6 +554,19 @@ class TreeIndex:
         assert lca.name != "" #, [x.name for x in lca.children]
 
         return lca.name
+
+
+    def diagnostics(self):
+        """Print debug messages.
+        """
+        print("---------------------", file=sys.stderr)
+        print("TreeIndex diagnostics", file=sys.stderr)
+        print("---------------------", file=sys.stderr)
+        print("TreeIndex.k:                       ", self.k, file=sys.stderr)
+        print("TreeIndex.nodename_to_node:        ", self.nodename_to_node, file=sys.stderr)
+        print("TreeIndex.nodename_to_samannot:    ", self.nodename_to_samannot, file=sys.stderr)
+        print("TreeIndex.nodename_to_upnodenames: ", self.nodename_to_upnodenames, file=sys.stderr)
+        print("TreeIndex.nodename_to_kmercount:   ", self.nodename_to_kmercount, file=sys.stderr)
 
 
 ###############################################################################################
@@ -620,12 +627,12 @@ class KraklineParser():
         print("--------------------------", file=sys.stderr)
         print("KraklineParser diagnostics", file=sys.stderr)
         print("--------------------------", file=sys.stderr)
-        print("KraklineParser.krakline:", self.krakline.strip(), file=sys.stderr)
-        print("KraklineParser.readname:", self.readname, file=sys.stderr)
-        print("KraklineParser.readlen:", self.readlen, file=sys.stderr)
-        print("KraklineParser.seq:", self.seq, file=sys.stderr)
-        print("KraklineParser.qual:", self.qual, file=sys.stderr)
-        print("KraklineParser.kmer_blocks:", self.kmer_blocks, file=sys.stderr)
+        print("KraklineParser.krakline:    ", self.krakline.strip(), file=sys.stderr)
+        print("KraklineParser.readname:    ", self.readname, file=sys.stderr)
+        print("KraklineParser.readlen:     ", self.readlen, file=sys.stderr)
+        print("KraklineParser.seq:         ", self.seq, file=sys.stderr)
+        print("KraklineParser.qual:        ", self.qual, file=sys.stderr)
+        print("KraklineParser.kmer_blocks: ", self.kmer_blocks, file=sys.stderr)
 
 
     def check_consistency (self, k):
@@ -672,6 +679,9 @@ def assign_all_reads(
         tree_newick_fn=tree_fn,
         k=k,
     )
+
+    if DIAGNOSTICS:
+        tree_index.diagnostics()
 
     assignment = Assignment(
         output_fo=sys.stdout,
