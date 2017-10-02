@@ -23,26 +23,76 @@ import version
 FAKE_CONTIG_LENGTH = 42424242
 
 
-def cigar_from_bitmask(bitmask):
-    """Create a CIGAR from a binary mask.
+class KraklineParser():
+    """Class for parsing Kraken-like input into a structure.
 
-    Args:
-        mask (list): Bitmask.
-
-    Return:
-        cigar (str): Cigar string (X/= ops).
+    Attributes:
+        readname (str): Name of the read.
+        raedlen (str): Length of the read.
+        seq (str): Sequence of nucleotides. None if unknown.
+        qual (str): Sequence of qualities. None if unknown.
+        kmer_blocks (list of (list of str, int)): Assigned k-mer blocks, list of (nodenames, count).
     """
 
-    c = []
-    mask_bin = map(bool, mask)
-    runs = itertools.groupby(mask_bin)
-    for run in runs:
-        c.append(str(len(list(run[1]))))
-        c.append('=' if run[0] else 'X')
-    return "".join(c)
+    def __init__(self):
+        self.readname=None
+        self.readlen=None
+        self.seq=None
+        self.qual=None
+        self.kmer_blocks=None
 
 
-class Read:
+    def parse_krakline(self, krakline):
+        """Load a krakline to the current object.
+
+        Args:
+            krakline (str): Kraken-like line.
+        """
+
+        parts = krakline.strip().split("\t")
+        self.readname, _, readlen, krakmers = parts[1:5]
+        self.readlen = int(readlen)
+        if len(parts) == 7:
+            self.seq = parts[5]
+            self.qual = parts[6]
+        else:
+            self.seq = None
+            self.qual = None
+
+        # list of (count,list of nodes)
+        self.kmer_blocks = []
+
+        for blocks in self.krakmers.split(" "):
+            (ids, count) = block.split(":")
+            count = int(count)
+            nodenames = ids.split(",")
+            self.kmer_blocks.append((nodenames, count))
+
+
+    def check_consistency (self, k):
+        """Check consistency of the fields loaded from the krakline.
+
+        Args:
+            k (int): k-mer length.
+        """
+        if self.qlen < k:
+            return True
+
+        block_len_sum=sum([x[1] for x in self.kmer_blocks])
+
+        if not self.readlen == block_len_sum + k - 1:
+            return False
+
+        if self.seq is not None and len(self.seq)!=self.readlen():
+            return False
+
+        if self.qual is not None and len(self.qual)!=self.readlen():
+            return False
+
+        return True
+
+
+class Assignment:
     """Class for handling a single read.
 
     Args:
@@ -57,30 +107,33 @@ class Read:
         output (file): Output file object.
         tree (ete3.Tree): Phylogenetic tree.
         k (int): k-mer size.
-        simulate_lca (bool): Simulate LCA on the k-mer level.
+        kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
         dont_translate_blocks (bool): ?
+        krakline_parser (KraklineParser): Parser of kraklines.
+        hit_masks_dict (dict): Hit masks
+        cov_masks_dict (dict): Cov masks.
+        ass_dict (dict): Assignment dictionary.
     """
 
-    def __init__(self, output, tree, simulate_lca=False, tie_lca=False, annotate=False, dont_translate_blocks=False):
+    def __init__(self, output, tree, kmer_lca=False, tie_lca=False, annotate=False, dont_translate_blocks=False):
         self.output = output
         self.tree = tree
         self.k = tree.k
-        self.simulate_lca = simulate_lca
+        self.kmer_lca = kmer_lca
         self.annotate = annotate
         self.tie_lca = tie_lca
         self.dont_translate_blocks = dont_translate_blocks
 
-        self.qname = None
-        self.krakmers = parts[1:5]
-        self.qlen = int(qlen)
-        self.seq = None
-        self.qual = None
-        self.asgs = {}
-        self.kmer_blocks = []
+        self.krakline_parser = KraklineParser ()
 
-    def process_krakline(self, krakline, form, measure):
+        self.hit_masks_dict = {}
+        self.cov_masks_dict = {}
+        self.ass_dict = {}
+
+
+    def process_read(self, krakline, form, measure):
         """Process one Kraken-like line.
 
         Args:
@@ -89,66 +142,84 @@ class Read:
             measure (str): Measure (h1/c1/h2/c2).
         """
 
-        self.load_krakline(krakline)
-        self.compute_masks()
+        self.krakline_parser.parse_krakline(krakline)
+        self.blocks_to_masks(self.krakline_parser.kmer_blocks, self.kmer_lca)
+        self.masks_to_propmasks()
         # print(self.asgs)
         self.filter_assignments(measure)
         self.print_assignments(form, measure)
 
-    def load_krakline(self, krakline):
-        """Load a krakline to the current object.
+
+    def blocks_to_masks(self, kmer_blocks, kmer_lca):
+        """Extract hit and coverage masks from krakline blocks (without propagation).
 
         Args:
-            krakline (str): Kraken-like line.
+            kmer_blocks (list): List of assigned k-mers, i.e., list of (list of node_names, count).
+            simulate_kmer_lca (bool): Simulate k-mer LCA on the k-mer level.
+
+        Returns:
+            hit_masks_dict (dict): Dict of hit masks.
+            cov_masks_dict (dict): Dict of coverage masks.
         """
 
-        parts = krakline.strip().split("\t")
-        self.qname, _, qlen, self.krakmers = parts[1:5]
-        self.qlen = int(qlen)
-        if len(parts) == 7:
-            self.seq = parts[5]
-            self.qual = parts[6]
-        else:
-            self.seq = None
-            self.qual = None
+        readlen = sum([x[1] for x in kmer_blocks])
 
-        # self.hitmasks=None
-        self.asgs = {}
+        hit_mask_len = readlen
+        cov_mask_len = readlen + self.k - 1
 
-        # list of (count,list of nodes)
-        self.kmer_blocks = []
+        # zero masks
+        hit_mask_empty = bitarray_block(hit_mask_len, 0, 0)
+        cov_mask_empty = bitarray_block(cov_mask_len, 0, 0)
 
-        b_sum = 0
-        for b in self.krakmers.split(" "):
-            (ids, count) = b.split(":")
-            count = int(count)
-            b_sum += count
-            rnames = ids.split(",")
-            if self.simulate_lca:
-                rnames = [self.tree.lca(rnames)]
-            self.kmer_blocks.append((rnames, count))
-        assert self.qlen == b_sum + self.k - 1 or self.qlen < self.k, krakline
+        # fast copying (bitarray trick)
+        hit_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(hit_mask_empty))
+        cov_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(cov_mask_empty))
 
-    def compute_masks(self):
-        """Compute possible assignments of the loaded read.
+        pos = 0
+
+        for (node_names, count) in kmer_blocks:
+
+            # Kraken output format: 0 and A have special meanings, no blocks
+            if node_names != ["0"] and node_names != ["A"]:
+
+                hit_mask_1block = bitarray_block(hit_mask_len, count, pos)
+                cov_mask_1block = bitarray_block(cov_mask_len, count+self.k-1, pos)
+
+                if kmer_lca:
+                    node_names=[self.ti.lca(*node_names)]
+
+                for node_name in node_names:
+                    hit_masks_dict[node_name] |= hit_mask_1block
+                    cov_masks_dict[node_name] |= cov_mask_1block
+
+            pos += count
+
+        return (hit_masks_dict, cov_masks_dict)
+
+
+    def propagate_masks(self):
+        """Propagate masks up.
         """
 
-        # hits before top-down propagation
-        hitmasks, covmasks = self.tree.masks_from_kmer_blocks(self.kmer_blocks, simulate_kmer_lca=self.simulate_kmer_lca)
-
-        rnames = hitmasks.keys()
+        nodenames = self.hit_masks_dict.keys()
 
         # hits after top-down propagation
-        for rname in rnames:
-            self.asgs[rname] = {
-                'hitmask': hitmasks[rname].copy(),
-                'covmask': covmasks[rname].copy(),
+        for nodename in nodenames:
+            # start with the loaded masks
+            self.ass_dict[nodename] = {
+                'hitmask': bitarray.bitarray(hitmasks[nodename]),
+                'covmask': bitarray.bitarray(covmasks[nodename]),
             }
 
-            node = self.tree.name_dict[rname]
-            for p_rname in self.tree.upnodes_dict[rname] & rnames:
-                self.asgs[rname]['hitmask'] |= hitmasks[p_rname]
-                self.asgs[rname]['covmask'] |= covmasks[p_rname]
+            node = self.tree.nodename_to_node[nodename]
+
+            # names of ancestors to which the read can be assigned
+            # TODO: fix tree (it should be tree index)
+            ancestors=self.tree.upnodenames[nodename] & nodenames
+            for p_nodename in ancestors:
+                self.ass[nodename]['hitmask'] |= hitmasks[p_rname]
+                self.ass[nodename]['covmask'] |= covmasks[p_rname]
+
 
     def filter_assignments(self, measure):
         """
@@ -161,45 +232,85 @@ class Read:
         """
 
         self.max_val = 0
-        self.max_rnames = []
+        self.max_nodenames = []
 
-        for rname in self.asgs:
-            asg = self.asgs[rname]
+        for nodename in self.ass_dict:
+            asg = self.ass[nodename]
 
             """
             1. hit count
             """
             hit = asg['hitmask'].count()
-            asg['h1'] = hit
-            asg['hf'] = hit / (self.qlen - self.k + 1)
-            asg['h2'] = hit / self.tree.kmer_count_dict[rname]
+            asg['h1'] = [hit]
+            asg['hf'] = [hit / (self.qlen - self.k + 1)]
+            asg['h2'] = [hit / self.tree.nodename_to_kmercount[nodename]]
 
             """
             2. coverage
             """
             cov = asg['covmask'].count()
-            asg['c1'] = cov
-            asg['cf'] = cov / self.qlen
-            asg['c2'] = cov / self.tree.kmer_count_dict[rname]
+            asg['c1'] = [cov]
+            asg['cf'] = [cov / self.readlen]
+            asg['c2'] = [cov / self.tree.nodename_to_kmercount[nodename]]
 
             """
             3. other values
             """
-            asg['ln'] = self.qlen
+            asg['ln'] = [self.readlen]
 
             """
             4. update winners
             """
             if asg[measure] > self.max_val:
                 self.max_val = asg[measure]
-                self.max_rnames = [rname]
+                self.max_nodenames = [nodename]
             elif asg[measure] == self.max_val:
-                self.max_rnames.append(rname)
+                self.max_nodenames.append(nodename)
 
-        for i, rname in enumerate(self.max_rnames):
-            asg = self.asgs[rname]
+        for i, rname in enumerate(self.max_nodenames):
+            asg = self.asgs[nodename]
             asg['ii'] = i + 1
-            asg['is'] = len(self.max_rnames)
+            asg['is'] = len(self.max_nodenames)
+
+
+
+    def make_lca_from_winners(self):
+        #
+        # todo: test
+        #
+        # multiple winners => compute LCA and set only those values that are known
+        if len(winners) > 1:
+            first_winner = self.asgs[winners[0]]
+            print("winner rec", first_winner, file=sys.stderr)
+            tie_solved = True
+            lca = self.tree.lca(winners)
+            winners = [lca]
+            # fix what if this node exists!
+            asg = self.asgs[lca] = {}
+            asg['covmask'] = None
+            asg['hitmask'] = None
+            # asg['covcigar'] = None
+
+            # asg['hitcigar'] = None
+
+            if measure == "h1" or measure == "h2":
+                asg['h1'] = first_winner['h1']
+                asg['h2'] = first_winner['h2']
+                asg['hf'] = first_winner['hf']
+
+                asg['c1'] = None
+                asg['c2'] = None
+                asg['cf'] = None
+
+            elif measure == "c1" or measure == "c2":
+                asg['c1'] = first_winner['c1']
+                asg['c2'] = first_winner['c2']
+                asg['cf'] = first_winner['cf']
+
+                asg['h1'] = None
+                asg['h2'] = None
+                asg['hf'] = None
+
 
     def print_assignments(self, form, measure):
         """Print the best assignments.
@@ -211,84 +322,44 @@ class Read:
 
         winners = self.max_rnames
 
-        # No assignments
-        if len(winners) == 0:
-            if form == "sam":
-                self.print_sam_line(None, "")
-            elif form == "kraken":
-                self.print_kraken_line(None)
-            return
-
-        # Transformation to LCA
-        if self.tie_lca:
-            #
-            # todo: test
-            #
-            # multiple winners => compute LCA and set only those values that are known
-            if len(winners) > 1:
-                first_winner = self.asgs[winners[0]]
-                print("winner rec", first_winner, file=sys.stderr)
-                tie_solved = True
-                lca = self.tree.lca(winners)
-                winners = [lca]
-                # fix what if this node exists!
-                asg = self.asgs[lca] = {}
-                asg['covmask'] = None
-                asg['hitmask'] = None
-                # asg['covcigar'] = None
-
-                # asg['hitcigar'] = None
-
-                if measure == "h1" or measure == "h2":
-                    asg['h1'] = first_winner['h1']
-                    asg['h2'] = first_winner['h2']
-                    asg['hf'] = first_winner['hf']
-
-                    asg['c1'] = None
-                    asg['c2'] = None
-                    asg['cf'] = None
-
-                elif measure == "c1" or measure == "c2":
-                    asg['c1'] = first_winner['c1']
-                    asg['c2'] = first_winner['c2']
-                    asg['cf'] = first_winner['cf']
-
-                    asg['h1'] = None
-                    asg['h2'] = None
-                    asg['hf'] = None
-
-            # one winner => no
-            else:
-                pass
-
-        for rname in winners:
-            asg = self.asgs[rname]
+        for nodename in self.max_rnames:
+            ass = self.ass_dict[nodename]
             if form == "sam":
                 # compute cigar
-                if asg['covmask'] is None:
-                    asg['covcigar'] = None
+                if ass['covmask'] is None:
+                    ass['covcigar'] = None
                 else:
-                    asg['covcigar'] = cigar_from_bitmask(asg['covmask'])
+                    ass['covcigar'] = self.cigar_from_bitmask(asg['covmask'])
 
-                if asg['hitmask'] is None:
-                    asg['hitcigar'] = None
+                if ass['hitmask'] is None:
+                    ass['hitcigar'] = None
                 else:
-                    asg['hitcigar'] = cigar_from_bitmask(asg['hitmask'])
+                    ass['hitcigar'] = self.cigar_from_bitmask(asg['hitmask'])
 
-                # if self.tie_lca and len(winners) > 1:
-                #                    asg['covcigar'] = None
-                #                    asg['hitcigar'] = None
-                #                else:
-                #                    print(winners,file=sys.stderr)
-                #                    print(asg,file=sys.stderr)
-                #                    print(self.asgs,file=sys.stderr)
-                #
-                #                    if asg['covmask'] is not None:
-                #                        asg['covcigar'] = cigar_from_mask(asg['covmask'])
-                #                    asg['hitcigar'] = cigar_from_mask(asg['hitmask'])
-                self.print_sam_line(rname, self.tree.sam_annotations_dict[rname] if self.annotate else "")
+                self.print_sam_line(nodename, self.tree.nodename_to_samannot[nodename] if self.annotate else "")
             elif form == "kraken":
-                self.print_kraken_line(rname)
+                self.print_kraken_line(nodename)
+
+
+    @staticmethod
+    def cigar_from_bitmask(bitmask):
+        """Create a CIGAR from a binary mask.
+
+        Args:
+            mask (list): Bitmask.
+
+        Return:
+            cigar (str): Cigar string (X/= ops).
+        """
+
+        c = []
+        mask_bin = map(bool, mask)
+        runs = itertools.groupby(mask_bin)
+        for run in runs:
+            c.append(str(len(list(run[1]))))
+            c.append('=' if run[0] else 'X')
+        return "".join(c)
+
 
     def print_sam_line(self, node_name, suffix):
         """Print a single SAM record.
@@ -330,26 +401,9 @@ class Read:
         if node_name is not None:
             asg = self.asgs[node_name]
 
-            if asg['h1'] is not None:
-                columns.append("h1:i:{}".format(asg['h1']))
-
-            if asg['h2'] is not None:
-                columns.append("h2:f:{}".format(asg['h2']))
-
-            if asg['hf'] is not None:
-                columns.append("hf:f:{}".format(asg['hf']))
-
-            if asg['c1'] is not None:
-                columns.append("c1:i:{}".format(asg['c1']))
-
-            if asg['c2'] is not None:
-                columns.append("c2:f:{}".format(asg['c2']))
-
-            if asg['cf'] is not None:
-                columns.append("cf:f:{}".format(asg['cf']))
-
-            if asg['ln'] is not None:
-                columns.append("ln:i:{}".format(asg['ln']))
+            for tag in ['h1', 'h2', 'hf', 'c1', 'c2', 'cf', 'ln']:
+                for val in asg[tag]:
+                    columns.append("{}:i:{}".format(tag, val))
 
             if asg['ii'] is not None:
                 columns.append("ii:i:{}".format(asg['ii']))
@@ -512,50 +566,7 @@ class TreeIndex:
                 self.nodename_to_upnodenames[nodename].add(node.name)
 
 
-    def masks_from_kmer_blocks(self, kmers_assigned, simulate_kmer_lca):
-    """Extract hit and coverage masks from krakline blocks (without propagation).
 
-    Args:
-        kmers_assigned (list): List of assigned k-mers, i.e., list of (list of node_names, count).
-        simulate_kmer_lca (bool): Simulate k-mer LCA on the k-mer level.
-
-    Returns:
-        hit_masks_dict (dict): Dict of hit masks.
-        cov_masks_dict (dict): Dict of coverage masks.
-    """
-
-        npos = sum([x[1] for x in kmers_assigned])
-
-        hit_mask_len = npos
-        cov_mask_len = npos + self.k - 1
-
-        # zero masks
-        hit_mask_empty = bitarray_block(hit_mask_len, 0, 0)
-        cov_mask_empty = bitarray_block(cov_mask_len, 0, 0)
-
-        # fast copying (bitarray trick)
-        hit_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(hit_mask_empty))
-        cov_masks_dict = collections.defaultdict(lambda: bitarray.bitarray(cov_mask_empty))
-
-        pos = 0
-        for (node_names, count) in kmers_assigned:
-
-            # Kraken output format: 0 and A have special meanings, no blocks
-            if node_names != ["0"] and node_names != ["A"]:
-
-                if simulate_kmer_lca:
-                    node_names=[self.lca(*node_names)]
-
-                hit_mask_1block = bitarray_block(hit_mask_len, count, pos)
-                cov_mask_1block = bitarray_block(cov_mask_len, count+self.k-1, pos)
-
-                for node_name in node_names:
-                    hit_masks_dict[node_name] |= hit_mask_1block
-                    cov_masks_dict[node_name] |= cov_mask_1block
-
-            pos += count
-
-        return (hit_masks_dict, cov_masks_dict)
 
 
     def lca(self, *node_names):
@@ -621,8 +632,8 @@ def process_all_reads(
     if form == "sam":
         read.print_sam_header()
 
-    for x in inp_fo:
-        read.process_krakline(x, form=form, measure=measure)
+    for krakline in inp_fo:
+        read.process_read(krakline, form=form, measure=measure)
 
 
 def parse_args():
