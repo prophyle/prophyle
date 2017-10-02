@@ -27,7 +27,6 @@ import version
 # this should be longer than any possible read, because of CRAM (non-tested yet)
 FAKE_CONTIG_LENGTH = 42424242
 DIAGNOSTICS        = False
-#DIAGNOSTICS        = True
 
 ###############################################################################################
 ###############################################################################################
@@ -162,7 +161,7 @@ class Assignment:
         """Evaluate a single assignment.
 
         Args:
-            nodename (str): Name of the node to evaluate.
+            nodename (str): Name of the node for which we will compute characteristics.
 
         Returns:
             assignment (dict): Assignment dictionary.
@@ -398,7 +397,7 @@ class Assignment:
                 ), file=self.output_fo)
 
 
-    # TODO: deeply check the entire functin does
+    # TODO: rewrite this function
     def print_kraken_line(self, node_name):
         """Print a single record in Kraken format.
 
@@ -412,17 +411,17 @@ class Assignment:
         else:
             stat = "C"
 
+        # recompute krakenmers
         if self.tie_lca:
             lca_nodenames = []
             for [nodenames, count] in self.kmer_blocks:
-                assert len(rnames) == 1
+                assert len(nodenames) == 1
 
-                # todo: ???????
                 if node_names[0] == "A" or node_names[0] == "0":
                     taxid = node_names[0]
                 else:
                     taxid = node_names[0]
-                lca_rnames.extend(count * [taxid])
+                lca_nodenames.extend(count * [taxid])
             c = []
             runs = itertools.groupby(lca_rnames)
             for run in runs:
@@ -437,11 +436,9 @@ class Assignment:
             else:
                 taxid = "0"
 
-            # todo: check (why is the foramt different ... taxid?)
-            columns = [stat, self.qname, taxid, str(self.qlen), pseudokrakenmers]
-        # columns=[stat,self.qname,rname,str(self.qlen)," ".join([ "{}:{}".format(",".join(x[0]),x[1]) for x in self.kmer_blocks])]
+            columns = [stat, self.krakline_parser.readname, node_name, str(self.qlen), pseudokrakenmers]
         else:
-            columns = [stat, self.qname, node_name, str(self.qlen), self.krakmers]
+            columns = [stat, self.krakline_parser.readname, node_name, str(self.qlen), self.krakmers]
 
         print("\t".join(columns), file=self.output_fo)
 
@@ -752,12 +749,22 @@ def parse_args():
         help='use LCA for k-mers (multiple hits of a k-mer)',
     )
 
+    parser.add_argument('--debug',
+        action='store_true',
+        dest='debug',
+        help='print diagnostics messages',
+    )
+
     args = parser.parse_args()
     return args
 
 
 def main():
     args = parse_args()
+
+    if args.debug:
+        global DIAGNOSTICS
+        DIAGNOSTICS=True
 
     try:
         assign_all_reads(
