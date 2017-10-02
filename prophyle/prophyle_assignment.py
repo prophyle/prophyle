@@ -242,35 +242,28 @@ class Assignment:
         """
 
         # all characteristics are already computed
-        if len(max_nodenames) == 1:
+        if len(self.max_nodenames) == 1:
             return
 
         first_winner = self.ass_dict[max_nodenames[0]]
         lca = self.tree_index.lca(winners)
 
-        self.max_nodenames = [lca]
+        ass={
+            'covmask': None,
+            'covcigar': None,
+            'hitmask': None,
+            'hitcigar': None,
+            'ln' : self.krakline_parser.readlen,
+        }
 
-        asg = self.ass_dict[lca] = {}
+        for tag in ['h1','hf','h2','c1','cf','c2']:
+            ass[tag]=[self.ass_dict[nodename][tag] for nodename in self.max_nodenames],
+
+        self.max_nodenames = [lca]
+        self.ass_dict[lca] = ass
+
         asg['covmask'] = None
         asg['hitmask'] = None
-
-        if measure == "h1" or measure == "h2":
-            asg['h1'] = first_winner['h1']
-            asg['h2'] = first_winner['h2']
-            asg['hf'] = first_winner['hf']
-
-            asg['c1'] = None
-            asg['c2'] = None
-            asg['cf'] = None
-
-        elif measure == "c1" or measure == "c2":
-            asg['c1'] = first_winner['c1']
-            asg['c2'] = first_winner['c2']
-            asg['cf'] = first_winner['cf']
-
-            asg['h1'] = None
-            asg['h2'] = None
-            asg['hf'] = None
 
 
     def print_selected_assignments(self, form):
