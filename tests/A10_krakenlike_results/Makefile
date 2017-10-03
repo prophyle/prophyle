@@ -12,13 +12,10 @@ all: krakenformat se_vs_pe
 
 krakenformat:
 	$(PROP) index -k 2 -g . $(tree) $(index)
-	echo
-	#
 	#$(PROP) classify $(index) $(reads) -f kraken | cut -f3,5 > _assigned_kmers.lossless.txt
 	#$(PROP) classify $(index) $(reads) -L -f kraken | cut -f3,5 > _assigned_kmers.tielca.txt
-	$(PROP) classify $(index) $(reads) -M | cut -f3,5 > _assigned_kmers.tielca.kmerlca.txt
-	echo
-	diff $(ref) _test_res.txt | tee _diff_ref.txt
+	$(PROP) classify $(index) $(reads) -M | cut -f3,5 > _observed.kraken.txt
+	diff expected.kraken.txt _observed.kraken.txt | tee _diff_ref.txt
 
 se_vs_pe:
 	# PAIRED END
@@ -31,4 +28,4 @@ se_vs_pe:
 	@for f in diff_*.txt ; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
 
 clean:
-	rm -rf $(index) _*
+	rm -rf _*
