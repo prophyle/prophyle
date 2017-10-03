@@ -1,21 +1,20 @@
-.PHONY: all clean
-
 include ../conf.mk
 
 K=12
+T=1 2 3 4 5 6 7 8 9 10 20 50 100
 
-all:
-	$(1STEP) -k $(K) -u -t 1 $(FA) $(FQ) > _obtained.txt
-	diff _obtained.txt exp_results.txt
+.PHONY: all clean $(T)
 
-	$(IND) query -k $(K) -u -t 2 $(FA) $(FQ) > _obtained.txt
-	diff _obtained.txt exp_results.txt
+all: $(addprefix t,$T)
 
-	$(IND) query -k $(K) -u -t 4 $(FA) $(FQ) > _obtained.txt
-	diff _obtained.txt exp_results.txt
+t%: _index.%.complete
+	$(IND) query -k $(K) -u -t $* _index.$*.fa $(FQ) > _obtained.$*.txt
+	diff _obtained.$*.txt expected.txt
 
-	$(IND) query -k $(K) -u -t 10 $(FA) $(FQ) > _obtained.txt
-	diff _obtained.txt exp_results.txt
+_index.%.complete:
+	$(BWA) index -p _index.$*.fa $(FA)
+	$(IND) build -k $(K) _index.$*.fa
+	touch $@
 
 clean:
-	rm -f _*.txt index.fa.*
+	rm -f _*
