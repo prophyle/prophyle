@@ -180,8 +180,8 @@ class Assignment:
         ##########################
         ancestors=self.tree_index.nodename_to_upnodenames[nodename] & self.hitmasks_dict.keys()
         for anc_nodename in ancestors:
-            hitmask |= hitmasks[anc_nodename]
-            covmask |= covmasks[anc_nodename]
+            hitmask |= self.hitmasks_dict[anc_nodename]
+            covmask |= self.covmasks_dict[anc_nodename]
 
         ##############################
         # C) Calculate characteristics
@@ -398,32 +398,32 @@ class Assignment:
 
 
     # TODO: rewrite this function
-    def print_kraken_line(self, node_name):
+    def print_kraken_line(self, nodename):
         """Print a single record in Kraken format.
 
         Args:
             node_name (str): Node name. None if unassigned.
         """
 
-        if node_name is None:
+        if nodename is None:
             stat = "U"
-            node_name = "0"
+            nodename = "0"
         else:
             stat = "C"
 
         # recompute krakenmers
         if self.tie_lca:
             lca_nodenames = []
-            for [nodenames, count] in self.kmer_blocks:
+            for [nodenames, count] in self.krakline_parser.kmer_blocks:
                 assert len(nodenames) == 1
-
-                if node_names[0] == "A" or node_names[0] == "0":
-                    taxid = node_names[0]
-                else:
-                    taxid = node_names[0]
+                #if node_name == "A" or node_name[0] == "0":
+                #    taxid = node_name
+                #else:
+                #    taxid = node_name
+                taxid = nodename
                 lca_nodenames.extend(count * [taxid])
             c = []
-            runs = itertools.groupby(lca_rnames)
+            runs = itertools.groupby(lca_nodenames)
             for run in runs:
                 c.append("{}:{}".format(
                     str(run[0]),
@@ -436,9 +436,9 @@ class Assignment:
             else:
                 taxid = "0"
 
-            columns = [stat, self.krakline_parser.readname, node_name, str(self.qlen), pseudokrakenmers]
+            columns = [stat, self.krakline_parser.readname, nodename, str(self.krakline_parser.readlen), pseudokrakenmers]
         else:
-            columns = [stat, self.krakline_parser.readname, node_name, str(self.qlen), self.krakmers]
+            columns = [stat, self.krakline_parser.readname, nodename, str(self.krakline_parser.readlen), self.krakmers]
 
         print("\t".join(columns), file=self.output_fo)
 
@@ -764,7 +764,7 @@ def main():
 
     if args.debug:
         global DIAGNOSTICS
-        DIAGNOSTICS=True
+        DIAGNOSTIC=True
 
     try:
         assign_all_reads(
