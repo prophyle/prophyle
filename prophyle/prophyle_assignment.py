@@ -440,7 +440,7 @@ class Assignment:
 
             columns = [stat, self.krakline_parser.readname, nodename, str(self.krakline_parser.readlen), pseudokrakenmers]
         else:
-            columns = [stat, self.krakline_parser.readname, nodename, str(self.krakline_parser.readlen), self.krakmers]
+            columns = [stat, self.krakline_parser.readname, nodename, str(self.krakline_parser.readlen), self.krakline_parser.krakmers]
 
         print("\t".join(columns), file=self.output_fo)
 
