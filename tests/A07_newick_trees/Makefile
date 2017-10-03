@@ -1,13 +1,11 @@
-.PHONY: all clean $(TREES)
-
 include ../conf.mk
+TREES := $(wildcard $(PROP_DIR)/trees/*.nw)
 
-TREES := $(shell cd $(PROP_DIR)/trees && find . -name "*.nw" -type f)
+.PHONY: all clean $(TREES)
 
 all: $(TREES)
 
 clean:
 
 $(TREES):
-	@echo $@
-	$(TEST_NEWICK) ./trees/$@
+	$(TEST_NEWICK) "$@"
