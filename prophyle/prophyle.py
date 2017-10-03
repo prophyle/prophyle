@@ -853,7 +853,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
         measure = "h1"
         tie_lca = True
         kmer_lca = True
-        out_format =  "Kraken"
+        out_format =  "kraken"
 
     cmd_assign = [ASSIGN, '-m', measure, '-f', out_format, index_tree, k, '-']
 
