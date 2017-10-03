@@ -14,11 +14,11 @@ krakenformat:
 	$(PROP) index -k 2 -g . $(tree) $(index)
 	echo
 	#
-	$(PROP) classify $(index) $(reads) -f kraken | cut -f3,5 > assigned_kmers.lossless.txt
-	$(PROP) classify $(index) $(reads) -L -f kraken | cut -f3,5 > assigned_kmers.tielca.txt
-	$(PROP) classify $(index) $(reads) -L -X -f kraken | cut -f3,5 > assigned_kmers.tielca.kmerlca.txt
+	#$(PROP) classify $(index) $(reads) -f kraken | cut -f3,5 > _assigned_kmers.lossless.txt
+	#$(PROP) classify $(index) $(reads) -L -f kraken | cut -f3,5 > _assigned_kmers.tielca.txt
+	$(PROP) classify $(index) $(reads) -M | cut -f3,5 > _assigned_kmers.tielca.kmerlca.txt
 	echo
-	diff $(ref) _test_res.txt | tee diff_ref.txt
+	diff $(ref) _test_res.txt | tee _diff_ref.txt
 
 se_vs_pe:
 	# PAIRED END
@@ -26,9 +26,9 @@ se_vs_pe:
 	echo
 	$(PROP) classify $(index) $(reads) $(reads) | cut -f1-5 | sort -k 3 | sort >_test_paired.txt
 	echo
-	diff _test_single.txt _test_paired.txt > diff_paired.txt
+	diff _test_single.txt _test_paired.txt > _diff_paired.txt
 	# CHECK DIFF
 	@for f in diff_*.txt ; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
 
 clean:
-	rm -rf $(index) _test_*.txt diff_*.txt
+	rm -rf $(index) _*
