@@ -5,12 +5,13 @@ include ../conf.mk
 
 K=14 16
 
-diffs = $(addsuffix .txt, $(addprefix _diff., $(K)))
+DIFFS = $(addsuffix .txt, $(addprefix _diff., $(K)))
 
-all: $(diffs)
+all: $(DIFFS)
 	@for f in $^; do \
-		if [[ -s $$f ]]; then \
-			echo "file $$f is not empty" && exit 1; \
+		if [[ -s "$$f" ]]; then \
+			echo "file $$f is not empty"; \
+			exit 1; \
 		fi; \
 	done
 

@@ -8,8 +8,9 @@ DIFFS = $(addsuffix .txt, $(addprefix _diff., $(K)))
 
 all: $(DIFFS)
 	@for f in $^; do \
-		if [[ -s $$f ]]; then \
-			echo "file $$f is not empty" && exit 1; \
+		if [[ -s "$$f" ]]; then \
+			echo "file $$f is not empty"; \
+			exit 1; \
 		fi; \
 	done
 
@@ -20,7 +21,7 @@ _kmers.expected.%.txt: $(FA)
 	$(F2K) -i $< -k $* > $@
 
 _kmers.observed.%.txt: _prophyle_index_output.%.txt
-	cat $< | (grep -B 1 '^[1-9]' || true) | (grep "#" || true) | sed 's/\#//' | sort > $@
+	cat "$<" | (grep -B 1 '^[1-9]' || true) | (grep "#" || true) | sed 's/\#//' | sort > $@
 
 _prophyle_index_output.%.txt: _kmers.all.%.fq
 	$(1STEP) -v -k $* $(FA) $< > $@
