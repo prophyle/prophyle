@@ -1,6 +1,6 @@
-A = $(wildcard testA*/.)
-B = $(wildcard testB*/.)
-C = $(wildcard testB*/.)
+A = $(wildcard A*/.)
+B = $(wildcard B*/.)
+C = $(wildcard C*/.)
 
 ABC = $(A) $(B) $(C)
 
