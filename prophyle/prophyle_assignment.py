@@ -413,17 +413,19 @@ class Assignment:
 
         # recompute krakenmers
         if self.tie_lca:
-            lca_nodenames = []
+            nodenames_lca_seq = []
             for [nodenames, count] in self.krakline_parser.kmer_blocks:
-                assert len(nodenames) == 1
-                #if node_name == "A" or node_name[0] == "0":
-                #    taxid = node_name
-                #else:
-                #    taxid = node_name
-                taxid = nodename
-                lca_nodenames.extend(count * [taxid])
+                if len(nodenames) == 1:
+                    nodename = nodenames[0]
+                    #if nodename == "A" or nodename == "0":
+                    #    pass
+                    #else:
+                    #    pass
+                else:
+                    nodename = self.tree_index.lca(*nodenames)
+                nodenames_lca_seq.extend(count * [nodename])
             c = []
-            runs = itertools.groupby(lca_nodenames)
+            runs = itertools.groupby(nodenames_lca_seq)
             for run in runs:
                 c.append("{}:{}".format(
                     str(run[0]),
@@ -543,7 +545,7 @@ class TreeIndex:
         assert len(node_names) > 0
         if len(node_names) == 1:
             return node_names[0]
-        nodes = list(map(lambda x: self.name_dict[x], node_names))
+        nodes = list(map(lambda x: self.nodename_to_node[x], node_names))
         lca = nodes[0].get_common_ancestor(nodes)
 
         if lca.is_root() and len(lca.children) == 1:
