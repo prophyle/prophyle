@@ -7,41 +7,47 @@ FA2=test_R.fa
 
 K=7 10
 
-diffs1 = $(addsuffix .txt, $(addprefix diff_L.k, $(K)))
-diffs2 = $(addsuffix .txt, $(addprefix diff_R.k, $(K)))
+DIFFS1 = $(addsuffix .txt, $(addprefix _diff_L., $(K)))
+DIFFS2 = $(addsuffix .txt, $(addprefix _diff_R., $(K)))
 
-all: $(diffs1) $(diffs2)
-	@for f in $^; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
+all: $(DIFFS1) $(DIFFS2)
+	@for f in $^; do \
+		if [[ -s $$f ]]; then \
+			echo "file $$f is not empty"; \
+			exit 1; \
+		fi; \
+	done
 
-clean:
-	rm -f _*.fa *.txt
-
-diff_L.k%.txt: _join_L.k%.txt _inp_L.k%.txt
+_diff_L.%.txt: _join_L.%.txt _inp_L.%.txt
 	diff $^ | tee $@
 
-diff_R.k%.txt: _join_R.k%.txt _inp_R.k%.txt
+_diff_R.%.txt: _join_R.%.txt _inp_R.%.txt
 	diff $^ | tee $@
 
-_join_L.k%.txt: _intersect.k%.txt _out_L.k%.txt
+_join_L.%.txt: _intersect.%.txt _out_L.%.txt
 	sort -m $^ > $@
 
-_join_R.k%.txt: _intersect.k%.txt _out_R.k%.txt
+_join_R.%.txt: _intersect.%.txt _out_R.%.txt
 	sort -m $^ > $@
 
-_intersect.k%.txt: _intersect.k%.fa
+_intersect.%.txt: _intersect.%.fa
 	$(F2K) -m a -i $< -k $* > $@
 
-_out_L.k%.txt: _out_L.k%.fa
+_out_L.%.txt: _out_L.%.fa
 	$(F2K) -m a -i $< -k $* > $@
 
-_out_R.k%.txt: _out_R.k%.fa
+_out_R.%.txt: _out_R.%.fa
 	$(F2K) -m a -i $< -k $* > $@
 
-_inp_L.k%.txt:
+_inp_L.%.txt:
 	$(F2K) -m a -i $(FA1) -k $* > $@
 
-_inp_R.k%.txt:
+_inp_R.%.txt:
 	$(F2K) -m a -i $(FA2) -k $* > $@
 
-_out_L.k%.fa _out_R.k%.fa _intersect.k%.fa:
-	$(ASM) -k $* -i $(FA1) -i $(FA2) -o _out_L.k$*.fa -o _out_R.k$*.fa -x _intersect.k$*.fa
+_out_L.%.fa _out_R.%.fa _intersect.%.fa:
+	$(ASM) -k $* -i $(FA1) -i $(FA2) -o _out_L.$*.fa -o _out_R.$*.fa -x _intersect.$*.fa
+
+clean:
+	rm -f _*
+
