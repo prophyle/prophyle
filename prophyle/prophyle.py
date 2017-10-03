@@ -782,7 +782,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 #####################
 
 def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, measure, annotate,
-        tie_lca, print_seq, cimpl, force_restarted_search):
+        tie_lca, kmer_lca, print_seq, cimpl, force_restarted_search):
     """Run ProPhyle classification.
 
     Args:
@@ -795,6 +795,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
         measure (str): Measure used for classification (h1 / h2 / c1 / c2).
         annotate (bool): Annotate assignments (insert annotations from Newick to SAM).
         tie_lca (bool): If multiple equally good assignments found, compute their LCA.
+        kmer_lca (bool): Replace k-mer matches by their LCA.
         print_seq (bool): Print sequencing in SAM.
         cimpl (bool): Use the C++ implementation.
         force_restarted_search (bool): Force restarted search.
@@ -849,13 +850,21 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
         ASSIGN=PY_ASSIGN
 
     if mimic_kraken:
-        cmd_assign = [ASSIGN, '-m', 'h1', '-f', 'kraken', '-L', '-T', index_tree, k, '-']
-    else:
-        cmd_assign = [ASSIGN, '-m', measure, '-f', out_format, index_tree, k, '-']
-        if annotate:
-            cmd_assign += ['-A']
-        if tie_lca:
-            cmd_assign += ['-L']
+        measure = "h1"
+        tie_lca = True
+        kmer_lca = True
+        out_format =  "Kraken"
+
+    cmd_assign = [ASSIGN, '-m', measure, '-f', out_format, index_tree, k, '-']
+
+    if annotate:
+        cmd_assign += ['-A']
+
+    if tie_lca:
+        cmd_assign += ['-L']
+
+    if kmer_lca:
+        cmd_assign += ['-X']
 
     if fq_pe_fn:
         cmd_read = [READ, fq_fn, fq_pe_fn, '|']
@@ -1217,6 +1226,13 @@ def parser():
     )
 
     parser_classify.add_argument(
+        '-P',
+        dest='print_seq',
+        action='store_true',
+        help='incorporate sequences and qualities into SAM records',
+    )
+
+    parser_classify.add_argument(
         '-A',
         dest='annotate',
         action='store_true',
@@ -1225,24 +1241,23 @@ def parser():
 
     parser_classify.add_argument(
         '-L',
-        dest='tie',
+        dest='tie_lca',
         action='store_true',
-        help='use LCA when tie (multiple hits with the same score)',
+        help='replace read assignments by their LCA',
+    )
+
+    parser_classify.add_argument(
+        '-X',
+        dest='kmer_lca',
+        action='store_true',
+        help='replace k-mer matches by their LCA',
     )
 
     parser_classify.add_argument(
         '-M',
         dest='mimic',
         action='store_true',
-        # help='mimic Kraken algorithm and output (for debugging purposes)',
-        help=argparse.SUPPRESS,
-    )
-
-    parser_classify.add_argument(
-        '-P',
-        dest='print_seq',
-        action='store_true',
-        help='incorporate sequences and qualities into SAM records',
+        help='mimic Kraken (equivalent to  "-m h1 -f kraken -L -X")',
     )
 
     parser_classify.add_argument(
@@ -1257,7 +1272,7 @@ def parser():
         '-K',
         dest='force_restarted_search',
         action='store_true',
-        help='force restarted search (slower, slightly lower memory footprint)',
+        help='force restarted search mode',
     )
 
     ##########
@@ -1460,7 +1475,8 @@ def main():
                 out_format=args.oform,
                 mimic_kraken=args.mimic,
                 measure=args.measure,
-                tie_lca=args.tie,
+                tie_lca=args.tie_lca,
+                kmer_lca=args.kmer_lca,
                 annotate=args.annotate,
                 print_seq=args.print_seq,
                 cimpl=args.cimpl,
