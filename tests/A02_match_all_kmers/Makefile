@@ -1,32 +1,33 @@
 .PHONY: all clean
-.NOTPARALLEL: prophyle_index_output*
+.NOTPARALLEL: _prophyle_index_output*
 
 include ../conf.mk
 
-K=2 3 4 5 6 7 8
+K=$(shell seq 2 8)
+DIFFS = $(addsuffix .txt, $(addprefix _diff., $(K)))
 
-diffs = $(addsuffix .txt, $(addprefix diff., $(K)))
+all: $(DIFFS)
+	@for f in $^; do \
+		if [[ -s $$f ]]; then \
+			echo "file $$f is not empty" && exit 1; \
+		fi; \
+	done
 
-all: $(diffs)
-	@for f in $^; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
+_diff.%.txt: _kmers.expected.%.txt _kmers.observed.%.txt
+	diff $^ | tee $@
 
-clean:
-	rm -f *.fq *.txt index.fa.*
-
-kmers_all.%.fq:
-	$(AK) -k $* -f fq > $@
-
-kmers_all.%.txt:
-	$(AK) -k $* -f txt > $@
-
-prophyle_index_output.%.txt: kmers_all.%.fq
-	$(1STEP) -v -k $* $(FA) $< > $@
-
-kmers_matched.%.txt: prophyle_index_output.%.txt
-	cat $< | (grep -B 1 '^[1-9]' || true) | (grep "#" || true) | sed 's/\#//' | sort > $@
-
-kmers_expected.%.txt: $(FA)
+_kmers.expected.%.txt: $(FA)
 	$(F2K) -i $< -k $* > $@
 
-diff.%.txt: kmers_expected.%.txt kmers_matched.%.txt
-	diff $^ | tee $@
+_kmers.observed.%.txt: _prophyle_index_output.%.txt
+	cat $< | (grep -B 1 '^[1-9]' || true) | (grep "#" || true) | sed 's/\#//' | sort > $@
+
+_prophyle_index_output.%.txt: _kmers.all.%.fq
+	$(1STEP) -v -k $* $(FA) $< > $@
+
+_kmers.all.%.fq:
+	$(AK) -k $* -f fq > $@
+
+clean:
+	rm -f _* index.fa.*
+
