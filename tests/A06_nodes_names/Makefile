@@ -1,22 +1,27 @@
-.PHONY: all clean
+.PHONY: all clean index readcount nodenames
 
 include ../conf.mk
 
 K=10
 
-all:
+all: readcount nodenames
+
+readcount: index
+	La=$$(cat $(FQ) | grep "^@" | wc -l); \
+	Lb=$$(cat _prophyle_index_output.txt | awk '{print $$2}' | sort | uniq | wc -l); \
+	if ! [[ "$${La}" -eq "$${Lb}" ]]; then \
+		echo "Files have a different read count"; \
+		exit 1; \
+	fi;
+
+nodenames: index
+	cat _prophyle_index_output.txt | ./extract_reported_contigs.py | sort | uniq | grep -v "^0$$" > _nodenames.reported.txt
+	cat index.fa | grep -e "^>" | perl -pe "s/>(.*)@.*/\1/g" | sort | uniq > _nodenames.present.txt
+	cat _nodenames.present.txt _nodenames.reported.txt | sort | uniq > _nodenames.present_reported.txt
+	diff _nodenames.present.txt _nodenames.present_reported.txt
+
+index:
 	$(1STEP) -k $(K) $(FA) $(FQ) > _prophyle_index_output.txt
 
-	# test if number of reads is correct
-	$(eval L=$(shell cat $(FQ) | grep "^@" | wc -l))
-	test `awk '{print $$2}' ./_prophyle_index_output.txt | sort | uniq | wc -l` -eq $(L)
-
-	# test if reported contigs are correct
-	cat _prophyle_index_output.txt | ./extract_reported_contigs.py | sort | uniq | grep -v "^0$$" > _reported.txt
-	cat index.fa | sed "s/@/	/" | sed 's/^>//g' | awk '{print $$1}' | sort | uniq > _present.txt
-
-	cat _present.txt _reported.txt | sort | uniq > _present_reported.txt
-	diff _present.txt _present_reported.txt
-
 clean:
-	rm -f _*.txt index.fa.*
+	rm -f _* index.fa.*
