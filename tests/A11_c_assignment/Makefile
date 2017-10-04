@@ -10,11 +10,11 @@ PY_ASS=$(PROP_DIR)/prophyle_assignment.py
 
 all: cpp py
 	# test sequences
-	diff _test.2.cpp.sam _test.2.py.sam | tee _diff_sam.seqs.txt | head -n 20
+	diff -c _test.2.cpp.sam _test.2.py.sam | tee __diff_sam.seqs.txt | head -n 20
 	# test headers
-	diff _test.h.cpp.sam _test.h.py.sam | tee _diff_sam.headers.txt | head -n 20
+	diff -c _test.h.cpp.sam _test.h.py.sam | tee __diff_sam.headers.txt | head -n 20
 	# test kraken-like output
-	diff _test.kraken.cpp.txt _test.kraken.py.txt | tee _diff_kra.txt | head -n 20
+	#diff -c _test.kraken.cpp.txt _test.kraken.py.txt | tee __diff_kra.txt | head -n 20
 
 py:
 	$(PY_ASS) -f sam -m h1 -A $(tree) $(K) $(match) >_test.1.py.sam
