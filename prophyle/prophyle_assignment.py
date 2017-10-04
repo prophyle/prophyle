@@ -287,10 +287,10 @@ class Assignment:
                 else:
                     ass['hitcigar'] = self.cigar_from_bitmask(ass['hitmask'])
 
-                suffix_parts=["ii:i:{}\tis:i:{}".format(tag_ii, tag_is)]
+                suffix_parts=["ii:i:{}".format(tag_ii), "is:i:{}".format(tag_is)]
                 if self.annotate:
                     suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
-                self.print_sam_line(nodename, "\t".join(suffix_parts))
+                self.print_sam_line(nodename, "\t".join([""]+suffix_parts))
             elif form == "kraken":
                 self.print_kraken_line(nodename)
 
@@ -355,9 +355,12 @@ class Assignment:
         if node_name is not None:
             asg = self.ass_dict[node_name]
 
-            for tag in ['h1', 'h2', 'hf', 'c1', 'c2', 'cf']:
+            for tag, datatype in [
+                    ('h1','i'), ('h2','f'), ('hf','f'),
+                    ('c1','i'), ('c2','f'), ('cf','f'),
+                    ]:
                 for val in asg[tag]:
-                    columns.append("{}:i:{}".format(tag, val))
+                    columns.append("{}:{}:{}".format(tag, datatype, val))
 
             if asg['hitcigar']:
                 columns.append("hc:Z:{}".format(asg['hitcigar']))
@@ -515,21 +518,21 @@ class TreeIndex:
             # annotations
             tags_parts = []
             try:
-                tags_parts.extend(["\tgi:Z:", node.gi])
+                tags_parts.append("gi:Z:{}".format(node.gi))
             except AttributeError:
                 pass
 
             try:
-                tags_parts.extend(["\tsn:Z:", node.sci_name])
+                tags_parts.append("sn:Z:{}".format(node.sci_name))
             except AttributeError:
                 pass
 
             try:
-                tags_parts.extend(["\tra:Z:", node.rank])
+                tags_parts.append("ra:Z:{}".format(node.rank))
             except AttributeError:
                 pass
 
-            self.nodename_to_samannot[nodename] = "".join(tags_parts)
+            self.nodename_to_samannot[nodename] = "\t".join(tags_parts)
 
             # set of upper nodes
             while node.up:
