@@ -147,10 +147,12 @@ class Assignment:
 
 
     def compute_assignments (self):
-        """Compute assignments and their characteristics from hitmasks and store them in self.ass_dict.
+        """Compute assignments & characteristics.
+
+        Compute and their characteristics from hitmasks and store
+        them in self.ass_dict.
         """
 
-        # TODO: what if no assignment exists
         nodenames=self.hitmasks_dict.keys()
         self.ass_dict={
             nodename: self.evaluate_single_assignment(nodename) for nodename in nodenames
@@ -400,12 +402,11 @@ class Assignment:
                 ), file=self.output_fo)
 
 
-    # TODO: rewrite this function
     def print_kraken_line(self, *nodenames):
         """Print a single record in the Kraken-like format.
 
         Args:
-            node_name (str): Node name. None if unassigned.
+            *nodenames (list of str): Node names of assignments to report.
         """
 
         if len(nodenames)==0:
