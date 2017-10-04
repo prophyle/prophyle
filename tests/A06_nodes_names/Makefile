@@ -15,7 +15,7 @@ readcount: index
 	fi;
 
 nodenames: index
-	cat _prophyle_index_output.txt | ./extract_reported_contigs.py | sort | uniq | grep -v "^0$$" > _nodenames.reported.txt
+	cat _prophyle_index_output.txt | ./extract_reported_contigs.py | sort | uniq | grep -E -v "^[0A]$$" > _nodenames.reported.txt
 	cat index.fa | grep -e "^>" | perl -pe "s/>(.*)@.*/\1/g" | sort | uniq > _nodenames.present.txt
 	cat _nodenames.present.txt _nodenames.reported.txt | sort | uniq > _nodenames.present_reported.txt
 	diff _nodenames.present.txt _nodenames.present_reported.txt
