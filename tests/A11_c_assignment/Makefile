@@ -1,4 +1,4 @@
-.PHONY: all clean
+.PHONY: all clean cpp py
 
 include ../conf.mk
 
@@ -8,26 +8,30 @@ match=index_match.txt
 CPP_ASS=$(PROP_DIR)/prophyle_assignment/prophyle_assignment
 PY_ASS=$(PROP_DIR)/prophyle_assignment.py
 
-all:
-	$(CPP_ASS) -f sam -m h1 -A $(tree) $(K) $(match) > _test_c.1.sam
-	samtools view _test_c.1.sam | sort -k 3 | sort >_test_c.2.sam
-	samtools view -H _test_c.1.sam | grep -v "^@PG"> _test_c.h.sam
-	#
-	$(PY_ASS) -f sam -m h1 -A $(tree) $(K) $(match) >_test_py.1.sam
-	samtools view \
-		-x h2 -x c2 -x hf -x cf -x ln -x ii -x is \
-		_test_py.1.sam | sort -k 3 | sort >_test_py.2.sam
-	samtools view -H _test_py.1.sam | grep -v "^@PG" > _test_py.h.sam
-	#
+all: cpp py
 	# test sequences
-	diff _test_c.2.sam _test_py.2.sam > diff_sam.seqs.txt
+	diff _test.2.cpp.sam _test.2.py.sam | tee _diff_sam.seqs.txt | head -n 20
 	# test headers
-	diff _test_c.h.sam _test_py.h.sam > diff_sam.headers.txt
-	#
-	#
-	$(CPP_ASS) -f kraken -m c1 -D $(tree) $(K) $(match) | sort -k 3 | sort -k 2 >_test_c.kra
-	$(PY_ASS) -f kraken -m c1 -D $(tree) $(K) $(match) | sort -k 3 | sort -k 2 >_test_py.kra
-	diff _test_c.kra _test_py.kra > diff_kra.txt
+	diff _test.h.cpp.sam _test.h.py.sam | tee _diff_sam.headers.txt | head -n 20
+	# test kraken-like output
+	diff _test.kraken.cpp.txt _test.kraken.py.txt | tee _diff_kra.txt | head -n 20
+
+py:
+	$(PY_ASS) -f sam -m h1 -A $(tree) $(K) $(match) >_test.1.py.sam
+	$(PY_ASS) -f kraken -m c1 $(tree) $(K) $(match) | sort > _test.kraken.py.txt
+	samtools view \
+		-x h2 -x c2 -x hf -x cf -x ln -x ii -x is\
+		-x ti -x sn -x ra \
+		_test.1.py.sam | sort >_test.2.py.sam
+	samtools view -H _test.1.py.sam | grep -v "^@PG" > _test.h.py.sam
+
+cpp:
+	$(CPP_ASS) -f sam -m h1 -A $(tree) $(K) $(match) > _test.1.cpp.sam
+	$(CPP_ASS) -f kraken -m c1 -D $(tree) $(K) $(match) | sort > _test.kraken.cpp.txt
+	samtools view \
+		-x ti -x sn -x ra \
+		_test.1.cpp.sam | sort >_test.2.cpp.sam
+	samtools view -H _test.1.cpp.sam | grep -v "^@PG"> _test.h.cpp.sam
 
 clean:
-	rm -f _test_* diff_*.txt
+	rm -f _*
