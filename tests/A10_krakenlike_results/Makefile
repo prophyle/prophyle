@@ -9,7 +9,7 @@ digrams=digrams.fa
 ref=ref_res.txt
 
 all: krakenformat #se_vs_pe
-	for x in lossless tielca kmerlca krakenlike; do \
+	for x in lossless assignment_lca kmer_lca krakenlike; do \
 		diff expected.digrams.$$x.txt _assigned.digrams.$$x.txt; \
 	done
 
@@ -17,16 +17,16 @@ krakenformat: LL L X K
 	#diff expected.kraken.txt _observed.kraken.txt | tee _diff_ref.txt
 
 LL: _index.complete
-	$(PROP) classify $(index) $(digrams) -f kraken > _assigned.digrams.lossless.txt
+	$(PROP) classify $(index) $(digrams) -f kraken | sort > _assigned.digrams.lossless.txt
 
 L: _index.complete
-	$(PROP) classify $(index) $(digrams) -f kraken -L > _assigned.digrams.tielca.txt
+	$(PROP) classify $(index) $(digrams) -f kraken -L | sort > _assigned.digrams.assignment_lca.txt
 
 X: _index.complete
-	$(PROP) classify $(index) $(digrams) -f kraken -X > _assigned.digrams.kmerlca.txt
+	$(PROP) classify $(index) $(digrams) -f kraken -X | sort > _assigned.digrams.kmer_lca.txt
 
 K: _index.complete
-	$(PROP) classify $(index) $(digrams) -M > _assigned.digrams.krakenlike.txt
+	$(PROP) classify $(index) $(digrams) -M | sort > _assigned.digrams.krakenlike.txt
 
 se_vs_pe: _index.complete
 	# PAIRED END
