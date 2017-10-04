@@ -10,7 +10,7 @@ all:
 	$(NORM) -i expected_output.fa > _output_expected.norm.fa
 	$(NORM) -i _output_obtained.fa > _output_obtained.norm.fa
 
-	diff _output_expected.norm.fa _output_obtained.norm.fa | tee _diff.txt
+	diff -c _output_expected.norm.fa _output_obtained.norm.fa | tee __diff.txt
 
 clean:
 	rm -f _*
