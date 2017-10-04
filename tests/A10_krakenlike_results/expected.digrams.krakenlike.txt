@@ -9,3 +9,12 @@ C	GT	p1	2	p1:1
 C	TA	o2	2	o2:1
 C	TG	p1	2	p1:1
 C	TT	o2	2	o2:1
+U	AG	0	2	0:1
+U	AN	0	2	A:1
+U	CG	0	2	0:1
+U	CT	0	2	0:1
+U	GA	0	2	0:1
+U	NA	0	2	A:1
+U	NN	0	2	A:1
+U	TC	0	2	0:1
+U	ZZ	0	2	A:1
