@@ -8,13 +8,14 @@ index=_index
 digrams=digrams.fa
 ref=ref_res.txt
 
-all: krakenformat #se_vs_pe
-	for x in lossless assignment_lca kmer_lca krakenlike; do \
-		diff expected.digrams.$$x.txt _assigned.digrams.$$x.txt; \
-	done
+all: krakenformat
 
-krakenformat: LL L X K
-	#diff expected.kraken.txt _observed.kraken.txt | tee _diff_ref.txt
+krakenformat: LL L X K #se_vs_pe
+	for x in lossless assignment_lca kmer_lca krakenlike; do \
+		diff -c expected.digrams.$$x.txt _assigned.digrams.$$x.txt \
+			| tee _diff.digrams.$$x.txt \
+			| head -n 20; \
+	done
 
 LL: _index.complete
 	$(PROP) classify $(index) $(digrams) -f kraken | sort > _assigned.digrams.lossless.txt

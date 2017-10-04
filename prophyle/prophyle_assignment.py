@@ -272,10 +272,10 @@ class Assignment:
             form (str): Expected output format (sam/kraken).
         """
 
-        tag_is=len(self.max_nodenames)
-        for tag_ii, nodename in enumerate(self.max_nodenames, 1):
-            ass = self.ass_dict[nodename]
-            if form == "sam":
+        if form == "sam":
+            tag_is=len(self.max_nodenames)
+            for tag_ii, nodename in enumerate(self.max_nodenames, 1):
+                ass = self.ass_dict[nodename]
                 # compute cigar
                 if ass['covmask'] is None:
                     ass['covcigar'] = None
@@ -291,8 +291,8 @@ class Assignment:
                 if self.annotate:
                     suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
                 self.print_sam_line(nodename, "\t".join([""]+suffix_parts))
-            elif form == "kraken":
-                self.print_kraken_line(nodename)
+        elif form == "kraken":
+            self.print_kraken_line(*self.max_nodenames)
 
 
     @staticmethod
@@ -401,21 +401,22 @@ class Assignment:
 
 
     # TODO: rewrite this function
-    def print_kraken_line(self, nodename):
-        """Print a single record in Kraken format.
+    def print_kraken_line(self, *nodenames):
+        """Print a single record in the Kraken-like format.
 
         Args:
             node_name (str): Node name. None if unassigned.
         """
 
-        if nodename is None:
+        if len(nodenames)==0:
             stat = "U"
-            nodename = "0"
+            krak_ass = "0"
         else:
             stat = "C"
+            krak_ass = ",".join(nodenames)
 
         # recompute krakenmers
-        if self.tie_lca:
+        if self.kmer_lca:
             nodenames_lca_seq = []
             for [nodenames, count] in self.krakline_parser.kmer_blocks:
                 if len(nodenames) == 1:
@@ -434,17 +435,11 @@ class Assignment:
                     str(run[0]),
                     len(list(run[1]))
                 ))
-            pseudokrakenmers = " ".join(c)
-
-            if stat == "C":
-                taxid = nodename
-            else:
-                taxid = "0"
-
-            columns = [stat, self.krakline_parser.readname, nodename, str(self.krakline_parser.readlen), pseudokrakenmers]
+            krakmers = " ".join(c)
         else:
-            columns = [stat, self.krakline_parser.readname, nodename, str(self.krakline_parser.readlen), self.krakline_parser.krakmers]
+            krakmers = self.krakline_parser.krakmers
 
+        columns = [stat, self.krakline_parser.readname, krak_ass, str(self.krakline_parser.readlen), krakmers]
         print("\t".join(columns), file=self.output_fo)
 
 
