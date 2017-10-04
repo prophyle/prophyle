@@ -2,7 +2,7 @@
 
 include ../conf.mk
 
-SUBCOMMANDS = $(shell $(PROP) -h 2>1 | grep -E "^ {4}[^ ]" | awk '{print $$1}' | xargs echo)
+SUBCOMMANDS = $(shell $(PROP) -h 2>&1 | grep -E "^ {4}[^ ]" | awk '{print $$1}' | xargs echo)
 
 all: helpmsg
 
