@@ -18,7 +18,7 @@ nodenames: index
 	cat _prophyle_index_output.txt | ./extract_reported_contigs.py | sort | uniq | grep -E -v "^[0A]$$" > _nodenames.reported.txt
 	cat index.fa | grep -e "^>" | perl -pe "s/>(.*)@.*/\1/g" | sort | uniq > _nodenames.present.txt
 	cat _nodenames.present.txt _nodenames.reported.txt | sort | uniq > _nodenames.present_reported.txt
-	diff _nodenames.present.txt _nodenames.present_reported.txt
+	diff -c _nodenames.present.txt _nodenames.present_reported.txt
 
 index:
 	$(1STEP) -k $(K) $(FA) $(FQ) > _prophyle_index_output.txt

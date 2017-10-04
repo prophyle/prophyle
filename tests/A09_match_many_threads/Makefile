@@ -9,7 +9,7 @@ all: $(addprefix t,$T)
 
 t%: _index.%.complete
 	$(IND) query -k $(K) -u -t $* _index.$*.fa $(FQ) > _obtained.$*.txt
-	diff _obtained.$*.txt expected.txt
+	diff -c _obtained.$*.txt expected.txt
 
 _index.%.complete:
 	$(BWA) index -p _index.$*.fa $(FA)

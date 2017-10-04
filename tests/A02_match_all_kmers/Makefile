@@ -4,7 +4,7 @@
 include ../conf.mk
 
 K=$(shell seq 2 8)
-DIFFS = $(addsuffix .txt, $(addprefix _diff., $(K)))
+DIFFS = $(addsuffix .txt, $(addprefix __diff., $(K)))
 
 all: $(DIFFS)
 	@for f in $^; do \
@@ -14,8 +14,8 @@ all: $(DIFFS)
 		fi; \
 	done
 
-_diff.%.txt: _kmers.expected.%.txt _kmers.observed.%.txt
-	diff $^ | tee $@
+__diff.%.txt: _kmers.expected.%.txt _kmers.observed.%.txt
+	diff -c $^ | tee $@
 
 _kmers.expected.%.txt: $(FA)
 	$(F2K) -i $< -k $* > $@

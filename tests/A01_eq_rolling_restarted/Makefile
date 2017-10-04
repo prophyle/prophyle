@@ -5,7 +5,7 @@ include ../conf.mk
 
 K=14 16
 
-DIFFS = $(addsuffix .txt, $(addprefix _diff., $(K)))
+DIFFS = $(addsuffix .txt, $(addprefix __diff., $(K)))
 
 all: $(DIFFS)
 	@for f in $^; do \
@@ -15,8 +15,8 @@ all: $(DIFFS)
 		fi; \
 	done
 
-_diff.%.txt: _match.rolling_window.%.txt _match.restarted_search.%.txt
-	diff $^ | tee $@
+__diff.%.txt: _match.rolling_window.%.txt _match.restarted_search.%.txt
+	diff -c $^ | tee $@
 
 _match.rolling_window.%.txt:
 	$(1STEP) -u -k $* $(FA) $(FQ) > $@

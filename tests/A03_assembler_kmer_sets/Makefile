@@ -7,8 +7,8 @@ FA2=test_R.fa
 
 K=7 10
 
-DIFFS1 = $(addsuffix .txt, $(addprefix _diff_L., $(K)))
-DIFFS2 = $(addsuffix .txt, $(addprefix _diff_R., $(K)))
+DIFFS1 = $(addsuffix .txt, $(addprefix __diff_L., $(K)))
+DIFFS2 = $(addsuffix .txt, $(addprefix __diff_R., $(K)))
 
 all: $(DIFFS1) $(DIFFS2)
 	@for f in $^; do \
@@ -18,11 +18,11 @@ all: $(DIFFS1) $(DIFFS2)
 		fi; \
 	done
 
-_diff_L.%.txt: _join_L.%.txt _inp_L.%.txt
-	diff $^ | tee $@
+__diff_L.%.txt: _join_L.%.txt _inp_L.%.txt
+	diff -c $^ | tee $@
 
-_diff_R.%.txt: _join_R.%.txt _inp_R.%.txt
-	diff $^ | tee $@
+__diff_R.%.txt: _join_R.%.txt _inp_R.%.txt
+	diff -c $^ | tee $@
 
 _join_L.%.txt: _intersect.%.txt _out_L.%.txt
 	sort -m $^ > $@
