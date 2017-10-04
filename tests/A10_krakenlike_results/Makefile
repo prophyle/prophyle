@@ -1,20 +1,32 @@
-.PHONY: all clean krakenformat se_vs_pe
+.PHONY: all clean krakenformat se_vs_pe LL L X K
 
 include ../conf.mk
 
 K=2
 tree=tree.nw
 index=_index
-reads=reads.fa
+digrams=digrams.fa
 ref=ref_res.txt
 
 all: krakenformat #se_vs_pe
+	for x in lossless tielca kmerlca krakenlike; do \
+		diff expected.digrams.$$x.txt _assigned.digrams.$$x.txt; \
+	done
 
-krakenformat: _index.complete
-	$(PROP) classify $(index) $(reads) -f kraken  > _assigned_kmers.lossless.txt
-	$(PROP) classify $(index) $(reads) -L -f kraken  > _assigned_kmers.tielca.txt
-	$(PROP) classify $(index) $(reads) -M  > _observed.kraken.txt
-	diff expected.kraken.txt _observed.kraken.txt | tee _diff_ref.txt
+krakenformat: LL L X K
+	#diff expected.kraken.txt _observed.kraken.txt | tee _diff_ref.txt
+
+LL: _index.complete
+	$(PROP) classify $(index) $(digrams) -f kraken > _assigned.digrams.lossless.txt
+
+L: _index.complete
+	$(PROP) classify $(index) $(digrams) -f kraken -L > _assigned.digrams.tielca.txt
+
+X: _index.complete
+	$(PROP) classify $(index) $(digrams) -f kraken -X > _assigned.digrams.kmerlca.txt
+
+K: _index.complete
+	$(PROP) classify $(index) $(digrams) -M > _assigned.digrams.krakenlike.txt
 
 se_vs_pe: _index.complete
 	# PAIRED END
