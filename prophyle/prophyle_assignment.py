@@ -7,6 +7,9 @@ Example: ./prophyle/prophyle_index/prophyle_index query -k 5 -u -b _index_test/i
 Author:  Karel Brinda <kbrinda@hsph.harvard.edu>
 
 License: MIT
+
+Todo:
+    - test with CRAM
 """
 
 import argparse
@@ -24,9 +27,12 @@ import version
 ###############################################################################################
 ###############################################################################################
 
-# this should be longer than any possible read, because of CRAM (non-tested yet)
-FAKE_CONTIG_LENGTH = 42424242
-DIAGNOSTICS        = False
+CONFIG={
+    # this should be longer than any possible read, because of CRAM (non-tested yet)
+    'FAKE_CONTIG_LENGTH': 42424242,
+    # print diagnostics messages
+    'DIAGNOSTICS'       : False,
+}
 
 ###############################################################################################
 ###############################################################################################
@@ -84,19 +90,19 @@ class Assignment:
         """
 
         self.krakline_parser.parse_krakline(krakline)
-        if DIAGNOSTICS:
+        if CONFIG['DIAGNOSTICS']:
             self.krakline_parser.diagnostics()
 
         self.blocks_to_masks(self.krakline_parser.kmer_blocks, self.kmer_lca)
-        if DIAGNOSTICS:
+        if CONFIG['DIAGNOSTICS']:
             self.diagnostics()
 
         self.compute_assignments()
-        if DIAGNOSTICS:
+        if CONFIG['DIAGNOSTICS']:
             self.diagnostics()
 
         self.select_best_assignments(measure)
-        if DIAGNOSTICS:
+        if CONFIG['DIAGNOSTICS']:
             self.diagnostics()
 
         self.print_selected_assignments(form)
@@ -395,7 +401,7 @@ class Assignment:
             if node.name != '':
                 print("@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
                     rname=node.name,
-                    rlen=FAKE_CONTIG_LENGTH,
+                    rlen=CONFIG['FAKE_CONTIG_LENGTH'],
                     as_=as_,
                     ur=ur,
                     sp=sp,
@@ -679,7 +685,7 @@ def assign_all_reads(
         k=k,
     )
 
-    if DIAGNOSTICS:
+    if CONFIG['DIAGNOSTICS']:
         tree_index.diagnostics()
 
     assignment = Assignment(
@@ -750,22 +756,12 @@ def parse_args():
         help='use LCA for k-mers (multiple hits of a k-mer)',
     )
 
-    parser.add_argument('--debug',
-        action='store_true',
-        dest='debug',
-        help='print diagnostics messages',
-    )
-
     args = parser.parse_args()
     return args
 
 
 def main():
     args = parse_args()
-
-    if args.debug:
-        global DIAGNOSTICS
-        DIAGNOSTIC=True
 
     try:
         assign_all_reads(
