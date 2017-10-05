@@ -3,7 +3,7 @@
 include ../conf.mk
 
 K=2
-tree=tree.nw
+tree=data/tree.nw
 index=_index
 digrams=digrams.fa
 ref=ref_res.txt
@@ -39,7 +39,7 @@ se_vs_pe: _index.complete
 	@for f in diff_*.txt ; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
 
 _index.complete:
-	$(PROP) index -A -k 2 -g fastas $(tree) $(index)
+	$(PROP) index -A -k 2 $(tree) $(index)
 	touch $@
 
 clean:
