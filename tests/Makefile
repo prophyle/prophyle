@@ -6,7 +6,9 @@ ABC = $(A) $(B) $(C)
 
 $(info $(SUBCOMMANDS))
 
-.PHONY : all clean big $(ABC) A B C src
+.PHONY: all clean big $(ABC) A B C compile
+
+.NOTPARALLEL: B00_compile
 
 V=1
 
@@ -18,7 +20,7 @@ B: $(B)
 
 C: $(C)
 
-$(ABC): src
+$(ABC): compile
 	@echo
 	@echo "========================================="
 	@echo "$@"
@@ -26,7 +28,7 @@ $(ABC): src
 	@echo
 	$(MAKE) -C $@
 
-src:
+compile:
 	$(MAKE) -C ../prophyle
 
 clean:
