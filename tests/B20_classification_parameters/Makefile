@@ -23,7 +23,7 @@ LX: index.complete
 	$(PROP) classify $(index) reads.fq -L -X | $(SVH) > class_LX.sam
 
 M: index.complete
-	$(PROP) classify $(index) reads.fq -M | $(SVH) > class_M.krak
+	$(PROP) classify $(index) reads.fq -M > class_M.krak
 
 K: index.complete
 	$(PROP) classify $(index) reads.fq -K | $(SVH) > class_K.sam
