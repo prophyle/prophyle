@@ -142,12 +142,13 @@ def _test_tree(fn):
     assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
 
 
-def _compile_prophyle_bin(clean=False, parallel=False):
+def _compile_prophyle_bin(clean=False, parallel=False, silent=True):
     """Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
 
     Args:
         clean (bool): Run make clean instead of make.
         parallel (bool): Run make in parallel.
+        silent (bool): Run make silently.
     """
 
     try:
@@ -155,6 +156,9 @@ def _compile_prophyle_bin(clean=False, parallel=False):
 
         if parallel:
             command+=['-j']
+
+        if silent:
+            command+=['-s']
 
         command+=["-C", C_D]
 
@@ -987,7 +991,7 @@ def prophyle_decompress(archive, output_dir, klcp):
 ####################
 
 def prophyle_compile(clean, parallel):
-    _compile_prophyle_bin(clean=clean, parallel=parallel)
+    _compile_prophyle_bin(clean=clean, parallel=parallel, silent=False)
 
 
 ########
