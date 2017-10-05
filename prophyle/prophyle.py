@@ -37,6 +37,9 @@ sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
 import version
 
+CONFIG={
+}
+
 GITDIR = os.path.basename(sys.argv[0])[-3:] == ".py"
 if GITDIR:
     C_D = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -166,6 +169,19 @@ def _compile_prophyle_bin(clean=False, parallel=False):
             sys.exit(1)
         else:
             print("Warning: ProPhyle executables could not be recompiled. Going to use the old ones.", file=sys.stderr)
+
+
+def _add_configuration_parameter (parser):
+    parser.add_argument(
+        '-c',
+        dest='config',
+        metavar='STR',
+        nargs='*',
+        type=str,
+        default=[],
+        #help=argparse.SUPPRESS,
+        help='advanced configuration (a JSON dictionary)',
+    )
 
 
 #####################
@@ -1047,6 +1063,8 @@ def parser():
         help='rewrite library files if they already exist',
     )
 
+    _add_configuration_parameter(parser_download)
+
     ##########
 
     parser_index = subparsers.add_parser(
@@ -1157,6 +1175,7 @@ def parser():
         action='store_true',
     )
 
+    _add_configuration_parameter(parser_index)
 
 
     ##########
@@ -1275,6 +1294,9 @@ def parser():
         help='force restarted search mode',
     )
 
+    _add_configuration_parameter(parser_classify)
+
+
     ##########
 
     parser_analyze = subparsers.add_parser(
@@ -1330,6 +1352,9 @@ def parser():
         help="""Input format of assignments [auto]"""
     )
 
+    _add_configuration_parameter(parser_analyze)
+
+
     ##########
 
     parser_compress = subparsers.add_parser(
@@ -1353,6 +1378,8 @@ def parser():
         nargs="?",
         help='output archive [<index.dir>.tar.gz]',
     )
+
+    _add_configuration_parameter(parser_compress)
 
 
     ##########
@@ -1386,6 +1413,8 @@ def parser():
         help='skip k-LCP construction',
     )
 
+    _add_configuration_parameter(parser_decompress)
+
 
     ##########
 
@@ -1410,6 +1439,8 @@ def parser():
         help='run compilation in parallel',
     )
 
+    _add_configuration_parameter(parser_compile)
+
     ##########
 
     return parser
@@ -1420,6 +1451,9 @@ def main():
         par = parser()
         args = par.parse_args()
         subcommand = args.subcommand
+
+        global CONFIG
+        pro.load_json_conf(CONFIG, args.config)
 
         if subcommand == "download":
             pro.open_log(args.log_fn)
