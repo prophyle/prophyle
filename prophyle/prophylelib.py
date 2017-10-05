@@ -503,6 +503,42 @@ def lower_nonsigleton(node):
         node = node.children[0]
     return node
 
+
+def load_json_conf(globconf, json_strs):
+    """Loads configuration from a JSON string or file.
+
+    The strings are first merged. If the correspond to a file,
+    it is loaded. Otherwise they are interpreted as a json string.
+    The string does have to be wrapped by braces.
+
+    Params:
+        json_strs: List of strings.
+    """
+
+    assert type(globconf)==dict
+
+    if len(json_strs)>0:
+        string=" ".join(json_strs).strip()
+        print(json_strs, string)
+        if os.path.isfile(string):
+            json_filename=string
+            with open(json_filename) as f:
+                data = json.load(f)
+        else:
+            json_string=string
+            if json_string[0]!="{" and json_string[-1]!="}":
+                json_string="".join(["{", json_string, "}"])
+        conf=json.loads(json_string)
+        assert type(conf)==dict, "The provided configuration is not a dictionary"
+        globconf.update(conf)
+
+    try:
+        if globconf['PRINT_CONF']:
+            print("Configuration:", globconf, file=sys.stderr)
+    except KeyError:
+        pass
+
+
 ## None if root
 #def upper_nonsigleton(node):
 #   while len(node.children)==1:
