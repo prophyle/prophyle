@@ -11,34 +11,34 @@ all: classify
 classify: d L X LX M K h1 h2 c1 c2
 
 d: index.complete
-	$(PROP) classify $(index) reads.fq > class.sam
+	$(PROP) classify $(index) reads.fq | $(SVH) > class.sam
 
 L: index.complete
-	$(PROP) classify $(index) reads.fq -L > class_L.sam
+	$(PROP) classify $(index) reads.fq -L | $(SVH) > class_L.sam
 
 X: index.complete
-	$(PROP) classify $(index) reads.fq -X > class_X.sam
+	$(PROP) classify $(index) reads.fq -X | $(SVH) > class_X.sam
 
 LX: index.complete
-	$(PROP) classify $(index) reads.fq -L -X > class_LX.sam
+	$(PROP) classify $(index) reads.fq -L -X | $(SVH) > class_LX.sam
 
 M: index.complete
-	$(PROP) classify $(index) reads.fq -M > class_M.krak
+	$(PROP) classify $(index) reads.fq -M | $(SVH) > class_M.krak
 
 K: index.complete
-	$(PROP) classify $(index) reads.fq -K > class_K.sam
+	$(PROP) classify $(index) reads.fq -K | $(SVH) > class_K.sam
 
 h1: index.complete
-	$(PROP) classify $(index) reads.fq -m h1 > class_h1.sam
+	$(PROP) classify $(index) reads.fq -m h1 | $(SVH) > class_h1.sam
 
 h2: index.complete
-	$(PROP) classify $(index) reads.fq -m h2 > class_h2.sam
+	$(PROP) classify $(index) reads.fq -m h2 | $(SVH) > class_h2.sam
 
 c1: index.complete
-	$(PROP) classify $(index) reads.fq -m c1 > class_c1.sam
+	$(PROP) classify $(index) reads.fq -m c1 | $(SVH) > class_c1.sam
 
 c2: index.complete
-	$(PROP) classify $(index) reads.fq -m c2 > class_c2.sam
+	$(PROP) classify $(index) reads.fq -m c2 | $(SVH) > class_c2.sam
 
 index.complete:
 	$(PROP) index -k $(K) -A $(tree) $(index)

@@ -29,6 +29,7 @@ X: _index.complete
 K: _index.complete
 	$(PROP) classify $(index) $(digrams) -M | sort > _assigned.digrams.krakenlike.txt
 
+# TODO: finish this part of the test
 se_vs_pe: _index.complete
 	# PAIRED END
 	$(PROP) classify $(index) $(reads) | cut -f1-5 | sort -k 3 | sort >_test_single.txt
