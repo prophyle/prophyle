@@ -17,7 +17,7 @@ all: cpp py
 	#diff -c _test.kraken.cpp.txt _test.kraken.py.txt | tee __diff_kra.txt | head -n 20
 
 py:
-	$(PY_ASS) -f sam -m h1 -A $(tree) $(K) $(match) >_test.1.py.sam
+	$(PY_ASS) -f sam -m h1 -A $(tree) $(K) $(match) | $(SVH) > _test.1.py.sam
 	$(PY_ASS) -f kraken -m c1 $(tree) $(K) $(match) | sort > _test.kraken.py.txt
 	samtools view \
 		-x h2 -x c2 -x hf -x cf -x ln -x ii -x is\
@@ -26,7 +26,7 @@ py:
 	samtools view -H _test.1.py.sam | grep -v "^@PG" > _test.h.py.sam
 
 cpp:
-	$(CPP_ASS) -f sam -m h1 -A $(tree) $(K) $(match) > _test.1.cpp.sam
+	$(CPP_ASS) -f sam -m h1 -A $(tree) $(K) $(match) | $(SVH) > _test.1.cpp.sam
 	$(CPP_ASS) -f kraken -m c1 -D $(tree) $(K) $(match) | sort > _test.kraken.cpp.txt
 	samtools view \
 		-x ti -x sn -x ra \

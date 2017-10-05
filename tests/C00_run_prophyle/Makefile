@@ -24,18 +24,20 @@ $(GIT_LIBS):
 	@echo "Index"
 	@echo "-----"
 	@echo
-	$(PROP) index -F $(GIT_SEQS)/$(CUR_LIB).nw idx_$(CUR_LIB) 2>log_idx_$(CUR_LIB).txt
+	$(PROP) index -F $(GIT_SEQS)/$(CUR_LIB).nw idx_$(CUR_LIB) 2> log_idx_$(CUR_LIB).txt
 	@echo
 	@echo "Classify"
 	@echo "--------"
 	@echo
-	$(PROP) classify -P -A -f sam -m h1 idx_$(CUR_LIB) $(FQ) $(FQ) >idx_$(CUR_LIB)/_test_class.sam
-	$(PROP) classify -L -K -f kraken -m c1 idx_$(CUR_LIB) $(FQ) >idx_$(CUR_LIB)/_test_class.kra
+	$(PROP) classify -P -A -f sam -m h1 idx_$(CUR_LIB) $(FQ) $(FQ) | $(SVH) > idx_$(CUR_LIB)/_test_class.sam
+	$(PROP) classify -L -K -f kraken -m c1 idx_$(CUR_LIB) $(FQ) > idx_$(CUR_LIB)/_test_class.kra
 	@echo
 	@echo "Analyze"
 	@echo "-------"
 	@echo
-	@for s in $(STATS) ; do (cd idx_$(CUR_LIB) && ../$(PROP) analyze -s $$s . _test_analyze_$$s _test_class.sam) ; done
+	@for s in $(STATS) ; do \
+		(cd idx_$(CUR_LIB) && ../$(PROP) analyze -s $$s . _test_analyze_$$s _test_class.sam) ; \
+	done
 	touch $@
 
 $(PKG_LIBS):
