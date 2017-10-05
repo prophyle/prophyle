@@ -3,11 +3,11 @@
 include ../conf.mk
 
 K=2
-tree=tree.nw
-index=index
+tree=data/tree.nw
+index=_index
 
 all:
-	$(PROP) index -A -g fastas -k 2 $(tree) $(index)
+	$(PROP) index -A -k 2 $(tree) $(index)
 
 clean:
-	rm -rf $(index) $(res) $(diff_res)
+	rm -rf _*
