@@ -419,6 +419,7 @@ def _propagate(index_dir, threads):
         command,
         err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
         thr_exc=False,
+        silent=True,
     )
 
     # run propagation
@@ -529,7 +530,7 @@ def _fa2pac(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating packed FASTA file')
+    #pro.message('Generating packed FASTA file')
     pro.test_files(BWA, fa_fn)
     command = [BWA, 'fa2pac', fa_fn, fa_fn]
     pro.run_safe(
@@ -547,7 +548,7 @@ def _pac2bwt(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating BWT')
+    #pro.message('Generating BWT')
     pro.test_files(BWA, fa_fn + ".pac")
     command = [BWA, 'pac2bwtgen', fa_fn + ".pac", fa_fn + ".bwt"]
     pro.run_safe(
@@ -565,7 +566,7 @@ def _bwt2bwtocc(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating sampled OCC array')
+    #pro.message('Generating sampled OCC array')
     pro.test_files(BWA, fa_fn + ".bwt")
     command = [BWA, 'bwtupdate', fa_fn + ".bwt"]
     pro.run_safe(
@@ -583,7 +584,7 @@ def _bwtocc2sa(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating sampled SA')
+    #pro.message('Generating sampled SA')
     pro.test_files(BWA, fa_fn + ".bwt")
     command = [BWA, 'bwt2sa', fa_fn + ".bwt", fa_fn + ".sa"]
     pro.run_safe(
@@ -602,7 +603,7 @@ def _bwtocc2klcp(fa_fn, k):
         k (int): K-mer size.
     """
 
-    pro.message('Generating k-LCP array')
+    #pro.message('Generating k-LCP array')
     pro.test_files(IND, fa_fn + ".bwt")
     command = [IND, 'build', '-k', k, fa_fn]
     pro.run_safe(

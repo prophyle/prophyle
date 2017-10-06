@@ -129,7 +129,7 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
                 node = node.up
             node.detach()
 
-        print("Subsampling the tree with rate {:.4f}, {} leaves out of {} were sampled".format(sampling_rate,
+        print("Subsampling the tree with rate {:.4f}, {} leaves were kept (out of {})".format(sampling_rate,
             len(leaves_2), len(leaves_1)), file=sys.stderr)
 
     if verbose:
