@@ -331,7 +331,7 @@ def makedirs(*ds):
     for d in ds:
         if not os.path.isdir(d):
             cmd = ['mkdir', '-p', d]
-            run_safe(cmd)
+            run_safe(cmd, silent=True)
 
 
 def existing_and_newer(fn0, fn):
@@ -388,7 +388,7 @@ def test_files(*fns, test_nonzero=False):
 ########
 
 
-def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True):
+def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True, silent=False):
     """Run a shell command safely.
 
     Args:
@@ -397,6 +397,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         output_fo (fileobject): Output file object. If both params are None, the standard output is used.
         err_msg (str): Error message if the command fails.
         thr_exc (bool): Through exception if the command fails. error_msg or thr_exc must be set.
+        silent (bool): Silent mode (print messages only if the command fails). 
 
     Raises:
         RuntimeError: Command exited with a non-zero code.
@@ -414,7 +415,10 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         command_safe.append(part)
 
     command_str = " ".join(command_safe)
-    message("Running:", command_str)
+
+    if not silent:
+        message("Shell command:", command_str)
+
     if output_fn is None:
         if output_fo is None:
             out_fo = sys.stdout
@@ -452,7 +456,8 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         out_fo.close()
 
     if error_code == 0 or error_code == 141:
-        message("Finished ({} MB used): {}".format(mem_mb, command_str))
+        if not silent:
+            message("Finished ({} MB used): {}".format(mem_mb, command_str))
     else:
         message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
 
