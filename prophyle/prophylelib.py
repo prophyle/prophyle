@@ -470,7 +470,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         sys.exit(1)
 
 
-def save_config (index_dir, data):
+def save_index_config (index_dir, data):
     """Save a configuration dictionary (index.json in the index directory).
 
     Args:
@@ -481,7 +481,7 @@ def save_config (index_dir, data):
         json.dump(data, data_file, indent=4)
 
 
-def load_config (index_dir):
+def load_index_config (index_dir):
     """Load a configuration dictionary (index.json in the index directory).
 
     Args:
@@ -499,7 +499,7 @@ def detect_k_from_index(index_dir):
         index_dir (str): Index directory.
     """
 
-    config=load_config(index_dir)
+    config=load_index_config(index_dir)
     return config['k']
 
 
@@ -509,7 +509,7 @@ def lower_nonsigleton(node):
     return node
 
 
-def load_json_conf(globconf, json_strs):
+def load_prophyle_conf(globconf, json_strs):
     """Loads configuration from a JSON string or file.
 
     The strings are first merged. If the correspond to a file,
