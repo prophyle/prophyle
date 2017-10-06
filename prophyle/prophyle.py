@@ -175,7 +175,7 @@ def _compile_prophyle_bin(clean=False, parallel=False, silent=True):
             print("Warning: ProPhyle executables could not be recompiled. Going to use the old ones.", file=sys.stderr)
 
 
-def _add_configuration_parameter (parser):
+def _add_configuration_parameter (parser, visible=True):
     parser.add_argument(
         '-c',
         dest='config',
@@ -183,8 +183,7 @@ def _add_configuration_parameter (parser):
         nargs='*',
         type=str,
         default=[],
-        #help=argparse.SUPPRESS,
-        help='advanced configuration (a JSON dictionary)',
+        help='advanced configuration (a JSON dictionary)' if visible else argparse.SUPPRESS,
     )
 
 
@@ -1023,6 +1022,8 @@ def parser():
         version='%(prog)s {}'.format(version.VERSION),
     )
 
+    _add_configuration_parameter(parser, visible=False)
+
     subparsers = parser.add_subparsers(help="", description=argparse.SUPPRESS, dest='subcommand', metavar="")
     fc = lambda prog: argparse.HelpFormatter(prog, max_help_position=27)
 
@@ -1569,7 +1570,7 @@ def main():
             msg = msg.replace("\n    compress","\n\n    compress")
             print(file=sys.stderr)
             print(msg, file=sys.stderr)
-            sys.exit(1)
+            sys.exit(2)
 
     except BrokenPipeError:
         # pipe error (e.g., when head is used)

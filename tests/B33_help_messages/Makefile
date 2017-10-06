@@ -7,14 +7,16 @@ SUBCOMMANDS = $(shell $(PROP) -h 2>&1 | grep -E "^ {4}[^ ]" | awk '{print $$1}' 
 all: helpmsg
 
 helpmsg:
-	# " " here is used to test prophyle without subcommands
+	# tricks:
+	#   - " " is used to test prophyle without subcommands
+	#   - exit $$(($$? - 2 )) subtract 2 from the error code (command without any params should exit with 2)
 	for x in " " $(SUBCOMMANDS); do \
 		echo; \
 		echo "================================"; \
 		echo "prophyle $$x"; \
 		echo "================================"; \
 		echo; \
-		$(PROP) $$x; \
+		$(PROP) $$x || (exit $$(($$? - 2 )) ); \
 		echo; \
 		$(PROP) $$x -h; \
 		echo; \
