@@ -7,11 +7,14 @@ SUBCOMMANDS = $(shell $(PROP) -h 2>&1 | grep -E "^ {4}[^ ]" | awk '{print $$1}' 
 all: helpmsg
 
 helpmsg:
-	for x in $(SUBCOMMANDS); do \
+	# " " here is used to test prophyle without subcommands
+	for x in " " $(SUBCOMMANDS); do \
 		echo; \
 		echo "================================"; \
 		echo "prophyle $$x"; \
 		echo "================================"; \
+		echo; \
+		$(PROP) $$x; \
 		echo; \
 		$(PROP) $$x -h; \
 		echo; \
