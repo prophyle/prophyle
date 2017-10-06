@@ -17,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import gzip
 
@@ -397,7 +398,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         output_fo (fileobject): Output file object. If both params are None, the standard output is used.
         err_msg (str): Error message if the command fails.
         thr_exc (bool): Through exception if the command fails. error_msg or thr_exc must be set.
-        silent (bool): Silent mode (print messages only if the command fails). 
+        silent (bool): Silent mode (print messages only if the command fails).
 
     Raises:
         RuntimeError: Command exited with a non-zero code.
@@ -510,38 +511,57 @@ def lower_nonsigleton(node):
 
 
 def load_prophyle_conf(globconf, json_strs):
-    """Loads configuration from a JSON string or file.
+    """Loads configuration from a JSON string or a file.
 
-    The strings are first merged. If the correspond to a file,
-    it is loaded. Otherwise they are interpreted as a json string.
-    The string does have to be wrapped by braces.
+    The strings are first merged. If the string corresponds to a file,
+    it is loaded. Otherwise it is interpreted as a json string
+    (possibly without wrapping braces) and stored into a temporary
+    file, whose name is then returned so that it can be passed to
+    other programs.
 
     Params:
-        json_strs: List of strings.
+        glob_conf (dict): Global configuration dictionary.
+        json_strs (str): File name with the dictionary.
+
+    Returns:
+        json_fn (str): Returns a file name of a JSON with the same information.
     """
 
     assert type(globconf)==dict
 
-    if len(json_strs)>0:
-        string=" ".join(json_strs).strip()
-        print(json_strs, string)
-        if os.path.isfile(string):
-            json_filename=string
-            with open(json_filename) as f:
-                data = json.load(f)
-        else:
-            json_string=string
-            if json_string[0]!="{" and json_string[-1]!="}":
-                json_string="".join(["{", json_string, "}"])
-        conf=json.loads(json_string)
-        assert type(conf)==dict, "The provided configuration is not a dictionary"
-        globconf.update(conf)
+    if len(json_strs)==0:
+        return None
+
+    string=(" ".join(json_strs)).strip()
+
+    if os.path.isfile(string):
+        # load JSON from a file & return the same filename
+        json_filename=string
+        with open(json_filename) as f:
+            data = json.load(f)
+        prophyle_conf_tmp_filename=json_filename
+
+    else:
+        # load JSON from the string & create a tmp file
+        json_string=string
+        if json_string[0]!="{" and json_string[-1]!="}":
+            json_string="".join(["{", json_string, "}"])
+        data=json.loads(json_string)
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            prophyle_conf_tmp_filename=f.name
+            json.dump(data, f, indent=3)
+
+    assert type(data)==dict, "The provided configuration is not a dictionary"
+    globconf.update(data)
 
     try:
         if globconf['PRINT_CONF']:
             print("Configuration:", globconf, file=sys.stderr)
     except KeyError:
         pass
+
+    return prophyle_conf_tmp_filename
 
 
 ## None if root
