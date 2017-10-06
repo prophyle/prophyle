@@ -19,9 +19,6 @@ Example:
     Classify some reads:
 
         $ prophyle classify test_idx reads.fq > result.sam
-
-TODO:
-    * classification: support for c2, h2
 """
 
 import argparse
@@ -53,7 +50,7 @@ IND = os.path.join(C_D, "prophyle_index", "prophyle_index")
 ASM = os.path.join(C_D, "prophyle_assembler", "prophyle_assembler")
 C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
-# git
+# executed from the git repo
 if GITDIR:
     PROPHYLE = os.path.join(C_D, "prophyle.py")
     PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
@@ -64,8 +61,7 @@ if GITDIR:
     READ = os.path.join(C_D, "prophyle_paired_end.py")
     TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
     SPLIT_FA = os.path.join(C_D, "prophyle_split_allseq.py")
-
-# package
+# executed from a Python package
 else:
     PROPHYLE = "prophyle"
     PY_ASSIGN = "prophyle_assignment.py"
@@ -802,7 +798,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 #####################
 
 def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, measure, annotate,
-        tie_lca, kmer_lca, print_seq, cimpl, force_restarted_search):
+        tie_lca, kmer_lca, print_seq, cimpl, force_restarted_search, prophyle_conf_string):
     """Run ProPhyle classification.
 
     Args:
@@ -819,6 +815,7 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
         print_seq (bool): Print sequencing in SAM.
         cimpl (bool): Use the C++ implementation.
         force_restarted_search (bool): Force restarted search.
+        prophyle_conf_string (str): ProPhyle configuration string.
     """
 
     _compile_prophyle_bin(parallel=True)
@@ -875,7 +872,12 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
         kmer_lca = True
         out_format =  "kraken"
 
-    cmd_assign = [ASSIGN, '-m', measure, '-f', out_format, index_tree, k, '-']
+    cmd_assign = [ASSIGN]
+
+    if not cimpl and prophyle_conf_string:
+        cmd_assign += ['-c', prophyle_conf_string]
+
+    cmd_assign += ['-m', measure, '-f', out_format]
 
     if annotate:
         cmd_assign += ['-A']
@@ -885,6 +887,10 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
 
     if kmer_lca:
         cmd_assign += ['-X']
+
+
+    cmd_assign += [index_tree, k, '-']
+
 
     if fq_pe_fn:
         cmd_read = [READ, fq_fn, fq_pe_fn, '|']
@@ -1459,7 +1465,7 @@ def main():
         subcommand = args.subcommand
 
         global CONFIG
-        pro.load_prophyle_conf(CONFIG, args.config)
+        prophyle_conf_string=pro.load_prophyle_conf(CONFIG, args.config)
 
         if subcommand == "download":
             pro.open_log(args.log_fn)
@@ -1521,6 +1527,7 @@ def main():
                 print_seq=args.print_seq,
                 cimpl=args.cimpl,
                 force_restarted_search=args.force_restarted_search,
+                prophyle_conf_string=prophyle_conf_string, # already preprocessed
             )
             pro.message('Classification finished')
             pro.close_log()

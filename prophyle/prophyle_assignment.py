@@ -756,12 +756,25 @@ def parse_args():
         help='use LCA for k-mers (multiple hits of a k-mer)',
     )
 
+    parser.add_argument('-c',
+        dest='config',
+        metavar='STR',
+        nargs='*',
+        type=str,
+        default=[],
+        help='configuration (a JSON dictionary)',
+    )
+
     args = parser.parse_args()
     return args
 
 
 def main():
     args = parse_args()
+
+    global CONFIG
+    prophyle_conf_string=pro.load_prophyle_conf(CONFIG, args.config)
+
 
     try:
         assign_all_reads(
