@@ -169,11 +169,13 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
     error = False
 
-    existing_names = []
+    existing_names_set=set()
+
     names_with_separator = []
 
     without_name = []
     empty_name = []
+    forbidden_name = []
 
     duplicates = []
 
@@ -189,13 +191,16 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
             if nname == '':
                 empty_name.append((i, nname))
                 error = True
-            if nname in existing_names:
+            if nname in set(['A', '0']):
+                forbidden_name.append((i, nname))
+                error = True
+            if nname in existing_names_set:
                 duplicates.append((i, nname))
                 error = True
             if "@" in nname:
                 names_with_separator.append((i, nname))
                 error = True
-            existing_names.append((i, nname))
+            existing_names_set.add(nname)
 
     def _format_node_list(node_list):
         return ", ".join(map(str, node_list))
@@ -213,6 +218,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
             print("Errors:".format(), file=output_fo)
 
         _error_report(without_name, "without name")
+        _error_report(forbidden_name, "forbidden_name")
         _error_report(empty_name, "with empty name")
         _error_report(duplicates, "with a duplicate name")
         _error_report(names_with_separator, "with a name containing '@'")
