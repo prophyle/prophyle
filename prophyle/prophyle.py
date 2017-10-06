@@ -390,7 +390,7 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
         'k': k,
     }
 
-    pro.save_config(index_dir, config)
+    pro.save_index_config(index_dir, config)
 
     with open(os.path.join(propagation_dir, "params.mk"), "w+") as f:
         f.write('PRG_ASM="{}"\n'.format(ASM))
@@ -977,7 +977,7 @@ def prophyle_decompress(archive, output_dir, klcp):
     pro.touch(os.path.join(index_dir, "index.fa.pac"))
 
     if klcp:
-        config=pro.load_config(index_dir)
+        config=pro.load_index_config(index_dir)
         cmd = [PROPHYLE, "index", "-k", config['k'], os.path.join(index_dir, "tree.nw"), index_dir]
     else:
         cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "tree.nw"), index_dir]
@@ -1459,7 +1459,7 @@ def main():
         subcommand = args.subcommand
 
         global CONFIG
-        pro.load_json_conf(CONFIG, args.config)
+        pro.load_prophyle_conf(CONFIG, args.config)
 
         if subcommand == "download":
             pro.open_log(args.log_fn)
