@@ -32,6 +32,8 @@ CONFIG={
     'FAKE_CONTIG_LENGTH': 42424242,
     # print diagnostics messages
     'DIAGNOSTICS'       : False,
+    # sort nodes alphabetically when reporting assignments
+    'SORT_NODES'        : False,
 }
 
 ###############################################################################################
@@ -239,6 +241,9 @@ class Assignment:
 
             elif ass[measure][0] == self.max_val:
                 self.max_nodenames.append(nodename)
+
+        if CONFIG['SORT_NODES']:
+            self.max_nodenames.sort()
 
 
     def make_lca_from_winners(self):

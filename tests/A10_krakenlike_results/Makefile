@@ -8,6 +8,8 @@ index=_index
 digrams=digrams.fa
 ref=ref_res.txt
 
+PROPC=$(PROP) classify -c conf.json
+
 all: krakenformat
 
 krakenformat: LL L X K #se_vs_pe
@@ -18,22 +20,22 @@ krakenformat: LL L X K #se_vs_pe
 	done
 
 LL: _index.complete
-	$(PROP) classify $(index) $(digrams) -f kraken | sort > _assigned.digrams.lossless.txt
+	$(PROPC) -f kraken    $(index) $(digrams) | sort > _assigned.digrams.lossless.txt
 
 L: _index.complete
-	$(PROP) classify $(index) $(digrams) -f kraken -L | sort > _assigned.digrams.assignment_lca.txt
+	$(PROPC) -f kraken -L $(index) $(digrams) | sort > _assigned.digrams.assignment_lca.txt
 
 X: _index.complete
-	$(PROP) classify $(index) $(digrams) -f kraken -X | sort > _assigned.digrams.kmer_lca.txt
+	$(PROPC) -f kraken -X $(index) $(digrams) | sort > _assigned.digrams.kmer_lca.txt
 
 K: _index.complete
-	$(PROP) classify $(index) $(digrams) -M | sort > _assigned.digrams.krakenlike.txt
+	$(PROPC) -M           $(index) $(digrams) | sort > _assigned.digrams.krakenlike.txt
 
 # TODO: finish this part of the test
 se_vs_pe: _index.complete
 	# PAIRED END
-	$(PROP) classify $(index) $(reads) | cut -f1-5 | sort -k 3 | sort >_test_single.txt
-	$(PROP) classify $(index) $(reads) $(reads) | cut -f1-5 | sort -k 3 | sort >_test_paired.txt
+	$(PROPC) $(index) $(reads) | cut -f1-5 | sort -k 3 | sort >_test_single.txt
+	$(PROPC) $(index) $(reads) $(reads) | cut -f1-5 | sort -k 3 | sort >_test_paired.txt
 	diff -c _test_single.txt _test_paired.txt > __diff_paired.txt
 	# CHECK DIFF
 	@for f in diff_*.txt ; do test `wc -c < $$f` -eq 0 || (echo "file $$f is not empty" && exit 1) ; done
