@@ -1,6 +1,6 @@
 .PHONY: \
 	all prophyle clean install \
-	test test_repo test_package \
+	test test_repo test_parallel test_package \
 	inc pypi \
 	docs readme wpypi wconda
 
@@ -33,9 +33,14 @@ test: test_repo
 
 # unit tests & integration, invoked in the repo dir
 test_repo:
-	$(MAKE) -C prophyle
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests
+
+# quick parallel testing
+test_parallel:
+	$(MAKE) -C tests clean
+	$(MAKE) -C tests parallel
+
 
 # integration tests, invoked from the pip package dir
 test_package:

@@ -23,7 +23,7 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel psutil scipy samtools sphinx || true
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel psutil scipy samtools=1.4 sphinx || true
         - source activate prophyle
 
     - os: osx
@@ -41,12 +41,13 @@ matrix:
         - conda config --set always_yes yes --set changeps1 no
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.5 ete3 bitarray parallel psutil scipy samtools=1.2 sphinx || true
+        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.5 ete3 bitarray parallel psutil scipy samtools=1.4 sphinx || true
         - source activate prophyle
 
 script:
   # see Makefile for details
   - unset PYTHONPATH
+  - samtools --version
   # tests in the repo dir
   - make clean
   - make test_repo
