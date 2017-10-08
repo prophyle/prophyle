@@ -15,6 +15,7 @@ KSEQ_DECLARE(gzFile)
 #define MAX_POSSIBLE_SA_POSITIONS 1000000
 #define MAX_STREAK_LENGTH 10000000
 #define MAX_SOFT_STREAK_LENGTH 9000000
+#define READ_CHUNK_SIZE 10000000
 
 void *kopen(const char *fn, int *_fd);
 int kclose(void *a);
@@ -563,7 +564,7 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 	fp = gzdopen(fd, "r");
 	kseq_t* ks = kseq_init(fp);
 
-	while ((seqs = bseq_read(10, &n_seqs, ks, NULL)) != 0) {
+	while ((seqs = bseq_read(READ_CHUNK_SIZE, &n_seqs, ks, NULL)) != 0) {
 		process_sequences(idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
 		for (i = 0; i < n_seqs; ++i) {
