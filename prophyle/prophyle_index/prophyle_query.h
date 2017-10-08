@@ -36,7 +36,7 @@ typedef struct {
 	const bwaidx_t* idx;
 	const klcp_t* klcp;
 	const prophyle_index_opt_t* opt;
-	const bwa_seq_t* seqs;
+	const bseq1_t* seqs;
 	prophyle_query_aux_t* aux_data;
 	int32_t seqs_cnt;
 	char** output;
