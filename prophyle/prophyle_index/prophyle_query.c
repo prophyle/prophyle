@@ -332,8 +332,9 @@ void process_sequence(void* data, int seq_index, int tid) {
 	int32_t* seen_nodes = aux_data.seen_nodes;
 	int32_t* prev_seen_nodes = aux_data.prev_seen_nodes;
 	int8_t* seen_nodes_marks = aux_data.seen_nodes_marks;
+	int i;
 
-	for (int i = 0; i < seq.l_seq; ++i) // convert to 2-bit encoding if we have not done so
+	for (i = 0; i < seq.l_seq; ++i) // convert to 2-bit encoding if we have not done so
 		seq.seq[i] = seq.seq[i] < 4? seq.seq[i] : nst_nt4_table[(int)seq.seq[i]];
 	seq_reverse(seq.l_seq, seq.seq, 0);
 
