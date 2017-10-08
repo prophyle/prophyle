@@ -17,7 +17,7 @@ AK=$(PROP_DIR)/_all_kmers.py
 NORM=$(PROP_DIR)/_fa_norm.py
 1STEP=$(PROP_DIR)/1step_match.py
 
-SVH=samtools view -h
+SVH=samtools view -h -
 
 FQ=../simulation_bacteria.1000.fq
 FA=index.fa
