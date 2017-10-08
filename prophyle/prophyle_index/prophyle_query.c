@@ -320,10 +320,10 @@ void prophyle_worker_destroy(prophyle_worker_t* prophyle_worker) {
 	free(prophyle_worker);
 }
 
-void process_sequence(void* data, int i, int tid) {
+void process_sequence(void* data, int seq_index, int tid) {
 	prophyle_worker_t* prophyle_worker = (prophyle_worker_t*)data;
 	const bwaidx_t* idx = prophyle_worker->idx;
-	bseq1_t seq = prophyle_worker->seqs[i];
+	bseq1_t seq = prophyle_worker->seqs[seq_index];
 	const prophyle_index_opt_t* opt = prophyle_worker->opt;
 	const klcp_t* klcp = prophyle_worker->klcp;
 	prophyle_query_aux_t aux_data = prophyle_worker->aux_data[tid];
@@ -356,8 +356,8 @@ void process_sequence(void* data, int i, int tid) {
 	int ambiguous_streak_just_ended = 0;
 	if (start_pos + opt->kmer_length > seq.l_seq) {
 		if (opt->output) {
-			prophyle_worker->output[i] = malloc(5 * sizeof(char));
-			strncpy(prophyle_worker->output[i], "0:0", 5);
+			prophyle_worker->output[seq_index] = malloc(5 * sizeof(char));
+			strncpy(prophyle_worker->output[seq_index], "0:0", 5);
 		}
 	} else {
 		int index = 0;
@@ -453,8 +453,8 @@ void process_sequence(void* data, int i, int tid) {
 		}
 		if (opt->output) {
 			size_t all_streaks_length = strlen(all_streaks);
-			prophyle_worker->output[i] = malloc((all_streaks_length + 1) * sizeof(char));
-			strncpy(prophyle_worker->output[i], all_streaks, all_streaks_length + 1);
+			prophyle_worker->output[seq_index] = malloc((all_streaks_length + 1) * sizeof(char));
+			strncpy(prophyle_worker->output[seq_index], all_streaks, all_streaks_length + 1);
 		}
 	}
 }
