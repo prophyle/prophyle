@@ -479,6 +479,17 @@ void process_sequences(const bwaidx_t* idx, int n_seqs, bseq1_t* seqs,
 			}
 			fprintf(stdout, "\n");
 		}
+	}
+	prophyle_worker_destroy(prophyle_worker);
+}
+
+void destroy_reads(int n_seqs, bseq1_t* seqs) {
+	int i;
+	if (!seqs) {
+		return;
+	}
+	for (i = 0; i < n_seqs; ++i) {
+		bseq1_t* seq = seqs + i;
 		if (seq->name) {
 			free(seq->name);
 		}
@@ -492,7 +503,7 @@ void process_sequences(const bwaidx_t* idx, int n_seqs, bseq1_t* seqs,
 			free(seq->qual);
 		}
 	}
-	prophyle_worker_destroy(prophyle_worker);
+	free(seqs);
 }
 
 void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt) {
@@ -500,11 +511,10 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 
 	int n_seqs;
 	bseq1_t* seqs;
-	//bwa_seqio_t* ks;
 	bwaidx_t* idx;
 	int i;
 	FILE* log_file;
-	gzFile fp, fp2 = 0;
+	gzFile fp = 0;
 	void *ko = 0;
 
 	if (opt->need_log) {
@@ -540,7 +550,6 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 		free(fn);
 		fprintf(log_file, "klcp_loading\t%.2fs\n", realtime() - rtime);
 	}
-	// ks = bwa_open_reads(opt->mode, fn_fa);
 	float total_time = 0;
 	int64_t total_seqs = 0;
 	ctime = cputime(); rtime = realtime();
@@ -553,11 +562,8 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 	}
 	fp = gzdopen(fd, "r");
 	kseq_t* ks = kseq_init(fp);
-	kseq_t* ks2 = NULL;
 
-	while ((seqs = bseq_read(10, &n_seqs, ks, ks2)) != 0) {
-		// fprintf(stderr, "read %d reads\n", n_seqs);
-	//while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
+	while ((seqs = bseq_read(10, &n_seqs, ks, NULL)) != 0) {
 		process_sequences(idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
 		for (i = 0; i < n_seqs; ++i) {
@@ -566,12 +572,7 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 				total_kmers_count += seq_kmers_count;
 			}
 		}
-		//fprintf(stderr, "processed\n");
-		//bwa_free_read_seq(n_seqs, seqs);
-		if (seqs) {
-			free(seqs);
-		}
-		//fprintf(stderr, "destroyed\n");
+		destroy_reads(n_seqs, seqs);
 	}
 	total_time = realtime() - rtime;
 	fprintf(stderr, "[prophyle_index:%s] match time: %.2f sec\n", __func__, total_time);
