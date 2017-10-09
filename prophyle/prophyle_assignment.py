@@ -807,8 +807,15 @@ def main():
         exit(1)
 
     finally:
-        sys.stdout.flush()
-        sys.stderr.flush()
+        try:
+            sys.stdout.flush()
+        except BrokenPipeError:
+            pass
+        finally:
+            try:
+                sys.stderr.flush()
+            except:
+                pass
 
 
 if __name__ == "__main__":
