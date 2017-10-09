@@ -22,6 +22,7 @@ Example:
 """
 
 import argparse
+import collections
 import hashlib
 import multiprocessing
 import os
@@ -381,12 +382,11 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
     # pro.test_files(NEWICK2MAKEFILE, tree_fn)
     command = [NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './', makefile]
 
-    config={
-        'prophyle-version': version.VERSION,
-        'prophyle-revision': version.REVCOUNT,
-        'prophyle-commit': version.SHORTHASH,
-        'k': k,
-    }
+    config=collections.OrderedDict()
+    config['prophyle-version']=version.VERSION
+    config['prophyle-revision']=version.REVCOUNT
+    config['prophyle-commit']=version.SHORTHASH
+    config['k']=k
 
     pro.save_index_config(index_dir, config)
 
