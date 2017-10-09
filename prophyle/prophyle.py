@@ -383,6 +383,8 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
 
     config={
         'prophyle-version': version.VERSION,
+        'prophyle-revision': version.REVCOUNT,
+        'prophyle-commit': version.SHORTHASH,
         'k': k,
     }
 
@@ -1025,7 +1027,7 @@ def parser():
 
     parser.add_argument('-v', '--version',
         action='version',
-        version='%(prog)s {}'.format(version.VERSION),
+        version='ProPhyle {} (rev {}, commit {})'.format(version.VERSION, version.REVCOUNT, version.SHORTHASH),
     )
 
     _add_configuration_parameter(parser, visible=False)

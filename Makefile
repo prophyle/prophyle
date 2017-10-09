@@ -21,7 +21,7 @@ clean:
 	$(MAKE) -C tests clean
 	($(MAKE) -C docs clean || True) > /dev/null 2> /dev/null
 
-install:
+install: hooks
 	pip install --upgrade .
 
 hooks:
@@ -60,10 +60,10 @@ test_package:
 # RELEASING #
 #############
 
-inc:
+inc: hooks
 	./prophyle/increment_version.py
 
-pypi:
+pypi: hooks
 	make clean
 	/usr/bin/env python3 setup.py sdist bdist_wheel upload
 
@@ -76,7 +76,7 @@ docs:
 	$(MAKE) -C docs html
 	open docs/.build/html/index.html || true
 
-readme:
+readme: hooks
 	rst2html.py README.rst > README.html
 
 wconda:
