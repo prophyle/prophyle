@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "prophyle_utils.h"
 
+// maximum total size of reads in one chunk
+#define READ_CHUNK_SIZE 10000000
+
 prophyle_index_opt_t* prophyle_index_init_opt()
 {
 	prophyle_index_opt_t* o;
@@ -17,5 +20,6 @@ prophyle_index_opt_t* prophyle_index_init_opt()
 	o->construct_sa_parallel = 0;
 	o->need_log = 0;
 	o->log_file_name = NULL;
+	o->read_chunk_size = READ_CHUNK_SIZE;
 	return o;
 }
