@@ -2,7 +2,8 @@
 	all prophyle clean install hooks \
 	test test_repo test_parallel test_package \
 	inc pypi \
-	docs readme wpypi wconda
+	docs readme wpypi wconda \
+	deppip depconda
 
 
 ###############
@@ -84,4 +85,15 @@ wconda:
 
 wpypi:
 	open https://pypi.python.org/pypi/prophyle
+
+
+########################
+# INSTALL DEPENDENCIES #
+########################
+
+depconda:
+	cat requirements.txt | xargs conda install
+
+deppip:
+	cat requirements.txt | xargs pip install
 
