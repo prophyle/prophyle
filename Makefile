@@ -30,7 +30,8 @@ hooks:
 		echo "Installing hook $$h"; \
 		y=".git/hooks/$$h"; \
 		rm -f "$$y"; \
-		ln -s "$$x" "$$y"; \
+		ln -s "../../$$x" "$$y"; \
+		echo ln -s "$$x" "$$y"; \
 	done
 
 ###########
