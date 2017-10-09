@@ -25,13 +25,12 @@ install:
 	pip install --upgrade .
 
 hooks:
-	for x in $$(find bin/hooks -type f); do \
+	@for x in $$(find bin/hooks -type f); do \
 		h=$$(basename "$$x"); \
 		echo "Installing hook $$h"; \
 		y=".git/hooks/$$h"; \
 		rm -f "$$y"; \
 		ln -s "../../$$x" "$$y"; \
-		echo ln -s "$$x" "$$y"; \
 	done
 
 ###########
