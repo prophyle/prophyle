@@ -15,3 +15,4 @@ echo "SHORTHASH="'"'"$shorthash"'"' >> $FILENAME
 echo "REVCOUNT="'"'"$revcount"'"' >> $FILENAME
 echo "LATESTTAG="'"'"$latesttag"'"' >> $FILENAME
 
+git add $FILENAME
