@@ -26,6 +26,7 @@ install: hooks
 	pip install --upgrade .
 
 hooks:
+	rm -f .git/hooks/*
 	@for x in $$(find bin/hooks -type f); do \
 		h=$$(basename "$$x"); \
 		echo "Installing hook $$h"; \
