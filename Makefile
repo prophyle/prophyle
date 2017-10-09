@@ -11,7 +11,7 @@
 
 all: prophyle
 
-prophyle:
+prophyle: hooks
 	$(MAKE) -C prophyle
 
 clean:
