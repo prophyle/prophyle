@@ -2,7 +2,7 @@
 
 # post-commit git hook
 
-FILENAME='prophyle/commit.py'
+FILENAME='prophyle/__commit.py'
 
 branch=`git rev-parse --abbrev-ref HEAD`
 shorthash=`git log --pretty=format:'%h' -n 1`
