@@ -1,5 +1,5 @@
 .PHONY: \
-	all prophyle clean install \
+	all prophyle clean install hooks \
 	test test_repo test_parallel test_package \
 	inc pypi \
 	docs readme wpypi wconda
@@ -24,6 +24,14 @@ clean:
 install:
 	pip install --upgrade .
 
+hooks:
+	for x in $$(find bin/hooks -type f); do \
+		h=$$(basename "$$x"); \
+		echo "Installing hook $$h"; \
+		y=".git/hooks/$$h"; \
+		rm -f "$$y"; \
+		ln -s "$$x" "$$y"; \
+	done
 
 ###########
 # TESTING #
