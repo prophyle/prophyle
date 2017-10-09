@@ -64,6 +64,7 @@ static int usage_query(int threads){
 	fprintf(stderr, "         -b        print sequences and base qualities\n");
 	fprintf(stderr, "         -l STR    log file name to output statistics\n");
 	fprintf(stderr, "         -t INT    number of threads [%d]\n", threads);
+	fprintf(stderr, "         -r INT    total size of reads in one chunk\n");
 	fprintf(stderr, "\n");
 	return 1;
 }
@@ -85,6 +86,7 @@ int prophyle_index_query(int argc, char *argv[])
 		case 'l': { opt->need_log = 1; opt->log_file_name = optarg; break; }
 		case 'b': opt->output_read_qual = 1; break;
 		case 't': opt->n_threads = atoi(optarg); break;
+		case 'r': opt->read_chunk_size = atoi(optarg); break;
 		default: return 1;
 		}
 	}

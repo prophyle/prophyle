@@ -25,6 +25,7 @@ typedef struct {
 	int need_log;
 	char* log_file_name;
 	int construct_sa_parallel;
+	int read_chunk_size;
 } prophyle_index_opt_t;
 
 prophyle_index_opt_t* prophyle_index_init_opt();
