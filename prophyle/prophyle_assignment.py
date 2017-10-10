@@ -13,9 +13,10 @@ Todo:
 """
 
 import argparse
-import bitarray
+#import bitarray
 import collections
 import ete3
+import functools
 import itertools
 import os
 import sys
@@ -38,6 +39,13 @@ CONFIG={
 
 ###############################################################################################
 ###############################################################################################
+
+from bitarray import bitarray as _bitarray
+
+class bitarray(_bitarray):
+    def __hash__(self):
+        return self.tobytes().__hash__()
+
 
 class Assignment:
     """Class for handling a single read.
@@ -128,8 +136,8 @@ class Assignment:
         covmask_empty = self.bitarray_block(covmask_len, 0, 0)
 
         # fast copying (bitarray trick)
-        hitmasks_dict = collections.defaultdict(lambda: bitarray.bitarray(hitmask_empty))
-        covmasks_dict = collections.defaultdict(lambda: bitarray.bitarray(covmask_empty))
+        hitmasks_dict = collections.defaultdict(lambda: bitarray(hitmask_empty))
+        covmasks_dict = collections.defaultdict(lambda: bitarray(covmask_empty))
 
         pos = 0
 
@@ -180,8 +188,8 @@ class Assignment:
         #################################
         # A) Start with the current masks
         #################################
-        hitmask = bitarray.bitarray(self.hitmasks_dict[nodename])
-        covmask = bitarray.bitarray(self.covmasks_dict[nodename])
+        hitmask = bitarray(self.hitmasks_dict[nodename])
+        covmask = bitarray(self.covmasks_dict[nodename])
 
         node = self.tree_index.nodename_to_node[nodename]
 
@@ -309,6 +317,7 @@ class Assignment:
 
 
     @staticmethod
+    @functools.lru_cache(maxsize=5)
     def cigar_from_bitmask(bitmask):
         """Create a CIGAR from a binary mask.
 
@@ -465,9 +474,9 @@ class Assignment:
             pos (int): Position of the block (0-based).
 
         Return:
-            bitarray (bitarray.bitarray)
+            bitarray (bitarray)
         """
-        return bitarray.bitarray(pos*"0" + blen*"1" + (alen - pos - blen)*"0")
+        return bitarray(pos*"0" + blen*"1" + (alen - pos - blen)*"0")
 
 
     def diagnostics(self):
