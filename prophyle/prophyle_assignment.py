@@ -467,7 +467,7 @@ class Assignment:
         Return:
             bitarray (bitarray.bitarray)
         """
-        return bitarray.bitarray(pos*[False] + blen*[True] + (alen - pos - blen) * [False])
+        return bitarray.bitarray(pos*"0" + blen*"1" + (alen - pos - blen)*"0")
 
 
     def diagnostics(self):
