@@ -203,14 +203,14 @@ class Assignment:
         assignment= {
             # 1. hit count
             'hitmask': hitmask,
-            'hitcigar': self.cigar_from_bitmask(hitmask),
+            #'hitcigar': self.cigar_from_bitmask(hitmask),
             'h1': [hit],
             'hf': [hit / (readlen - self.k + 1)],
             'h2': [hit / self.tree_index.nodename_to_kmercount[nodename]],
 
             # 2. coverage
             'covmask': covmask,
-            'covcigar': self.cigar_from_bitmask(covmask),
+            #'covcigar': self.cigar_from_bitmask(covmask),
             'c1': [cov],
             'cf': [cov / readlen],
             'c2': [cov / self.tree_index.nodename_to_kmercount[nodename]],
