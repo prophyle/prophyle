@@ -76,7 +76,7 @@ int prophyle_index_query(int argc, char *argv[])
 	char *prefix;
 
 	opt = prophyle_index_init_opt();
-	while ((c = getopt(argc, argv, "l:psuvk:bt:")) >= 0) {
+	while ((c = getopt(argc, argv, "l:psuvk:bt:r:")) >= 0) {
 		switch (c) {
 		case 'v': { opt->output_old = 1; opt->output = 0; } break;
 		case 'u': opt->use_klcp = 1; break;
