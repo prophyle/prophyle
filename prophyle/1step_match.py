@@ -94,7 +94,7 @@ def main():
     if u:
         create_klcp(fa, k)
 
-    query(fa, fq, k, u=u, v=v, t=t, r = r)
+    query(fa, fq, k, u=u, v=v, t=t, r=r)
 
 
 if __name__ == "__main__":
