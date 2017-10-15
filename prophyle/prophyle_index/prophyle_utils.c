@@ -17,5 +17,6 @@ prophyle_index_opt_t* prophyle_index_init_opt()
 	o->construct_sa_parallel = 0;
 	o->need_log = 0;
 	o->log_file_name = NULL;
+	o->read_chunk_size = READ_CHUNK_SIZE;
 	return o;
 }
