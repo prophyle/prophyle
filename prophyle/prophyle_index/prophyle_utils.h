@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "bwtaln.h"
 
-// maximum total size of reads in one chunk
+// maximum total number base pairs in reads in one chunk
 #define READ_CHUNK_SIZE 10000000
 
 typedef struct {

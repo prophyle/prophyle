@@ -64,7 +64,7 @@ static int usage_query(int threads){
 	fprintf(stderr, "         -b        print sequences and base qualities\n");
 	fprintf(stderr, "         -l STR    log file name to output statistics\n");
 	fprintf(stderr, "         -t INT    number of threads [%d]\n", threads);
-	fprintf(stderr, "         -r INT    total size of reads in one chunk [%d]\n", READ_CHUNK_SIZE);
+	fprintf(stderr, "         -r INT    total size of reads in one chunk [%d bp]\n", READ_CHUNK_SIZE);
 	fprintf(stderr, "\n");
 	return 1;
 }
