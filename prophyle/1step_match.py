@@ -24,9 +24,9 @@ def create_klcp(fa, k):
     pro.run_safe([prophyle_index, 'build', '-k', k, fa, ">", "/dev/null"])
 
 
-def query(fa, fq, k, u=False, v=False, t=1, r=0):
+def query(fa, fq, k, u=False, v=False, t=1):
     params = ""
-    cmd = [prophyle_index, 'query', "-v" if v else "", "-u" if u else "", '-k', k, '-r' if r else '', r if r else '', '-t', t, fa, fq]
+    cmd = [prophyle_index, 'query', "-v" if v else "", "-u" if u else "", '-k', k, '-t', t, fa, fq]
     pro.run_safe(cmd)
 
 
@@ -39,15 +39,6 @@ def main():
         dest='k',
         required=True,
         help='k-mer length',
-    )
-    parser.add_argument(
-        '-r',
-        type=int,
-        default=0,
-        metavar='int',
-        dest='r',
-        required=False,
-        help='total read size loaded in one chunk',
     )
     parser.add_argument(
         '-t',
@@ -87,14 +78,13 @@ def main():
     u = args.u
     v = args.v
     t = args.t
-    r = args.r
 
     create_bwa_index(fa)
 
     if u:
         create_klcp(fa, k)
 
-    query(fa, fq, k, u=u, v=v, t=t, r=r)
+    query(fa, fq, k, u=u, v=v, t=t)
 
 
 if __name__ == "__main__":
