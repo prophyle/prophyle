@@ -59,6 +59,7 @@ script:
   - make test_repo
   # tests in the package dir
   - make clean
+  - pip --version
   - make install
   - make test_package
 
