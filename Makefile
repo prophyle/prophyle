@@ -5,6 +5,7 @@
 	docs readme wpypi wconda \
 	deppip depconda
 
+PIP=pip
 
 ###############
 # BASIC RULES #
@@ -23,8 +24,8 @@ clean:
 	($(MAKE) -C docs clean || true) > /dev/null 2> /dev/null
 
 install: hooks
-	pip uninstall prophyle || true
-	pip install prophyle
+	$(PIP) uninstall prophyle || true
+	$(PIP) install prophyle
 
 hooks:
 	rm -f .git/hooks/*
@@ -97,5 +98,5 @@ depconda:
 	cat requirements.txt | xargs conda install
 
 deppip:
-	cat requirements.txt | xargs pip install
+	cat requirements.txt | xargs $(PIP) install
 
