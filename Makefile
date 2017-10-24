@@ -20,10 +20,11 @@ clean:
 	rm -fr _index_test/ _test_*
 	$(MAKE) -C prophyle clean
 	$(MAKE) -C tests clean
-	($(MAKE) -C docs clean || True) > /dev/null 2> /dev/null
+	($(MAKE) -C docs clean || true) > /dev/null 2> /dev/null
 
 install: hooks
-	pip install --upgrade .
+	pip uninstall prophyle || true
+	pip install prophyle
 
 hooks:
 	rm -f .git/hooks/*
