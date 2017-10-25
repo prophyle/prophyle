@@ -15,6 +15,6 @@ version=".".join(numbers)
 with open(vfn,"w") as f:
     f.write('try:\n')
     f.write('\tfrom __commit import *\n')
-    f.write('except ModuleNotFoundError:\n')
+    f.write('except ImportError:\n')
     f.write('\tpass\n')
     f.write('VERSION="{}"'.format(version))
