@@ -123,7 +123,7 @@ class Assignment:
 
         Args:
             kmer_blocks (list): List of assigned k-mers, i.e., list of (list of node_names, count).
-            simulate_kmer_lca (bool): Simulate k-mer LCA on the k-mer level.
+            kmer_lca (bool): Simulate k-mer LCA on the k-mer level.
         """
 
         readlen = sum([x[1] for x in kmer_blocks])
@@ -560,6 +560,9 @@ class TreeIndex:
         """Return LCA for a given list of nodes.
 
         *node_names (list of str): List of node names.
+
+        Returns:
+            str: Name of the LCA.
         """
         assert len(node_names) > 0
         if len(node_names) == 1:
@@ -644,6 +647,9 @@ class KraklineParser():
 
         Args:
             k (int): k-mer length.
+
+        Returns:
+            bool: Consistent.
         """
         if self.qlen < k:
             return True
