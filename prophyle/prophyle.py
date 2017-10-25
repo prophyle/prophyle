@@ -19,15 +19,10 @@ Example:
     Classify some reads:
 
         $ prophyle classify test_idx reads.fq > result.sam
-
-TODO:
-    * save configuration (trees, k, etc.) into a json; if anything changed from the last time, remove all marks
-    * _is_complete should be combined with a test of files: is_missing => remove mark
-    * index: kmer annotation to the tree
-    * classification: support for c2, h2
 """
 
 import argparse
+import collections
 import hashlib
 import multiprocessing
 import os
@@ -39,6 +34,9 @@ import textwrap
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
 import version
+
+CONFIG={
+}
 
 GITDIR = os.path.basename(sys.argv[0])[-3:] == ".py"
 if GITDIR:
@@ -53,7 +51,7 @@ IND = os.path.join(C_D, "prophyle_index", "prophyle_index")
 ASM = os.path.join(C_D, "prophyle_assembler", "prophyle_assembler")
 C_ASSIGN=os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 
-# git
+# executed from the git repo
 if GITDIR:
     PROPHYLE = os.path.join(C_D, "prophyle.py")
     PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
@@ -64,8 +62,7 @@ if GITDIR:
     READ = os.path.join(C_D, "prophyle_paired_end.py")
     TEST_TREE = os.path.join(C_D, "prophyle_validate_tree.py")
     SPLIT_FA = os.path.join(C_D, "prophyle_split_allseq.py")
-
-# package
+# executed from a Python package
 else:
     PROPHYLE = "prophyle"
     PY_ASSIGN = "prophyle_assignment.py"
@@ -142,12 +139,29 @@ def _test_tree(fn):
     assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
 
 
-def _compile_prophyle_bin():
+def _compile_prophyle_bin(clean=False, parallel=False, silent=True):
     """Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
+
+    Args:
+        clean (bool): Run make clean instead of make.
+        parallel (bool): Run make in parallel.
+        silent (bool): Run make silently.
     """
 
     try:
-        command = ["make", "-C", C_D]
+        command = ["make"]
+
+        if parallel:
+            command+=['-j']
+
+        if silent:
+            command+=['-s']
+
+        command+=["-C", C_D]
+
+        if clean:
+            command+=['clean']
+
         pro.run_safe(command, output_fo=sys.stderr)
     except RuntimeError:
         if not os.path.isfile(IND) or not os.path.isfile(ASM):
@@ -156,6 +170,18 @@ def _compile_prophyle_bin():
             sys.exit(1)
         else:
             print("Warning: ProPhyle executables could not be recompiled. Going to use the old ones.", file=sys.stderr)
+
+
+def _add_configuration_parameter (parser, visible=True):
+    parser.add_argument(
+        '-c',
+        dest='config',
+        metavar='STR',
+        nargs='*',
+        type=str,
+        default=[],
+        help='advanced configuration (a JSON dictionary)' if visible else argparse.SUPPRESS,
+    )
 
 
 #####################
@@ -356,12 +382,13 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
     # pro.test_files(NEWICK2MAKEFILE, tree_fn)
     command = [NEWICK2MAKEFILE, '-k', k, tree_fn, os.path.abspath(library_dir), './', makefile]
 
-    config={
-        'prophyle-version': version.VERSION,
-        'k': k,
-    }
+    config=collections.OrderedDict()
+    config['prophyle-version']=version.VERSION
+    config['prophyle-revision']=version.REVCOUNT
+    config['prophyle-commit']=version.SHORTHASH
+    config['k']=k
 
-    pro.save_config(index_dir, config)
+    pro.save_index_config(index_dir, config)
 
     with open(os.path.join(propagation_dir, "params.mk"), "w+") as f:
         f.write('PRG_ASM="{}"\n'.format(ASM))
@@ -389,6 +416,7 @@ def _propagate(index_dir, threads):
         command,
         err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
         thr_exc=False,
+        silent=True,
     )
 
     # run propagation
@@ -499,7 +527,7 @@ def _fa2pac(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating packed FASTA file')
+    #pro.message('Generating packed FASTA file')
     pro.test_files(BWA, fa_fn)
     command = [BWA, 'fa2pac', fa_fn, fa_fn]
     pro.run_safe(
@@ -517,7 +545,7 @@ def _pac2bwt(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating BWT')
+    #pro.message('Generating BWT')
     pro.test_files(BWA, fa_fn + ".pac")
     command = [BWA, 'pac2bwtgen', fa_fn + ".pac", fa_fn + ".bwt"]
     pro.run_safe(
@@ -535,7 +563,7 @@ def _bwt2bwtocc(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating sampled OCC array')
+    #pro.message('Generating sampled OCC array')
     pro.test_files(BWA, fa_fn + ".bwt")
     command = [BWA, 'bwtupdate', fa_fn + ".bwt"]
     pro.run_safe(
@@ -553,7 +581,7 @@ def _bwtocc2sa(fa_fn):
         fa_fn (str): FASTA file.
     """
 
-    pro.message('Generating sampled SA')
+    #pro.message('Generating sampled SA')
     pro.test_files(BWA, fa_fn + ".bwt")
     command = [BWA, 'bwt2sa', fa_fn + ".bwt", fa_fn + ".sa"]
     pro.run_safe(
@@ -572,7 +600,7 @@ def _bwtocc2klcp(fa_fn, k):
         k (int): K-mer size.
     """
 
-    pro.message('Generating k-LCP array')
+    #pro.message('Generating k-LCP array')
     pro.test_files(IND, fa_fn + ".bwt")
     command = [IND, 'build', '-k', k, fa_fn]
     pro.run_safe(
@@ -628,7 +656,7 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
     assert threads > 0
     assert sampling_rate is None or 0.0 <= float(sampling_rate) <= 1.0
 
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
 
     index_fa = os.path.join(index_dir, 'index.fa')
     index_tree_1 = os.path.join(index_dir, 'tree.preliminary.nw')
@@ -771,8 +799,8 @@ def prophyle_index(index_dir, threads, k, trees_fn, library_dir, construct_klcp,
 # PROPHYLE CLASSIFY #
 #####################
 
-def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_format, mimic_kraken, measure, annotate,
-        tie_lca, print_seq, cimpl):
+def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, measure, annotate,
+        tie_lca, kmer_lca, print_seq, cimpl, force_restarted_search, prophyle_conf_string):
     """Run ProPhyle classification.
 
     Args:
@@ -780,17 +808,19 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
         fq_fn (str): Input reads (single-end or first of paired-end).
         fq_pe_fn (str): Input reads (second paired-end, None if single-end)
         k (int): K-mer size (None => detect automatically).
-        use_rolling_window (bool): Use rolling window.
         out_format (str): Output format: sam / kraken.
         mimic_kraken (bool): Mimic Kraken algorithm (compute LCA for each k-mer).
         measure (str): Measure used for classification (h1 / h2 / c1 / c2).
         annotate (bool): Annotate assignments (insert annotations from Newick to SAM).
         tie_lca (bool): If multiple equally good assignments found, compute their LCA.
+        kmer_lca (bool): Replace k-mer matches by their LCA.
         print_seq (bool): Print sequencing in SAM.
         cimpl (bool): Use the C++ implementation.
+        force_restarted_search (bool): Force restarted search.
+        prophyle_conf_string (str): ProPhyle configuration string.
     """
 
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
     index_fa = os.path.join(index_dir, 'index.fa')
     index_tree = os.path.join(index_dir, 'tree.nw')
 
@@ -819,13 +849,19 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
     assert abs(bwt_s - 2 * sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
     #assert abs(bwt_s - 2 * pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
-    if use_rolling_window:
-        klcp_fn = "{}.{}.klcp".format(index_fa, k)
-        pro.test_files(klcp_fn)
-        (klcp_s,) = pro.file_sizes(klcp_fn)
-        assert abs(bwt_s - 4 * klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
-
-
+    klcp_fn = "{}.{}.klcp".format(index_fa, k)
+    if force_restarted_search:
+        pro.message("Restarted search forced")
+        use_rolling_window=False
+    else:
+        use_rolling_window=os.path.isfile(klcp_fn)
+        if use_rolling_window:
+            pro.message("k-LCP file found, going to use rolling window")
+            pro.test_files(klcp_fn)
+            (klcp_s,) = pro.file_sizes(klcp_fn)
+            assert abs(bwt_s - 4 * klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
+        else:
+            pro.message("k-LCP file not found, going to use restarted search")
 
     if cimpl:
         ASSIGN=C_ASSIGN
@@ -833,13 +869,30 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, use_rolling_window, out_for
         ASSIGN=PY_ASSIGN
 
     if mimic_kraken:
-        cmd_assign = [ASSIGN, '-m', 'h1', '-f', 'kraken', '-L', '-T', index_tree, k, '-']
-    else:
-        cmd_assign = [ASSIGN, '-m', measure, '-f', out_format, index_tree, k, '-']
-        if annotate:
-            cmd_assign += ['-A']
-        if tie_lca:
-            cmd_assign += ['-L']
+        measure = "h1"
+        tie_lca = True
+        kmer_lca = True
+        out_format =  "kraken"
+
+    cmd_assign = [ASSIGN]
+
+    if not cimpl and prophyle_conf_string:
+        cmd_assign += ['-c', prophyle_conf_string]
+
+    cmd_assign += ['-m', measure, '-f', out_format]
+
+    if annotate:
+        cmd_assign += ['-A']
+
+    if tie_lca:
+        cmd_assign += ['-L']
+
+    if kmer_lca:
+        cmd_assign += ['-X']
+
+
+    cmd_assign += [index_tree, k, '-']
+
 
     if fq_pe_fn:
         cmd_read = [READ, fq_fn, fq_pe_fn, '|']
@@ -878,7 +931,7 @@ def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
 #####################
 
 def prophyle_compress(index_dir, archive):
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
     tmp_dir=tempfile.mkdtemp()
     arcdir=index_dir.rstrip("/").split("/")[-1]
     tmp_arc_dir=os.path.join(tmp_dir, arcdir)
@@ -911,7 +964,7 @@ def prophyle_compress(index_dir, archive):
 def prophyle_decompress(archive, output_dir, klcp):
     pro.test_files(archive)
 
-    _compile_prophyle_bin()
+    _compile_prophyle_bin(parallel=True)
 
     with tarfile.open(archive) as tar:
         names=tar.getnames()
@@ -932,7 +985,7 @@ def prophyle_decompress(archive, output_dir, klcp):
     pro.touch(os.path.join(index_dir, "index.fa.pac"))
 
     if klcp:
-        config=pro.load_config(index_dir)
+        config=pro.load_index_config(index_dir)
         cmd = [PROPHYLE, "index", "-k", config['k'], os.path.join(index_dir, "tree.nw"), index_dir]
     else:
         cmd = [PROPHYLE, "index", "-K", os.path.join(index_dir, "tree.nw"), index_dir]
@@ -945,8 +998,8 @@ def prophyle_decompress(archive, output_dir, klcp):
 # PROPHYLE COMPILE #
 ####################
 
-def prophyle_compile():
-    _compile_prophyle_bin()
+def prophyle_compile(clean, parallel):
+    _compile_prophyle_bin(clean=clean, parallel=parallel, silent=False)
 
 
 ########
@@ -974,8 +1027,10 @@ def parser():
 
     parser.add_argument('-v', '--version',
         action='version',
-        version='%(prog)s {}'.format(version.VERSION),
+        version='ProPhyle {} (rev {}, commit {})'.format(version.VERSION, version.REVCOUNT, version.SHORTHASH),
     )
+
+    _add_configuration_parameter(parser, visible=False)
 
     subparsers = parser.add_subparsers(help="", description=argparse.SUPPRESS, dest='subcommand', metavar="")
     fc = lambda prog: argparse.HelpFormatter(prog, max_help_position=27)
@@ -1021,6 +1076,8 @@ def parser():
         action='store_true',
         help='rewrite library files if they already exist',
     )
+
+    _add_configuration_parameter(parser_download)
 
     ##########
 
@@ -1132,6 +1189,7 @@ def parser():
         action='store_true',
     )
 
+    _add_configuration_parameter(parser_index)
 
 
     ##########
@@ -1176,17 +1234,10 @@ def parser():
     )
 
     parser_classify.add_argument(
-        '-K',
-        dest='rolling_window',
-        action='store_false',
-        help='use restarted search for matching rather than rolling window (slower, but k-LCP is not needed)',
-    )
-
-    parser_classify.add_argument(
         '-m',
         dest='measure',
-        choices=['h1', 'c1'],
-        help='measure: h1=hit count, c1=coverage [{}]'.format(DEFAULT_MEASURE),
+        choices=['h1', 'c1', 'h2', 'c2'],
+        help='measure: h1=hit count, c1=coverage, h2=norm.hit count, c2=norm.coverage [{}]'.format(DEFAULT_MEASURE),
         default=DEFAULT_MEASURE,
     )
 
@@ -1208,6 +1259,13 @@ def parser():
     )
 
     parser_classify.add_argument(
+        '-P',
+        dest='print_seq',
+        action='store_true',
+        help='incorporate sequences and qualities into SAM records',
+    )
+
+    parser_classify.add_argument(
         '-A',
         dest='annotate',
         action='store_true',
@@ -1216,24 +1274,23 @@ def parser():
 
     parser_classify.add_argument(
         '-L',
-        dest='tie',
+        dest='tie_lca',
         action='store_true',
-        help='use LCA when tie (multiple hits with the same score)',
+        help='replace read assignments by their LCA',
+    )
+
+    parser_classify.add_argument(
+        '-X',
+        dest='kmer_lca',
+        action='store_true',
+        help='replace k-mer matches by their LCA',
     )
 
     parser_classify.add_argument(
         '-M',
         dest='mimic',
         action='store_true',
-        # help='mimic Kraken algorithm and output (for debugging purposes)',
-        help=argparse.SUPPRESS,
-    )
-
-    parser_classify.add_argument(
-        '-P',
-        dest='print_seq',
-        action='store_true',
-        help='incorporate sequences and qualities into SAM records',
+        help='mimic Kraken (equivalent to  "-m h1 -f kraken -L -X")',
     )
 
     parser_classify.add_argument(
@@ -1244,6 +1301,16 @@ def parser():
         #help=argparse.SUPPRESS,
     )
 
+    parser_classify.add_argument(
+        '-K',
+        dest='force_restarted_search',
+        action='store_true',
+        help='force restarted search mode',
+    )
+
+    _add_configuration_parameter(parser_classify)
+
+
     ##########
 
     parser_analyze = subparsers.add_parser(
@@ -1252,59 +1319,61 @@ def parser():
         formatter_class=fc,
     )
 
-    parser_analyze.add_argument('index_dir',
-            metavar='{index_dir, tree.nw}',
-            type=str,
-            help='index directory or phylogenetic tree'
-        )
+    parser_analyze.add_argument(
+        'index_dir',
+        metavar='{index_dir, tree.nw}',
+        type=str,
+        help='index directory or phylogenetic tree'
+    )
 
-    parser_analyze.add_argument('out_prefix',
-            metavar='<out.pref>',
-            type=str,
-            help="output prefix"
-            #"""Prefix for output files (the complete file names will be
-            #       <out_prefix>.tsv for histograms and
-            #       <out_prefix>_<otu_suffix>.tsv for otu tables)"""
-        )
+    parser_analyze.add_argument(
+        'out_prefix',
+        metavar='<out.pref>',
+        type=str,
+        help="output prefix",
+    )
 
-    parser_analyze.add_argument('input_fns',
-            metavar='<classified.bam>',
-            type=str,
-            nargs='+',
-            default=None,
-            help="classified reads (use '-' for stdin)",
-            #""ProPhyle output files whose format is chosen with the -f
-            #       option. Use '-' for stdin or multiple files with the same
-            #       format (one per sample)"""
-        )
+    parser_analyze.add_argument(
+        'input_fns',
+        metavar='<classified.bam>',
+        type=str,
+        nargs='+',
+        default=None,
+        help="classified reads (use '-' for stdin)",
+    )
 
-    parser_analyze.add_argument('-s',
-            metavar=ANALYZE_STATS,
-            type=str,
-            dest='stats',
-            choices=ANALYZE_STATS,
-            default=ANALYZE_STATS[0],
-            help="""statistics to use for the computation of histograms:
-                    w (default) => weighted assignments;
-                    u => unique assignments, non-weighted;
-                    wl => weighted assignments, propagated to leaves;
-                    ul => unique assignments, propagated to leaves."""
-        )
+    parser_analyze.add_argument(
+        '-s',
+        metavar=ANALYZE_STATS,
+        type=str,
+        dest='stats',
+        choices=ANALYZE_STATS,
+        default=ANALYZE_STATS[0],
+        help="""statistics to use for the computation of histograms:
+                w (default) => weighted assignments;
+                u => unique assignments, non-weighted;
+                wl => weighted assignments, propagated to leaves;
+                ul => unique assignments, propagated to leaves."""
+    )
 
-    parser_analyze.add_argument('-f',
-            metavar=ANALYZE_IN_FMTS,
-            type=str,
-            dest='in_format',
-            choices=ANALYZE_IN_FMTS,
-            default=None,
-            help="""Input format of assignments [auto]"""
-        )
+    parser_analyze.add_argument(
+        '-f',
+        metavar=ANALYZE_IN_FMTS,
+        type=str,
+        dest='in_format',
+        choices=ANALYZE_IN_FMTS,
+        default=None,
+        help="""Input format of assignments [auto]"""
+    )
+
+    _add_configuration_parameter(parser_analyze)
+
 
     ##########
 
     parser_compress = subparsers.add_parser(
         'compress',
-        help='compress a ProPhyle index (experimental)',
+        help='compress a ProPhyle index',
         formatter_class=fc,
     )
 
@@ -1324,15 +1393,16 @@ def parser():
         help='output archive [<index.dir>.tar.gz]',
     )
 
+    _add_configuration_parameter(parser_compress)
+
 
     ##########
 
     parser_decompress = subparsers.add_parser(
         'decompress',
-        help='decompress a compressed ProPhyle index (experimental)',
+        help='decompress a compressed ProPhyle index',
         formatter_class=fc,
     )
-
 
     parser_decompress.add_argument(
         'archive',
@@ -1357,15 +1427,33 @@ def parser():
         help='skip k-LCP construction',
     )
 
+    _add_configuration_parameter(parser_decompress)
+
 
     ##########
 
-    parser_compress = subparsers.add_parser(
+    parser_compile = subparsers.add_parser(
         'compile',
         help='compile auxiliary ProPhyle programs',
         formatter_class=fc,
     )
 
+
+    parser_compile.add_argument(
+        '-C',
+        dest='clean',
+        action='store_true',
+        help='clean files instead of compiling',
+    )
+
+    parser_compile.add_argument(
+        '-P',
+        dest='parallel',
+        action='store_true',
+        help='run compilation in parallel',
+    )
+
+    _add_configuration_parameter(parser_compile)
 
     ##########
 
@@ -1377,6 +1465,9 @@ def main():
         par = parser()
         args = par.parse_args()
         subcommand = args.subcommand
+
+        global CONFIG
+        prophyle_conf_string=pro.load_prophyle_conf(CONFIG, args.config)
 
         if subcommand == "download":
             pro.open_log(args.log_fn)
@@ -1429,14 +1520,16 @@ def main():
                 fq_fn=args.reads,
                 fq_pe_fn=args.reads_pe,
                 k=args.k,
-                use_rolling_window=args.rolling_window,
                 out_format=args.oform,
                 mimic_kraken=args.mimic,
                 measure=args.measure,
-                tie_lca=args.tie,
+                tie_lca=args.tie_lca,
+                kmer_lca=args.kmer_lca,
                 annotate=args.annotate,
                 print_seq=args.print_seq,
                 cimpl=args.cimpl,
+                force_restarted_search=args.force_restarted_search,
+                prophyle_conf_string=prophyle_conf_string, # already preprocessed
             )
             pro.message('Classification finished')
             pro.close_log()
@@ -1474,6 +1567,8 @@ def main():
         elif subcommand == "compile":
 
             prophyle_compile(
+                clean=args.clean,
+                parallel=args.parallel,
             )
 
         else:
@@ -1484,7 +1579,7 @@ def main():
             msg = msg.replace("\n    compress","\n\n    compress")
             print(file=sys.stderr)
             print(msg, file=sys.stderr)
-            sys.exit(1)
+            sys.exit(2)
 
     except BrokenPipeError:
         # pipe error (e.g., when head is used)
