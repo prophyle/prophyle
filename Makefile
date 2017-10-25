@@ -24,8 +24,8 @@ clean:
 	($(MAKE) -C docs clean || true) > /dev/null 2> /dev/null
 
 install: hooks
-	$(PIP) uninstall prophyle || true
-	$(PIP) install prophyle
+	$(PIP) uninstall -y prophyle || true
+	$(PIP) install .
 
 hooks:
 	rm -f .git/hooks/*
