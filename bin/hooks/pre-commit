@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# pre-commit git hook
+
+FILENAME='prophyle/__commit.py'
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+shorthash=$(git log --pretty=format:'%h' -n 1)
+revcount=$(git log --oneline | wc -l | xargs)
+latesttag=$(git describe --tags --abbrev=0)
+
+printf "" > "$FILENAME"
+echo "BRANCH="'"'"$branch"'"' >> "$FILENAME"
+echo "SHORTHASH="'"'"$shorthash"'"' >> "$FILENAME"
+echo "REVCOUNT=$revcount" >> "$FILENAME"
+echo "LATESTTAG="'"'"$latesttag"'"' >> "$FILENAME"
+
+git update-index --add "$FILENAME"
+

@@ -21,9 +21,12 @@ matrix:
         - export PATH="$HOME/miniconda/bin:$PATH"
         - hash -r
         - conda config --set always_yes yes --set changeps1 no
+        - conda config --add channels defaults
+        - conda config --add channels conda-forge
+        - conda config --add channels bioconda
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.4 ete3 bitarray parallel psutil scipy samtools sphinx || true
+        - conda create -q -n prophyle python==3.4 ete3 bitarray parallel psutil scipy samtools=1.2 sphinx || true
         - source activate prophyle
 
     - os: osx
@@ -39,14 +42,26 @@ matrix:
         - export PATH="$HOME/miniconda/bin:$PATH"
         - hash -r
         - conda config --set always_yes yes --set changeps1 no
+        - conda config --add channels defaults
+        - conda config --add channels conda-forge
+        - conda config --add channels bioconda
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle -c etetoolkit -c bioconda python==3.5 ete3 bitarray parallel psutil scipy samtools=1.2 sphinx || true
+        - conda create -q -n prophyle python==3.4 ete3 bitarray parallel psutil scipy samtools=1.3 sphinx || true
         - source activate prophyle
 
 script:
+  # see Makefile for details
   - unset PYTHONPATH
-  - make test
+  - samtools --version
+  # tests in the repo dir
+  - make clean
+  - make test_repo
+  # tests in the package dir
+  - make clean
+  - pip --version
+  - make install
+  - make test_package
 
 cache:
   directories:

@@ -1,1 +1,5 @@
-VERSION="0.2.1.3"
+try:
+	from __commit import *
+except ImportError:
+	pass
+VERSION="0.3.0.0"

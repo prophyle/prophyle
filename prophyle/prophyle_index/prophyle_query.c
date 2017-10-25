@@ -523,7 +523,7 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 	int64_t total_seqs = 0;
 	ctime = cputime(); rtime = realtime();
 	int64_t total_kmers_count = 0;
-	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
+	while ((seqs = bwa_read_seq(ks, 0x100, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
 		process_sequences(idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
 		for (i = 0; i < n_seqs; ++i) {

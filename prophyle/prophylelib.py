@@ -17,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import gzip
 
@@ -168,11 +169,13 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
     error = False
 
-    existing_names = []
+    existing_names_set=set()
+
     names_with_separator = []
 
     without_name = []
     empty_name = []
+    forbidden_name = []
 
     duplicates = []
 
@@ -188,13 +191,16 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
             if nname == '':
                 empty_name.append((i, nname))
                 error = True
-            if nname in existing_names:
+            if nname in set(['A', '0']):
+                forbidden_name.append((i, nname))
+                error = True
+            if nname in existing_names_set:
                 duplicates.append((i, nname))
                 error = True
             if "@" in nname:
                 names_with_separator.append((i, nname))
                 error = True
-            existing_names.append((i, nname))
+            existing_names_set.add(nname)
 
     def _format_node_list(node_list):
         return ", ".join(map(str, node_list))
@@ -212,6 +218,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
             print("Errors:".format(), file=output_fo)
 
         _error_report(without_name, "without name")
+        _error_report(forbidden_name, "forbidden_name")
         _error_report(empty_name, "with empty name")
         _error_report(duplicates, "with a duplicate name")
         _error_report(names_with_separator, "with a name containing '@'")
@@ -331,7 +338,7 @@ def makedirs(*ds):
     for d in ds:
         if not os.path.isdir(d):
             cmd = ['mkdir', '-p', d]
-            run_safe(cmd)
+            run_safe(cmd, silent=True)
 
 
 def existing_and_newer(fn0, fn):
@@ -388,7 +395,7 @@ def test_files(*fns, test_nonzero=False):
 ########
 
 
-def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True):
+def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True, silent=False):
     """Run a shell command safely.
 
     Args:
@@ -397,6 +404,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         output_fo (fileobject): Output file object. If both params are None, the standard output is used.
         err_msg (str): Error message if the command fails.
         thr_exc (bool): Through exception if the command fails. error_msg or thr_exc must be set.
+        silent (bool): Silent mode (print messages only if the command fails).
 
     Raises:
         RuntimeError: Command exited with a non-zero code.
@@ -414,7 +422,10 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         command_safe.append(part)
 
     command_str = " ".join(command_safe)
-    message("Running:", command_str)
+
+    if not silent:
+        message("Shell command:", command_str)
+
     if output_fn is None:
         if output_fo is None:
             out_fo = sys.stdout
@@ -435,8 +446,11 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
     while error_code is None:
         try:
             max_rss = max(max_rss, ps_p.memory_info().rss)
-        except (psutil.ZombieProcess, OSError, IOError):
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied, OSError, IOError):
             pass
+        #except psutil.NoSuchProcess as e:
+        #    print("[prophylelib] Warning: psutil - NoSuchProcess (pid: {}, name: {}, msg: {})".format(e.pid, e.name, e.msg), file=sys.stderr)
+
         # wait 0.2 s
         time.sleep(0.2)
         error_code = p.poll()
@@ -449,7 +463,8 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         out_fo.close()
 
     if error_code == 0 or error_code == 141:
-        message("Finished ({} MB used): {}".format(mem_mb, command_str))
+        if not silent:
+            message("Finished ({} MB used): {}".format(mem_mb, command_str))
     else:
         message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
 
@@ -462,7 +477,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         sys.exit(1)
 
 
-def save_config (index_dir, data):
+def save_index_config (index_dir, data):
     """Save a configuration dictionary (index.json in the index directory).
 
     Args:
@@ -473,7 +488,7 @@ def save_config (index_dir, data):
         json.dump(data, data_file, indent=4)
 
 
-def load_config (index_dir):
+def load_index_config (index_dir):
     """Load a configuration dictionary (index.json in the index directory).
 
     Args:
@@ -491,7 +506,7 @@ def detect_k_from_index(index_dir):
         index_dir (str): Index directory.
     """
 
-    config=load_config(index_dir)
+    config=load_index_config(index_dir)
     return config['k']
 
 
@@ -499,6 +514,61 @@ def lower_nonsigleton(node):
     while len(node.children)==1:
         node = node.children[0]
     return node
+
+
+def load_prophyle_conf(globconf, json_strs):
+    """Loads configuration from a JSON string or a file.
+
+    The strings are first merged. If the string corresponds to a file,
+    it is loaded. Otherwise it is interpreted as a json string
+    (possibly without wrapping braces) and stored into a temporary
+    file, whose name is then returned so that it can be passed to
+    other programs.
+
+    Params:
+        glob_conf (dict): Global configuration dictionary.
+        json_strs (str): File name with the dictionary.
+
+    Returns:
+        json_fn (str): Returns a file name of a JSON with the same information.
+    """
+
+    assert type(globconf)==dict
+
+    if len(json_strs)==0:
+        return None
+
+    string=(" ".join(json_strs)).strip()
+
+    if os.path.isfile(string):
+        # load JSON from a file & return the same filename
+        json_filename=string
+        with open(json_filename) as f:
+            data = json.load(f)
+        prophyle_conf_tmp_filename=json_filename
+
+    else:
+        # load JSON from the string & create a tmp file
+        json_string=string
+        if json_string[0]!="{" and json_string[-1]!="}":
+            json_string="".join(["{", json_string, "}"])
+        data=json.loads(json_string)
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            prophyle_conf_tmp_filename=f.name
+            json.dump(data, f, indent=3)
+
+    assert type(data)==dict, "The provided configuration is not a dictionary"
+    globconf.update(data)
+
+    try:
+        if globconf['PRINT_CONF']:
+            print("Configuration:", globconf, file=sys.stderr)
+    except KeyError:
+        pass
+
+    return prophyle_conf_tmp_filename
+
 
 ## None if root
 #def upper_nonsigleton(node):

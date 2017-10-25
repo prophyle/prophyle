@@ -25,8 +25,8 @@ void* construct_sa_parallel(void* data) {
 	klcp_data_t* klcp_data = (klcp_data_t*)data;
 	bwt_cal_sa(klcp_data->bwt, klcp_data->sa_intv);
 	char* fn = malloc((strlen(klcp_data->prefix) + 10) * sizeof(char));
-  strcpy(fn, klcp_data->prefix);
-  strcat(fn, ".sa");
+	strcpy(fn, klcp_data->prefix);
+	strcat(fn, ".sa");
 	bwt_dump_sa(fn, klcp_data->bwt);
 	fprintf(stderr, "[prophyle_index:%s] SA dumped\n", __func__);
 	return 0;
@@ -53,7 +53,7 @@ void build_index(const char *prefix, const prophyle_index_opt_t *opt, int sa_int
 		int status_sa = pthread_create(&tid[1], NULL, construct_sa_parallel, (void*)klcp_data);
 		xassert(!status_klcp, "[prophyle_index] error while creating thread for klcp parallel construction, try construction separate from sa\n");
 		xassert(!status_sa, "[prophyle_index] error while creating thread for sa parallel construction, try construction separate from klcp\n");
-	  fprintf(stderr, "[prophyle_index] parallel construction of klcp and sa started\n");
+		fprintf(stderr, "[prophyle_index] parallel construction of klcp and sa started\n");
 		int status_addr_klcp = pthread_join(tid[0], (void**)&status_addr_klcp);
 		int status_addr_sa = pthread_join(tid[1], (void**)&status_addr_sa);
 		xassert(!status_addr_klcp, "[prophyle_index] error while klcp parallel construction, try construction separate from sa\n");
@@ -62,15 +62,15 @@ void build_index(const char *prefix, const prophyle_index_opt_t *opt, int sa_int
 	} else {
 		klcp = construct_klcp(bwt, opt->kmer_length);
 	}
-  char* fn = malloc((strlen(prefix) + 10) * sizeof(char));
-  strcpy(fn, prefix);
-  strcat(fn, ".");
-  char* kmer_length_str = malloc(5 * sizeof(char));
-  sprintf(kmer_length_str, "%d", opt->kmer_length);
-  strcat(fn, kmer_length_str);
-  strcat(fn, ".klcp");
+	char* fn = malloc((strlen(prefix) + 10) * sizeof(char));
+	strcpy(fn, prefix);
+	strcat(fn, ".");
+	char* kmer_length_str = malloc(5 * sizeof(char));
+	sprintf(kmer_length_str, "%d", opt->kmer_length);
+	strcat(fn, kmer_length_str);
+	strcat(fn, ".klcp");
 	klcp_dump(fn, klcp);
-  fprintf(stderr, "[prophyle_index:%s] klcp dumped\n", __func__);
+	fprintf(stderr, "[prophyle_index:%s] klcp dumped\n", __func__);
 	if (opt->construct_sa_parallel) {
 		bwt_destroy(bwt);
 	} else {

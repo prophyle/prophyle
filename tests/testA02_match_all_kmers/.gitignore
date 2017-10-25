@@ -1,5 +1,0 @@
-.swo
-.swp
-match_*
-*.fq
-bwa_index/test_seq.fa.*
