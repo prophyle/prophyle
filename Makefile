@@ -3,8 +3,10 @@
 	test test_repo test_parallel test_package \
 	inc pypi \
 	docs readme wpypi wconda \
-	deppip depconda
+	deppip depconda \
+	submodules
 
+# PIP
 PIP=pip
 
 ###############
@@ -100,3 +102,11 @@ depconda:
 deppip:
 	cat requirements.txt | xargs $(PIP) install
 
+
+##############
+# SUBMODULES #
+##############
+
+# download the BWA submodule if it's missing
+submodules:
+	$(MAKE) -C prophyle submodules

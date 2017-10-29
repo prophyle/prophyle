@@ -42,7 +42,8 @@ all:$(PROG)
 
 clean:
 	rm -f gmon.out *.o a.out $(PROG) *~ *.a
-	$(MAKE) -C bwa clean
+	# if BWA Makefile is present
+	test -f bwa/Makefile && $(MAKE) -C bwa clean
 
 $(PROG): bwa/libbwa.a $(AOBJS2) main.o prophyle_query.o prophyle_index_build.o klcp.o bitarray.o bwa_utils.o prophyle_utils.o contig_node_translator.o
 	$(CC) $(INCLUDES) $(CFLAGS) $(DFLAGS) $(AOBJS2) main.o prophyle_query.o prophyle_index_build.o klcp.o bitarray.o bwa_utils.o prophyle_utils.o contig_node_translator.o -o $@ -Lbwa -lbwa $(LIBS)
