@@ -22,7 +22,7 @@ case "$#" in
 		;;
 esac
 
-echo "Processing commit $commit" > &2
+echo "Processing commit $commit" >&2
 
 (
 git checkout "$commit"
