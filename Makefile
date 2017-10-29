@@ -9,10 +9,6 @@
 # PIP
 PIP=pip
 
-# BWA submodule version
-BWA_VERSION=5961611c358
-
-
 ###############
 # BASIC RULES #
 ###############
@@ -111,8 +107,6 @@ deppip:
 # SUBMODULES #
 ##############
 
-submodules: ./prophyle/prophyle_index/bwa/.gitignore2
-
 # download the BWA submodule if it's missing
-./prophyle/prophyle_index/bwa/.gitignore2:
-	cd prophyle/prophyle_index/bwa && curl -L https://github.com/lh3/bwa/archive/$(BWA_VERSION).tar.gz | tar xz --strip-components 1
+submodules:
+	$(MAKE) -C prophyle submodules
