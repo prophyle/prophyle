@@ -579,9 +579,9 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 		destroy_reads(n_seqs, seqs);
 	}
 	total_time = realtime() - rtime;
+
 	fprintf(stderr, "[prophyle_index:%s] match time: %.2f sec\n", __func__, total_time);
 	fprintf(stderr, "[prophyle_index::%s] Processed %llu reads in %.3f CPU sec, %.3f real sec\n", __func__, total_seqs, cputime() - ctime, realtime() - rtime);
-
 	if (opt->need_log) {
 		fprintf(log_file, "matching_time\t%.2fs\n", total_time);
 		fprintf(log_file, "reads\t%" PRId64 "\n", total_seqs);
@@ -598,6 +598,7 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 		free(klcp->klcp);
 		free(klcp);
 	}
+
 	bwa_idx_destroy_without_bns_name_and_anno(idx);
 	kseq_destroy(ks);
 	err_gzclose(fp); kclose(ko);
