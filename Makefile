@@ -3,9 +3,15 @@
 	test test_repo test_parallel test_package \
 	inc pypi \
 	docs readme wpypi wconda \
-	deppip depconda
+	deppip depconda \
+	submodules
 
+# PIP
 PIP=pip
+
+# BWA submodule version
+BWA_VERSION=5961611c358
+
 
 ###############
 # BASIC RULES #
@@ -100,3 +106,13 @@ depconda:
 deppip:
 	cat requirements.txt | xargs $(PIP) install
 
+
+##############
+# SUBMODULES #
+##############
+
+submodules: ./prophyle/prophyle_index/bwa/.gitignore2
+
+# download the BWA submodule if it's missing
+./prophyle/prophyle_index/bwa/.gitignore2:
+	cd prophyle/prophyle_index/bwa && curl -L https://github.com/lh3/bwa/archive/$(BWA_VERSION).tar.gz | tar xz --strip-components 1
