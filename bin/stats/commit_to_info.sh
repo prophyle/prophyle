@@ -22,13 +22,15 @@ case "$#" in
 		;;
 esac
 
+echo "Processing commit $commit" > &2
+
 (
 git checkout "$commit"
 ) > /dev/null 2> /dev/null
 
 commit=$(git rev-parse HEAD | head -c 6)
-md5=$(find . -type f -name '*.py' -o -name '*.nw' -o -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name 'Makefile' | sort | xargs cat | md5sum | cut -d ' ' -f 1)
-version=$(find . -type f -name '*.py' | xargs cat | grep -E "^VERSION\s+=" | perl -pe "s/.*=\s+\"(\d+(.\d+)+)\".*/\1/g")
+md5=$(find "$PROGDIR/../.." -type f -name '*.py' -o -name '*.nw' -o -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name 'Makefile' | sort | xargs cat | md5sum | cut -d ' ' -f 1)
+version=$(find "$PROGDIR/../.." -type f -name '*.py' | xargs cat | grep -E "^VERSION\s+=" | perl -pe "s/.*=\s+\"(\d+(.\d+)+)\".*/\1/g")
 
 (
 git checkout master
