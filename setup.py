@@ -7,14 +7,17 @@ PROPHYLE_PACKBIN to a non-zero value, e.g.,
 PROPHYLE_PACKBIN=1 python3 setup.py install
 """
 
-
-import setuptools
-
+import glob
 import os
+import setuptools
 import sys
 
 if sys.version_info < (3,2):
     sys.exit('Minimum supported Python version is 3.2')
+
+bwa_dir='prophyle/prophyle_index/bwa'
+if len(glob.glob(os.path.join(bwa_dir, "*.c")))==0 or len(glob.glob(os.path.join(bwa_dir, "*.c")))==0:
+    sys.exit("BWA submodule is missing. Run 'make submodules' to download it.")
 
 here = os.path.abspath(os.path.dirname(__file__))
 
