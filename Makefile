@@ -1,7 +1,7 @@
 .PHONY: \
 	all prophyle clean install hooks \
 	test test_repo test_parallel test_package \
-	inc pypi \
+	inc pypi sha256\
 	docs readme wpypi wconda \
 	deppip depconda \
 	submodules
@@ -72,6 +72,10 @@ inc: hooks
 pypi: hooks
 	make clean
 	/usr/bin/env python3 setup.py sdist bdist_wheel upload
+
+# compute sha256 for the PyPI package (for Bioconda)
+sha256:
+	s=$$(curl https://pypi.python.org/pypi/prophyle  2>/dev/null| perl -pe 's/#/\n/g' | grep -o 'https.*\.tar\.gz' | xargs curl -L 2>/dev/null | shasum -a 256 | awk '{print $$1;}'); echo $$s; echo $$s | pbcopy
 
 
 #######################
