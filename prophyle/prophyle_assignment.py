@@ -393,8 +393,8 @@ class Assignment:
     def print_sam_header(self):
         """Print SAM headers.
         """
-        print("@PG", "PN:prophyle", "ID:prophyle", "VN:{}".format(version.VERSION), sep="\t", file=self.output_fo)
         print("@HD", "VN:1.5", "SO:unsorted", sep="\t", file=self.output_fo)
+        print("@PG", "PN:prophyle", "ID:prophyle", "VN:{}".format(version.VERSION), sep="\t", file=self.output_fo)
         for node in self.tree_index.tree.traverse("postorder"):
 
             try:
