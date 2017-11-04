@@ -1,5 +1,5 @@
 CXX      ?= g++
-CXXFLAGS  = -std=c++11 -Wall -Wextra -Wno-missing-field-initializers -g -O2
+CXXFLAGS  = -std=c++1y -Wall -Wextra -Wno-missing-field-initializers -g -O2
 
 .PHONY: all clean
 
