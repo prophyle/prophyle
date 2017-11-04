@@ -5,6 +5,7 @@
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <experimental/string_view>
 
 enum class AssignmentOutputFormat {
   Sam = 0,
@@ -23,18 +24,19 @@ public:
   ReadProcessor(const TreeIndex& tree, size_t k, bool simulate_lca = false, bool annotate = false,
       bool tie_lca = false, bool not_translate_blocks = false);
 
-  void process_krakline(const std::string& krakline, AssignmentOutputFormat format, Measure criteria);
+  void process_read(const std::string& krakline, AssignmentOutputFormat format, Measure criteria);
   void print_sam_header(std::ostream& out) const;
 
 private:
   static constexpr size_t kFakeContigLength = 42424242;
 
-  void load_krakline(const std::string& krakline);
+  void parse_krakline(const std::string& krakline);
   void filter_assignments();
   void print_assignments(AssignmentOutputFormat format, Measure criteria);
   void print_sam_line(int32_t node_id, const std::string& suffix = "", std::ostream& out = std::cout);
   void print_kraken_line(int32_t node_id, std::ostream& out = std::cout);
   void fill_masks_from_kmer_blocks();
+  size_t fill_masks_from_block(const std::experimental::string_view& block, size_t processed_kmer_count);
   void set_masks(const std::vector<int32_t>& node_ids, size_t block_position, size_t block_length);
   void print_masks() const;
   void clear();

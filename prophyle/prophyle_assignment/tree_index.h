@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <experimental/string_view>
 
 class TreeIndex {
 public:
@@ -32,7 +33,11 @@ public:
     return (first_node_ + id)->name;
   }
 
-  int32_t id_by_name(const std::string& name) const {
+  int32_t id_by_name(const std::experimental::string_view& name) const {
+    return id_by_name(name.to_string().c_str());
+  }
+
+  int32_t id_by_name(const char* name) const {
     const auto &node = id_by_name_.find(name);
     if (node == id_by_name_.end()) {
       return -1;

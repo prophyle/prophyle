@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <string.h>
+#include <experimental/string_view>
 
 namespace {
 
@@ -40,8 +41,8 @@ ReadProcessor::ReadProcessor(const TreeIndex& tree, size_t k, bool simulate_lca,
   }
 }
 
-void ReadProcessor::process_krakline(const std::string& krakline, AssignmentOutputFormat format, Measure criteria) {
-  load_krakline(krakline);
+void ReadProcessor::process_read(const std::string& krakline, AssignmentOutputFormat format, Measure criteria) {
+  parse_krakline(krakline);
   propagate_matching_kmers();
   filter_assignments();
   print_assignments(format, criteria);
@@ -173,7 +174,7 @@ void ReadProcessor::clear() {
   best_coverage_nodes_.clear();
 }
 
-void ReadProcessor::load_krakline(const std::string& krakline) {
+void ReadProcessor::parse_krakline(const std::string& krakline) {
   // std::cerr << "process krakline: " << krakline << std::endl;
   std::vector<std::string> parts = split(krakline, '\t');
   read_name_ = parts[1];
@@ -215,41 +216,90 @@ void ReadProcessor::copy_masks(int32_t node_from, int32_t node_to) {
 }
 
 void ReadProcessor::fill_masks_from_kmer_blocks() {
-  size_t kmers_count = 0;
-  for (auto& block : split(krakmers_, ' ')) {
-    auto block_split = split(block, ':');
-    size_t count = std::stoi(block_split[1]);
-    std::string& ids = block_split[0];
-    std::vector<int32_t> node_ids;
-    bool no_nodes = false;
-    bool ambiguous_kmers = false;
-    for (auto& node_name : split(ids, ',')) {
-      if (node_name == "0") {
-        no_nodes = true;
-        break;
-      }
-      if (node_name == "A") {
-        ambiguous_kmers = true;
-        break;
-      }
-      int32_t id = tree_.id_by_name(node_name);
-      node_ids.push_back(id);
-      matching_nodes_.insert(id);
+  size_t kmer_count = 0;
+  size_t block_start = 0;
+  size_t block_end = 0;
+  while (block_start < krakmers_.size()) {
+    while (block_end < krakmers_.size() && krakmers_[block_end] != ' ') {
+      block_end++;
     }
-    if (!no_nodes && !ambiguous_kmers) {
-      if (simulate_lca_) {
-        // not implemented yet
-        std::cerr << "simulate_lca is not implemented yet" << std::endl;
-        exit(1);
-      }
-      set_masks(node_ids, kmers_count, count);
-    }
-    kmers_count += count;
+    size_t kmer_in_block = fill_masks_from_block(
+        std::experimental::string_view(krakmers_.c_str() + block_start,
+        block_end - block_start), kmer_count);
+    kmer_count += kmer_in_block;
+    block_start = block_end + 1;
+    block_end = block_start;
   }
-  if (kmers_count + k_ - 1 != read_length_ && read_length_ >= k_) {
+  if (kmer_count + k_ - 1 != read_length_ && read_length_ >= k_) {
     std::cerr << "read length does not correspond to kmers blocks total length" << std::endl;
     exit(1);
   }
+}
+
+size_t ReadProcessor::fill_masks_from_block(
+    const std::experimental::string_view& block, size_t processed_kmer_count) {
+  size_t colon_position = 0;
+  size_t node_start = 0;
+  size_t node_end = 0;
+  bool no_nodes = false;
+  bool ambiguous_kmers = false;
+  std::vector<int32_t> node_ids;
+  while (node_start < block.size()) {
+    while (node_end < block.size() && block[node_end] != ',') {
+      if (block[node_end] == ':') {
+        colon_position = node_end;
+        break;
+      }
+      node_end++;
+    }
+    std::experimental::string_view node_name(
+        block.data() + node_start, node_end - node_start);
+    if (node_name == "0") {
+      no_nodes = true;
+      break;
+    }
+    if (node_name == "A") {
+      ambiguous_kmers = true;
+      break;
+    }
+    int32_t id = tree_.id_by_name(node_name);
+    node_ids.push_back(id);
+    matching_nodes_.insert(id);
+    if (colon_position > 0) {
+      break;
+    }
+    node_start = node_end + 1;
+    node_end = node_start;
+  }
+  size_t count = std::stoi(block.data() + colon_position + 1);
+  // auto block_split = split(block, ':');
+  // size_t count = std::stoi(block_split[1]);
+  // std::string& ids = block_split[0];
+  // std::vector<int32_t> node_ids;
+  // bool no_nodes = false;
+  // bool ambiguous_kmers = false;
+  // for (auto& node_name : split(ids, ',')) {
+  //   if (node_name == "0") {
+  //     no_nodes = true;
+  //     break;
+  //   }
+  //   if (node_name == "A") {
+  //     ambiguous_kmers = true;
+  //     break;
+  //   }
+  //   int32_t id = tree_.id_by_name(node_name);
+  //   node_ids.push_back(id);
+  //   matching_nodes_.insert(id);
+  // }
+  if (!no_nodes && !ambiguous_kmers) {
+    if (simulate_lca_) {
+      // not implemented yet
+      std::cerr << "simulate_lca is not implemented yet" << std::endl;
+      exit(1);
+    }
+    set_masks(node_ids, processed_kmer_count, count);
+  }
+  return count;
   // print_masks();
 }
 

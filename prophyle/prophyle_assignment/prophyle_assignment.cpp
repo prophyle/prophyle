@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
   }
   std::string line;
   while (getline(std::cin, line)) {
-    read_processor.process_krakline(line, arguments.format, arguments.criteria);
+    read_processor.process_read(line, arguments.format, arguments.criteria);
   }
 
 //  std::string krakline = "U\tread1\t0\t60\tn001:21 n001,n154:1 n001:8 n001,n410:1 n001:12 n001,n151:1 n001:1";
