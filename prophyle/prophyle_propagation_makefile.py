@@ -21,11 +21,9 @@ Propagation parameters (in the Makefile, can be changed through CL):
     * MASKREP: mask repeats in leaves
 """
 
-import os
-import shutil
-import datetime
-import sys
 import argparse
+import os
+import sys
 import textwrap
 
 sys.path.append(os.path.dirname(__file__))

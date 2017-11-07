@@ -8,11 +8,9 @@ Licence: MIT
 
 import datetime
 import ete3
-import glob
 import json
 import os
 import psutil
-import re
 import shutil
 import subprocess
 import sys
