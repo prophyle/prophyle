@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Plot a Newick/NHX tree.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
@@ -67,19 +66,22 @@ def plot_tree(newick_in_fn, out_plot_fn, attribute_name):
 def main():
     parser = argparse.ArgumentParser(description='Plot a Newick/NHX tree')
 
-    parser.add_argument('newick_in_fn',
+    parser.add_argument(
+        'newick_in_fn',
         metavar='<tree.nhx>',
         type=str,
         help='phylogenetic tree (in Newick/NHX)',
     )
 
-    parser.add_argument('out_plot_fn',
+    parser.add_argument(
+        'out_plot_fn',
         metavar='<figure.{pdf,png,svg,..}>',
         type=str,
         help='output figure',
     )
 
-    parser.add_argument('-a',
+    parser.add_argument(
+        '-a',
         metavar='str',
         dest='attribute_name',
         type=str,

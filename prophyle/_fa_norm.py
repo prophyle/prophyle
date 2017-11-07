@@ -1,12 +1,10 @@
 #! /usr/bin/env python3
-
 """Normalize a FASTA file (in order to compare different FASTA files).
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
 Licence: MIT
 """
-
 
 import sys
 import os
@@ -55,10 +53,12 @@ def load_fasta(fasta_fn):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description='Normalize a FASTA file. This script is useful to check if two FASTA files are equivalent.')
+        description='Normalize a FASTA file. This script is useful to check if two FASTA files are equivalent.'
+    )
 
     parser.add_argument(
-        '-i', '--input',
+        '-i',
+        '--input',
         help='input fasta file',
         required=True,
     )

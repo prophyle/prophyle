@@ -1,5 +1,5 @@
 try:
-	from __commit import *
+    from __commit import *
 except ImportError:
-	pass
-VERSION="0.3.0.2"
+    pass
+VERSION = "0.3.0.2"
