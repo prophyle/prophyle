@@ -73,7 +73,7 @@ flake8: ## Run Flake8
 	flake8
 
 yapf: ## Run YAPF (inline replacement)
-	yapf -i --recursive .
+	yapf -i --recursive prophyle
 
 #############
 # RELEASING #
