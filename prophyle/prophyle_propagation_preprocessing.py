@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """K-mer propagation pre-processing.
 
 Extract subtrees, merge ProPhyle Newick/NHX trees, possibly run autocomplete
@@ -36,7 +35,7 @@ def add_prefix(tree, prefix):
 def autocomplete_fastapath(tree):
     print("Autocompleting FASTA paths", file=sys.stderr)
     for n in tree.traverse():
-        if len(n.children)==0:
+        if len(n.children) == 0:
             n.add_features(fastapath="{}.fa".format(n.name))
     return tree
 
@@ -44,36 +43,35 @@ def autocomplete_fastapath(tree):
 def autocomplete_internal_node_names(tree):
     print("Autocompleting internal node names", file=sys.stderr)
 
-    re_inferred=re.compile(r'^(.*)-up(\d+)$')
+    re_inferred = re.compile(r'^(.*)-up(\d+)$')
 
     for n in tree.traverse("postorder"):
-        if len(n.children)==0:
+        if len(n.children) == 0:
             assert hasattr(n, "name")
         else:
             for x in n.children:
                 assert hasattr(x, "name")
 
-            if not hasattr(n, "name") or n.name=="" or n.name is None:
-                names=[x.name for x in n.children]
-                lmin_name=sorted(names)[0]
+            if not hasattr(n, "name") or n.name == "" or n.name is None:
+                names = [x.name for x in n.children]
+                lmin_name = sorted(names)[0]
 
-                m=re_inferred.match(lmin_name)
+                m = re_inferred.match(lmin_name)
                 if m is not None:
-                    left, right=m.groups()
-                    right=int(right)+1
-                    n.name="{}-up{}".format(left, right)
+                    left, right = m.groups()
+                    right = int(right) + 1
+                    n.name = "{}-up{}".format(left, right)
                 else:
-                    n.name=lmin_name+"-up1"
+                    n.name = lmin_name + "-up1"
 
     return tree
 
 
-def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_rate, autocomplete):
+def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes,
+                sampling_rate, autocomplete):
     assert sampling_rate is None or 0.0 <= float(sampling_rate) <= 1.0
 
-    t = ete3.Tree(
-        name="merge_root",
-    )
+    t = ete3.Tree(name="merge_root", )
 
     if len(input_trees_fn) == 1:
         if verbose:
@@ -99,8 +97,8 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
 
     if autocomplete:
         if not pro.has_attribute(t, "fastapath"):
-            t=autocomplete_fastapath(t)
-        t=autocomplete_internal_node_names(t)
+            t = autocomplete_fastapath(t)
+        t = autocomplete_internal_node_names(t)
 
     if sampling_rate is not None:
         sampling_rate = float(sampling_rate)
@@ -113,15 +111,17 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
 
         leaves_1.sort(key=lambda x: x.name)
 
-        leaves_2 = random.sample(leaves_1, max(round(sampling_rate * len(leaves_1)), 1))
+        leaves_2 = random.sample(leaves_1,
+                                 max(round(sampling_rate * len(leaves_1)), 1))
         leaves_2.sort(key=lambda x: x.name)
 
         leaves_to_remove = list(set(leaves_1) - set(leaves_2))
         leaves_to_remove.sort(key=lambda x: x.name)
 
         if verbose:
-            print("Removing the following leaves: {}".format(
-                ", ".join(map(apply(lambda x: x.name, leaves_to_remove)))),
+            print(
+                "Removing the following leaves: {}".format(
+                    ", ".join(map(apply(lambda x: x.name, leaves_to_remove)))),
                 file=sys.stderr)
 
         for node in leaves_to_remove:
@@ -129,8 +129,10 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
                 node = node.up
             node.detach()
 
-        print("Subsampling the tree with rate {:.4f}, {} leaves were kept (out of {})".format(sampling_rate,
-            len(leaves_2), len(leaves_1)), file=sys.stderr)
+        print(
+            "Subsampling the tree with rate {:.4f}, {} leaves were kept (out of {})".
+            format(sampling_rate, len(leaves_2), len(leaves_1)),
+            file=sys.stderr)
 
     if verbose:
         print("Writing to '{}'".format(output_tree_fn), file=sys.stderr)
@@ -140,53 +142,51 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="\n".join(
-            [
-                'Merge multiple ProPhyle trees. Specific subtrees might be extracted before merging. Examples:',
-                '\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw',
-                '\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw'
-            ]),
-        formatter_class=argparse.RawTextHelpFormatter,
-    )
+        description="\n".join([
+            'Merge multiple ProPhyle trees. Specific subtrees might be extracted before merging. Examples:',
+            '\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw',
+            '\t$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw'
+        ]),
+        formatter_class=argparse.RawTextHelpFormatter, )
 
-    parser.add_argument('in_tree',
+    parser.add_argument(
+        'in_tree',
         metavar='<in_tree.nw{@node_name}>',
         type=str,
         help='input tree',
-        nargs='+',
-    )
+        nargs='+', )
 
-    parser.add_argument('out_tree',
+    parser.add_argument(
+        'out_tree',
         metavar='<out_tree.nw>',
         type=str,
-        help='output tree',
-    )
+        help='output tree', )
 
-    parser.add_argument('-s',
+    parser.add_argument(
+        '-s',
         help='rate of sampling the tree [no sampling]',
         dest='sampling_rate',
         metavar='FLOAT',
         type=str,
-        default=None,
-    )
+        default=None, )
 
-    parser.add_argument('-A',
+    parser.add_argument(
+        '-A',
         help='autocomplete tree (names of internal nodes and FASTA paths)',
         dest='autocomplete',
-        action='store_true',
-    )
+        action='store_true', )
 
-    parser.add_argument('-V',
+    parser.add_argument(
+        '-V',
         help='verbose',
         dest='verbose',
-        action='store_true',
-    )
+        action='store_true', )
 
-    parser.add_argument('-P',
+    parser.add_argument(
+        '-P',
         help='do not add prefixes to node names',
         dest='add_prefixes',
-        action='store_false',
-    )
+        action='store_false', )
 
     args = parser.parse_args()
     return args
@@ -200,8 +200,7 @@ def main():
         verbose=args.verbose,
         add_prefixes=args.add_prefixes,
         sampling_rate=args.sampling_rate,
-        autocomplete=args.autocomplete,
-    )
+        autocomplete=args.autocomplete, )
 
 
 if __name__ == "__main__":

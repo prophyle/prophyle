@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Merge paired-end FASTA or FASTQ files (possibly in gzip format)
 
 Author: Simone Pignotti <pignottisimone@gmail.com>
@@ -50,14 +49,15 @@ def merge_reads(f_reads_1, f_reads_2, out_file):
         elif first_char_1 == '>':
             fastq, fasta = False, True
         else:
-            print('[prophyle_paired_reads] Error: unknown read format (does not start with > or @)',
+            print(
+                '[prophyle_paired_reads] Error: unknown read format (does not start with > or @)',
                 file=sys.stderr)
             reads_1.close()
             reads_2.close()
             sys.exit(1)
 
-        rid=read_id(first_read_1.strip(), first_read_2.strip())
-        out_file.write(rid+'\n')
+        rid = read_id(first_read_1.strip(), first_read_2.strip())
+        out_file.write(rid + '\n')
 
         if fastq:
             # file line
@@ -68,14 +68,16 @@ def merge_reads(f_reads_1, f_reads_2, out_file):
                 if l == 0:
                     assert next_line_1.startswith('@') and next_line_2.startswith('@'), \
                         "malformed fastq files (no id at line {})".format(i)
-                    rid=read_id(next_line_1.strip(), next_line_2.strip())
-                    out_file.write(rid+'\n')
+                    rid = read_id(next_line_1.strip(), next_line_2.strip())
+                    out_file.write(rid + '\n')
                 elif l == 1:
-                    out_file.write(next_line_1.strip() + 'NNN' + next_line_2.strip() + '\n')
+                    out_file.write(next_line_1.strip() + 'NNN' +
+                                   next_line_2.strip() + '\n')
                 elif l == 2:
                     out_file.write('+\n')
                 elif l == 3:
-                    out_file.write(next_line_1.strip() + '!!!' + next_line_2.strip() + '\n')
+                    out_file.write(next_line_1.strip() + '!!!' +
+                                   next_line_2.strip() + '\n')
 
         elif fasta:
             prev_read_1 = ''
@@ -85,8 +87,8 @@ def merge_reads(f_reads_1, f_reads_2, out_file):
                     out_file.write(prev_read_1 + 'NNN' + prev_read_2 + '\n')
                     prev_read_1 = ''
                     prev_read_2 = ''
-                    rid=read_id(next_line_1.strip(), next_line_2.strip())
-                    out_file.write(rid+'\n')
+                    rid = read_id(next_line_1.strip(), next_line_2.strip())
+                    out_file.write(rid + '\n')
                 else:
                     prev_read_1 += next_line_1.strip()
                     prev_read_2 += next_line_2.strip()
@@ -95,17 +97,23 @@ def merge_reads(f_reads_1, f_reads_2, out_file):
         out_file.flush()
         out_file.close()
         if reads_1.readline().strip() != '' or reads_2.readline().strip() != '':
-            print('[prophyle_paired_reads] Warning: files of different length (merged till the end of the shortest)',
+            print(
+                '[prophyle_paired_reads] Warning: files of different length (merged till the end of the shortest)',
                 file=sys.stderr)
 
     except IOError as e:
         if e.errno == errno.EPIPE:
-            print('[prophyle_paired_reads]'+reads_1.readline().strip()+reads_2.readline().strip(),file=sys.stderr)
-            if reads_1.readline().strip() == '' and reads_2.readline().strip() == '':
+            print(
+                '[prophyle_paired_reads]' + reads_1.readline().strip() +
+                reads_2.readline().strip(),
+                file=sys.stderr)
+            if reads_1.readline().strip() == '' and reads_2.readline().strip(
+            ) == '':
                 # pipe closed but both files correctly processed
                 pass
             else:
-                print('[prophyle_paired_reads] Error: pipe closed before EOF',
+                print(
+                    '[prophyle_paired_reads] Error: pipe closed before EOF',
                     file=sys.stderr)
                 reads_1.close()
                 reads_2.close()
@@ -126,29 +134,23 @@ def main():
         Merge paired-end FASTA or FASTQ files (possibly in gzip format).
     """
 
-    parser = argparse.ArgumentParser(
-        description=desc
-    )
+    parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument(
         'reads_1',
         type=str,
-        help='1st FASTA or FASTQ file',
-    )
+        help='1st FASTA or FASTQ file', )
+
+    parser.add_argument('reads_2', type=str, help='2nd FASTA or FASTQ file')
 
     parser.add_argument(
-        'reads_2',
-        type=str,
-        help='2nd FASTA or FASTQ file'
-    )
-
-    parser.add_argument('-o', '--output-file',
+        '-o',
+        '--output-file',
         type=argparse.FileType('w'),
         metavar='out_file',
         dest='out_file',
         help='output file [stdout]',
-        default=sys.stdout
-    )
+        default=sys.stdout)
 
     args = parser.parse_args()
     merge_reads(args.reads_1, args.reads_2, args.out_file)
