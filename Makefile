@@ -1,6 +1,7 @@
 .PHONY: \
 	all prophyle clean install hooks \
-	test test_repo test_parallel test_package pylint \
+	test test_repo test_parallel test_package \
+	pylint flake8 yapf \
 	inc pypi sha256 \
 	docs readme wpypi wconda \
 	deppip depconda \
@@ -66,7 +67,13 @@ test_package: ## Run integration tests from the Python package
 	$(MAKE) -C tests B PROP=prophyle
 
 pylint: ## Run PyLint
-	$(PYTHON) -m pylint -d prophyle
+	$(PYTHON) -m pylint prophyle
+
+flake8: ## Run Flake8
+	flake8
+
+yapf: ## Run YAPF (inline replacement)
+	yapf -i --recursive .
 
 #############
 # RELEASING #
