@@ -1,9 +1,7 @@
 #! /usr/bin/env python3
 
-import os
-import shutil
-import datetime
 import sys
+import os
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro

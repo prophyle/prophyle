@@ -19,8 +19,7 @@ import sys
 import os
 import argparse
 
-# EXTERNAL
-from ete3 import Tree, NCBITaxa
+from ete3 import NCBITaxa
 
 desc = """\
     Program: prophyle_ncbi_tree

@@ -6,10 +6,9 @@ Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 Licence: MIT
 """
 
-import sys
-import os
 import argparse
 import re
+import sys
 
 reg_splitting = re.compile("[^ACGT]")
 

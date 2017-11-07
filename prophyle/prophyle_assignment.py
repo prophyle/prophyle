@@ -14,7 +14,6 @@ Todo:
 import argparse
 #import bitarray
 import collections
-import ete3
 import functools
 import itertools
 import os

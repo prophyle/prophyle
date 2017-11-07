@@ -9,7 +9,6 @@ Licence: MIT
 import argparse
 import os
 import sys
-import operator
 import pysam
 
 from ete3 import Tree
