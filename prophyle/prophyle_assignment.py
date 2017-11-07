@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+
 """ProPhyle assignment algorithm (reference implementation).
 
 Example: ./prophyle/prophyle_index/prophyle_index query -k 5 -u -b _index_test/index.fa tests/simulation_bacteria.1000.fq |./prophyle/prophyle_assignment.py -m h1 -f sam _index_test/tree.nw 5 -
@@ -27,20 +28,19 @@ import version
 ###############################################################################################
 ###############################################################################################
 
-CONFIG = {
+CONFIG={
     # this should be longer than any possible read, because of CRAM (non-tested yet)
     'FAKE_CONTIG_LENGTH': 42424242,
     # print diagnostics messages
-    'DIAGNOSTICS': False,
+    'DIAGNOSTICS'       : False,
     # sort nodes alphabetically when reporting assignments
-    'SORT_NODES': False,
+    'SORT_NODES'        : False,
 }
 
 ###############################################################################################
 ###############################################################################################
 
 from bitarray import bitarray as _bitarray
-
 
 class bitarray(_bitarray):
     def __hash__(self):
@@ -72,12 +72,7 @@ class Assignment:
         max_val (int/float): Maximal value of the measure.
     """
 
-    def __init__(self,
-                 output_fo,
-                 tree_index,
-                 kmer_lca=False,
-                 tie_lca=False,
-                 annotate=False):
+    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
         self.output_fo = output_fo
         self.tree_index = tree_index
         self.k = self.tree_index.k
@@ -85,14 +80,15 @@ class Assignment:
         self.annotate = annotate
         self.tie_lca = tie_lca
 
-        self.krakline_parser = KraklineParser()
+        self.krakline_parser = KraklineParser ()
 
         self.hitmasks_dict = {}
         self.covmasks_dict = {}
         self.ass_dict = {}
 
-        self.max_nodenames = []
-        self.max_val = 0
+        self.max_nodenames=[]
+        self.max_val=0
+
 
     def process_read(self, krakline, form, measure):
         """Process one Kraken-like line.
@@ -121,6 +117,7 @@ class Assignment:
 
         self.print_selected_assignments(form)
 
+
     def blocks_to_masks(self, kmer_blocks, kmer_lca):
         """Extract hit and coverage masks from krakline blocks (without propagation) and store them in self.{hit,cov}masks_dict.
 
@@ -139,10 +136,8 @@ class Assignment:
         covmask_empty = self.bitarray_block(covmask_len, 0, 0)
 
         # fast copying (bitarray trick)
-        hitmasks_dict = collections.defaultdict(
-            lambda: bitarray(hitmask_empty))
-        covmasks_dict = collections.defaultdict(
-            lambda: bitarray(covmask_empty))
+        hitmasks_dict = collections.defaultdict(lambda: bitarray(hitmask_empty))
+        covmasks_dict = collections.defaultdict(lambda: bitarray(covmask_empty))
 
         pos = 0
 
@@ -152,8 +147,7 @@ class Assignment:
             if node_names != ["0"] and node_names != ["A"]:
 
                 hitmask_1block = self.bitarray_block(hitmask_len, count, pos)
-                covmask_1block = self.bitarray_block(covmask_len,
-                                                     count + self.k - 1, pos)
+                covmask_1block = self.bitarray_block(covmask_len, count+self.k-1, pos)
 
                 if kmer_lca:
                     node_names = [self.tree_index.lca(*node_names)]
@@ -167,18 +161,19 @@ class Assignment:
         self.hitmasks_dict = hitmasks_dict
         self.covmasks_dict = covmasks_dict
 
-    def compute_assignments(self):
+
+    def compute_assignments (self):
         """Compute assignments & characteristics.
 
         Compute and their characteristics from hitmasks and store
         them in self.ass_dict.
         """
 
-        nodenames = self.hitmasks_dict.keys()
-        self.ass_dict = {
-            nodename: self.evaluate_single_assignment(nodename)
-            for nodename in nodenames
+        nodenames=self.hitmasks_dict.keys()
+        self.ass_dict={
+            nodename: self.evaluate_single_assignment(nodename) for nodename in nodenames
         }
+
 
     def evaluate_single_assignment(self, nodename):
         """Evaluate a single assignment.
@@ -201,8 +196,7 @@ class Assignment:
         ##########################
         # B) Update from ancestors
         ##########################
-        ancestors = self.tree_index.nodename_to_upnodenames[nodename] & self.hitmasks_dict.keys(
-        )
+        ancestors=self.tree_index.nodename_to_upnodenames[nodename] & self.hitmasks_dict.keys()
         for anc_nodename in ancestors:
             hitmask |= self.hitmasks_dict[anc_nodename]
             covmask |= self.covmasks_dict[anc_nodename]
@@ -214,7 +208,7 @@ class Assignment:
         cov = covmask.count()
         readlen = self.krakline_parser.readlen
 
-        assignment = {
+        assignment= {
             # 1. hit count
             'hitmask': hitmask,
             #'hitcigar': self.cigar_from_bitmask(hitmask),
@@ -230,10 +224,11 @@ class Assignment:
             'c2': [cov / self.tree_index.nodename_to_kmercount[nodename]],
 
             # 3. other values
-            'ln': readlen,
+            'ln' : readlen,
         }
 
         return assignment
+
 
     def select_best_assignments(self, measure):
         """Find the best assignments and save it to self.max_nodenames (max value: self.max_val).
@@ -246,7 +241,7 @@ class Assignment:
         self.max_nodenames = []
 
         for nodename in self.ass_dict:
-            ass = self.ass_dict[nodename]
+            ass=self.ass_dict[nodename]
 
             if ass[measure][0] > self.max_val:
                 self.max_val = ass[measure][0]
@@ -257,6 +252,7 @@ class Assignment:
 
         if CONFIG['SORT_NODES']:
             self.max_nodenames.sort()
+
 
     def make_lca_from_winners(self):
         """Create LCA from winners.
@@ -272,24 +268,23 @@ class Assignment:
         first_winner = self.ass_dict[max_nodenames[0]]
         lca = self.tree_index.lca(winners)
 
-        ass = {
+        ass={
             'covmask': None,
             'covcigar': None,
             'hitmask': None,
             'hitcigar': None,
-            'ln': self.krakline_parser.readlen,
+            'ln' : self.krakline_parser.readlen,
         }
 
-        for tag in ['h1', 'hf', 'h2', 'c1', 'cf', 'c2']:
-            ass[tag] = [
-                self.ass_dict[nodename][tag] for nodename in self.max_nodenames
-            ],
+        for tag in ['h1','hf','h2','c1','cf','c2']:
+            ass[tag]=[self.ass_dict[nodename][tag] for nodename in self.max_nodenames],
 
         self.max_nodenames = [lca]
         self.ass_dict[lca] = ass
 
         asg['covmask'] = None
         asg['hitmask'] = None
+
 
     def print_selected_assignments(self, form):
         """Print the best assignments.
@@ -299,7 +294,7 @@ class Assignment:
         """
 
         if form == "sam":
-            tag_is = len(self.max_nodenames)
+            tag_is=len(self.max_nodenames)
             for tag_ii, nodename in enumerate(self.max_nodenames, 1):
                 ass = self.ass_dict[nodename]
                 # compute cigar
@@ -313,15 +308,13 @@ class Assignment:
                 else:
                     ass['hitcigar'] = self.cigar_from_bitmask(ass['hitmask'])
 
-                suffix_parts = [
-                    "ii:i:{}".format(tag_ii), "is:i:{}".format(tag_is)
-                ]
+                suffix_parts=["ii:i:{}".format(tag_ii), "is:i:{}".format(tag_is)]
                 if self.annotate:
-                    suffix_parts.append(
-                        self.tree_index.nodename_to_samannot[nodename])
-                self.print_sam_line(nodename, "\t".join([""] + suffix_parts))
+                    suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
+                self.print_sam_line(nodename, "\t".join([""]+suffix_parts))
         elif form == "kraken":
             self.print_kraken_line(*self.max_nodenames)
+
 
     @staticmethod
     @functools.lru_cache(maxsize=5)
@@ -342,6 +335,7 @@ class Assignment:
             c.append(str(len(list(run[1]))))
             c.append('=' if run[0] else 'X')
         return "".join(c)
+
 
     def print_sam_line(self, node_name, suffix):
         """Print a single SAM record.
@@ -376,23 +370,17 @@ class Assignment:
             "*",  # RNEXT
             "0",  # PNEXT
             "0",  # TLEN
-            self.krakline_parser.seq
-            if self.krakline_parser.seq else "*",  # SEQ
-            self.krakline_parser.qual
-            if self.krakline_parser.qual else "*",  # QUAL
+            self.krakline_parser.seq if self.krakline_parser.seq else "*",  # SEQ
+            self.krakline_parser.qual if self.krakline_parser.qual else "*",  # QUAL
         ]
 
         if node_name is not None:
             asg = self.ass_dict[node_name]
 
             for tag, datatype in [
-                ('h1', 'i'),
-                ('h2', 'f'),
-                ('hf', 'f'),
-                ('c1', 'i'),
-                ('c2', 'f'),
-                ('cf', 'f'),
-            ]:
+                    ('h1','i'), ('h2','f'), ('hf','f'),
+                    ('c1','i'), ('c2','f'), ('cf','f'),
+                    ]:
                 for val in asg[tag]:
                     columns.append("{}:{}:{}".format(tag, datatype, val))
 
@@ -401,17 +389,12 @@ class Assignment:
 
         print("\t".join(columns), suffix, file=self.output_fo, sep="")
 
+
     def print_sam_header(self):
         """Print SAM headers.
         """
         print("@HD", "VN:1.5", "SO:unsorted", sep="\t", file=self.output_fo)
-        print(
-            "@PG",
-            "PN:prophyle",
-            "ID:prophyle",
-            "VN:{}".format(version.VERSION),
-            sep="\t",
-            file=self.output_fo)
+        print("@PG", "PN:prophyle", "ID:prophyle", "VN:{}".format(version.VERSION), sep="\t", file=self.output_fo)
         for node in self.tree_index.tree.traverse("postorder"):
 
             try:
@@ -430,14 +413,14 @@ class Assignment:
                 as_ = ""
 
             if node.name != '':
-                print(
-                    "@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
-                        rname=node.name,
-                        rlen=CONFIG['FAKE_CONTIG_LENGTH'],
-                        as_=as_,
-                        ur=ur,
-                        sp=sp, ),
-                    file=self.output_fo)
+                print("@SQ\tSN:{rname}\tLN:{rlen}{as_}{ur}{sp}".format(
+                    rname=node.name,
+                    rlen=CONFIG['FAKE_CONTIG_LENGTH'],
+                    as_=as_,
+                    ur=ur,
+                    sp=sp,
+                ), file=self.output_fo)
+
 
     def print_kraken_line(self, *nodenames):
         """Print a single record in the Kraken-like format.
@@ -446,7 +429,7 @@ class Assignment:
             *nodenames (list of str): Node names of assignments to report.
         """
 
-        if len(nodenames) == 0:
+        if len(nodenames)==0:
             stat = "U"
             krak_ass = "0"
         else:
@@ -469,16 +452,17 @@ class Assignment:
             c = []
             runs = itertools.groupby(nodenames_lca_seq)
             for run in runs:
-                c.append("{}:{}".format(str(run[0]), len(list(run[1]))))
+                c.append("{}:{}".format(
+                    str(run[0]),
+                    len(list(run[1]))
+                ))
             krakmers = " ".join(c)
         else:
             krakmers = self.krakline_parser.krakmers
 
-        columns = [
-            stat, self.krakline_parser.readname, krak_ass,
-            str(self.krakline_parser.readlen), krakmers
-        ]
+        columns = [stat, self.krakline_parser.readname, krak_ass, str(self.krakline_parser.readlen), krakmers]
         print("\t".join(columns), file=self.output_fo)
+
 
     @staticmethod
     def bitarray_block(alen, blen, pos):
@@ -492,7 +476,8 @@ class Assignment:
         Return:
             bitarray (bitarray)
         """
-        return bitarray(pos * "0" + blen * "1" + (alen - pos - blen) * "0")
+        return bitarray(pos*"0" + blen*"1" + (alen - pos - blen)*"0")
+
 
     def diagnostics(self):
         """Print debug messages.
@@ -500,16 +485,9 @@ class Assignment:
         print("---------------------", file=sys.stderr)
         print("Alignment diagnostics", file=sys.stderr)
         print("---------------------", file=sys.stderr)
-        print(
-            "Alignment.hitmasks_dict: ",
-            dict(self.hitmasks_dict),
-            file=sys.stderr)
-        print(
-            "Alignment.covmasks_dict: ",
-            dict(self.covmasks_dict),
-            file=sys.stderr)
-        print(
-            "Alignment.ass_dict:      ", dict(self.ass_dict), file=sys.stderr)
+        print("Alignment.hitmasks_dict: ", dict(self.hitmasks_dict), file=sys.stderr)
+        print("Alignment.covmasks_dict: ", dict(self.covmasks_dict), file=sys.stderr)
+        print("Alignment.ass_dict:      ", dict(self.ass_dict), file=sys.stderr)
         print("Alignment.max_nodenames: ", self.max_nodenames, file=sys.stderr)
         print("Alignment.max_val:       ", self.max_val, file=sys.stderr)
 
@@ -547,6 +525,7 @@ class TreeIndex:
 
         self.nodename_to_upnodenames = collections.defaultdict(lambda: set())
 
+
         for node in self.tree.traverse("postorder"):
             nodename = node.name
             self.nodename_to_node[nodename] = node
@@ -576,6 +555,7 @@ class TreeIndex:
                 node = node.up
                 self.nodename_to_upnodenames[nodename].add(node.name)
 
+
     def lca(self, *node_names):
         """Return LCA for a given list of nodes.
 
@@ -592,9 +572,10 @@ class TreeIndex:
 
         if lca.is_root() and len(lca.children) == 1:
             lca = lca.children[0]
-        assert lca.name != ""  #, [x.name for x in lca.children]
+        assert lca.name != "" #, [x.name for x in lca.children]
 
         return lca.name
+
 
     def diagnostics(self):
         """Print debug messages.
@@ -603,27 +584,14 @@ class TreeIndex:
         print("TreeIndex diagnostics", file=sys.stderr)
         print("---------------------", file=sys.stderr)
         print("TreeIndex.k:                       ", self.k, file=sys.stderr)
-        print(
-            "TreeIndex.nodename_to_node:        ",
-            self.nodename_to_node,
-            file=sys.stderr)
-        print(
-            "TreeIndex.nodename_to_samannot:    ",
-            self.nodename_to_samannot,
-            file=sys.stderr)
-        print(
-            "TreeIndex.nodename_to_upnodenames: ",
-            self.nodename_to_upnodenames,
-            file=sys.stderr)
-        print(
-            "TreeIndex.nodename_to_kmercount:   ",
-            self.nodename_to_kmercount,
-            file=sys.stderr)
+        print("TreeIndex.nodename_to_node:        ", self.nodename_to_node, file=sys.stderr)
+        print("TreeIndex.nodename_to_samannot:    ", self.nodename_to_samannot, file=sys.stderr)
+        print("TreeIndex.nodename_to_upnodenames: ", self.nodename_to_upnodenames, file=sys.stderr)
+        print("TreeIndex.nodename_to_kmercount:   ", self.nodename_to_kmercount, file=sys.stderr)
 
 
 ###############################################################################################
 ###############################################################################################
-
 
 class KraklineParser():
     """Class for parsing Kraken-like input into a structure.
@@ -638,12 +606,13 @@ class KraklineParser():
     """
 
     def __init__(self):
-        self.krakline = None
-        self.readname = None
-        self.readlen = None
-        self.seq = None
-        self.qual = None
+        self.krakline=None
+        self.readname=None
+        self.readlen=None
+        self.seq=None
+        self.qual=None
         self.kmer_blocks = []
+
 
     def parse_krakline(self, krakline):
         """Load a krakline to the current object.
@@ -652,7 +621,7 @@ class KraklineParser():
             krakline (str): Kraken-like line.
         """
 
-        self.krakline = krakline
+        self.krakline=krakline
         parts = krakline.strip().split("\t")
         self.readname, _, readlen, self.krakmers = parts[1:5]
         self.readlen = int(readlen)
@@ -672,7 +641,8 @@ class KraklineParser():
             nodenames = ids.split(",")
             self.kmer_blocks.append((nodenames, count))
 
-    def check_consistency(self, k):
+
+    def check_consistency (self, k):
         """Check consistency of the fields loaded from the krakline.
 
         Args:
@@ -684,18 +654,19 @@ class KraklineParser():
         if self.qlen < k:
             return True
 
-        block_len_sum = sum([x[1] for x in self.kmer_blocks])
+        block_len_sum=sum([x[1] for x in self.kmer_blocks])
 
         if not self.readlen == block_len_sum + k - 1:
             return False
 
-        if self.seq is not None and len(self.seq) != self.readlen():
+        if self.seq is not None and len(self.seq)!=self.readlen():
             return False
 
-        if self.qual is not None and len(self.qual) != self.readlen():
+        if self.qual is not None and len(self.qual)!=self.readlen():
             return False
 
         return True
+
 
     def diagnostics(self):
         """Print debug messages.
@@ -709,8 +680,7 @@ class KraklineParser():
         print("KraklineParser.readlen:     ", self.readlen, file=sys.stderr)
         print("KraklineParser.seq:         ", self.seq, file=sys.stderr)
         print("KraklineParser.qual:        ", self.qual, file=sys.stderr)
-        print(
-            "KraklineParser.kmer_blocks: ", self.kmer_blocks, file=sys.stderr)
+        print("KraklineParser.kmer_blocks: ", self.kmer_blocks, file=sys.stderr)
 
 
 ###############################################################################################
@@ -718,20 +688,22 @@ class KraklineParser():
 
 
 def assign_all_reads(
-        tree_fn,
-        inp_fo,
-        kmer_lca,
-        tie_lca,
-        form,
-        k,
-        measure,
-        annotate, ):
+    tree_fn,
+    inp_fo,
+    kmer_lca,
+    tie_lca,
+    form,
+    k,
+    measure,
+    annotate,
+):
     assert form in ["kraken", "sam"]
     assert k > 1
 
     tree_index = TreeIndex(
         tree_newick_fn=tree_fn,
-        k=k, )
+        k=k,
+    )
 
     if CONFIG['DIAGNOSTICS']:
         tree_index.diagnostics()
@@ -741,7 +713,8 @@ def assign_all_reads(
         tree_index=tree_index,
         kmer_lca=kmer_lca,
         tie_lca=tie_lca,
-        annotate=annotate, )
+        annotate=annotate,
+    )
 
     if form == "sam":
         assignment.print_sam_header()
@@ -751,69 +724,66 @@ def assign_all_reads(
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Implementation of assignment algorithm')
+    parser = argparse.ArgumentParser(description='Implementation of assignment algorithm')
 
-    parser.add_argument(
-        'tree_fn',
+    parser.add_argument('tree_fn',
         type=str,
         metavar='<tree.nhx>',
-        help='phylogenetic tree (Newick/NHX)', )
+        help='phylogenetic tree (Newick/NHX)',
+    )
 
-    parser.add_argument(
-        'k',
+    parser.add_argument('k',
         type=int,
         metavar='<k>',
-        help='k-mer length', )
+        help='k-mer length',
+    )
 
-    parser.add_argument(
-        'input_file',
+    parser.add_argument('input_file',
         type=argparse.FileType('r'),
         metavar='<assignments.txt>',
-        help='assignments in generalized Kraken format', )
+        help='assignments in generalized Kraken format',
+    )
 
-    parser.add_argument(
-        '-f',
+    parser.add_argument('-f',
         choices=['kraken', 'sam'],
         default='sam',
         dest='format',
-        help='format of output [sam]', )
+        help='format of output [sam]',
+    )
 
-    parser.add_argument(
-        '-m',
+    parser.add_argument('-m',
         choices=['h1', 'c1', 'c2', 'h2'],
         default='h1',
         dest='measure',
-        help=
-        'measure: h1=hit count, c1=coverage, h2=norm.hit count, c2=norm.coverage [h1]',
+        help='measure: h1=hit count, c1=coverage, h2=norm.hit count, c2=norm.coverage [h1]',
     )
 
-    parser.add_argument(
-        '-A',
+    parser.add_argument('-A',
         action='store_true',
         dest='annotate',
-        help='annotate assignments', )
+        help='annotate assignments',
+    )
 
-    parser.add_argument(
-        '-L',
+    parser.add_argument('-L',
         action='store_true',
         dest='tie_lca',
-        help='use LCA when tie (multiple assignments with the same score)', )
+        help='use LCA when tie (multiple assignments with the same score)',
+    )
 
-    parser.add_argument(
-        '-X',
+    parser.add_argument('-X',
         action='store_true',
         dest='kmer_lca',
-        help='use LCA for k-mers (multiple hits of a k-mer)', )
+        help='use LCA for k-mers (multiple hits of a k-mer)',
+    )
 
-    parser.add_argument(
-        '-c',
+    parser.add_argument('-c',
         dest='config',
         metavar='STR',
         nargs='*',
         type=str,
         default=[],
-        help='configuration (a JSON dictionary)', )
+        help='configuration (a JSON dictionary)',
+    )
 
     args = parser.parse_args()
     return args
@@ -823,7 +793,8 @@ def main():
     args = parse_args()
 
     global CONFIG
-    prophyle_conf_string = pro.load_prophyle_conf(CONFIG, args.config)
+    prophyle_conf_string=pro.load_prophyle_conf(CONFIG, args.config)
+
 
     try:
         assign_all_reads(
@@ -834,7 +805,8 @@ def main():
             measure=args.measure,
             annotate=args.annotate,
             tie_lca=args.tie_lca,
-            kmer_lca=args.kmer_lca, )
+            kmer_lca=args.kmer_lca,
+        )
 
     # Karel: I don't remember why I was considering also IOError here
     # except (BrokenPipeError, IOError):

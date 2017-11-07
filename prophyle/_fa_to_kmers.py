@@ -1,10 +1,13 @@
 #! /usr/bin/env python3
+
 """Compute k-mers from a FASTA file.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
 Licence: MIT
 """
+
+
 
 import sys
 import os
@@ -46,10 +49,7 @@ def load_fasta(fasta_fn):
     if name != None:
         sd[name] = "".join(seq)
 
-    print(
-        "Loaded {} ({} bp)".format(fasta_fn, sum([len(x)
-                                                  for x in sd.values()])),
-        file=sys.stderr)
+    print("Loaded {} ({} bp)".format(fasta_fn, sum([len(x) for x in sd.values()])), file=sys.stderr)
     return sd
 
 
@@ -66,9 +66,7 @@ def get_kmers_from_fasta(fasta_fn, k, mode="a"):
     set_of_kmers = set()
 
     fasta_dict = load_fasta(fasta_fn)
-    print(
-        "Extracting k-mers from {} (mode: {})".format(fasta_fn, mode),
-        file=sys.stderr)
+    print("Extracting k-mers from {} (mode: {})".format(fasta_fn, mode), file=sys.stderr)
     for name in fasta_dict:
         sequence = fasta_dict[name]
         sequences_ok = reg_splitting.split(sequence)
@@ -90,42 +88,39 @@ def get_kmers_from_fasta(fasta_fn, k, mode="a"):
                         kmer_rc = seq_rc[i:i + k]
                         set_of_kmers.add(kmer_rc)
 
-    print(
-        "K-mers extracted from {} (mode: {})".format(fasta_fn, mode),
-        file=sys.stderr)
+    print("K-mers extracted from {} (mode: {})".format(fasta_fn, mode), file=sys.stderr)
 
     return set_of_kmers
 
 
-parser = argparse.ArgumentParser(
-    description='Generate all possible k-mers of given length.')
+parser = argparse.ArgumentParser(description='Generate all possible k-mers of given length.')
 
 parser.add_argument(
-    '-i',
-    '--input',
+    '-i', '--input',
     help='input fasta file',
-    required=True, )
+    required=True,
+)
 
 parser.add_argument(
     '-k',
     type=int,
     required=True,
-    help='k-mer length', )
+    help='k-mer length',
+)
 
 parser.add_argument(
-    '-m',
-    '--mode',
+    '-m', '--mode',
     choices=["a", "c", "f", "r"],
     default="a",
-    help=
-    'mode (a = all kmers, c = canonical, f = forward k-mers, r = reversed)', )
+    help='mode (a = all kmers, c = canonical, f = forward k-mers, r = reversed)',
+)
 
 parser.add_argument(
-    '-f',
-    '--format',
+    '-f', '--format',
     choices=['txt', 'fq', 'fa'],
     default='txt',
-    help='output format', )
+    help='output format',
+)
 
 args = parser.parse_args()
 
@@ -158,10 +153,7 @@ elif args.format == "fa":
 kmers = get_kmers_from_fasta(args.input, args.k, mode=args.mode)
 kmers = list(kmers)
 
-print(
-    "Sorting all included k-mers from {} ({} kmers)".format(
-        args.input, len(kmers)),
-    file=sys.stderr)
+print("Sorting all included k-mers from {} ({} kmers)".format(args.input, len(kmers)), file=sys.stderr)
 kmers.sort()
 
 i = 1
