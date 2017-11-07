@@ -73,8 +73,7 @@ flake8: ## Run Flake8
 	flake8
 
 yapf: ## Run YAPF (inline replacement)
-	yapf -i --recursive prophyle
-	yapf -i setup.py
+	yapf -i --recursive prophyle setup.py tests
 
 #############
 # RELEASING #
