@@ -1,14 +1,14 @@
 .PHONY: \
 	all prophyle clean install hooks \
-	test test_repo test_parallel test_package \
-	inc pypi sha256\
+	test test_repo test_parallel test_package pylint \
+	inc pypi sha256 \
 	docs readme wpypi wconda \
 	deppip depconda \
 	submodules \
 	help
 
-# PIP
-PIP=pip
+PIP=/usr/bin/env pip
+PYTHON=/usr/bin/env python3
 
 ###############
 # BASIC RULES #
@@ -65,6 +65,8 @@ test_package: ## Run integration tests from the Python package
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests B PROP=prophyle
 
+pylint: ## Run PyLint
+	$(PYTHON) -m pylint -d prophyle
 
 #############
 # RELEASING #
@@ -74,10 +76,10 @@ inc: ## Increment version
 inc: hooks
 	./prophyle/increment_version.py
 
-pypi: ## Upload to PyPI
+pypi: ## Upload ProPhyle to PyPI
 pypi: hooks
 	make clean
-	/usr/bin/env python3 setup.py sdist bdist_wheel upload
+	$(PYTHON) setup.py sdist bdist_wheel upload
 
 ## Compute sha256 for the PyPI package
 sha256:
