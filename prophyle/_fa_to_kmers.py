@@ -1,13 +1,10 @@
 #! /usr/bin/env python3
-
 """Compute k-mers from a FASTA file.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 
 Licence: MIT
 """
-
-
 
 import sys
 import os
@@ -96,7 +93,8 @@ def get_kmers_from_fasta(fasta_fn, k, mode="a"):
 parser = argparse.ArgumentParser(description='Generate all possible k-mers of given length.')
 
 parser.add_argument(
-    '-i', '--input',
+    '-i',
+    '--input',
     help='input fasta file',
     required=True,
 )
@@ -109,14 +107,16 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '-m', '--mode',
+    '-m',
+    '--mode',
     choices=["a", "c", "f", "r"],
     default="a",
     help='mode (a = all kmers, c = canonical, f = forward k-mers, r = reversed)',
 )
 
 parser.add_argument(
-    '-f', '--format',
+    '-f',
+    '--format',
     choices=['txt', 'fq', 'fa'],
     default='txt',
     help='output format',

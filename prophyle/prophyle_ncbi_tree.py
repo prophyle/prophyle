@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Build taxonomic tree for genomic libraries using etetoolkit.
 
 Author: Simone Pignotti <pignottisimone@gmail.com>
@@ -29,14 +28,15 @@ desc = """\
     Build a taxonomic tree in the New Hampshire newick format #1 for NCBI sequences
 """
 
+
 def acquire_sequences(library, library_dir, log):
     seqs = {}
     acquired = 0
     skipped = 0
-    for dirpath, _, filenames in os.walk(os.path.join(library_dir,library)):
+    for dirpath, _, filenames in os.walk(os.path.join(library_dir, library)):
         for filename in (f for f in filenames if f.endswith('.fai')):
             fn = os.path.join(dirpath, filename)
-            rel_fn = fn[(len(library_dir)+1):-4]
+            rel_fn = fn[(len(library_dir) + 1):-4]
             with open(fn, 'r') as faidx:
                 for seq in faidx:
                     try:
@@ -50,16 +50,15 @@ def acquire_sequences(library, library_dir, log):
                             seqs[acc]['seqlen'] += '@' + seqlen
                             seqs[acc]['offset'] += '@' + offset
                         except KeyError:
-                            seqs[acc] = {'fn': rel_fn,
-                                'seqname': seqname,
-                                'seqlen': seqlen,
-                                'offset': offset}
+                            seqs[acc] = {'fn': rel_fn, 'seqname': seqname, 'seqlen': seqlen, 'offset': offset}
                             acquired += 1
                             pass
                     except:
                         if log:
-                            print('[prophyle_ncbi_tree] ERROR: Sequence \"' + seqname +
-                                  '\" in file \"' + rel_fn + '\" not acquired', file=log)
+                            print(
+                                '[prophyle_ncbi_tree] ERROR: Sequence \"' + seqname + '\" in file \"' + rel_fn +
+                                '\" not acquired', file=log
+                            )
                         skipped += 1
                         pass
     return seqs, acquired, skipped
@@ -89,8 +88,7 @@ def assign_sequences(taxid_map_f, seqs, log):
             assigned += 1
         except KeyError:
             if log:
-                print('[prophyle_ncbi_tree] ERROR: TaxID not found for sequence '
-                      + acc, file=log)
+                print('[prophyle_ncbi_tree] ERROR: TaxID not found for sequence ' + acc, file=log)
             skipped += 1
             pass
 
@@ -116,8 +114,10 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
             taxid_not_found = int(e.args[0])
             taxa.remove(taxid_not_found)
             if log:
-                print('[prophyle_ncbi_tree] ERROR: TaxID ' + str(taxid_not_found) +
-                      ' not found in ETE DB (try updating it)', file=log)
+                print(
+                    '[prophyle_ncbi_tree] ERROR: TaxID ' + str(taxid_not_found) +
+                    ' not found in ETE DB (try updating it)', file=log
+                )
             pass
 
     # [Issue #153] Ignore internal nodes with fasta associated till we find a solution for it
@@ -126,8 +126,10 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
         for node in t.traverse('postorder'):
             if not node.is_leaf() and node.taxid in taxa:
                 internal_with_fasta += len([acc for acc in taxa2acc[node.taxid] if acc in seqs.keys()])
-        print('[prophyle_ncbi_tree] ' + str(internal_with_fasta) + ' sequences' +
-              ' ignored because associated to internal node (see issue #153)', file=log)
+        print(
+            '[prophyle_ncbi_tree] ' + str(internal_with_fasta) + ' sequences' +
+            ' ignored because associated to internal node (see issue #153)', file=log
+        )
     leaves_taxa = [leaf.taxid for leaf in t if leaf.taxid in taxa2acc]
     t = ncbi.get_topology(leaves_taxa, intermediate_nodes=True)
 
@@ -171,8 +173,9 @@ def build_tree(seqs, taxa2acc, red_factor, root, log):
                     seq_count += 1
                 except KeyError:
                     pass
-            node.add_features(fastapath=fastapath, base_len=base_len,
-                infasta_offset=infasta_offset, accession=accession)
+            node.add_features(
+                fastapath=fastapath, base_len=base_len, infasta_offset=infasta_offset, accession=accession
+            )
 
     if not hasattr(t, 'taxid'):
         t.add_features(taxid=0)
@@ -186,80 +189,80 @@ def main_fun(library, library_dir, output_f, taxid_map, red_factor, root, log_fi
 
     seqs, acquired, skipped = acquire_sequences(library, library_dir, log_file)
 
-    print('[prophyle_ncbi_tree] Acquired ' + str(acquired) +
-          ' sequences (' + str(skipped) + ' skipped)', file=sys.stderr)
+    print(
+        '[prophyle_ncbi_tree] Acquired ' + str(acquired) + ' sequences (' + str(skipped) + ' skipped)', file=sys.stderr
+    )
     if log_file:
-        print('[prophyle_ncbi_tree] Acquired ' + str(acquired) +
-              ' sequences (' + str(skipped) + ' skipped)', file=log_file)
+        print(
+            '[prophyle_ncbi_tree] Acquired ' + str(acquired) + ' sequences (' + str(skipped) + ' skipped)',
+            file=log_file
+        )
 
     taxa2seqid, assigned, skipped = assign_sequences(taxid_map, seqs, log_file)
 
-    print('[prophyle_ncbi_tree] TaxID assigned to ' + str(assigned) +
-          ' sequences (' + str(skipped) + ' skipped)', file=sys.stderr)
+    print(
+        '[prophyle_ncbi_tree] TaxID assigned to ' + str(assigned) + ' sequences (' + str(skipped) + ' skipped)',
+        file=sys.stderr
+    )
     if log_file:
-        print('[prophyle_ncbi_tree] TaxID assigned to ' + str(assigned) +
-              ' sequences (' + str(skipped) + ' skipped)', file=log_file)
+        print(
+            '[prophyle_ncbi_tree] TaxID assigned to ' + str(assigned) + ' sequences (' + str(skipped) + ' skipped)',
+            file=log_file
+        )
 
     tax_tree, seq_count, node_count = build_tree(seqs, taxa2seqid, red_factor, root, log_file)
 
-    print('[prophyle_ncbi_tree] Built taxonomic tree for ' + str(seq_count) +
-          ' sequences (' + str(node_count) + ' nodes)', file=sys.stderr)
+    print(
+        '[prophyle_ncbi_tree] Built taxonomic tree for ' + str(seq_count) + ' sequences (' + str(node_count) +
+        ' nodes)', file=sys.stderr
+    )
     if log_file:
-        print('[prophyle_ncbi_tree] Built taxonomic tree for ' + str(seq_count) +
-              ' sequences (' + str(node_count) + ' nodes)', file=log_file)
+        print(
+            '[prophyle_ncbi_tree] Built taxonomic tree for ' + str(seq_count) + ' sequences (' + str(node_count) +
+            ' nodes)', file=log_file
+        )
 
-    tax_tree.write(features=['name', 'accession', 'taxid', 'sci_name',
-        'fastapath', 'infasta_offset', 'base_len',
-        'rank', 'lineage', 'named_lineage'
-    ],
-        format=1,
-        format_root_node=True,
-        outfile=output_f)
+    tax_tree.write(
+        features=[
+            'name', 'accession', 'taxid', 'sci_name', 'fastapath', 'infasta_offset', 'base_len', 'rank', 'lineage',
+            'named_lineage'
+        ], format=1, format_root_node=True, outfile=output_f
+    )
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description=desc)
+    parser = argparse.ArgumentParser(description=desc)
 
-
-    parser.add_argument('library',
+    parser.add_argument(
+        'library',
         type=str,
         metavar='<library>',
         help='directory with the library sequences (e.g. bacteria, viruses etc.)',
     )
-    parser.add_argument('library_dir',
-        type=str,
-        metavar='<library_dir>',
+    parser.add_argument(
+        'library_dir', type=str, metavar='<library_dir>',
         help='library path (parent of library, e.g. main ProPhyle directory)'
     )
-    parser.add_argument('output_file',
-        type=str,
-        metavar='<output_file>',
-        help='output file')
-    parser.add_argument('taxid_map_file',
-        type=str,
-        metavar='<taxid_map>',
-        help='tab separated accession number to taxid map')
-    parser.add_argument('-l',
-        type=argparse.FileType('a+'),
-        metavar='log_file',
-        dest='log_file',
-        help='log file [stderr]')
-    parser.add_argument('-r',
-        type=int,
-        metavar='red_factor',
-        dest='red_factor',
-        help='build reduced tree (one sequence every n)'
+    parser.add_argument('output_file', type=str, metavar='<output_file>', help='output file')
+    parser.add_argument(
+        'taxid_map_file', type=str, metavar='<taxid_map>', help='tab separated accession number to taxid map'
     )
-    parser.add_argument('-u',
-        type=str,
-        metavar='root',
-        dest='root',
-        help='root of the tree (e.g. Bacteria); will exclude sequences which are not its descendants')
+    parser.add_argument(
+        '-l', type=argparse.FileType('a+'), metavar='log_file', dest='log_file', help='log file [stderr]'
+    )
+    parser.add_argument(
+        '-r', type=int, metavar='red_factor', dest='red_factor', help='build reduced tree (one sequence every n)'
+    )
+    parser.add_argument(
+        '-u', type=str, metavar='root', dest='root',
+        help='root of the tree (e.g. Bacteria); will exclude sequences which are not its descendants'
+    )
 
     args = parser.parse_args()
 
-    main_fun(args.library, args.library_dir, args.output_file, args.taxid_map_file, args.red_factor, args.root, args.log_file)
+    main_fun(
+        args.library, args.library_dir, args.output_file, args.taxid_map_file, args.red_factor, args.root, args.log_file
+    )
 
 
 if __name__ == '__main__':

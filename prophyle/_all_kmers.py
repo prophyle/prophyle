@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Generate all k-mers of a given length.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
@@ -20,7 +19,8 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '-f', '--format',
+    '-f',
+    '--format',
     choices=['txt', 'fq', 'fa'],
     default='txt',
     help='output format',

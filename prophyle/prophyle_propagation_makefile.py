@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Create a Makefile for ProPhyle k-mer propagation.
 
 This script first loads a phylogenetic tree, computes its minimal
@@ -57,13 +56,13 @@ def tree_size(tree):
     Args:
         tree: Tree.
     """
-    nodes=0
-    leaves=0
+    nodes = 0
+    leaves = 0
     for n in tree.traverse():
-        nodes+=1
+        nodes += 1
         if n.is_leaf():
-            leaves+=1
-    return (nodes,leaves)
+            leaves += 1
+    return (nodes, leaves)
 
 
 def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_file_fn=None):
@@ -78,47 +77,51 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
     """
 
     if is_leaf:
-        cmd = textwrap.dedent("""\
+        cmd = textwrap.dedent(
+            """\
 
                 {ocompl}: {i}
                 \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
                 \t@touch $@
 
             """.format(
-            i=' '.join(input_files_fn),
-            o=output_file_fn,
-            ocompl=_compl(output_file_fn),
-        ))
+                i=' '.join(input_files_fn),
+                o=output_file_fn,
+                ocompl=_compl(output_file_fn),
+            )
+        )
     else:
 
-        cmd = textwrap.dedent("""\
+        cmd = textwrap.dedent(
+            """\
 
                 {ocompl}: {icompl} {nhx}
                 \tcat {i} > {o}
                 \t@touch $@
 
             """.format(
-            i=' '.join(input_files_fn),
-            icomp=' '.join(_compl_l(input_files_fn)),
-            o=output_file_fn,
-            ocomp=_compl(output_file_fn),
-            nhx=nhx_file_fn if nhx_file_fn is not None else "",
-        ))
+                i=' '.join(input_files_fn),
+                icomp=' '.join(_compl_l(input_files_fn)),
+                o=output_file_fn,
+                ocomp=_compl(output_file_fn),
+                nhx=nhx_file_fn if nhx_file_fn is not None else "",
+            )
+        )
 
     print(
-        textwrap.dedent("""\
+        textwrap.dedent(
+            """\
             #
             # Merging FASTA files: {output_file}
             #
             """.format(output_file=output_file_fn)
-        )
-        + cmd,
-        file=makefile_fo
+        ) + cmd, file=makefile_fo
     )
 
 
-def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo, counts_fn="/dev/null",
-        nhx_file_fn=None):
+def assembly(
+    input_files_fn, output_files_fn, intersection_file_fn, makefile_fo, counts_fn="/dev/null", nhx_file_fn=None
+):
     """Print Makefile lines for running prophyle_assembler.
 
     Args:
@@ -133,7 +136,8 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
     assert len(input_files_fn) == len(output_files_fn)
     # assert intersection_file not in input_files
     # print(intersection_file, input_files,file=sys.stderr)
-    cmd = textwrap.dedent("""\
+    cmd = textwrap.dedent(
+        """\
             ifdef NONDEL
                CMD_ASM_OUT_{nid} =
             else
@@ -152,20 +156,21 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
             \t@touch $@
             \t-$(PRINT_PROGRESS)
             """.format(
-        icompl=' '.join(_compl_l(input_files_fn)),
-        o=' '.join(output_files_fn),
-        ii=' -i '.join(input_files_fn),
-        oo=' -o '.join(output_files_fn),
-        x=intersection_file_fn,
-        xcompl=_compl(intersection_file_fn),
-        c=counts_fn,
-        nid=intersection_file_fn,
-        nhx=nhx_file_fn if nhx_file_fn is not None else "",
-    )
+            icompl=' '.join(_compl_l(input_files_fn)),
+            o=' '.join(output_files_fn),
+            ii=' -i '.join(input_files_fn),
+            oo=' -o '.join(output_files_fn),
+            x=intersection_file_fn,
+            xcompl=_compl(intersection_file_fn),
+            c=counts_fn,
+            nid=intersection_file_fn,
+            nhx=nhx_file_fn if nhx_file_fn is not None else "",
+        )
     )
 
     print(
-        textwrap.dedent("""\
+        textwrap.dedent(
+            """\
             #
             # Assemblying FASTA files: {intersection_file}
             #
@@ -269,10 +274,12 @@ class TreeIndex:
             k (int): K-mer size.
         """
 
-        nodes,leaves=tree_size(self.tree)
+        nodes, leaves = tree_size(self.tree)
 
         with open(self.makefile_fn, 'w+') as f:
-            print(textwrap.dedent("""\
+            print(
+                textwrap.dedent(
+                    """\
                     include params.mk\n
 
                     .PHONY: all clean
@@ -346,15 +353,16 @@ class TreeIndex:
                     \t@touch $@
 
                     """.format(
-                root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
-                root_nonred_compl=_compl(self.nonreduced_fasta_fn(self.tree.get_tree_root())),
-                root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
-                root_red_compl=_compl(self.reduced_fasta_fn(self.tree.get_tree_root())),
-                nodes=nodes,
-                leaves=leaves,
-                internal_nodes=nodes-leaves,
+                        root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
+                        root_nonred_compl=_compl(self.nonreduced_fasta_fn(self.tree.get_tree_root())),
+                        root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
+                        root_red_compl=_compl(self.reduced_fasta_fn(self.tree.get_tree_root())),
+                        nodes=nodes,
+                        leaves=leaves,
+                        internal_nodes=nodes - leaves,
+                    )
+                ), file=f
             )
-            ), file=f)
 
             self.process_node(self.tree.get_tree_root(), makefile_fo=f)
 
@@ -408,9 +416,7 @@ def main():
         index_dir=output_dir_fn,
         makefile_fn=makefile_fn,
     )
-    ti.build_index(
-        k=k,
-    )
+    ti.build_index(k=k, )
 
 
 if __name__ == "__main__":

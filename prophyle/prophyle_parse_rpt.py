@@ -6,7 +6,7 @@ import argparse
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument(type = str, dest = 'library_dir')
+    parser.add_argument(type=str, dest='library_dir')
 
     args = parser.parse_args()
 

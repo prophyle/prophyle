@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Auxiliary ProPhyle functions for running shell commands, file manipulation and tree manipulation.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
@@ -25,8 +24,8 @@ import gzip
 # LOGGING #
 ###########
 
-
 log_file = None
+
 
 def open_gzip(fn):
     """Open a file, possibly compressed with gzip.
@@ -34,10 +33,10 @@ def open_gzip(fn):
     Args:
         fn (str): File name.
     """
-    magic=b'\x1f\x8b\x08'
-    l=len(magic)
+    magic = b'\x1f\x8b\x08'
+    l = len(magic)
     with open(fn, 'rb') as f:
-        file_start=f.read(l)
+        file_start = f.read(l)
         f.seek(0)
     # check if the file is compressed
     if file_start.startswith(magic):
@@ -56,7 +55,7 @@ def open_log(fn):
     global log_file
     if fn is not None:
         d = os.path.dirname(fn)
-        if d!="":
+        if d != "":
             makedirs(d)
         log_file = open(fn, "a+")
 
@@ -92,7 +91,7 @@ def message(*msg, subprogram='', upper=False, only_log=False):
         msg = map(str, msg)
         msg = map(str.upper, msg)
 
-    log_line='[prophyle{}] {} {}'.format(subprogram, fdt, " ".join(msg))
+    log_line = '[prophyle{}] {} {}'.format(subprogram, fdt, " ".join(msg))
 
     if not only_log:
         print(log_line, file=sys.stderr)
@@ -115,10 +114,7 @@ def load_nhx_tree(nhx_fn, validate=True):
         validate (bool): Validate the tree.
     """
 
-    tree = ete3.Tree(
-        nhx_fn,
-        format=1
-    )
+    tree = ete3.Tree(nhx_fn, format=1)
 
     if validate:
         validate_prophyle_nhx_tree(tree)
@@ -169,7 +165,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
     error = False
 
-    existing_names_set=set()
+    existing_names_set = set()
 
     names_with_separator = []
 
@@ -207,11 +203,13 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
     def _error_report(node_list, message):
         if len(node_list) > 0:
-            print("   * {} node(s) {}: {}".format(
-                len(node_list),
-                message,
-                _format_node_list(node_list),
-            ), file=output_fo)
+            print(
+                "   * {} node(s) {}: {}".format(
+                    len(node_list),
+                    message,
+                    _format_node_list(node_list),
+                ), file=output_fo
+            )
 
     if verbose:
         if error:
@@ -477,18 +475,18 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         sys.exit(1)
 
 
-def save_index_config (index_dir, data):
+def save_index_config(index_dir, data):
     """Save a configuration dictionary (index.json in the index directory).
 
     Args:
         index_dir (str): Index directory.
     """
 
-    with open(os.path.join(index_dir, 'index.json'),"w+") as data_file:
+    with open(os.path.join(index_dir, 'index.json'), "w+") as data_file:
         json.dump(data, data_file, indent=4)
 
 
-def load_index_config (index_dir):
+def load_index_config(index_dir):
     """Load a configuration dictionary (index.json in the index directory).
 
     Args:
@@ -506,12 +504,12 @@ def detect_k_from_index(index_dir):
         index_dir (str): Index directory.
     """
 
-    config=load_index_config(index_dir)
+    config = load_index_config(index_dir)
     return config['k']
 
 
 def lower_nonsigleton(node):
-    while len(node.children)==1:
+    while len(node.children) == 1:
         node = node.children[0]
     return node
 
@@ -533,32 +531,32 @@ def load_prophyle_conf(globconf, json_strs):
         json_fn (str): Returns a file name of a JSON with the same information.
     """
 
-    assert type(globconf)==dict
+    assert type(globconf) == dict
 
-    if len(json_strs)==0:
+    if len(json_strs) == 0:
         return None
 
-    string=(" ".join(json_strs)).strip()
+    string = (" ".join(json_strs)).strip()
 
     if os.path.isfile(string):
         # load JSON from a file & return the same filename
-        json_filename=string
+        json_filename = string
         with open(json_filename) as f:
             data = json.load(f)
-        prophyle_conf_tmp_filename=json_filename
+        prophyle_conf_tmp_filename = json_filename
 
     else:
         # load JSON from the string & create a tmp file
-        json_string=string
-        if json_string[0]!="{" and json_string[-1]!="}":
-            json_string="".join(["{", json_string, "}"])
-        data=json.loads(json_string)
+        json_string = string
+        if json_string[0] != "{" and json_string[-1] != "}":
+            json_string = "".join(["{", json_string, "}"])
+        data = json.loads(json_string)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            prophyle_conf_tmp_filename=f.name
+            prophyle_conf_tmp_filename = f.name
             json.dump(data, f, indent=3)
 
-    assert type(data)==dict, "The provided configuration is not a dictionary"
+    assert type(data) == dict, "The provided configuration is not a dictionary"
     globconf.update(data)
 
     try:
