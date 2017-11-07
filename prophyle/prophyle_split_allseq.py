@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Split fasta files containing sequences of different organisms (with different TaxID)
     Used for HMP dataset, since all sequences are distributed in a single fasta
 
@@ -21,40 +20,43 @@ def split_fs(output_dir_fn):
     i = 0
     while True:
         i += 1
-        fn = os.path.join(output_dir_fn, str(i)+'.fna')
+        fn = os.path.join(output_dir_fn, str(i) + '.fna')
         yield open(fn, 'w'), i
 
+
 def main():
-        parser = argparse.ArgumentParser(
-            description='Split a fasta file containing multiple sequences in multiple files containing one sequence')
-        parser.add_argument('output_dir',
-            type=str,
-            help='Path to the output directory')
-        parser.add_argument('-i',
-            dest='input_file',
-            metavar='STR',
-            type=argparse.FileType('r'),
-            default=sys.stdin,
-            help='Fasta file [stdin]')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description=
+        'Split a fasta file containing multiple sequences in multiple files containing one sequence'
+    )
+    parser.add_argument(
+        'output_dir', type=str, help='Path to the output directory')
+    parser.add_argument(
+        '-i',
+        dest='input_file',
+        metavar='STR',
+        type=argparse.FileType('r'),
+        default=sys.stdin,
+        help='Fasta file [stdin]')
+    args = parser.parse_args()
 
-        input_f = args.input_file
-        output_dir_fn = args.output_dir
+    input_f = args.input_file
+    output_dir_fn = args.output_dir
 
-        start_seq = '>'
-        split_f = split_fs(output_dir_fn)
-        outfile = None
+    start_seq = '>'
+    split_f = split_fs(output_dir_fn)
+    outfile = None
 
-        for line in input_f:
-            if start_seq not in line:
-                outfile.write(line)
-            else:
-                if outfile:
-                    outfile.close()
-                outfile, i = next(split_f)
-                outfile.write(line)
+    for line in input_f:
+        if start_seq not in line:
+            outfile.write(line)
+        else:
+            if outfile:
+                outfile.close()
+            outfile, i = next(split_f)
+            outfile.write(line)
 
-        outfile.close()
+    outfile.close()
 
 
 if __name__ == "__main__":

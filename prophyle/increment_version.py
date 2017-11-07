@@ -3,16 +3,16 @@
 import os
 import sys
 
-vfn=os.path.join(os.path.dirname(sys.argv[0]),"version.py")
+vfn = os.path.join(os.path.dirname(sys.argv[0]), "version.py")
 
 exec(open(vfn).read())
 
-numbers=VERSION.split(".")
-numbers[-1]=str(int(numbers[-1])+1)
+numbers = VERSION.split(".")
+numbers[-1] = str(int(numbers[-1]) + 1)
 
-version=".".join(numbers)
+version = ".".join(numbers)
 
-with open(vfn,"w") as f:
+with open(vfn, "w") as f:
     f.write('try:\n')
     f.write('\tfrom __commit import *\n')
     f.write('except ImportError:\n')

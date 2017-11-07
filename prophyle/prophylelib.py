@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Auxiliary ProPhyle functions for running shell commands, file manipulation and tree manipulation.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
@@ -25,8 +24,8 @@ import gzip
 # LOGGING #
 ###########
 
-
 log_file = None
+
 
 def open_gzip(fn):
     """Open a file, possibly compressed with gzip.
@@ -34,10 +33,10 @@ def open_gzip(fn):
     Args:
         fn (str): File name.
     """
-    magic=b'\x1f\x8b\x08'
-    l=len(magic)
+    magic = b'\x1f\x8b\x08'
+    l = len(magic)
     with open(fn, 'rb') as f:
-        file_start=f.read(l)
+        file_start = f.read(l)
         f.seek(0)
     # check if the file is compressed
     if file_start.startswith(magic):
@@ -56,7 +55,7 @@ def open_log(fn):
     global log_file
     if fn is not None:
         d = os.path.dirname(fn)
-        if d!="":
+        if d != "":
             makedirs(d)
         log_file = open(fn, "a+")
 
@@ -92,7 +91,7 @@ def message(*msg, subprogram='', upper=False, only_log=False):
         msg = map(str, msg)
         msg = map(str.upper, msg)
 
-    log_line='[prophyle{}] {} {}'.format(subprogram, fdt, " ".join(msg))
+    log_line = '[prophyle{}] {} {}'.format(subprogram, fdt, " ".join(msg))
 
     if not only_log:
         print(log_line, file=sys.stderr)
@@ -115,10 +114,7 @@ def load_nhx_tree(nhx_fn, validate=True):
         validate (bool): Validate the tree.
     """
 
-    tree = ete3.Tree(
-        nhx_fn,
-        format=1
-    )
+    tree = ete3.Tree(nhx_fn, format=1)
 
     if validate:
         validate_prophyle_nhx_tree(tree)
@@ -148,11 +144,13 @@ def save_nhx_tree(tree, nhx_fn):
         features=sorted(features),
         format=1,
         format_root_node=True,
-        outfile=nhx_fn,
-    )
+        outfile=nhx_fn, )
 
 
-def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output_fo=sys.stderr):
+def validate_prophyle_nhx_tree(tree,
+                               verbose=True,
+                               throw_exceptions=True,
+                               output_fo=sys.stderr):
     """Validate an ETE3 tree with respect to ProPhyle requirements.
 
     Args:
@@ -169,7 +167,7 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
     error = False
 
-    existing_names_set=set()
+    existing_names_set = set()
 
     names_with_separator = []
 
@@ -207,11 +205,12 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
     def _error_report(node_list, message):
         if len(node_list) > 0:
-            print("   * {} node(s) {}: {}".format(
-                len(node_list),
-                message,
-                _format_node_list(node_list),
-            ), file=output_fo)
+            print(
+                "   * {} node(s) {}: {}".format(
+                    len(node_list),
+                    message,
+                    _format_node_list(node_list), ),
+                file=output_fo)
 
     if verbose:
         if error:
@@ -225,7 +224,9 @@ def validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=True, output
 
     if throw_exceptions:
         if error:
-            raise ValueError("Invalid tree. The format of the tree is not correct. See the messages above.")
+            raise ValueError(
+                "Invalid tree. The format of the tree is not correct. See the messages above."
+            )
 
     if error:
         return False
@@ -395,7 +396,12 @@ def test_files(*fns, test_nonzero=False):
 ########
 
 
-def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True, silent=False):
+def run_safe(command,
+             output_fn=None,
+             output_fo=None,
+             err_msg=None,
+             thr_exc=True,
+             silent=False):
     """Run a shell command safely.
 
     Args:
@@ -435,9 +441,13 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         out_fo = open(output_fn, "w+")
 
     if out_fo == sys.stdout:
-        p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True)
+        p = subprocess.Popen(
+            "/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True)
     else:
-        p = subprocess.Popen("/bin/bash -e -o pipefail -c '{}'".format(command_str), shell=True, stdout=out_fo)
+        p = subprocess.Popen(
+            "/bin/bash -e -o pipefail -c '{}'".format(command_str),
+            shell=True,
+            stdout=out_fo)
 
     ps_p = psutil.Process(p.pid)
 
@@ -446,7 +456,8 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
     while error_code is None:
         try:
             max_rss = max(max_rss, ps_p.memory_info().rss)
-        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied, OSError, IOError):
+        except (psutil.NoSuchProcess, psutil.ZombieProcess,
+                psutil.AccessDenied, OSError, IOError):
             pass
         #except psutil.NoSuchProcess as e:
         #    print("[prophylelib] Warning: psutil - NoSuchProcess (pid: {}, name: {}, msg: {})".format(e.pid, e.name, e.msg), file=sys.stderr)
@@ -466,7 +477,9 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         if not silent:
             message("Finished ({} MB used): {}".format(mem_mb, command_str))
     else:
-        message("Unfinished, an error occurred (error code {}, {} MB used): {}".format(error_code, mem_mb, command_str))
+        message(
+            "Unfinished, an error occurred (error code {}, {} MB used): {}".
+            format(error_code, mem_mb, command_str))
 
         if err_msg is not None:
             print('Error: {}'.format(err_msg), file=sys.stderr)
@@ -477,18 +490,18 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         sys.exit(1)
 
 
-def save_index_config (index_dir, data):
+def save_index_config(index_dir, data):
     """Save a configuration dictionary (index.json in the index directory).
 
     Args:
         index_dir (str): Index directory.
     """
 
-    with open(os.path.join(index_dir, 'index.json'),"w+") as data_file:
+    with open(os.path.join(index_dir, 'index.json'), "w+") as data_file:
         json.dump(data, data_file, indent=4)
 
 
-def load_index_config (index_dir):
+def load_index_config(index_dir):
     """Load a configuration dictionary (index.json in the index directory).
 
     Args:
@@ -506,12 +519,12 @@ def detect_k_from_index(index_dir):
         index_dir (str): Index directory.
     """
 
-    config=load_index_config(index_dir)
+    config = load_index_config(index_dir)
     return config['k']
 
 
 def lower_nonsigleton(node):
-    while len(node.children)==1:
+    while len(node.children) == 1:
         node = node.children[0]
     return node
 
@@ -533,32 +546,33 @@ def load_prophyle_conf(globconf, json_strs):
         json_fn (str): Returns a file name of a JSON with the same information.
     """
 
-    assert type(globconf)==dict
+    assert type(globconf) == dict
 
-    if len(json_strs)==0:
+    if len(json_strs) == 0:
         return None
 
-    string=(" ".join(json_strs)).strip()
+    string = (" ".join(json_strs)).strip()
 
     if os.path.isfile(string):
         # load JSON from a file & return the same filename
-        json_filename=string
+        json_filename = string
         with open(json_filename) as f:
             data = json.load(f)
-        prophyle_conf_tmp_filename=json_filename
+        prophyle_conf_tmp_filename = json_filename
 
     else:
         # load JSON from the string & create a tmp file
-        json_string=string
-        if json_string[0]!="{" and json_string[-1]!="}":
-            json_string="".join(["{", json_string, "}"])
-        data=json.loads(json_string)
+        json_string = string
+        if json_string[0] != "{" and json_string[-1] != "}":
+            json_string = "".join(["{", json_string, "}"])
+        data = json.loads(json_string)
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            prophyle_conf_tmp_filename=f.name
+        with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False) as f:
+            prophyle_conf_tmp_filename = f.name
             json.dump(data, f, indent=3)
 
-    assert type(data)==dict, "The provided configuration is not a dictionary"
+    assert type(data) == dict, "The provided configuration is not a dictionary"
     globconf.update(data)
 
     try:

@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Create a Makefile for ProPhyle k-mer propagation.
 
 This script first loads a phylogenetic tree, computes its minimal
@@ -57,16 +56,20 @@ def tree_size(tree):
     Args:
         tree: Tree.
     """
-    nodes=0
-    leaves=0
+    nodes = 0
+    leaves = 0
     for n in tree.traverse():
-        nodes+=1
+        nodes += 1
         if n.is_leaf():
-            leaves+=1
-    return (nodes,leaves)
+            leaves += 1
+    return (nodes, leaves)
 
 
-def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_file_fn=None):
+def merge_fasta_files(input_files_fn,
+                      output_file_fn,
+                      is_leaf,
+                      makefile_fo,
+                      nhx_file_fn=None):
     """Print Makefile lines for merging FASTA files and removing empty lines.
 
     Args:
@@ -87,8 +90,7 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
             """.format(
             i=' '.join(input_files_fn),
             o=output_file_fn,
-            ocompl=_compl(output_file_fn),
-        ))
+            ocompl=_compl(output_file_fn), ))
     else:
 
         cmd = textwrap.dedent("""\
@@ -102,23 +104,23 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
             icomp=' '.join(_compl_l(input_files_fn)),
             o=output_file_fn,
             ocomp=_compl(output_file_fn),
-            nhx=nhx_file_fn if nhx_file_fn is not None else "",
-        ))
+            nhx=nhx_file_fn if nhx_file_fn is not None else "", ))
 
     print(
         textwrap.dedent("""\
             #
             # Merging FASTA files: {output_file}
             #
-            """.format(output_file=output_file_fn)
-        )
-        + cmd,
-        file=makefile_fo
-    )
+            """.format(output_file=output_file_fn)) + cmd,
+        file=makefile_fo)
 
 
-def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo, counts_fn="/dev/null",
-        nhx_file_fn=None):
+def assembly(input_files_fn,
+             output_files_fn,
+             intersection_file_fn,
+             makefile_fo,
+             counts_fn="/dev/null",
+             nhx_file_fn=None):
     """Print Makefile lines for running prophyle_assembler.
 
     Args:
@@ -160,19 +162,15 @@ def assembly(input_files_fn, output_files_fn, intersection_file_fn, makefile_fo,
         xcompl=_compl(intersection_file_fn),
         c=counts_fn,
         nid=intersection_file_fn,
-        nhx=nhx_file_fn if nhx_file_fn is not None else "",
-    )
-    )
+        nhx=nhx_file_fn if nhx_file_fn is not None else "", ))
 
     print(
         textwrap.dedent("""\
             #
             # Assemblying FASTA files: {intersection_file}
             #
-            """.format(intersection_file=intersection_file_fn)
-        ) + cmd,
-        file=makefile_fo,
-    )
+            """.format(intersection_file=intersection_file_fn)) + cmd,
+        file=makefile_fo, )
 
 
 class TreeIndex:
@@ -245,7 +243,11 @@ class TreeIndex:
                 fastas_fn = node.fastapath.split("@")
                 for i in range(len(fastas_fn)):
                     fastas_fn[i] = os.path.join(self.library_dir, fastas_fn[i])
-                merge_fasta_files(fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo)
+                merge_fasta_files(
+                    fastas_fn,
+                    self.nonreduced_fasta_fn(node),
+                    is_leaf=True,
+                    makefile_fo=makefile_fo)
 
         else:
             children = node.get_children()
@@ -260,7 +262,12 @@ class TreeIndex:
             output_files = [self.reduced_fasta_fn(x) for x in children]
             intersection_file = self.nonreduced_fasta_fn(node)
             count_file = self.count_fn(node)
-            assembly(input_files, output_files, intersection_file, counts_fn=count_file, makefile_fo=makefile_fo)
+            assembly(
+                input_files,
+                output_files,
+                intersection_file,
+                counts_fn=count_file,
+                makefile_fo=makefile_fo)
 
     def build_index(self, k):
         """Print Makefile for the tree.
@@ -269,10 +276,11 @@ class TreeIndex:
             k (int): K-mer size.
         """
 
-        nodes,leaves=tree_size(self.tree)
+        nodes, leaves = tree_size(self.tree)
 
         with open(self.makefile_fn, 'w+') as f:
-            print(textwrap.dedent("""\
+            print(
+                textwrap.dedent("""\
                     include params.mk\n
 
                     .PHONY: all clean
@@ -346,52 +354,51 @@ class TreeIndex:
                     \t@touch $@
 
                     """.format(
-                root_nonred=self.nonreduced_fasta_fn(self.tree.get_tree_root()),
-                root_nonred_compl=_compl(self.nonreduced_fasta_fn(self.tree.get_tree_root())),
-                root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
-                root_red_compl=_compl(self.reduced_fasta_fn(self.tree.get_tree_root())),
-                nodes=nodes,
-                leaves=leaves,
-                internal_nodes=nodes-leaves,
-            )
-            ), file=f)
+                    root_nonred=self.nonreduced_fasta_fn(
+                        self.tree.get_tree_root()),
+                    root_nonred_compl=_compl(
+                        self.nonreduced_fasta_fn(self.tree.get_tree_root())),
+                    root_red=self.reduced_fasta_fn(self.tree.get_tree_root()),
+                    root_red_compl=_compl(
+                        self.reduced_fasta_fn(self.tree.get_tree_root())),
+                    nodes=nodes,
+                    leaves=leaves,
+                    internal_nodes=nodes - leaves, )),
+                file=f)
 
             self.process_node(self.tree.get_tree_root(), makefile_fo=f)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Create Makefile for parallelized ProPhyle k-mer propagation.')
+    parser = argparse.ArgumentParser(
+        description=
+        'Create Makefile for parallelized ProPhyle k-mer propagation.')
     parser.add_argument(
         'newick_fn',
         type=str,
         metavar='<tree.nw>',
-        help='phylogenetic tree (in Newick/NHX).',
-    )
+        help='phylogenetic tree (in Newick/NHX).', )
     parser.add_argument(
         '-k',
         type=int,
         metavar='int',
         dest='k',
         required=True,
-        help='k-mer length',
-    )
+        help='k-mer length', )
     parser.add_argument(
         'library_dir_fn',
         metavar='<library.dir>',
-        help='directory with the library',
-    )
+        help='directory with the library', )
     parser.add_argument(
         'output_dir_fn',
         type=str,
         metavar='<output.dir>',
-        help='output directory for the index',
-    )
+        help='output directory for the index', )
     parser.add_argument(
         'makefile_fn',
         type=str,
         metavar='<Makefile>',
-        help='output Makefile',
-    )
+        help='output Makefile', )
 
     args = parser.parse_args()
 
@@ -406,11 +413,8 @@ def main():
         tree_newick_fn=newick_fn,
         library_dir=library_dir_fn,
         index_dir=output_dir_fn,
-        makefile_fn=makefile_fn,
-    )
-    ti.build_index(
-        k=k,
-    )
+        makefile_fn=makefile_fn, )
+    ti.build_index(k=k, )
 
 
 if __name__ == "__main__":
