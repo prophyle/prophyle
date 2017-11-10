@@ -65,7 +65,7 @@ test_repo:
 test_repo_coverage:
 	$(MAKE) -C tests clean
 	# replace /usr/bin/env/python3 by coverage
-	PATH=bin/python3_coverage_wrapper PATH $(MAKE) -C tests
+	PATH=$$(pwd)/bin/python3_coverage_wrapper:$$PATH $(MAKE) -C tests
 
 test_parallel: ## Run tests in parallel
 	$(MAKE) -C tests clean
@@ -134,3 +134,4 @@ deppip: ## Install dependencies using PIP
 
 submodules: ## Download BWA submodule if missing
 	$(MAKE) -C prophyle submodules
+
