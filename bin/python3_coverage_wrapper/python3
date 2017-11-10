@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+set -e
+set -x
+
+#PATH=$(echo $PATH | perl -pe 's/(.*?):(.*)/\2/g') /usr/bin/env python3
+ROOT_DIR=$(dirname "$0")/../..
+COVERAGE_FILE=$ROOT_DIR/.coverage coverage run -a $@
+
