@@ -398,6 +398,9 @@ def test_files(*fns, test_nonzero=False):
 def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True, silent=False):
     """Run a shell command safely.
 
+    If a environmental variable PROPHYLE_COVERAGE is defined, called Python scripts
+    through coverage and save the output to '.coverage.2'.
+
     Args:
         command (list of str): Command to execute.
         output_fn (str): Name of a file for storing the output.
@@ -412,6 +415,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 
     assert output_fn is None or output_fo is None
     assert err_msg is not None or thr_exc
+    assert len(command)>0
 
     command_safe = []
 
@@ -422,6 +426,15 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
         command_safe.append(part)
 
     command_str = " ".join(command_safe)
+
+    # BEGIN: wrapping by coverage
+    if command[0][-3:]==".py":
+        try:
+            if os.environ['PROPHYLE_COVERAGE']:
+                command_str="COVERAGE_FILE={}/../.coverage.2 coverage run -a ".format(os.path.dirname(os.path.realpath(__file__))) + command_str
+        except KeyError:
+            pass
+    # END: wrapping by coverage
 
     if not silent:
         message("Shell command:", command_str)

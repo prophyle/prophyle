@@ -57,7 +57,7 @@ script:
   # tests in the repo dir
   - make clean
     #- make test_repo
-  - if [[ $(uname) == "Linux" ]]; then make coverage; make test_repo ; fi
+  - if [[ $(uname) == "Linux" ]]; then make coverage; export PROPHYLE_COVERAGE=1; coverage combine .coverage.2; make test_repo; fi
   # tests in the package dir
   - make clean
   - pip --version
