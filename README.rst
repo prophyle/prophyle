@@ -55,3 +55,4 @@ Quick example
 4. Classify your reads: ::
 
         $ prophyle classify _index_ecoli reads.fq > result.sam
+
