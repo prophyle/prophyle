@@ -1,6 +1,6 @@
 .PHONY: \
 	all prophyle clean install hooks \
-	test test_repo test_parallel test_package \
+	test test_repo test_repo_coverage test_parallel test_package \
 	pylint coverage \
 	inc pypi sha256 \
 	docs readme wpypi wconda \
@@ -54,10 +54,17 @@ hooks: ## Install git hooks
 
 test: test_repo
 
+coverage: ## Run test coverage analysis
+coverage: test_repo_coverage
+
 test_repo: ## Run unit tests & integration from the repo dir
 test_repo:
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests
+
+test_repo_coverage:
+	$(MAKE) -C tests clean
+	COVERAGE_FILE=$(ROOT_DIR)/.coverage $(MAKE) -C tests PROP="coverage run -a $(ROOT_DIR)/prophyle/prophyle.py"
 
 test_parallel: ## Run tests in parallel
 	$(MAKE) -C tests clean
@@ -70,10 +77,6 @@ test_package: ## Run integration tests from the Python package
 
 pylint: ## Run PyLint
 	$(PYTHON) -m pylint -d prophyle
-
-coverage: ## Run test coverage analysis
-	$(MAKE) -C tests clean
-	COVERAGE_FILE=$(ROOT_DIR)/.coverage $(MAKE) -C tests B PROP="coverage run -a $(ROOT_DIR)/prophyle/prophyle.py"
 
 
 #############
