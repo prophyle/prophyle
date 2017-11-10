@@ -1,6 +1,7 @@
 .PHONY: \
 	all prophyle clean install hooks \
-	test test_repo test_parallel test_package pylint \
+	test test_repo test_parallel test_package \
+	pylint coverage \
 	inc pypi sha256 \
 	docs readme wpypi wconda \
 	deppip depconda \
@@ -9,6 +10,8 @@
 
 PIP=/usr/bin/env pip
 PYTHON=/usr/bin/env python3
+
+ROOT_DIR = $(shell pwd)
 
 ###############
 # BASIC RULES #
@@ -67,6 +70,11 @@ test_package: ## Run integration tests from the Python package
 
 pylint: ## Run PyLint
 	$(PYTHON) -m pylint -d prophyle
+
+coverage: ## Run test coverage analysis
+	$(MAKE) -C tests clean
+	COVERAGE_FILE=$(ROOT_DIR)/.coverage $(MAKE) -C tests B PROP="coverage run -a $(ROOT_DIR)/prophyle/prophyle.py"
+
 
 #############
 # RELEASING #
