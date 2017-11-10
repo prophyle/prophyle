@@ -24,7 +24,7 @@ prophyle: hooks
 	$(MAKE) -C prophyle
 
 clean: ## Clean
-	rm -fr build dist prophyle.egg-info
+	$(PYTHON) setup.py clean --all
 	rm -fr _index_test/ _test_*
 	$(MAKE) -C prophyle clean
 	$(MAKE) -C tests clean
@@ -78,7 +78,7 @@ inc: hooks
 
 pypi: ## Upload ProPhyle to PyPI
 pypi: hooks
-	make clean
+	$(MAKE) clean
 	$(PYTHON) setup.py sdist bdist_wheel upload
 
 ## Compute sha256 for the PyPI package
