@@ -65,7 +65,7 @@ script:
   - make test_package
 
 after_success:
-- if [[ $(uname) == "Linux" ]]; coverage combine .coverage.*; codecov -t $CODECOV_TOKEN; fi
+- if [[ $(uname) == "Linux" ]]; then coverage combine .coverage.*; codecov -t $CODECOV_TOKEN; fi
 
 cache:
   directories:

@@ -1,4 +1,4 @@
-BRANCH="coverage_analysis_wrapper"
-SHORTHASH="f46be53"
-REVCOUNT=1583
+BRANCH="coverage_analysis"
+SHORTHASH="5009910"
+REVCOUNT=1584
 LATESTTAG="0.3.0.2"
