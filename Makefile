@@ -78,7 +78,7 @@ inc: hooks
 
 pypi: ## Upload ProPhyle to PyPI
 pypi: hooks
-	make clean
+	$(MAKE) clean
 	$(PYTHON) setup.py sdist bdist_wheel upload
 
 ## Compute sha256 for the PyPI package
