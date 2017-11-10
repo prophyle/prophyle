@@ -64,7 +64,8 @@ test_repo:
 
 test_repo_coverage:
 	$(MAKE) -C tests clean
-	COVERAGE_FILE=$(ROOT_DIR)/.coverage $(MAKE) -C tests PROP="coverage run -a $(ROOT_DIR)/prophyle/prophyle.py"
+	# replace /usr/bin/env/python3 by coverage
+	PATH=bin/python3_coverage_wrapper PATH $(MAKE) -C tests
 
 test_parallel: ## Run tests in parallel
 	$(MAKE) -C tests clean
