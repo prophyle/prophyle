@@ -1,6 +1,7 @@
 .PHONY: \
 	all prophyle clean install hooks \
-	test test_repo test_parallel test_package pylint \
+	test test_repo test_repo_coverage test_parallel test_package \
+	pylint coverage \
 	inc pypi sha256 \
 	docs readme wpypi wconda \
 	deppip depconda \
@@ -9,6 +10,8 @@
 
 PIP=/usr/bin/env pip
 PYTHON=/usr/bin/env python3
+
+ROOT_DIR = $(shell pwd)
 
 ###############
 # BASIC RULES #
@@ -51,10 +54,18 @@ hooks: ## Install git hooks
 
 test: test_repo
 
+coverage: ## Run test coverage analysis
+coverage: test_repo_coverage
+
 test_repo: ## Run unit tests & integration from the repo dir
 test_repo:
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests
+
+test_repo_coverage:
+	$(MAKE) -C tests clean
+	# replace /usr/bin/env/python3 by coverage
+	PATH=$$(pwd)/bin/python3_coverage_wrapper:$$PATH $(MAKE) -C tests
 
 test_parallel: ## Run tests in parallel
 	$(MAKE) -C tests clean
@@ -67,6 +78,7 @@ test_package: ## Run integration tests from the Python package
 
 pylint: ## Run PyLint
 	$(PYTHON) -m pylint -d prophyle
+
 
 #############
 # RELEASING #
@@ -122,3 +134,4 @@ deppip: ## Install dependencies using PIP
 
 submodules: ## Download BWA submodule if missing
 	$(MAKE) -C prophyle submodules
+
