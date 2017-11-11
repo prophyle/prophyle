@@ -122,7 +122,7 @@ wpypi: ## Open ProPhyle PyPI webpage
 ########################
 
 depconda: ## Install dependencies using Conda
-	cat requirements.txt | xargs conda install
+	cat requirements.txt | perl -pe 's/==.*//g' | xargs conda install
 
 deppip: ## Install dependencies using PIP
 	cat requirements.txt | xargs $(PIP) install
