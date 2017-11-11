@@ -4,6 +4,7 @@ exclude_lines =
     except KeyboardInterrupt:
     except BrokenPipeError:
     except ImportError:
+    except RuntimeError:
     except:
 ignore_errors = True
 
