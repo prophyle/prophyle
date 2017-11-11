@@ -412,6 +412,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 
     assert output_fn is None or output_fo is None
     assert err_msg is not None or thr_exc
+    assert len(command)>0
 
     command_safe = []
 
