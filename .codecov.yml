@@ -5,4 +5,4 @@ coverage:
 
 ignore:
   - "prophyle/version.py"  # ignore folders and all its contents
-  - "**/_*.py"
+  - "prophyle/_*.py"
