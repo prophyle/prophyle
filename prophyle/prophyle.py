@@ -835,9 +835,9 @@ def prophyle_classify(index_dir, fq_fn, fq_pe_fn, k, out_format, mimic_kraken, m
     _test_tree(index_tree)
 
     if fq_pe_fn:
-        pro.test_files(fq_fn, fq_pe_fn)
+        pro.test_files(fq_fn, fq_pe_fn, allow_pipes=False)
     elif fq_fn != '-':
-        pro.test_files(fq_fn)
+        pro.test_files(fq_fn, allow_pipes=False)
 
     pro.test_files(IND)
 
