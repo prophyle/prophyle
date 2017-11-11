@@ -1018,8 +1018,8 @@ def parser():
     desc = """\
         Program: prophyle (phylogeny-based metagenomic classification)
         Version: {V}
-        Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
-                 Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+        Authors: Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov
+        Contact: kbrinda@hsph.harvard.edu
 
         Usage:   prophyle <command> [options]
         """.format(V=version.VERSION)
