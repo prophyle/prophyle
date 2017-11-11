@@ -1,0 +1,11 @@
+[report]
+exclude_lines =
+    diagnostics
+    except KeyboardInterrupt:
+    except BrokenPipeError:
+    except ImportError:
+    except:
+ignore_errors = True
+
+[html]
+directory = coverage_html_report
