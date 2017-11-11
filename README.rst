@@ -5,6 +5,9 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 .. image:: https://travis-ci.org/karel-brinda/prophyle.svg?branch=master
         :target: https://travis-ci.org/karel-brinda/prophyle
 
+.. image:: https://codecov.io/gh/karel-brinda/prophyle/branch/master/graph/badge.svg
+        :target: https://codecov.io/gh/karel-brinda/prophyle
+
 .. image:: https://readthedocs.org/projects/prophyle/badge/?version=latest
         :target: http://prophyle.rtfd.org
 
