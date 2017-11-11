@@ -2,3 +2,7 @@ coverage:
   range: 0..100
   round: down
   precision: 2
+
+ignore:
+  - "prophyle/version.py"  # ignore folders and all its contents
+  - "**/_*.py"
