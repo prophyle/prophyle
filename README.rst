@@ -60,9 +60,9 @@ Quick example
 Algorithm description
 ---------------------
 
-K. Břinda, K. Salikhov, S. Pignotti, and G. Kucherov. `ProPhyle: a phylogeny-based metagenomic classifier using the Burrows-Wheeler Transform. <http://brinda.cz/publications/2017_prophyle_hitseq.pdf>`_ Poster at HiTSeq 2017. |hitseq2017|
+Břinda K, Salikhov K, Pignotti S, and Kucherov G. `ProPhyle: a phylogeny-based metagenomic classifier using the Burrows-Wheeler Transform. <http://brinda.cz/publications/2017_prophyle_hitseq.pdf>`_ Poster at HiTSeq 2017. |hitseq2017|
 
-K. Břinda. `Novel computational techniques for mapping and classifying Next-Generation Sequencing data. <http://brinda.cz/publications/brinda_phd.pdf>`_ PhD Thesis, Université Paris-Est, 2016. |karel_phd|
+Břinda K. `Novel computational techniques for mapping and classifying Next-Generation Sequencing data. <http://brinda.cz/publications/brinda_phd.pdf>`_ PhD Thesis, Université Paris-Est, 2016. |karel_phd|
 
 .. |karel_phd| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1045317.svg
 	   :target: https://doi.org/10.5281/zenodo.1045317
