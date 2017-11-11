@@ -97,7 +97,7 @@ See `Releases <https://github.com/karel-brinda/prophyle/releases>`_.
 Licence
 -------
 
-`MIT <https://github.com/karel-brinda/prophyle/blob/master/LICENSE>`_
+`MIT <https://github.com/karel-brinda/prophyle/blob/master/LICENSE.txt>`_
 
 
 Authors
