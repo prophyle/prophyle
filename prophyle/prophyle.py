@@ -139,13 +139,14 @@ def _test_tree(fn):
     assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
 
 
-def _compile_prophyle_bin(clean=False, parallel=False, silent=True):
+def _compile_prophyle_bin(clean=False, parallel=False, silent=True, force=False):
     """Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
 
     Args:
         clean (bool): Run make clean instead of make.
         parallel (bool): Run make in parallel.
         silent (bool): Run make silently.
+        force (bool): Force recompile (make -B).
     """
 
     try:
@@ -156,6 +157,9 @@ def _compile_prophyle_bin(clean=False, parallel=False, silent=True):
 
         if silent:
             command+=['-s']
+
+        if force:
+            command+=['-B']
 
         command+=["-C", C_D]
 
@@ -998,8 +1002,8 @@ def prophyle_decompress(archive, output_dir, klcp):
 # PROPHYLE COMPILE #
 ####################
 
-def prophyle_compile(clean, parallel):
-    _compile_prophyle_bin(clean=clean, parallel=parallel, silent=False)
+def prophyle_compile(clean, parallel, force):
+    _compile_prophyle_bin(clean=clean, parallel=parallel, force=force, silent=False)
 
 
 ########
@@ -1447,6 +1451,13 @@ def parser():
     )
 
     parser_compile.add_argument(
+        '-F',
+        dest='force',
+        action='store_true',
+        help='force recompilation',
+    )
+
+    parser_compile.add_argument(
         '-P',
         dest='parallel',
         action='store_true',
@@ -1569,6 +1580,7 @@ def main():
             prophyle_compile(
                 clean=args.clean,
                 parallel=args.parallel,
+                force=args.force,
             )
 
         else:
