@@ -16,6 +16,9 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 .. image:: https://badge.fury.io/py/prophyle.svg
         :target: https://badge.fury.io/py/prophyle
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1045429.svg
+        :target: https://doi.org/10.5281/zenodo.1045429
+
 
 Introduction
 ------------
