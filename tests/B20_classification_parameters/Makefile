@@ -1,4 +1,4 @@
-.PHONY: all clean classify d L X LX M K h1 h2 c1 c2
+.PHONY: all clean classify d dp ds L X LX M K h1 h2 c1 c2
 
 include ../conf.mk
 
@@ -8,10 +8,16 @@ index=index
 
 all: classify
 
-classify: d L X LX M K h1 h2 c1 c2
+classify: d ds L X LX M K h1 h2 c1 c2 #dp
 
 d: index.complete
 	$(PROP) classify $(index) reads.fq | $(SVH) > class.sam
+
+dp: index.complete
+	$(PROP) classify $(index) <(head -n 1 reads.fq) | $(SVH) > class_pipe.sam
+
+ds: index.complete
+	$(PROP) classify $(index) reads_symlink.fq | $(SVH) > class_symlink.sam
 
 L: index.complete
 	$(PROP) classify $(index) reads.fq -L | $(SVH) > class_L.sam

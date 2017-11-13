@@ -26,7 +26,7 @@ matrix:
         - conda config --add channels bioconda
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle python==3.4 ete3 bitarray parallel psutil scipy samtools=1.2 sphinx || true
+        - if [ ! -d "$HOME/miniconda/envs/prophyle" ]; then conda create -q -n prophyle python==3.5 ete3 bitarray parallel psutil scipy samtools=1.2 sphinx codecov; fi
         - source activate prophyle
 
     - os: osx
@@ -47,7 +47,7 @@ matrix:
         - conda config --add channels bioconda
         - conda update -q conda
         - conda info -a
-        - conda create -q -n prophyle python==3.4 ete3 bitarray parallel psutil scipy samtools=1.3 sphinx || true
+        - if [ ! -d "$HOME/miniconda/envs/prophyle" ]; then conda create -q -n prophyle python==3.4 ete3 bitarray parallel psutil scipy samtools=1.3 sphinx; fi
         - source activate prophyle
 
 script:
@@ -56,13 +56,18 @@ script:
   - samtools --version
   # tests in the repo dir
   - make clean
-  - make test_repo
+    #- make test_repo
+  - if [[ $(uname) == "Linux" ]]; then make coverage; else make test; fi
   # tests in the package dir
   - make clean
   - pip --version
   - make install
   - make test_package
 
+after_success:
+- if [[ $(uname) == "Linux" ]]; then coverage combine .coverage.*; codecov -t $CODECOV_TOKEN; fi
+
 cache:
   directories:
   - $HOME/miniconda
+
