@@ -136,13 +136,14 @@ def _test_tree(fn):
     assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
 
 
-def _compile_prophyle_bin(clean=False, parallel=False, silent=True):
+def _compile_prophyle_bin(clean=False, parallel=False, silent=True, force=False):
     """Compile ProPhyle binaries if they don't exist yet. Recompile if not up-to-date.
 
     Args:
         clean (bool): Run make clean instead of make.
         parallel (bool): Run make in parallel.
         silent (bool): Run make silently.
+        force (bool): Force recompile (make -B).
     """
 
     try:
@@ -154,12 +155,16 @@ def _compile_prophyle_bin(clean=False, parallel=False, silent=True):
         if silent:
             command += ['-s']
 
-        command += ["-C", C_D]
+        if force:
+            command+=['-B']
+
+        command+=["-C", C_D]
 
         if clean:
             command += ['clean']
 
         pro.run_safe(command, output_fo=sys.stderr)
+    
     except RuntimeError:
         if not os.path.isfile(IND) or not os.path.isfile(ASM):
             print(
@@ -847,9 +852,9 @@ def prophyle_classify(
     _test_tree(index_tree)
 
     if fq_pe_fn:
-        pro.test_files(fq_fn, fq_pe_fn)
+        pro.test_files(fq_fn, fq_pe_fn, allow_pipes=False)
     elif fq_fn != '-':
-        pro.test_files(fq_fn)
+        pro.test_files(fq_fn, allow_pipes=False)
 
     pro.test_files(IND)
 
@@ -1014,9 +1019,8 @@ def prophyle_decompress(archive, output_dir, klcp):
 # PROPHYLE COMPILE #
 ####################
 
-
-def prophyle_compile(clean, parallel):
-    _compile_prophyle_bin(clean=clean, parallel=parallel, silent=False)
+def prophyle_compile(clean, parallel, force):
+    _compile_prophyle_bin(clean=clean, parallel=parallel, force=force, silent=False)
 
 
 ########
@@ -1036,8 +1040,8 @@ def parser():
     desc = """\
         Program: prophyle (phylogeny-based metagenomic classification)
         Version: {V}
-        Authors: Karel Brinda <kbrinda@hsph.harvard.edu>, Kamil Salikhov <kamil.salikhov@univ-mlv.fr>,
-                 Simone Pignotti <pignottisimone@gmail.com>, Gregory Kucherov <gregory.kucherov@univ-mlv.fr>
+        Authors: Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov
+        Contact: kbrinda@hsph.harvard.edu
 
         Usage:   prophyle <command> [options]
         """.format(V=version.VERSION)
@@ -1449,6 +1453,13 @@ def parser():
     )
 
     parser_compile.add_argument(
+        '-F',
+        dest='force',
+        action='store_true',
+        help='force recompilation',
+    )
+
+    parser_compile.add_argument(
         '-P',
         dest='parallel',
         action='store_true',
@@ -1571,6 +1582,7 @@ def main():
             prophyle_compile(
                 clean=args.clean,
                 parallel=args.parallel,
+                force=args.force,
             )
 
         else:

@@ -10,6 +10,7 @@ import datetime
 import ete3
 import json
 import os
+import pathlib
 import psutil
 import shutil
 import subprocess
@@ -369,20 +370,30 @@ def existing_and_newer_list(fn0_l, fn):
     return not some_false
 
 
-def test_files(*fns, test_nonzero=False):
+def test_files(*fns, test_nonzero=False, allow_pipes=False):
     """Test if given files exist, and possibly if they are non-empty. If not, stop the program.
 
     Args:
         *fns: Files.
         test_nonzero (bool): Test if files have size greater than zero.
+        allow_pipes (bool): Allow Unix pipes as input and don't test size.
 
     Raises:
         AssertionError: File does not exist or it is empty.
     """
 
     for fn in fns:
-        assert os.path.isfile(fn), 'File "{}" does not exist.'.format(fn)
-        if test_nonzero:
+        is_file=os.path.isfile(fn)
+        is_pipe=pathlib.Path(fn).is_fifo()
+        if allow_pipes:
+            assert is_file or is_pipe, 'File "{}" does not exist.'.format(fn)
+        else:
+            if is_pipe:
+                assert is_file, 'File "{}" is a pipe.'.format(fn)
+            else:
+                assert is_file, 'File "{}" does not exist.'.format(fn)
+
+        if test_nonzero and not allow_pipes:
             assert file_sizes(fn)[0], 'File "{}" has size 0.'.format(fn)
 
 
@@ -408,6 +419,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 
     assert output_fn is None or output_fo is None
     assert err_msg is not None or thr_exc
+    assert len(command)>0
 
     command_safe = []
 
