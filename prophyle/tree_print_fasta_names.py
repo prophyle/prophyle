@@ -1,9 +1,7 @@
 #! /usr/bin/env python3
 
-import os
-import shutil
-import datetime
 import sys
+import os
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
@@ -32,7 +30,5 @@ if __name__ == "__main__":
     assert (len(sys.argv) == 2)
     newick_fn = sys.argv[1]
 
-    ti = TreeIndex(
-        tree_newick_fn=newick_fn,
-    )
+    ti = TreeIndex(tree_newick_fn=newick_fn, )
     ti.process_node(ti.tree.get_tree_root())

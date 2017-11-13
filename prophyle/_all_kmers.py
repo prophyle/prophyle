@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Generate all k-mers of a given length.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
@@ -7,8 +6,8 @@ Author: Karel Brinda <kbrinda@hsph.harvard.edu>
 Licence: MIT
 """
 
-import sys, os, argparse
-from itertools import product, repeat
+import argparse
+import itertools
 
 parser = argparse.ArgumentParser(description='Generate all possible k-mers of given length.')
 
@@ -20,7 +19,8 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '-f', '--format',
+    '-f',
+    '--format',
     choices=['txt', 'fq', 'fa'],
     default='txt',
     help='output format',
@@ -55,7 +55,7 @@ elif args.format == "fa":
     pr = print_fa
 
 i = 1
-for kmer in product('ACGT', repeat=args.k):
+for kmer in itertools.product('ACGT', repeat=args.k):
     kmer = ''.join(kmer)
     pr(i, kmer)
     i += 1
