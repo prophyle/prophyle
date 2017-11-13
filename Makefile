@@ -93,7 +93,7 @@ pypi: hooks
 	$(MAKE) clean
 	$(PYTHON) setup.py sdist bdist_wheel upload
 
-## Compute sha256 for the PyPI package
+sha256: ## Compute sha256 for the PyPI package
 sha256:
 	s=$$(curl https://pypi.python.org/pypi/prophyle  2>/dev/null| perl -pe 's/#/\n/g' | grep -o 'https.*\.tar\.gz' | xargs curl -L 2>/dev/null | shasum -a 256 | awk '{print $$1;}'); echo $$s; echo $$s | pbcopy
 
