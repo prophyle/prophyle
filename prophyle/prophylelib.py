@@ -383,8 +383,8 @@ def test_files(*fns, test_nonzero=False, allow_pipes=False):
     """
 
     for fn in fns:
-        is_file=os.path.isfile(fn)
-        is_pipe=pathlib.Path(fn).is_fifo()
+        is_file = os.path.isfile(fn)
+        is_pipe = pathlib.Path(fn).is_fifo()
         if allow_pipes:
             assert is_file or is_pipe, 'File "{}" does not exist.'.format(fn)
         else:
@@ -419,7 +419,7 @@ def run_safe(command, output_fn=None, output_fo=None, err_msg=None, thr_exc=True
 
     assert output_fn is None or output_fo is None
     assert err_msg is not None or thr_exc
-    assert len(command)>0
+    assert len(command) > 0
 
     command_safe = []
 
