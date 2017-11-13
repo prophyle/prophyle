@@ -156,15 +156,15 @@ def _compile_prophyle_bin(clean=False, parallel=False, silent=True, force=False)
             command += ['-s']
 
         if force:
-            command+=['-B']
+            command += ['-B']
 
-        command+=["-C", C_D]
+        command += ["-C", C_D]
 
         if clean:
             command += ['clean']
 
         pro.run_safe(command, output_fo=sys.stderr)
-    
+
     except RuntimeError:
         if not os.path.isfile(IND) or not os.path.isfile(ASM):
             print(
@@ -1018,6 +1018,7 @@ def prophyle_decompress(archive, output_dir, klcp):
 ####################
 # PROPHYLE COMPILE #
 ####################
+
 
 def prophyle_compile(clean, parallel, force):
     _compile_prophyle_bin(clean=clean, parallel=parallel, force=force, silent=False)
