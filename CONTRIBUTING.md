@@ -32,6 +32,10 @@
 * Scripts used by prophyle should be named prophyle\_\*
 * Auxiliary testing scripts should not be included in the ProPhyle package.
 
+## Releasing
+
+* Every release info should be structured as "New - Improvements - Fixes"
+* Releases should be available from PyPI, BioConda and Github
 
 ## FAQs
 

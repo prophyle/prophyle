@@ -11,11 +11,11 @@ import os
 import setuptools
 import sys
 
-if sys.version_info < (3, 2):
-    sys.exit('Minimum supported Python version is 3.2')
+if sys.version_info < (3, 4):
+    sys.exit('Minimum supported Python version is 3.4')
 
 bwa_dir = 'prophyle/prophyle_index/bwa'
-if len(glob.glob(os.path.join(bwa_dir, "*.c"))) == 0 or len(glob.glob(os.path.join(bwa_dir, "*.c"))) == 0:
+if len(glob.glob(os.path.join(bwa_dir, "*.c"))) == 0 or len(glob.glob(os.path.join(bwa_dir, "*.h"))) == 0:
     sys.exit("BWA submodule is missing. Run 'make submodules' to download it.")
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -70,11 +70,15 @@ setuptools.setup(
     version=VERSION,
     description='ProPhyle metagenomic classifier',
     long_description=long_description,
+    #
     url='https://github.com/karel-brinda/prophyle',
+    download_url="https://github.com/karel-brinda/prophyle/releases",
+    #
     author='Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
     author_email=
     'kbrinda@hsph.harvard.edu, salikhov.kamil@gmail.com, pignottisimone@gmail.com, gregory.kucherov@univ-mlv.fr',
     license='MIT',
+    #
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3 :: Only',
@@ -84,18 +88,13 @@ setuptools.setup(
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
+    #
     keywords='metagenomics classification NGS',
+    #
     packages=["prophyle"],
-    install_requires=[
-        'ete3',
-        'wheel',
-        'bitarray',
-        'psutil',
-        'pysam',
-        'scipy',
-        'six',
-    ],
+    #
     package_data={'prophyle': prophyle_files},
+    #
     entry_points={
         'console_scripts': [
             'prophyle = prophyle.prophyle:main',
@@ -111,4 +110,15 @@ setuptools.setup(
             'prophyle_split_allseq.py = prophyle.prophyle_split_allseq:main',
         ],
     },
+    #
+    install_requires=[
+        'ete3',
+        'wheel',
+        'bitarray',
+        'psutil',
+        'pysam',
+        'scipy',
+        'six',
+    ],
+    #
 )

@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+set -e
+
+#PATH=$(echo $PATH | perl -pe 's/(.*?):(.*)/\2/g') /usr/bin/env python3
+ROOT_DIR=$(dirname "$0")/../..
+SCRIPT_NAME=$(basename "$1")
+TIMESTAMP=$(date +%s)
+CF=$ROOT_DIR/.coverage.$SCRIPT_NAME.$TIMESTAMP
+(>&2 echo "Using python3 wrapper for coverage (coverage file: $CF)")
+COVERAGE_FILE=$CF coverage run -a $@
+
