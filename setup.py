@@ -15,8 +15,7 @@ if sys.version_info < (3, 4):
     sys.exit('Minimum supported Python version is 3.4')
 
 bwa_dir = 'prophyle/prophyle_index/bwa'
-if len(glob.glob(os.path.join(bwa_dir, "*.c"))) == 0 or len(
-        glob.glob(os.path.join(bwa_dir, "*.c"))) == 0:
+if len(glob.glob(os.path.join(bwa_dir, "*.c"))) == 0 or len(glob.glob(os.path.join(bwa_dir, "*.h"))) == 0:
     sys.exit("BWA submodule is missing. Run 'make submodules' to download it.")
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -53,16 +52,18 @@ prophyle_files = [
     'prophyle_assignment/*.h',
     'prophyle_assignment/Makefile',
     'trees/*.nw',
-] + ([
-    'prophyle_index/prophyle_index',
-    'prophyle_index/*.o',
-    'prophyle_assembler/prophyle_assembler',
-    'prophyle_assembler/*.o',
-    'prophyle_assignment/prophyle_assignment',
-    'prophyle_assignment/*.o',
-    'prophyle_index/bwa/bwa',
-    'prophyle_index/bwa/*.o',
-] if packbin else [])
+] + (
+    [
+        'prophyle_index/prophyle_index',
+        'prophyle_index/*.o',
+        'prophyle_assembler/prophyle_assembler',
+        'prophyle_assembler/*.o',
+        'prophyle_assignment/prophyle_assignment',
+        'prophyle_assignment/*.o',
+        'prophyle_index/bwa/bwa',
+        'prophyle_index/bwa/*.o',
+    ] if packbin else []
+)
 
 setuptools.setup(
     name='prophyle',

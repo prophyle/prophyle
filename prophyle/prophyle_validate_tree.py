@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Test whether given Newick/NHX trees are valid for ProPhyle.
 
 Author: Karel Brinda <kbrinda@hsph.harvard.edu>
@@ -22,7 +21,8 @@ import prophylelib as pro
 def main():
     parser = argparse.ArgumentParser(description='Verify a Newick/NHX tree')
 
-    parser.add_argument('tree',
+    parser.add_argument(
+        'tree',
         metavar='<tree.nw>',
         type=str,
         nargs='+',

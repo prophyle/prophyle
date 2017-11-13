@@ -10,10 +10,10 @@ revcount=$(git log --oneline | wc -l | xargs)
 latesttag=$(git describe --tags --abbrev=0)
 
 printf "" > "$FILENAME"
-echo "BRANCH="'"'"$branch"'"' >> "$FILENAME"
-echo "SHORTHASH="'"'"$shorthash"'"' >> "$FILENAME"
-echo "REVCOUNT=$revcount" >> "$FILENAME"
-echo "LATESTTAG="'"'"$latesttag"'"' >> "$FILENAME"
+echo "BRANCH = "'"'"$branch"'"' >> "$FILENAME"
+echo "SHORTHASH = "'"'"$shorthash"'"' >> "$FILENAME"
+echo "REVCOUNT = $revcount" >> "$FILENAME"
+echo "LATESTTAG = "'"'"$latesttag"'"' >> "$FILENAME"
 
 git update-index --add "$FILENAME"
 

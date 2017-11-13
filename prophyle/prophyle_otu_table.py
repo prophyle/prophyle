@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """Create an OTU table for ProPhyle's classification output for NCBI-based indexes
 
 Author: Simone Pignotti <pignottisimone@gmail.com>
@@ -90,8 +89,10 @@ def build_complete_tree(tree, log):
             taxid_not_found = int(e.args[0])
             taxa.remove(taxid_not_found)
             if log:
-                print('[prophyle_otu_table] ERROR: TaxID ' + str(taxid_not_found) +
-                      ' not found in ETE DB (try updating it)', file=log)
+                print(
+                    '[prophyle_otu_table] ERROR: TaxID ' + str(taxid_not_found) +
+                    ' not found in ETE DB (try updating it)', file=log
+                )
             pass
 
     return complete_tree
@@ -155,8 +156,7 @@ def create_otu_tables(tree, input_files, target_ranks, read_field, taxid_field, 
                         otu_rank_taxacount[r][t] += 1
                 except KeyError:
                     if taxid not in already_ignored:
-                        print('[prophyle_otu_table] Error: ignored taxid ' + taxid +
-                              ' (not in the tree)', file=log)
+                        print('[prophyle_otu_table] Error: ignored taxid ' + taxid + ' (not in the tree)', file=log)
                         already_ignored.add(taxid)
                     pass
 
@@ -179,10 +179,7 @@ def write_tables(otu_tables, otu_rank_taxacount, output_prefix, input_files, log
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=desc
-    )
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=desc)
 
     parser.add_argument(
         'tree',
@@ -211,7 +208,7 @@ def main():
         default='species,genus,family,phylum,class,order,kingdom',
         dest='target_ranks',
         help='comma separated list of ranks to build the OTU table for '
-             '[species,genus,family,phylum,class,order,kingdom]',
+        '[species,genus,family,phylum,class,order,kingdom]',
     )
 
     parser.add_argument(
@@ -245,15 +242,15 @@ def main():
     try:
         str_ranks = args.target_ranks.split(',')
     except:
-        print('[prophyle_otu_table] Error while parsing ranks: must be a comma' +
-              ' separated list', file=sys.stderr)
+        print('[prophyle_otu_table] Error while parsing ranks: must be a comma' + ' separated list', file=sys.stderr)
         sys.exit(1)
 
     target_ranks = [str2rank[r] for r in map(str.strip, str_ranks)]
 
     complete_tree = build_complete_tree(args.tree, args.log_file)
-    otu_tables, otu_rank_taxacount = create_otu_tables(complete_tree, args.input_files,
-        target_ranks, args.read_field, args.taxid_field, args.log_file)
+    otu_tables, otu_rank_taxacount = create_otu_tables(
+        complete_tree, args.input_files, target_ranks, args.read_field, args.taxid_field, args.log_file
+    )
     write_tables(otu_tables, otu_rank_taxacount, args.output_prefix, args.input_files, args.log_file)
 
 
