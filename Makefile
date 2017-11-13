@@ -1,7 +1,7 @@
 .PHONY: \
 	all prophyle clean install hooks \
 	test test_repo test_repo_coverage test_parallel test_package \
-	pylint coverage \
+	pylint flake8 yapf coverage \
 	inc pypi sha256 \
 	docs readme wpypi wconda \
 	deppip depconda \
@@ -62,7 +62,7 @@ test_repo:
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests
 
-test_repo_coverage:
+test_repo_coverage: ## Compute test coverage
 	$(MAKE) -C tests clean
 	# replace /usr/bin/env/python3 by coverage
 	PATH=$$(pwd)/bin/python3_coverage_wrapper:$$PATH $(MAKE) -C tests
@@ -77,7 +77,13 @@ test_package: ## Run integration tests from the Python package
 	$(MAKE) -C tests B PROP=prophyle
 
 pylint: ## Run PyLint
-	$(PYTHON) -m pylint -d prophyle
+	$(PYTHON) -m pylint prophyle
+
+flake8: ## Run Flake8
+	flake8
+
+yapf: ## Run YAPF (inline replacement)
+	yapf -i --recursive prophyle setup.py tests
 
 
 #############
