@@ -389,7 +389,7 @@ def test_files(*fns, test_nonzero=False, allow_pipes=False):
             assert is_file or is_pipe, 'File "{}" does not exist.'.format(fn)
         else:
             if is_pipe:
-                assert is_file, 'File "{}" is a pipe.'.format(fn)
+                assert is_file, 'File "{}" is a process substitution or a device.'.format(fn)
             else:
                 assert is_file, 'File "{}" does not exist.'.format(fn)
 
