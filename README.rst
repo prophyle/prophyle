@@ -43,21 +43,32 @@ Compared to other state-of-the-arts classifiers, ProPhyle provides several uniqu
 Quick example
 -------------
 
-1. Install ProPhyle using `Bioconda <https://bioconda.github.io/>`_: ::
+1. Install ProPhyle using `Bioconda <https://bioconda.github.io/>`_:
 
-        $ conda install prophyle
+.. code-block:: bash
 
-2. Download the `RefSeq <https://www.ncbi.nlm.nih.gov/refseq/>`_ bacterial database: ::
+	conda config --add channels defaults
+	conda config --add channels conda-forge
+	conda config --add channels bioconda
+	conda install prophyle
 
-        $ prophyle download bacteria
+2. Download the `RefSeq <https://www.ncbi.nlm.nih.gov/refseq/>`_ bacterial database:
+
+.. code-block:: bash
+
+	prophyle download bacteria
 
 3. To quickly test ProPhyle functionality, create an index for randomly sampled 10% genomes from the E.coli subtree of the NCBI taxonomy with k-mer size 31: ::
 
-        $ prophyle index -s 0.1 ~/prophyle/bacteria.nw@561 _index_ecoli
+.. code-block:: bash
 
-4. Classify your reads: ::
+	prophyle index -s 0.1 ~/prophyle/bacteria.nw@561 _index_ecoli
 
-        $ prophyle classify _index_ecoli reads.fq > result.sam
+4. Classify your reads:
+
+.. code-block:: bash
+
+        prophyle classify _index_ecoli reads.fq > result.sam
 
 
 Documentation
