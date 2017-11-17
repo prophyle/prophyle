@@ -317,7 +317,8 @@ def prophyle_download(library, library_dir, force=False):
     if library == 'bacteria':
         if lib_missing or force:
             cmd = [
-                'cd', d+"/..", '&&', 'curl', '-O', ZENODO_URL + '/files/bacteria.nw', '&&', 'curl', ZENODO_URL + '/files/bacteria.tar.gz', '|', 'tar', 'xz'
+                'cd', d + "/..", '&&', 'curl', '-O', ZENODO_URL + '/files/bacteria.nw', '&&', 'curl',
+                ZENODO_URL + '/files/bacteria.tar.gz', '|', 'tar', 'xz'
             ]
             pro.run_safe(cmd)
             _mark_complete(d, 1)
@@ -325,7 +326,10 @@ def prophyle_download(library, library_dir, force=False):
 
     elif library == 'viruses':
         if lib_missing or force:
-            cmd = ['cd', d+"/..", '&&', 'curl', '-O', ZENODO_URL + '/files/viruses.nw', '&&', 'curl', ZENODO_URL + '/files/viruses.tar.gz', '|', 'tar', 'xz']
+            cmd = [
+                'cd', d + "/..", '&&', 'curl', '-O', ZENODO_URL + '/files/viruses.nw', '&&', 'curl',
+                ZENODO_URL + '/files/viruses.tar.gz', '|', 'tar', 'xz'
+            ]
             pro.run_safe(cmd)
             _mark_complete(d, 1)
         # _pseudo_fai(d)
@@ -333,7 +337,8 @@ def prophyle_download(library, library_dir, force=False):
     elif library == 'plasmids':
         if lib_missing or force:
             cmd = [
-               'cd', d+"/..", '&&', 'curl', '-O', ZENODO_URL + '/files/plasmids.nw', '&&', 'curl', ZENODO_URL + '/files/plasmids.tar.gz', '|', 'tar', 'xz'
+                'cd', d + "/..", '&&', 'curl', '-O', ZENODO_URL + '/files/plasmids.nw', '&&', 'curl',
+                ZENODO_URL + '/files/plasmids.tar.gz', '|', 'tar', 'xz'
             ]
             pro.run_safe(cmd)
             _mark_complete(d, 1)
