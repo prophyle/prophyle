@@ -81,7 +81,7 @@ DEFAULT_HOME_DIR = os.path.join(os.path.expanduser('~'), 'prophyle')
 
 LIBRARIES = ['bacteria', 'viruses', 'plasmids', 'hmp']
 
-FTP_NCBI = 'https://ftp.ncbi.nlm.nih.gov'
+ZENODO_URL = 'https://zenodo.org/record/1054426'
 
 ANALYZE_IN_FMTS = ['sam', 'bam', 'cram', 'uncompressed_bam', 'kraken', 'histo']
 ANALYZE_STATS = ['w', 'u', 'wl', 'ul']
@@ -311,22 +311,13 @@ def prophyle_download(library, library_dir, force=False):
     # os.makedirs(d, exist_ok=True)
     pro.makedirs(d)
 
-    pro.message("Checking library '{}' in '{}'".format(library, d))
-
+    #pro.message("Checking library '{}' in '{}'".format(library, d))
     lib_missing = _missing_library(d)
-    if lib_missing or force:
-        fn = "{}.nw".format(library)
-        nhx = os.path.join(TREE_D, fn)
-        new_nhx = os.path.join(d, "..", fn)
-        pro.test_files(nhx)
-        pro.message("Copying Newick/NHX tree '{}' to '{}'".format(nhx, new_nhx))
-        pro.cp_to_file(nhx, new_nhx)
 
     if library == 'bacteria':
         if lib_missing or force:
             cmd = [
-                'cd', d, '&&', 'curl', FTP_NCBI + '/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz', '|', 'tar',
-                'xz'
+                'cd', d+"/..", '&&', 'curl', '-O', ZENODO_URL + '/files/bacteria.nw', '&&', 'curl', ZENODO_URL + '/files/bacteria.tar.gz', '|', 'tar', 'xz'
             ]
             pro.run_safe(cmd)
             _mark_complete(d, 1)
@@ -334,9 +325,7 @@ def prophyle_download(library, library_dir, force=False):
 
     elif library == 'viruses':
         if lib_missing or force:
-            # cmd=['cd', d, '&&', 'curl', FTP_NCBI+'/genomes/Viruses/all.ffn.tar.gz', '|', 'tar', 'xz']
-            # pro.run_safe(cmd)
-            cmd = ['cd', d, '&&', 'curl', FTP_NCBI + '/genomes/Viruses/all.fna.tar.gz', '|', 'tar', 'xz']
+            cmd = ['cd', d+"/..", '&&', 'curl', '-O', ZENODO_URL + '/files/viruses.nw', '&&', 'curl', ZENODO_URL + '/files/viruses.tar.gz', '|', 'tar', 'xz']
             pro.run_safe(cmd)
             _mark_complete(d, 1)
         # _pseudo_fai(d)
@@ -344,8 +333,7 @@ def prophyle_download(library, library_dir, force=False):
     elif library == 'plasmids':
         if lib_missing or force:
             cmd = [
-                'cd', d, '&&', 'curl', FTP_NCBI + '/genomes/archive/old_refseq/Plasmids/plasmids.all.fna.tar.gz', '|',
-                'tar', 'xz', '--strip', '5'
+               'cd', d+"/..", '&&', 'curl', '-O', ZENODO_URL + '/files/plasmids.nw', '&&', 'curl', ZENODO_URL + '/files/plasmids.tar.gz', '|', 'tar', 'xz'
             ]
             pro.run_safe(cmd)
             _mark_complete(d, 1)
