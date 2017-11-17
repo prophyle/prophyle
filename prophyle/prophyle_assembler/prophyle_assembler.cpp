@@ -118,7 +118,7 @@ void print_help(){
 
 void test_file(FILE *fo, std::string fn){
 	if(fo==nullptr){
-		std::cerr << "Error: file '" << fn << "' could not be open." << std::endl;
+		std::cerr << "Error: file '" << fn << "' could not be open (errno " << errno << ")." << std::endl;
 		exit(1);
 	}
 }
