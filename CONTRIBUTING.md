@@ -32,10 +32,15 @@
 * Scripts used by prophyle should be named prophyle\_\*
 * Auxiliary testing scripts should not be included in the ProPhyle package.
 
-## Releasing
+## Releasing ProPhyle
 
 * Every release info should be structured as "New - Improvements - Fixes"
 * Releases should be available from PyPI, BioConda and Github
+
+## Releasing databases
+
+* Source data for the ProPhyle databases should be uploaded to Zenodo: https://zenodo.org/record/1054425
+* Once a database is updated, the ZENODO\_URL identifier should be updated as well: https://github.com/karel-brinda/prophyle/blob/21f1b0dbd482abb918e27af71204927e33e85ab3/prophyle/prophyle.py#L84
 
 ## FAQs
 
