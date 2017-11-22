@@ -31,7 +31,7 @@ which nodes are the best candidates for their classification.
 More information about the indexing scheme
 can be found in our `poster <https://zenodo.org/record/1045427>`_.
 
-.. figure:: docs/overview.png
+.. figure:: docs/overview.jpg
    :alt: Overview of the algorithm.
 
 Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
