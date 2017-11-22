@@ -23,13 +23,18 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 Introduction
 ------------
 
-ProPhyle is a *k*-mer based metagenomic classifier using Burrows-Wheeler Transform.
+.. figure:: docs/overview.png
+   :scale: 50 %
+   :align: right
+   :alt: Overview of the algorithm.
+
+ProPhyle is a *k*-mer based metagenomic classifier using the Burrows-Wheeler Transform.
 Its indexing strategy relies on a bottom-up propagation of *k*-mers in the tree,
 assembling contigs at each node, and matching using a standard full-text search using BWT-index.
 The analysis of shared *k*-mers between NGS reads and the genomes in the index determines
 which nodes are the best candidates for their classification.
 More information about the indexing scheme
-can be found in our `poster <http://brinda.cz/publications/2017_prophyle_hitseq.pdf>`_.
+can be found in our `poster <https://zenodo.org/record/1045427>`_.
 
 Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
 
@@ -58,7 +63,7 @@ Quick example
 
 	prophyle download bacteria
 
-3. To quickly test ProPhyle functionality, create an index for randomly sampled 10% genomes from the E.coli subtree of the NCBI taxonomy with k-mer size 31: ::
+3. To quickly test ProPhyle functionality, create an index for randomly sampled 10% genomes from the E.coli subtree of the NCBI taxonomy with k-mer size 31:
 
 .. code-block:: bash
 
@@ -93,7 +98,7 @@ PhD Thesis, Université Paris-Est, 2016. |karel_phd|
 	   :target: https://doi.org/10.5281/zenodo.1045317
 
 .. |hitseq2017| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1045427.svg
-		:target: https://doi.org/10.5281/zenodo.1045427
+           :target: https://doi.org/10.5281/zenodo.1045427
 
 
 Issues
