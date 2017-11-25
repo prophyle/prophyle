@@ -96,7 +96,7 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
 
                 {ocompl}: {icompl} {nhx}
                 \tprintf '' > {o}
-                \techo "{i}" | xargs cat > {o}
+                \techo "{i}" | xargs cat >> {o}
                 \t@touch $@
 
             """.format(
