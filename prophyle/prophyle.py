@@ -714,7 +714,7 @@ def prophyle_index(
         recompute = True
 
     if recompute:
-        pro.message('[2/6] Running k-mer propagation', upper=True)
+        pro.message('[2/6] k-mer propagation', upper=True)
         _create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
         _propagate(index_dir, threads=threads)
         _propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
