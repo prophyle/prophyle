@@ -1,4 +1,4 @@
-BRANCH = "master"
-SHORTHASH = "f6b3cca"
-REVCOUNT = 1642
+BRANCH = "fix-hmp"
+SHORTHASH = "65b8178"
+REVCOUNT = 1643
 LATESTTAG = "0.3.1.0"
