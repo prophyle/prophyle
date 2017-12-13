@@ -8,11 +8,19 @@
 #include "kstring.h"
 #include "klcp.h"
 #include "bwa_utils.h"
+#include "kseq.h"
 #include "contig_node_translator.h"
+KSEQ_DECLARE(gzFile)
 
+// maximum possible number of suffix array positions we can store
 #define MAX_POSSIBLE_SA_POSITIONS 1000000
+// maximum length of the string representing the output for the read
 #define MAX_STREAK_LENGTH 10000000
+// soft limit for the string representing the output for the read
 #define MAX_SOFT_STREAK_LENGTH 9000000
+
+void *kopen(const char *fn, int *_fd);
+int kclose(void *a);
 
 int calculate_sa_interval(const bwt_t* bwt, int len, const ubyte_t* str, uint64_t* k, uint64_t* l, int start_pos)
 {
@@ -219,17 +227,17 @@ int equal(int a_cnt, const int* a, int b_cnt, const int* b) {
 	return 1;
 }
 
-void print_read(const bwa_seq_t* p) {
+void print_read(const bseq1_t* p) {
 	int j;
-	for(j = (int)p->len - 1; j>= 0; j--) {
+	for(j = (int)p->l_seq - 1; j>= 0; j--) {
 		fprintf(stdout, "%c", "ACGTN"[p->seq[j]]);
 	}
 }
 
-void print_read_qual(const bwa_seq_t* p) {
+void print_read_qual(const bseq1_t* p) {
 	if (p->qual) {
 		int j;
-		for(j = 0; j < (int)p->len; j++) {
+		for(j = 0; j < (int)p->l_seq; j++) {
 			fprintf(stdout, "%c", p->qual[j]);
 		}
 	} else {
@@ -237,7 +245,7 @@ void print_read_qual(const bwa_seq_t* p) {
 	}
 }
 
-prophyle_worker_t* prophyle_worker_init(const bwaidx_t* idx, int32_t seqs_cnt, const bwa_seq_t* seqs,
+prophyle_worker_t* prophyle_worker_init(const bwaidx_t* idx, int32_t seqs_cnt, const bseq1_t* seqs,
 		const prophyle_index_opt_t* opt, const klcp_t* klcp) {
 	prophyle_worker_t* prophyle_worker = malloc(1 * sizeof(prophyle_worker_t));
 	prophyle_worker->idx = idx;
@@ -314,10 +322,10 @@ void prophyle_worker_destroy(prophyle_worker_t* prophyle_worker) {
 	free(prophyle_worker);
 }
 
-void process_sequence(void* data, int i, int tid) {
+void process_sequence(void* data, int seq_index, int tid) {
 	prophyle_worker_t* prophyle_worker = (prophyle_worker_t*)data;
 	const bwaidx_t* idx = prophyle_worker->idx;
-	bwa_seq_t seq = prophyle_worker->seqs[i];
+	bseq1_t seq = prophyle_worker->seqs[seq_index];
 	const prophyle_index_opt_t* opt = prophyle_worker->opt;
 	const klcp_t* klcp = prophyle_worker->klcp;
 	prophyle_query_aux_t aux_data = prophyle_worker->aux_data[tid];
@@ -326,6 +334,11 @@ void process_sequence(void* data, int i, int tid) {
 	int32_t* seen_nodes = aux_data.seen_nodes;
 	int32_t* prev_seen_nodes = aux_data.prev_seen_nodes;
 	int8_t* seen_nodes_marks = aux_data.seen_nodes_marks;
+	int i;
+
+	for (i = 0; i < seq.l_seq; ++i) // convert to 2-bit encoding if we have not done so
+		seq.seq[i] = seq.seq[i] < 4? seq.seq[i] : nst_nt4_table[(int)seq.seq[i]];
+	seq_reverse(seq.l_seq, seq.seq, 0);
 
 	if (opt->output_old) {
 		fprintf(stdout, "#");
@@ -344,10 +357,10 @@ void process_sequence(void* data, int i, int tid) {
 	int last_ambiguous_index = 0 - opt->kmer_length;
 	int is_ambiguous_streak = 0;
 	int ambiguous_streak_just_ended = 0;
-	if (start_pos + opt->kmer_length > seq.len) {
+	if (start_pos + opt->kmer_length > seq.l_seq) {
 		if (opt->output) {
-			prophyle_worker->output[i] = malloc(5 * sizeof(char));
-			strncpy(prophyle_worker->output[i], "0:0", 5);
+			prophyle_worker->output[seq_index] = malloc(5 * sizeof(char));
+			strncpy(prophyle_worker->output[seq_index], "0:0", 5);
 		}
 	} else {
 		int index = 0;
@@ -356,7 +369,7 @@ void process_sequence(void* data, int i, int tid) {
 				last_ambiguous_index = index;
 			}
 		}
-		while (start_pos + opt->kmer_length <= seq.len) {
+		while (start_pos + opt->kmer_length <= seq.l_seq) {
 			int end_pos = start_pos + opt->kmer_length - 1;
 			if (opt->output) {
 				if (start_pos > 0 && seq.seq[end_pos] > 3) {
@@ -443,13 +456,13 @@ void process_sequence(void* data, int i, int tid) {
 		}
 		if (opt->output) {
 			size_t all_streaks_length = strlen(all_streaks);
-			prophyle_worker->output[i] = malloc((all_streaks_length + 1) * sizeof(char));
-			strncpy(prophyle_worker->output[i], all_streaks, all_streaks_length + 1);
+			prophyle_worker->output[seq_index] = malloc((all_streaks_length + 1) * sizeof(char));
+			strncpy(prophyle_worker->output[seq_index], all_streaks, all_streaks_length + 1);
 		}
 	}
 }
 
-void process_sequences(const bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
+void process_sequences(const bwaidx_t* idx, int n_seqs, bseq1_t* seqs,
 	const prophyle_index_opt_t* opt, const klcp_t* klcp)
 {
 	extern void kt_for(int n_threads, void (*func)(void*,int,int), void* data, int n);
@@ -458,9 +471,9 @@ void process_sequences(const bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
 	kt_for(opt->n_threads, process_sequence, prophyle_worker, n_seqs);
 	int i;
 	for (i = 0; i < n_seqs; ++i) {
-		bwa_seq_t* seq = seqs + i;
+		bseq1_t* seq = seqs + i;
 		if (opt->output) {
-			fprintf(stdout, "U\t%s\t0\t%d\t", seq->name, seq->len);
+			fprintf(stdout, "U\t%s\t0\t%d\t", seq->name, seq->l_seq);
 			print_streaks(prophyle_worker->output[i]);
 			if (opt->output_read_qual) {
 				fprintf(stdout, "\t");
@@ -470,21 +483,44 @@ void process_sequences(const bwaidx_t* idx, int n_seqs, bwa_seq_t* seqs,
 			}
 			fprintf(stdout, "\n");
 		}
-		free(seq->name); free(seq->seq); free(seq->rseq); free(seq->qual);
-		seq->name = 0; seq->seq = seq->rseq = seq->qual = 0;
 	}
 	prophyle_worker_destroy(prophyle_worker);
+}
+
+void destroy_reads(int n_seqs, bseq1_t* seqs) {
+	int i;
+	if (!seqs) {
+		return;
+	}
+	for (i = 0; i < n_seqs; ++i) {
+		bseq1_t* seq = seqs + i;
+		if (seq->name) {
+			free(seq->name);
+		}
+		if (seq->comment) {
+			free(seq->comment);
+		}
+		if (seq->seq) {
+			free(seq->seq);
+		}
+		if (seq->qual) {
+			free(seq->qual);
+		}
+	}
+	free(seqs);
 }
 
 void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* opt) {
 	extern bwa_seqio_t* bwa_open_reads(int mode, const char* fn_fa);
 
 	int n_seqs;
-	bwa_seq_t* seqs;
-	bwa_seqio_t* ks;
+	bseq1_t* seqs;
 	bwaidx_t* idx;
 	int i;
 	FILE* log_file;
+	gzFile fp = 0;
+	void *ko = 0;
+
 	if (opt->need_log) {
 		log_file = fopen(opt->log_file_name, "w");
 	} else {
@@ -518,26 +554,34 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 		free(fn);
 		fprintf(log_file, "klcp_loading\t%.2fs\n", realtime() - rtime);
 	}
-	ks = bwa_open_reads(opt->mode, fn_fa);
 	float total_time = 0;
 	int64_t total_seqs = 0;
 	ctime = cputime(); rtime = realtime();
 	int64_t total_kmers_count = 0;
-	while ((seqs = bwa_read_seq(ks, 0x100, &n_seqs, opt->mode, opt->trim_qual)) != 0) {
+	int fd;
+	ko = kopen(fn_fa, &fd);
+	if (ko == 0) {
+		if (bwa_verbose >= 1) fprintf(stderr, "[E::%s] fail to open file `%s'.\n", __func__, fn_fa);
+		return;
+	}
+	fp = gzdopen(fd, "r");
+	kseq_t* ks = kseq_init(fp);
+
+	while ((seqs = bseq_read(opt->read_chunk_size, &n_seqs, ks, NULL)) != 0) {
 		process_sequences(idx, n_seqs, seqs, opt, klcp);
 		total_seqs += n_seqs;
 		for (i = 0; i < n_seqs; ++i) {
-			int seq_kmers_count = seqs[i].len - opt->kmer_length + 1;
+			int seq_kmers_count = seqs[i].l_seq - opt->kmer_length + 1;
 			if (seq_kmers_count > 0) {
 				total_kmers_count += seq_kmers_count;
 			}
 		}
-		bwa_free_read_seq(n_seqs, seqs);
+		destroy_reads(n_seqs, seqs);
 	}
 	total_time = realtime() - rtime;
+
 	fprintf(stderr, "[prophyle_index:%s] match time: %.2f sec\n", __func__, total_time);
 	fprintf(stderr, "[prophyle_index::%s] Processed %llu reads in %.3f CPU sec, %.3f real sec\n", __func__, total_seqs, cputime() - ctime, realtime() - rtime);
-
 	if (opt->need_log) {
 		fprintf(log_file, "matching_time\t%.2fs\n", total_time);
 		fprintf(log_file, "reads\t%" PRId64 "\n", total_seqs);
@@ -554,6 +598,8 @@ void query(const char* prefix, const char* fn_fa, const prophyle_index_opt_t* op
 		free(klcp->klcp);
 		free(klcp);
 	}
+
 	bwa_idx_destroy_without_bns_name_and_anno(idx);
-	bwa_seq_close(ks);
+	kseq_destroy(ks);
+	err_gzclose(fp); kclose(ko);
 }

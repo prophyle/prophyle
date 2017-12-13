@@ -64,6 +64,7 @@ static int usage_query(int threads){
 	fprintf(stderr, "         -b        print sequences and base qualities\n");
 	fprintf(stderr, "         -l STR    log file name to output statistics\n");
 	fprintf(stderr, "         -t INT    number of threads [%d]\n", threads);
+	fprintf(stderr, "         -r INT    total size of reads in one chunk [%d bp]\n", READ_CHUNK_SIZE);
 	fprintf(stderr, "\n");
 	return 1;
 }
@@ -75,7 +76,7 @@ int prophyle_index_query(int argc, char *argv[])
 	char *prefix;
 
 	opt = prophyle_index_init_opt();
-	while ((c = getopt(argc, argv, "l:psuvk:bt:")) >= 0) {
+	while ((c = getopt(argc, argv, "l:psuvk:bt:r:")) >= 0) {
 		switch (c) {
 		case 'v': { opt->output_old = 1; opt->output = 0; } break;
 		case 'u': opt->use_klcp = 1; break;
@@ -85,6 +86,7 @@ int prophyle_index_query(int argc, char *argv[])
 		case 'l': { opt->need_log = 1; opt->log_file_name = optarg; break; }
 		case 'b': opt->output_read_qual = 1; break;
 		case 't': opt->n_threads = atoi(optarg); break;
+		case 'r': opt->read_chunk_size = atoi(optarg); break;
 		default: return 1;
 		}
 	}
