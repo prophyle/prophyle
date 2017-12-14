@@ -2,15 +2,11 @@
 
 .. _reference:
 
-Reference
-=========
+Command-line interface
+======================
 
-Here you can find format specifications and an automatically generated reference
-for ProPhyle's CLI.
-
-
-Main program's reference
-------------------------
+Main program
+------------
 
 ``prophyle`` (list of subcommands)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -47,18 +43,17 @@ Main program's reference
 	.. include:: reference/decompress.txt
 		:code: text
 
-Other programs' reference
--------------------------
-
-``prophyle_ncbi_tree``
-^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/prophyle_ncbi_tree.txt
-		:code: text
+Prophyle Assembler
+------------------
 
 ``prophyle_assembler``
 ^^^^^^^^^^^^^^^^^^^^^^
 	.. include:: reference/prophyle_assembler.txt
 		:code: text
+
+Prophyle Index
+--------------
+
 
 ``prophyle_index`` (list of subcommands)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -75,10 +70,19 @@ Other programs' reference
 .. include:: reference/prophyle_index_query.txt
 	:code: text
 
+
+Prophyle Assignment
+-------------------
+
+
 ``prophyle_assignment``
 ^^^^^^^^^^^^^^^^^^^^^^^
 	.. include:: reference/prophyle_assignment.txt
 		:code: text
+
+Prophyle Analyze
+----------------
+
 
 ``prophyle_analyze``
 ^^^^^^^^^^^^^^^^^^^^

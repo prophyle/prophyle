@@ -22,15 +22,12 @@ Links
 .. _`Contact`: 	kbrinda@hsph.harvard.edu
 
 
-Table of content
-----------------
-
-
 .. toctree::
+	:hidden:
 	:maxdepth: 3
 	:name: mastertoc
 
-	index
+	example
 	requirements
 	install
 	databases
