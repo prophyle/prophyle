@@ -1,7 +1,9 @@
-.. _default_db:
+:tocdepth: 1
 
-Default databases
-=================
+.. _databases:
+
+Building databases
+==================
 
 ProPhyle comes with several genome libraries containing
 RefSeq genomes, augmented with the NCBI taxonomy.

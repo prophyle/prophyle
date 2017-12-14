@@ -1,10 +1,9 @@
-.. _reference:
+:tocdepth: 1
 
-Reference
-=========
+.. _formats:
 
-Here you can find format specifications and an automatically generated reference
-for ProPhyle's CLI.
+File formats
+============
 
 Formats
 -------
@@ -53,79 +52,3 @@ Analysis output
 5. number of reads classified to this node including multi-classified reads (divided by the number of assignments, e.g., 5981.37).
 6. number of reads uniquely classified to this genomic sequence (e.g., 5964).
 7. not used yet.
-
-Main program's reference
-------------------------
-
-``prophyle`` (list of subcommands)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: main.txt
-		:code: text
-
-``prophyle download``
-^^^^^^^^^^^^^^^^^^^^^
-	.. include:: download.txt
-		:code: text
-
-``prophyle index``
-^^^^^^^^^^^^^^^^^^
-	.. include:: index.txt
-		:code: text
-
-``prophyle classify``
-^^^^^^^^^^^^^^^^^^^^^
-	.. include:: classify.txt
-		:code: text
-
-``prophyle analyze``
-^^^^^^^^^^^^^^^^^^^^
-	.. include:: analyze.txt
-		:code: text
-
-``prophyle compress``
-^^^^^^^^^^^^^^^^^^^^^
-	.. include:: compress.txt
-		:code: text
-
-``prophyle decompress``
-^^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: decompress.txt
-		:code: text
-
-Other programs' reference
--------------------------
-
-``prophyle_ncbi_tree``
-^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: prophyle_ncbi_tree.txt
-		:code: text
-
-``prophyle_assembler``
-^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: prophyle_assembler.txt
-		:code: text
-
-``prophyle_index`` (list of subcommands)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: prophyle_index.txt
-		:code: text
-
-``prophyle_index build``
-^^^^^^^^^^^^^^^^^^^^^^^^
-.. include:: prophyle_index_build.txt
-	:code: text
-
-``prophyle_index query``
-^^^^^^^^^^^^^^^^^^^^^^^^
-.. include:: prophyle_index_query.txt
-	:code: text
-
-``prophyle_assignment``
-^^^^^^^^^^^^^^^^^^^^^^^
-	.. include:: prophyle_assignment.txt
-		:code: text
-
-``prophyle_analyze``
-^^^^^^^^^^^^^^^^^^^^
-	.. include:: prophyle_analyze.txt
-		:code: text

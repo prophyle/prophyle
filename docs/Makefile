@@ -8,6 +8,8 @@ SPHINXPROJ    = ProPhyle
 SOURCEDIR     = .
 BUILDDIR      = .build
 
+all: html latex latexpdf
+
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -21,6 +23,7 @@ sync:
 	cp -va .build/html/* ../../prophyle.github.io/
 
 clean:
+	rm -fr .build
 
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

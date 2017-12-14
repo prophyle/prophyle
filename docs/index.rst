@@ -1,6 +1,14 @@
+:tocdepth: 1
 
-ProPhyle manual
-===============
+ProPhyle
+========
+
+ProPhyle is a metagenomic classifier based on BWT-index and phylogenetic trees,
+whose indexing strategy is based on the bottom-up propagation of genomes’
+k-mers in the tree, assembling contigs at each node and matching using a
+standard full-text search. The analysis of shared k-mers between NGS reads and
+the genomes in the index determines which nodes are the best candidates for
+their classification.
 
 Links
 -----
@@ -13,28 +21,19 @@ Links
 .. _`Bug reporting`: http://github.com/karel-brinda/ProPhyle/issues
 .. _`Contact`: 	kbrinda@hsph.harvard.edu
 
-Table of contents
------------------
 
-:ref:`introduction`
-	Introduction to ProPhyle.
-
-:ref:`tutorials`
-	Tutorials demonstrating installation and basic usage of ProPhyle.
-
-:ref:`reference`
-	Automatically generated documentation for ProPhyle's CLI.
-
-.. :ref:`other_information`
- 	FAQs and supplementary information about ProPhyle.
+Table of content
+----------------
 
 
 .. toctree::
-	:caption: ProPhyle Manual
-	:maxdepth: 4
-	:hidden:
+	:maxdepth: 3
 	:name: mastertoc
 
-	introduction
-	tutorials/index
-	reference/index
+	index
+	requirements
+	install
+	databases
+	classification
+	formats
+	reference
