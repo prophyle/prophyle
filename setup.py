@@ -71,8 +71,8 @@ setuptools.setup(
     description='ProPhyle metagenomic classifier',
     long_description=long_description,
     #
-    url='https://github.com/karel-brinda/prophyle',
-    download_url="https://github.com/karel-brinda/prophyle/releases",
+    url='https://github.com/prophyle/prophyle',
+    download_url="https://github.com/prophyle/prophyle/releases",
     #
     author='Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
     author_email=

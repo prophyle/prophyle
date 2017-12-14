@@ -1,11 +1,11 @@
 ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classification
 ==================================================================================
 
-.. image:: https://travis-ci.org/karel-brinda/prophyle.svg?branch=master
-        :target: https://travis-ci.org/karel-brinda/prophyle
+.. image:: https://travis-ci.org/prophyle/prophyle.svg?branch=master
+        :target: https://travis-ci.org/prophyle/prophyle
 
-.. image:: https://codecov.io/gh/karel-brinda/prophyle/branch/master/graph/badge.svg
-        :target: https://codecov.io/gh/karel-brinda/prophyle
+.. image:: https://codecov.io/gh/prophyle/prophyle/branch/master/graph/badge.svg
+        :target: https://codecov.io/gh/prophyle/prophyle
 
 .. image:: https://readthedocs.org/projects/prophyle/badge/?version=latest
         :target: http://prophyle.rtfd.org
@@ -102,19 +102,19 @@ PhD Thesis, Université Paris-Est, 2016. |karel_phd|
 Issues
 ------
 
-Please use `Github issues <https://github.com/karel-brinda/prophyle/issues>`_.
+Please use `Github issues <https://github.com/prophyle/prophyle/issues>`_.
 
 
 Changelog
 ---------
 
-See `Releases <https://github.com/karel-brinda/prophyle/releases>`_.
+See `Releases <https://github.com/prophyle/prophyle/releases>`_.
 
 
 Licence
 -------
 
-`MIT <https://github.com/karel-brinda/prophyle/blob/master/LICENSE.txt>`_
+`MIT <https://github.com/prophyle/prophyle/blob/master/LICENSE.txt>`_
 
 
 Authors
