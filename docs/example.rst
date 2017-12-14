@@ -5,24 +5,30 @@
 Quick example
 =============
 
-Examples
---------
+1. Install ProPhyle using `Bioconda <https://bioconda.github.io/>`_:
 
-Quick test (small k, subsampled bacterial database)::
+	.. code-block:: bash
 
-	prophyle download bacteria
-	prophyle index -k 10 -s 0.1 ~/prophyle/bacteria.nw test_idx
-	prophyle classify test_idx reads.fq > result.sam
+		conda config --add channels defaults
+		conda config --add channels conda-forge
+		conda config --add channels bioconda
+		conda install prophyle
 
-Bacterial database (k=31)::
+2. Download the `RefSeq <https://www.ncbi.nlm.nih.gov/refseq/>`_ bacterial database:
 
-	prophyle download bacteria
-	prophyle index -k 31 ~/prophyle/bacteria.nw idx_bac
-	prophyle classify idx_bac reads.fq > result.sam
+	.. code-block:: bash
 
-Example for bacterial and viral database (k=31)::
+		prophyle download bacteria
 
-	prophyle download bacteria
-	prophyle download viruses
-	prophyle index -k 31 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw idx_bac_vir
-	prophyle classify idx_bac_vir reads.fq > result.sam
+3. To quickly test ProPhyle functionality, create an index for randomly sampled 10% genomes from the E.coli subtree of the NCBI taxonomy with k-mer size 25:
+
+	.. code-block:: bash
+
+		prophyle index -s 0.1 -k 25 ~/prophyle/bacteria.nw@561 _index_ecoli
+
+4. Classify your reads:
+
+	.. code-block:: bash
+
+		prophyle classify _index_ecoli reads.fq > result.sam
+

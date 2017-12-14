@@ -5,10 +5,10 @@
 Command-line interface
 ======================
 
-Main program
-------------
+ProPhyle – main program
+-----------------------
 
-``prophyle`` (list of subcommands)
+``prophyle``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	.. include:: reference/main.txt
 		:code: text
@@ -55,8 +55,8 @@ Prophyle Index
 --------------
 
 
-``prophyle_index`` (list of subcommands)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``prophyle_index``
+^^^^^^^^^^^^^^^^^^
 	.. include:: reference/prophyle_index.txt
 		:code: text
 

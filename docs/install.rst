@@ -2,8 +2,8 @@
 
 .. _install:
 
-Installation
-============
+Installation and running
+========================
 
 Prerequisities
 --------------

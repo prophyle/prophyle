@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ProPhyle'
-copyright = '2017, Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov'
+copyright = '2016–2017, Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov'
 author = 'Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -94,8 +94,6 @@ todo_include_todos = False
 #
 # html_theme = 'alabaster'
 
-html_theme = "crolls"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_theme_path = guzzle_sphinx_theme.html_theme_path()
 html_theme = 'guzzle_sphinx_theme'
 

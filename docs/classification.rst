@@ -1,15 +1,17 @@
-:tocdepth: 1
-
 .. _classification:
 
 Read classification
 ===================
 
-When the index construction is finished, you can classify your reads using ::
+When the index construction is finished, you can classify your reads using
 
-        prophyle classify <index_dir> <reads.fq>
+.. code-block:: bash
 
-For the index from above, the command would be: ::
+	prophyle classify <index_dir> <reads.fq>
+
+For the index from above, the command would be:
+
+.. code-block:: bash
 
         prophyle classify my_BV_index my_reads.fq
 
