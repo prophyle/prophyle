@@ -289,11 +289,6 @@ def prophyle_download(library, library_dir, force=False):
     Args:
         library (str): Library to download (bacteria / viruses / ...)
         library_dir (str): Directory where download files will be downloaded.
-
-    TODO:
-        * Add support for alternative URLs (http / ftp, backup refseq sites, etc.).
-            * http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2
-            * ftp://public-ftp.hmpdacc.org/HMREFG/all_seqs.fa.bz2
     """
 
     if library == "all":
@@ -346,6 +341,11 @@ def prophyle_download(library, library_dir, force=False):
 
     elif library == 'hmp':
         if lib_missing or force:
+            fn = "{}.nw".format(library)
+            nhx = os.path.join(TREE_D, fn)
+            new_nhx = os.path.join(d, "..", fn)
+            pro.cp_to_file(nhx, new_nhx)
+
             # fix when error appears
             cmd = [
                 'cd', d, '&&', 'curl', 'http://downloads.hmpdacc.org/data/HMREFG/all_seqs.fa.bz2', '|', 'bzip2', '-d',
@@ -714,7 +714,7 @@ def prophyle_index(
         recompute = True
 
     if recompute:
-        pro.message('[2/6] Running k-mer propagation', upper=True)
+        pro.message('[2/6] k-mer propagation', upper=True)
         _create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
         _propagate(index_dir, threads=threads)
         _propagation_postprocessing(index_dir, index_tree_1, index_tree_2)

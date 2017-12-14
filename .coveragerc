@@ -6,6 +6,7 @@ exclude_lines =
     except ImportError:
     except RuntimeError:
     except:
+    def prophyle_download
 ignore_errors = True
 
 [html]

@@ -79,7 +79,8 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
             """\
 
                 {ocompl}: {i}
-                \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
+                \tprintf '' > {o}
+                \techo "$^" | xargs cat $(CMD_MASKING) $(CMD_REASM) >> {o}
                 \t@touch $@
 
             """.format(
@@ -94,7 +95,8 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
             """\
 
                 {ocompl}: {icompl} {nhx}
-                \tcat {i} > {o}
+                \tprintf '' > {o}
+                \techo "{i}" | xargs cat >> {o}
                 \t@touch $@
 
             """.format(
