@@ -5,6 +5,8 @@
 import re
 import sphinx
 
+with open("version.py","r") as rnf:
+    exec(rnf.read())
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo',
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
@@ -15,9 +17,14 @@ templates_path = ['_templates']
 exclude_patterns = ['_build']
 
 project = 'Sphinx'
-copyright = '2007-2017, Georg Brandl and the Sphinx team'
-version = sphinx.__display_version__
-release = version
+copyright = '2016-2017, Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov'
+version = VERSION
+release = VERSION
+
+#version = sphinx.__display_version__
+#release = version
+
+
 show_authors = True
 
 html_theme = 'sphinx13'
