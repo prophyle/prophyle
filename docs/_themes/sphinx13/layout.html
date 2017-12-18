@@ -57,7 +57,7 @@
 {% endblock %}
 
 {% block rootrellink %}
-        <li><a href="{{ pathto('index') }}">Sphinx home</a>&#160;|</li>
+        <li><a href="{{ pathto('index') }}">ProPhyle home</a>&#160;|</li>
         <li><a href="{{ pathto('contents') }}">Documentation</a> &#187;</li>
 {% endblock %}
 
@@ -71,8 +71,11 @@
   </ul>
   <div>
     <a href="{{ pathto('index') }}">
-      <img src="{{ pathto('_static/sphinxheader.png', 1) }}" alt="SPHINX" />
-      ProPhyle
+      <!--
+        <img src="{{ pathto('_static/sphinxheader.png', 1) }}" alt="SPHINX" />
+      -->
+      <div style="color:white;font-size:240%">ProPhyle</div>
+      <div style="color:white;font-size:140%">a phylogeny-based metagenomic classifier</div>
     </a>
   </div>
 </div>

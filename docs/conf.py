@@ -16,7 +16,7 @@ master_doc = 'index'
 templates_path = ['_templates']
 exclude_patterns = ['_build']
 
-project = 'Sphinx'
+project = 'ProPhyle'
 copyright = '2016-2017, Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov'
 version = VERSION
 release = VERSION
