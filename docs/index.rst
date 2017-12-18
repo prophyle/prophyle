@@ -61,7 +61,7 @@ Simone Pignotti <pignottisimone@gmail.com>
 	:titlesonly:
 	:name: mastertoc
 
-	index
+	tutorial
 	example
 	requirements
 	install
