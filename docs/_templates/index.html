@@ -20,38 +20,55 @@
     <li><b>Deterministic behavior.</b> ProPhyle is a fully deterministic classifier with a mathematically well-defined behavior.</li>
   </ul>
 
-  <h2 style="margin-bottom: 0">{%trans%}Documentation{%endtrans%}</h2>
+  <h2 style="margin-bottom: 0">Documentation</h2>
 
   <table class="contentstable">
     <tr>
-      <td>
+      <td style="width:35%">
         <p class="biglink"><a class="biglink" href="{{ pathto("example") }}">Quick example</a><br/>
-           <span class="linkdescr">{%trans%}overview of basic tasks{%endtrans%}</span></p>
+           <span class="linkdescr">overview of basic tasks</span></p>
       </td><td>
         <p class="biglink"><a class="biglink" href="{{ pathto("tutorial") }}">Tutorial</a><br/>
-           <span class="linkdescr">{%trans%}overview of basic tasks{%endtrans%}</span></p>
+           <span class="linkdescr">overview of basic tasks</span></p>
       </td>
     </tr><tr>
       <td>
-        {%- if hasdoc('search') %}<p class="biglink"><a class="biglink" href="{{ pathto("search") }}">{%trans%}Search page{%endtrans%}</a><br/>
-           <span class="linkdescr">{%trans%}search the documentation{%endtrans%}</span></p>{%- endif %}
+        {%- if hasdoc('search') %}<p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a><br/>
+           <span class="linkdescr">search the documentation</span></p>{%- endif %}
       </td><td>
-        <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">{%trans%}Contents{%endtrans%}</a><br/>
-           <span class="linkdescr">{%trans%}for a complete overview{%endtrans%}</span></p>
+        <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Contents</a><br/>
+           <span class="linkdescr">for a complete overview</span></p>
       </td>
     </tr><tr>
       <td>
-        {%- if hasdoc('genindex') %}<p class="biglink"><a class="biglink" href="{{ pathto("genindex") }}">{%trans%}General Index{%endtrans%}</a><br/>
-           <span class="linkdescr">{%trans%}all functions, classes, terms{%endtrans%}</span></p>{%- endif %}
+        {%- if hasdoc('genindex') %}<p class="biglink"><a class="biglink" href="{{ pathto("genindex") }}">General Index</a><br/>
+           <span class="linkdescr">all functions, classes, terms</span></p>{%- endif %}
       </td><td>
         <p class="biglink"><a class="biglink" href="https://github.com/prophyle/prophyle/releases">
           Releases
         </a><br/>
-           <span class="linkdescr">{%trans%}release history{%endtrans%}</span></p>
+           <span class="linkdescr">release history</span></p>
       </td><td>
       </td>
     </tr>
   </table>
+
+
+  <h2 style="margin-bottom: 0">Auxiliary tools</h2>
+
+  <table class="contentstable">
+    <tr>
+      <td style="width:35%">
+        <p class="biglink"><a class="biglink" href="http://github.com/prophyle/prophyle_index">ProPhyle Index</a><br/>
+           <span class="linkdescr">indexing k-mers</span></p>
+      </td>
+      <td>
+        <p class="biglink"><a class="biglink" href="http://github.com/prophyle/prophyle_assembler">ProPhyle Assembler</a><br/>
+           <span class="linkdescr">assemblying contigs from k-mers</span></p>
+      </td>
+    </tr>
+  </table>
+
 
   <h2>Authors</h2>
 
