@@ -1,4 +1,4 @@
-BRANCH = "docs"
-SHORTHASH = "20c961a"
-REVCOUNT = 1649
+BRANCH = "docs_sph"
+SHORTHASH = "18dafeb"
+REVCOUNT = 1650
 LATESTTAG = "0.3.1.0"
