@@ -2,87 +2,109 @@
 
 .. _install:
 
-Installation and running
-========================
+Installing ProPhyle
+===================
 
-Prerequisities
---------------
 
-ProPhyle is written in Python and C++. It is distributed as a Python package
-and all C++ auxiliary programs are compiled upon the first execution of the main program.
-ProPhyle requires the following dependencies:
+ProPhyle is written in Python, C and C++. It is distributed as a Python package
+and all C/C++ programs are compiled upon the first execution
+of the main program. ProPhyle requires a Unix operating system and the following dependencies:
 
-* Python 3.3+ with ETE3
+* Python 3.3+ with the `ETE3 library <http://etetoolkit.org/>`_
 * GCC 4.8+
 * ZLib
 
+There are multiple ways of installation:
 
-Using Conda (recommended)
--------------------------
-
-
-Environment installation::
-
-	conda create -c bioconda -n prophyle prophyle
-
-Environment activation::
-
-	source activate prophyle
+.. contents::
+	:depth: 1
+	:local:
+	:backlinks: none
 
 
-Using PIP
----------
+Installing ProPhyle using Bioconda
+----------------------------------
 
-There three options how to install ProPhyle using PIP.
+To set-up Bioconda, install
+`Miniconda <https://conda.io/miniconda.html>`_
+or another Conda distribution, and
+add `Bioconda channels <https://bioconda.github.io/>`_::
 
-From PyPI::
+	$ conda config --add channels defaults
+	$ conda config --add channels conda-forge
+	$ conda config --add channels bioconda
 
-	pip install --upgrade prophyle
+You may either create a separate Conda environment
+(which is the recommended approach)::
 
-From Git::
+	$ conda create -n prophyle prophyle
+	$ source activate prophyle
 
-	pip install --upgrade git+https://github.com/karel-brinda/prophyle
+or install ProPhyle directly to your main environment::
 
-From PyPI to the current directory::
-
-	pip install --user prophyle
-	export PYTHONUSERBASE=`pwd`
-	export PATH=$PATH:`pwd`/bin
+	$ conda install prophyle
 
 
-Running ProPhyle directly from the Github repo
-----------------------------------------------
+Installing ProPhyle using PIP
+-----------------------------
+
+There three options of installing ProPhyle using PIP.
+
+1) From PyPI::
+
+	$ pip install -U prophyle
+
+2) From Git::
+
+	$ pip install -U git+https://github.com/prophyle/prophyle
+
+3) From PyPI to the current directory::
+
+	$ pip install --user prophyle
+	$ export PYTHONUSERBASE=`pwd`
+	$ export PATH=$PATH:`pwd`/bin
+
+
+
+Running ProPhyle directly from the repository
+---------------------------------------------
 
 It also is possible to run ProPhyle directly from the repository, by calling
-either the script `prophyle/prophyle/prophyle.py` or its alias `propphyle/prophyle/prophyle`.
-ProPhyle will then automatically adjust the paths of the auxiliary
-programs (e.g., `prophyle_index`).
+the main script::
 
-ProPhyle uses submodule, therefore the repository should be clonned with the
-`--recursive` option, e.g.::
+	$ prophyle/prophyle/prophyle.py
 
-        git clone --recursive http://github.com/karel-brinda/prophyle
+or its alias::
 
-The ProPhyle path can be then added to the `$PATH` variable so that ProPhyle
+	$ prophyle/prophyle/prophyle
+
+ProPhyle will then automatically adjust all paths of the auxiliary programs.
+
+Note that ProPhyle uses submodules, therefore the repository needs to
+be clonned with the `--recursive` option::
+
+    $ git clone --recursive http://github.com/prophyle/prophyle
+
+
+Adjusting path
+~~~~~~~~~~~~~~
+
+The ProPhyle path can be prepended to the `$PATH` variable so that ProPhyle
 can be executed in the same way as if it was installed using PIP::
 
-        export PATH=$(pwd)/prophyle/prophyle:$PATH
+    $ export PATH=$(pwd)/prophyle/prophyle:$PATH
 
-Note that some of the ProPhyle dependencies, listed in `requirements.txt` might
-be missing in the system.  It is possible to install them either using BioConda::
 
-        cat requirements.txt | xargs conda install
+Installing dependencies
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When run from the repository,
+some of the ProPhyle dependencies, listed in `requirements.txt`, might
+be missing in the system.
+It is possible to install them either using BioConda::
+
+    $ cat prophyle/requirements.txt | perl -pe 's/==.*//g' | xargs conda install
 
 or using PIP::
 
-        cat requirements.txt | xargs pip install
-
-
-Quick test
-----------
-
-To quickly test if ProPhyle has been installed correctly, you can
-create a small index with a small k-mer length::
-
-	prophyle download bacteria
-	prophyle index -k 10 -s 0.1 ~/prophyle/bacteria.nw test_idx
+    $ cat prophyle/requirements.txt | xargs pip install
