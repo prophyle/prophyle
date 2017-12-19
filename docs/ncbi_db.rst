@@ -1,5 +1,3 @@
-:tocdepth: 1
-
 .. _ncbi_db:
 
 Custom NCBI indexes

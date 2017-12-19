@@ -1,6 +1,4 @@
-:tocdepth: 1
-
-.. _databases:
+.. _custom_db:
 
 Building custom databases
 =========================

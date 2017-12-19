@@ -1,5 +1,3 @@
-:tocdepth: 1
-
 .. _reference:
 
 Reference

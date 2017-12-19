@@ -1,7 +1,7 @@
-.. _classification:
+.. _classify:
 
-Read classification
-===================
+Classifying reads
+=================
 
 When the index construction is finished, you can classify your reads using
 

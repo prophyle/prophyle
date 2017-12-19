@@ -1,7 +1,7 @@
-.. _databases:
+.. _standard_db:
 
-Building predefined databases
-=============================
+Building standard databases
+===========================
 
 ProPhyle comes with several genome libraries containing
 RefSeq genomes, augmented with the NCBI taxonomy.

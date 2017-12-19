@@ -1,5 +1,3 @@
-:tocdepth: 1
-
 .. _contents:
 
 ProPhyle documentation contents
@@ -13,8 +11,9 @@ ProPhyle documentation contents
 	example
 	requirements
 	install
-	databases_predefined
-	databases_custom
-	classification
+	standard_db
+	custom_db
+	classify
+	analyze
 	formats
 	cli

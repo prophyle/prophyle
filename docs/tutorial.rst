@@ -1,5 +1,3 @@
-:tocdepth: 1
-
 .. _tutorials:
 
 Tutorial
@@ -12,6 +10,6 @@ Tutorial
 
 	requirements
 	install
-	databases_predefined
-	databases_custom
+	standard_db
+	custom_db
 	classification
