@@ -12,4 +12,5 @@ Tutorial
 	install
 	standard_db
 	custom_db
-	classification
+	classify
+	analyze

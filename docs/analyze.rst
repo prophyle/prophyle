@@ -1,4 +1,4 @@
 .. _analyze:
 
-Analysing read assignments
+Analyzing read assignments
 ==========================
