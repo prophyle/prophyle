@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 
+import datetime
 import re
 import sphinx
 
@@ -17,7 +18,8 @@ templates_path = ['_templates']
 exclude_patterns = ['_build']
 
 project = 'ProPhyle'
-copyright = '2016-2017, Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov'
+current_year = datetime.datetime.now().year
+copyright = '2015-{}, Karel Břinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov'.format(current_year)
 version = VERSION
 release = VERSION
 
