@@ -8,14 +8,10 @@ Tutorial
 
 .. toctree::
 	:titlesonly:
-	:numbered:
-	:name: mastertoc
+	:name: tutorial
 
-	example
 	requirements
 	install
 	databases_predefined
 	databases_custom
 	classification
-	formats
-	cli

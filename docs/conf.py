@@ -12,7 +12,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo',
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
               'sphinx.ext.viewcode']
 
-master_doc = 'index'
+master_doc = 'contents'
 templates_path = ['_templates']
 exclude_patterns = ['_build']
 
