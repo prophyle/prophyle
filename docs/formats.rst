@@ -2,44 +2,50 @@
 
 .. _formats:
 
+
 File formats
 ============
 
-Input trees
------------
+.. contents::
+	:depth: 3
+	:local:
+	:backlinks: none
 
-Newick
-^^^^^^
+
+Input data formats
+------------------
+
+Newick trees
+^^^^^^^^^^^^
 
 `Newick <http://evolution.genetics.washington.edu/phylip/newicktree.html>`_ trees are eventually transformed to NHX.
 
-New Hampshire X Format (NHX)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NHX trees
+^^^^^^^^^
 
-`NHX format <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_
+`New Hampshire X Format <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_
 is parsed using the `ETE3 library <http://etetoolkit.org/>`_  (see specification of `format 1 <http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#reading-and-writing-newick-trees>`_).
 
 
+Output data formats
+-------------------
 
-Classification output
----------------------
+Read assignments in SAM/BAM
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 `SAM format <http://samtools.github.io/hts-specs/>`_ 
 
 
-Kraken-like format
-^^^^^^^^^^^^^^^^^^
+Read assignments in a Kraken-like format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Kraken <https://ccb.jhu.edu/software/kraken/MANUAL.html#output-format>`_
 
 
 
-Abundences
-----------
-
-Kraken-report format
-^^^^^^^^^^^^^^^^^^^^
+Abundances in a Kraken report
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `kraken-report <https://ccb.jhu.edu/software/kraken/MANUAL.html#sample-reports>`_ format:
 
@@ -51,8 +57,8 @@ Kraken-report format
 	6. indented scientific name
 
 
-Metaphlan2 format
-^^^^^^^^^^^^^^^^^
+Abundances in a Metaphlan2 report
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `MetaPhlAn2 <https://bitbucket.org/biobakery/biobakery/wiki/metaphlan2#rst-header-output-files>`_ format:
 	1. clades, ranging from taxonomic kingdoms (Bacteria, Archaea, etc.) through species.
@@ -64,9 +70,8 @@ Metaphlan2 format
 	(again, making sure to include clades unclassified at this level).
 
 
-Centrifuge format
-^^^^^^^^^^^^^^^^^
-
+Abundances in a Centrifuge report
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Centrifuge <https://ccb.jhu.edu/software/centrifuge/manual.shtml#centrifuge-summary-output-the-default-filename-is-centrifuge_report.tsv>`_ format::
 
@@ -82,12 +87,12 @@ Centrifuge format
 7. not used yet.
 
 
-Index
------
 
-Standard
-^^^^^^^^
+Internal ProPhyle formats
+-------------------------
 
+ProPhyle Index
+^^^^^^^^^^^^^^
 
 Directory with the following files:
 
@@ -105,8 +110,8 @@ Directory with the following files:
 * ``tree.preliminary.nw`` – phylogenetic tree before adjusting
 
 
-Compressed (for transmission only)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Compressed index for transmission
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Archive ``[name].tar.gz`` with the following subset of index files:
 

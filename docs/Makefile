@@ -10,7 +10,8 @@ BUILDDIR      = .build
 
 WEBSITEDIR    = ../../prophyle.github.io
 
-all: html
+all:
+	$(MAKE) html
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -25,7 +26,7 @@ sync:
 	$(MAKE) html
 	rm -fr $(WEBSITEDIR)/*
 	cp -va .build/html/* $(WEBSITEDIR)
-	cd $(WEBSITEDIR) && git add '*' && git diff HEAD && (git commit || true) && git push 
+	cd $(WEBSITEDIR) && git add '*' && git diff HEAD && (git commit || true) && git push
 
 clean:
 	rm -fr .build
