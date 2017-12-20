@@ -68,11 +68,35 @@ ProPhyle – the main program
 ``prophyle_assignment``
 -----------------------
 
-	.. include:: reference/prophyle_assignment.txt
+	.. include:: reference/prophyle_assignment.py.txt
 		:code: text
 
 ``prophyle_analyze.py``
 -----------------------
 
-	.. include:: reference/prophyle_analyze.txt
+	.. include:: reference/prophyle_analyze.py.txt
+		:code: text
+
+``prophyle_propagation_makefile.py``
+------------------------------------
+
+	.. include:: reference/prophyle_propagation_makefile.py.txt
+		:code: text
+
+``prophyle_propagation_preprocessing.py``
+-----------------------------------------
+
+	.. include:: reference/prophyle_propagation_preprocessing.py.txt
+		:code: text
+
+``prophyle_propagation_postprocessing.py``
+------------------------------------------
+
+	.. include:: reference/prophyle_propagation_postprocessing.py.txt
+		:code: text
+
+``prophyle_validate_tree.py``
+-----------------------------
+
+	.. include:: reference/prophyle_validate_tree.py.txt
 		:code: text

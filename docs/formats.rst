@@ -61,7 +61,8 @@ Abundances in a Metaphlan2 report
 `MetaPhlAn2 <https://bitbucket.org/biobakery/biobakery/wiki/metaphlan2#rst-header-output-files>`_ format:
 	1. clades, ranging from taxonomic kingdoms (Bacteria, Archaea, etc.) through species.
 	2. The taxonomic level of each clade is prefixed to indicate its level: Kingdom: ``k__``, Phylum: ``p__``, Class: ``c__``, Order: ``o__``, Family: ``f__``, Genus: ``g__``, Species: ``s__``.
-	Since sequence-based profiling is relative and does not provide absolute cellular abundance measures,
+
+Since sequence-based profiling is relative and does not provide absolute cellular abundance measures,
 	clades are hierarchically summed. Each level will sum to 100%; that is, the sum of all kindom-level
 	clades is 100%, the sum of all genus-level clades (including unclassified) is also 100%, and so forth.
 	OTU equivalents can be extracted by using only the species-level ``s__`` clades from this file
