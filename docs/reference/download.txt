@@ -1,14 +1,15 @@
 $ prophyle download -h
 
-usage: prophyle.py download [-h] [-d DIR] [-l STR] [-F]
+usage: prophyle.py download [-h] [-d DIR] [-l STR] [-F] [-c [STR [STR ...]]]
                             <library> [<library> ...]
 
 positional arguments:
-  <library>   genomic library ['bacteria', 'viruses', 'plasmids', 'hmp',
-              'all']
+  <library>           genomic library ['bacteria', 'viruses', 'plasmids',
+                      'hmp', 'all']
 
 optional arguments:
-  -h, --help  show this help message and exit
-  -d DIR      directory for the tree and the sequences [~/prophyle]
-  -l STR      log file
-  -F          rewrite library files if they already exist
+  -h, --help          show this help message and exit
+  -d DIR              directory for the tree and the sequences [~/prophyle]
+  -l STR              log file
+  -F                  rewrite library files if they already exist
+  -c [STR [STR ...]]  advanced configuration (a JSON dictionary)

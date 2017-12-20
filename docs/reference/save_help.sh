@@ -4,7 +4,7 @@
 
 cd $(dirname $0)
 
-for x in main download index classify analyze compress decompress ; do
+for x in main $(../../prophyle/prophyle --help | grep -E "^   " | perl -pe 's/^\s+//g' | cut -f1 -d ' ') ; do
 	fn="$x.txt"
 	echo "$fn"
 
@@ -17,9 +17,10 @@ for x in main download index classify analyze compress decompress ; do
 	../../prophyle/prophyle.py $x -h >> $fn
 done
 
+
 # prophyle_ncbi_tree.py
 
-fn="prophyle_ncbi_tree.txt"
+fn="prophyle_ncbi_tree.py.txt"
 com="../../prophyle/prophyle_ncbi_tree.py"
 
 echo "$fn"
@@ -29,13 +30,13 @@ $com -h 2>&1 >>$fn
 
 # prophyle_index
 
-fn="prophyle_index"
+fn="prophyle_index.txt"
 com="../../prophyle/prophyle_index/prophyle_index"
 
-echo "$fn.txt"
-echo "$ `basename $com` -h" > $fn.txt
-echo >> $fn.txt
-$com 2>> $fn.txt
+echo "$fn"
+echo "$ `basename $com` -h" > $fn
+echo >> $fn
+$com 2>> $fn
 
 for sub_com in build query ; do
 	sub_fn="${fn}_${sub_com}.txt"
@@ -55,9 +56,9 @@ echo "$ `basename $com` -h" > $fn
 echo >> $fn
 $com -h 2>> $fn
 
-# prophyle_assignment
+# prophyle_assignment.py
 
-fn="prophyle_assignment.txt"
+fn="prophyle_assignment.py.txt"
 com="../../prophyle/prophyle_assignment.py"
 
 echo "$fn"
@@ -65,9 +66,19 @@ echo "$ `basename $com` -h" > $fn
 echo >> $fn
 $com -h >> $fn
 
+# prophyle_assignment
+
+fn="prophyle_assignment.txt"
+com="../../prophyle/prophyle_assignment/prophyle_assignment"
+
+echo "$fn"
+echo "$ `basename $com`" > $fn
+echo >> $fn
+$com 2>> $fn
+
 # prophyle_analyze
 
-fn="prophyle_analyze.txt"
+fn="prophyle_analyze.py.txt"
 com="../../prophyle/prophyle_analyze.py"
 
 echo "$fn"

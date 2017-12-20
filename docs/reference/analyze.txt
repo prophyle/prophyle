@@ -2,6 +2,7 @@ $ prophyle analyze -h
 
 usage: prophyle.py analyze [-h] [-s ['w', 'u', 'wl', 'ul']]
                            [-f ['sam', 'bam', 'cram', 'uncompressed_bam', 'kraken', 'histo']]
+                           [-c [STR [STR ...]]]
                            {index_dir, tree.nw} <out.pref> <classified.bam>
                            [<classified.bam> ...]
 
@@ -20,3 +21,4 @@ optional arguments:
                            assignments, propagated to leaves.
   -f ['sam', 'bam', 'cram', 'uncompressed_bam', 'kraken', 'histo']
                            Input format of assignments [auto]
+  -c [STR [STR ...]]       advanced configuration (a JSON dictionary)
