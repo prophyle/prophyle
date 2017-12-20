@@ -1,0 +1,13 @@
+$ prophyle_split_allseq.py -h
+
+usage: prophyle_split_allseq.py [-h] [-i STR] output_dir
+
+Split a fasta file containing multiple sequences in multiple files containing
+one sequence
+
+positional arguments:
+  output_dir  Path to the output directory
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -i STR      Fasta file [stdin]

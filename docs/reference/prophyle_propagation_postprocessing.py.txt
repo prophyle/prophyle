@@ -1,0 +1,18 @@
+$ prophyle_propagation_postprocessing.py -h
+
+usage: prophyle_propagation_postprocessing.py [-h]
+                                              <propagation.dir> <index.fa>
+                                              <in.tree.nw> <counts.tsv>
+                                              <out.tree.nw>
+
+K-mer propagation postprocessing: merging FASTA files and k-mer annotation.
+
+positional arguments:
+  <propagation.dir>  directory with FASTA files
+  <index.fa>         output fast file
+  <in.tree.nw>       input phylogenetic tree
+  <counts.tsv>       input phylogenetic tree
+  <out.tree.nw>      output phylogenetic tree
+
+optional arguments:
+  -h, --help         show this help message and exit

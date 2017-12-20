@@ -18,15 +18,14 @@ for x in main $(../../prophyle/prophyle --help | grep -E "^   " | perl -pe 's/^\
 done
 
 
-# prophyle_ncbi_tree.py
-
-fn="prophyle_ncbi_tree.py.txt"
-com="../../prophyle/prophyle_ncbi_tree.py"
-
-echo "$fn"
-echo "$ `basename $com` -h" > $fn
-echo >> $fn
-$com -h 2>&1 >>$fn
+for com in ../../prophyle/prophyle_*.py; do
+	bn=$(basename $com)
+	fn="$bn.txt"
+	echo "$fn"
+	echo "$ $bn -h" > $fn
+	echo >> $fn
+	$com -h >> $fn
+done
 
 # prophyle_index
 
@@ -56,16 +55,6 @@ echo "$ `basename $com` -h" > $fn
 echo >> $fn
 $com -h 2>> $fn
 
-# prophyle_assignment.py
-
-fn="prophyle_assignment.py.txt"
-com="../../prophyle/prophyle_assignment.py"
-
-echo "$fn"
-echo "$ `basename $com` -h" > $fn
-echo >> $fn
-$com -h >> $fn
-
 # prophyle_assignment
 
 fn="prophyle_assignment.txt"
@@ -74,14 +63,5 @@ com="../../prophyle/prophyle_assignment/prophyle_assignment"
 echo "$fn"
 echo "$ `basename $com`" > $fn
 echo >> $fn
-$com 2>> $fn
+$com 2>> $fn || true
 
-# prophyle_analyze
-
-fn="prophyle_analyze.py.txt"
-com="../../prophyle/prophyle_analyze.py"
-
-echo "$fn"
-echo "$ `basename $com` -h" > $fn
-echo >> $fn
-$com -h 2>&1 >>$fn

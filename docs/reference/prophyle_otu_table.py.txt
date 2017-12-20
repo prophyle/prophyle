@@ -1,0 +1,29 @@
+$ prophyle_otu_table.py -h
+
+usage: prophyle_otu_table.py [-h] [-r TARGET_RANKS] [-t TAXID_FIELD]
+                             [-i READ_FIELD] [-l log_file]
+                             <tree> <output_prefix> <in_fn> [<in_fn> ...]
+
+Program: prophyle_otu_table
+
+Create an OTU table for ProPhyle's classification output, ignoring reads
+assigned to multiple reference genomes. Needs the index to be NCBI-based (with
+informations about ranks and taxid). Change the positions of the read id
+and of the taxid with -i and -t to switch format (default: SAM)
+
+positional arguments:
+  <tree>           taxonomic tree used for classification (Newick/NHX format)
+  <output_prefix>  prefix for output files (one per rank, each with suffix
+                   "_rank.tsv")
+  <in_fn>          input files (outputs of prophyle classify in sam or kraken
+                   format)
+
+optional arguments:
+  -h, --help       show this help message and exit
+  -r TARGET_RANKS  comma separated list of ranks to build the OTU table for
+                   [species,genus,family,phylum,class,order,kingdom]
+  -t TAXID_FIELD   position of the taxid in the input lines [3 (for sam and
+                   kraken format)]
+  -i READ_FIELD    position of the read id in the input lines [1 (for sam, use
+                   2 for kraken)]
+  -l log_file      log file [stderr]

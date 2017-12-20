@@ -1,0 +1,12 @@
+$ prophyle_oldrefseq.py -h
+
+usage: prophyle_oldrefseq.py [-h] [-l DIR] <library>
+
+Build trees for the old refseq
+
+positional arguments:
+  <library>   genomic library ['bacteria', 'viruses', 'plasmids', 'all']
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -l DIR      directory with the library sequences
