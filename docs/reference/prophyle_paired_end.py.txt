@@ -1,0 +1,15 @@
+$ prophyle_paired_end.py -h
+
+usage: prophyle_paired_end.py [-h] [-o out_file] reads_1 reads_2
+
+Program: prophyle_paired_end.py Merge paired-end FASTA or FASTQ files
+(possibly in gzip format).
+
+positional arguments:
+  reads_1               1st FASTA or FASTQ file
+  reads_2               2nd FASTA or FASTQ file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o out_file, --output-file out_file
+                        output file [stdout]

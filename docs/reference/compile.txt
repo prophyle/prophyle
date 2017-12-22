@@ -1,0 +1,10 @@
+$ prophyle compile -h
+
+usage: prophyle.py compile [-h] [-C] [-F] [-P] [-c [STR [STR ...]]]
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -C                  clean files instead of compiling
+  -F                  force recompilation
+  -P                  run compilation in parallel
+  -c [STR [STR ...]]  advanced configuration (a JSON dictionary)

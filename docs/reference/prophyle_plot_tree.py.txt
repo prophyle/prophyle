@@ -1,0 +1,15 @@
+$ prophyle_plot_tree.py -h
+
+usage: prophyle_plot_tree.py [-h] [-a str]
+                             <tree.nhx> <figure.{pdf,png,svg,..}>
+
+Plot a Newick/NHX tree
+
+positional arguments:
+  <tree.nhx>            phylogenetic tree (in Newick/NHX)
+  <figure.{pdf,png,svg,..}>
+                        output figure
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a str                attribute to print with each node (e.g., sci_name)

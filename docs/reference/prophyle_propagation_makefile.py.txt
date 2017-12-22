@@ -1,0 +1,17 @@
+$ prophyle_propagation_makefile.py -h
+
+usage: prophyle_propagation_makefile.py [-h] -k int
+                                        <tree.nw> <library.dir> <output.dir>
+                                        <Makefile>
+
+Create Makefile for parallelized ProPhyle k-mer propagation.
+
+positional arguments:
+  <tree.nw>      phylogenetic tree (in Newick/NHX).
+  <library.dir>  directory with the library
+  <output.dir>   output directory for the index
+  <Makefile>     output Makefile
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -k int         k-mer length

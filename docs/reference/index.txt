@@ -1,23 +1,27 @@
 $ prophyle index -h
 
 usage: prophyle.py index [-h] [-g DIR] [-j INT] [-k INT] [-l STR] [-s FLOAT]
-                         [-F] [-M] [-P] [-K] [-T] [-A]
+                         [-F] [-M] [-P] [-K] [-T] [-A] [-c [STR [STR ...]]]
                          <tree.nw> [<tree.nw> ...] <index.dir>
 
 positional arguments:
-  <tree.nw>    phylogenetic tree (in Newick/NHX)
-  <index.dir>  index directory (will be created)
+  <tree.nw>           phylogenetic tree (in Newick/NHX)
+  <index.dir>         index directory (will be created)
 
 optional arguments:
-  -h, --help   show this help message and exit
-  -g DIR       directory with the library sequences [dir. of the first tree]
-  -j INT       number of threads [auto (4)]
-  -k INT       k-mer length [31]
-  -l STR       log file [<index.dir>/log.txt]
-  -s FLOAT     rate of sampling of the tree [no sampling]
-  -F           rewrite index files if they already exist
-  -M           mask repeats/low complexity regions (using DustMasker)
-  -P           do not add prefixes to node names when multiple trees are used
-  -K           skip k-LCP construction (then restarted search only)
-  -T           keep temporary files from k-mer propagation
-  -A           autocomplete tree (names of internal nodes and FASTA paths)
+  -h, --help          show this help message and exit
+  -g DIR              directory with the library sequences [dir. of the first
+                      tree]
+  -j INT              number of threads [auto (4)]
+  -k INT              k-mer length [31]
+  -l STR              log file [<index.dir>/log.txt]
+  -s FLOAT            rate of sampling of the tree [no sampling]
+  -F                  rewrite index files if they already exist
+  -M                  mask repeats/low complexity regions (using DustMasker)
+  -P                  do not add prefixes to node names when multiple trees
+                      are used
+  -K                  skip k-LCP construction (then restarted search only)
+  -T                  keep temporary files from k-mer propagation
+  -A                  autocomplete tree (names of internal nodes and FASTA
+                      paths)
+  -c [STR [STR ...]]  advanced configuration (a JSON dictionary)

@@ -1,0 +1,23 @@
+$ prophyle_assignment.py -h
+
+usage: prophyle_assignment.py [-h] [-f {kraken,sam}] [-m {h1,c1,c2,h2}] [-A]
+                              [-L] [-X] [-c [STR [STR ...]]]
+                              <tree.nhx> <k> <assignments.txt>
+
+Implementation of assignment algorithm
+
+positional arguments:
+  <tree.nhx>          phylogenetic tree (Newick/NHX)
+  <k>                 k-mer length
+  <assignments.txt>   assignments in generalized Kraken format
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -f {kraken,sam}     format of output [sam]
+  -m {h1,c1,c2,h2}    measure: h1=hit count, c1=coverage, h2=norm.hit count,
+                      c2=norm.coverage [h1]
+  -A                  annotate assignments
+  -L                  use LCA when tie (multiple assignments with the same
+                      score)
+  -X                  use LCA for k-mers (multiple hits of a k-mer)
+  -c [STR [STR ...]]  configuration (a JSON dictionary)

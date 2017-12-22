@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+{% set title = _('Welcome to ProPhyle') %}
+{% block body %}
+  <h1>Welcome to ProPhyle</h1>
+
+  <p>
+    ProPhyle brings metagenomic classification <b>from clusters to laptops</b>. This is possible thanks to a novel indexing strategy,
+    based on the bottom-up propagation of k-mers in the phylogenetic/taxonomic tree, assembling contigs at each node and matching using a full-text search.
+  </p>
+
+  <p>Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
+  
+  <img src="{{ pathto('_static/prophyle_overview.jpg', 1) }}"  style="float:right; width:250px" />
+
+  <ul>
+    <li><b>Low memory requirements.</b> Compared to Kraken, ProPhyle has 7x smaller memory footprint for index construction and 5x smaller footprint for querying, while providing a more expressive index.</li>
+    <li><b>Flexibility.</b> ProPhyle is easy to use with any user-provided phylogenetic trees and reference genomics sequences (e.g., reads or assemblies). It can classify short reads, long reads, or even assembled contigs.</li>
+    <li><b>Standard bioinformatics formats.</b> Newick/NHX is used for representing phylogenetic trees and SAM/BAM for reporting assignments.</li> 
+    <li><b>Lossless k-mer indexing.</b> ProPhyle stores a list of all genomes containing a k-mer. The classification is, therefore, accurate even with trees containing similar genomes (e.g, phylogenetic trees for a single species).</li>
+    <li><b>Reproducibility.</b> ProPhyle is fully deterministic, with a mathematically well-defined behavior. Databases are versioned and distributed via Zenodo.</li>
+  </ul>
+
+  <h2 style="margin-bottom: 0">Documentation</h2>
+
+  <table class="contentstable">
+    <tr>
+      <td style="width:35%">
+        <p class="biglink"><a class="biglink" href="{{ pathto("example") }}">Quick example</a><br/>
+           <span class="linkdescr">5 minutes example</span></p>
+      </td><td>
+        <p class="biglink"><a class="biglink" href="{{ pathto("tutorial") }}">Tutorial</a><br/>
+           <span class="linkdescr">overview of basic tasks</span></p>
+      </td>
+    </tr><tr>
+      <td>
+        {%- if hasdoc('search') %}<p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a><br/>
+           <span class="linkdescr">search the documentation</span></p>{%- endif %}
+      </td><td>
+        <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Contents</a><br/>
+           <span class="linkdescr">for a complete overview</span></p>
+      </td>
+    </tr><tr>
+      <td>
+        <p class="biglink"><a class="biglink" href="{{ pathto("reference") }}">Reference</a><br/>
+           <span class="linkdescr">command-line interface and data formats</span></p>
+      </td><td>
+        <p class="biglink"><a class="biglink" href="https://github.com/prophyle/prophyle/releases">
+          Releases
+        </a><br/>
+           <span class="linkdescr">release history</span></p>
+      </td><td>
+      </td>
+    </tr>
+  </table>
+
+
+  <h2 style="margin-bottom: 0">Auxiliary tools</h2>
+
+  <table class="contentstable">
+    <tr>
+      <td style="width:35%">
+        <p class="biglink"><a class="biglink" href="http://github.com/prophyle/prophyle_index">ProPhyle Index</a><br/>
+           <span class="linkdescr">BWT-index for rapid k-mer matching</span>
+         </p>
+      </td>
+      <td>
+        <p class="biglink"><a class="biglink" href="http://github.com/prophyle/prophyle_assembler">ProPhyle Assembler</a><br/>
+           <span class="linkdescr">compressing k-mers by assemblying contigs</span>
+         </p>
+      </td>
+    </tr>
+  </table>
+
+
+  <h2>Cite</h2>
+
+  <div class="cit">
+  <p>
+    [1] Břinda K, Salikhov K, Pignotti S, Kucherov G.
+    <b>ProPhyle 0.3.1.0</b>, Zenodo, 2017.
+    doi:<a href="http://doi.org/10.5281/zenodo.1045429">10.5281/zenodo.1045429</a>.
+  </p>
+  <p>
+    [2] Břinda K, Salikhov K, Pignotti S, Kucherov G.
+    <b>ProPhyle: a phylogeny-based metagenomic classifier using the Burrows-Wheeler Transform.</b>
+    Poster at HiTSeq 2017.
+    doi:<a href="http://doi.org/10.5281/zenodo.1045427">10.5281/zenodo.1045427</a>
+  </p>
+  <p>
+    [3] Břinda K.
+    <b>Novel computational techniques for mapping and classifying Next-Generation Sequencing data.</b>
+    PhD Thesis, Université Paris-Est, 2016.
+    doi:<a href="http://doi.org/10.5281/zenodo.1045317">10.5281/zenodo.1045317</a>
+  </p>
+  <p>
+    [4] Salikhov K.
+    <b>Efficient algorithms and data structures for indexing DNA sequence data.</b>
+    PhD Thesis, Université Paris-Est, 2017.
+  </p>
+</div>
+
+<p style="font-size:90%">
+    [1] is the main reference for the entire ProPhyle package. The poster [2] contains a summary of the ProPhyle algorithm. [3] thoroughly describes the methods (see Chapter 12). [4] explains details of the BWT-indexing technique. 
+</p>
+  
+
+  <h2>Authors</h2>
+
+  <ul>
+  <li><a href="http://brinda.cz">Karel Brinda <<a href="">kbrinda@hsph.harvard.edu</a>></li>
+  <li>Kamil Salikhov <<a href="">kamil.salikhov@univ-mlv.fr</a>></li>
+  <li>Simone Pignotti <<a href="">pignottisimone@gmail.com</a>></li>
+  <li><a href="http://igm.univ-mlv.fr/~koutcher/">Gregory Kucherov <<a href="">gregory.kucherov@univ-mlv.fr</a>></li>
+  </ul>
+
+{% endblock %}

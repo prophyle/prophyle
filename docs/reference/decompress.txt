@@ -1,11 +1,13 @@
 $ prophyle decompress -h
 
-usage: prophyle.py decompress [-h] [-K] archive.tar.gz [output.dir]
+usage: prophyle.py decompress [-h] [-K] [-c [STR [STR ...]]]
+                              <archive.tar.gz> [<output.dir>]
 
 positional arguments:
-  archive.tar.gz  output archive
-  output.dir      output directory [./]
+  <archive.tar.gz>    output archive
+  <output.dir>        output directory [./]
 
 optional arguments:
-  -h, --help      show this help message and exit
-  -K              skip k-LCP construction
+  -h, --help          show this help message and exit
+  -K                  skip k-LCP construction
+  -c [STR [STR ...]]  advanced configuration (a JSON dictionary)

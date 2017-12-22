@@ -1,21 +1,18 @@
-$ prophyle_assignment.py -h
+$ prophyle_assignment
 
-usage: prophyle_assignment.py [-h] [-f {kraken,sam}] [-m {h1,c1}] [-A] [-L]
-                              [-X] [-D]
-                              <tree.nhx> <k> <assignments.txt>
 
-Implementation of assignment algorithm
+Program: prophyle_assignment (assignment of reads)
+Contact: Kamil Salikhov <salikhov.kamil@gmail.com>
 
-positional arguments:
-  <tree.nhx>         phylogenetic tree (Newick/NHX)
-  <k>                k-mer length
-  <assignments.txt>  assignments in generalized Kraken format
+Usage:   prophyle_assignment [options] <newick_fn> <k> <input_file>
 
-optional arguments:
-  -h, --help         show this help message and exit
-  -f {kraken,sam}    format of output [sam]
-  -m {h1,c1}         measure: h1=hitnumber, c1=coverage [h1]
-  -A                 annotate assignments
-  -L                 use LCA when tie (multiple hits with the same score)
-  -X                 replace k-mer matches by their LCA
-  -D                 do not translate blocks from node to tax IDs
+Options: newick_fn     STR                          phylogenetic tree (Newick/NHX)
+         k             INT                          k-mer length
+         input_file    STR                          assignments in generalized Kraken format
+         -f            sam, kraken                  format of output [default:sam]
+         -m            h1=hitnumber, c1=coverage    measure [default:h1]
+         -A                                         annotate assignments
+         -L                                         use LCA when tie (multiple hits with the same score)
+         -X                                         replace k-mer matches by their LCA
+         -D                                         do not translate blocks from node to tax IDs
+

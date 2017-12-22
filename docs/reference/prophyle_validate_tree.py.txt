@@ -1,0 +1,11 @@
+$ prophyle_validate_tree.py -h
+
+usage: prophyle_validate_tree.py [-h] <tree.nw> [<tree.nw> ...]
+
+Verify a Newick/NHX tree
+
+positional arguments:
+  <tree.nw>   phylogenetic tree (in Newick/NHX)
+
+optional arguments:
+  -h, --help  show this help message and exit

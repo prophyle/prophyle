@@ -1,23 +1,28 @@
 $ prophyle classify -h
 
-usage: prophyle.py classify [-h] [-k INT] [-K] [-m {h1,c1}] [-f {kraken,sam}]
-                            [-l STR] [-A] [-L] [-P] [-C]
+usage: prophyle.py classify [-h] [-k INT] [-m {h1,c1,h2,c2}] [-f {kraken,sam}]
+                            [-l STR] [-P] [-A] [-L] [-X] [-M] [-C] [-K]
+                            [-c [STR [STR ...]]]
                             <index.dir> <reads1.fq> [<reads2.fq>]
 
 positional arguments:
-  <index.dir>      index directory
-  <reads1.fq>      first file with reads in FASTA/FASTQ (- for standard input)
-  <reads2.fq>      second file with reads in FASTA/FASTQ
+  <index.dir>         index directory
+  <reads1.fq>         first file with reads in FASTA/FASTQ (- for standard
+                      input)
+  <reads2.fq>         second file with reads in FASTA/FASTQ
 
 optional arguments:
-  -h, --help       show this help message and exit
-  -k INT           k-mer length [detect automatically from the index]
-  -K               use restarted search for matching rather than rolling
-                   window (slower, but k-LCP is not needed)
-  -m {h1,c1}       measure: h1=hit count, c1=coverage [h1]
-  -f {kraken,sam}  output format [sam]
-  -l STR           log file
-  -A               annotate assignments (using tax. information from NHX)
-  -L               use LCA when tie (multiple hits with the same score)
-  -P               incorporate sequences and qualities into SAM records
-  -C               use C++ impl. of the assignment algorithm (experimental)
+  -h, --help          show this help message and exit
+  -k INT              k-mer length [detect automatically from the index]
+  -m {h1,c1,h2,c2}    measure: h1=hit count, c1=coverage, h2=norm.hit count,
+                      c2=norm.coverage [h1]
+  -f {kraken,sam}     output format [sam]
+  -l STR              log file
+  -P                  incorporate sequences and qualities into SAM records
+  -A                  annotate assignments (using tax. information from NHX)
+  -L                  replace read assignments by their LCA
+  -X                  replace k-mer matches by their LCA
+  -M                  mimic Kraken (equivalent to "-m h1 -f kraken -L -X")
+  -C                  use C++ impl. of the assignment algorithm (experimental)
+  -K                  force restarted search mode
+  -c [STR [STR ...]]  advanced configuration (a JSON dictionary)

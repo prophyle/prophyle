@@ -1,0 +1,22 @@
+$ prophyle_propagation_preprocessing.py -h
+
+usage: prophyle_propagation_preprocessing.py [-h] [-s FLOAT] [-A] [-V] [-P]
+                                             <in_tree.nw{@node_name}>
+                                             [<in_tree.nw{@node_name}> ...]
+                                             <out_tree.nw>
+
+Merge multiple ProPhyle trees. Specific subtrees might be extracted before merging. Examples:
+	$ prophyle_merge_trees.py ~/prophyle/bacteria.nw ~/prophyle/viruses.nw bv.nw
+	$ prophyle_merge_trees.py ~/prophyle/bacteria.nw@562 ecoli.nw
+
+positional arguments:
+  <in_tree.nw{@node_name}>
+                        input tree
+  <out_tree.nw>         output tree
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s FLOAT              rate of sampling the tree [no sampling]
+  -A                    autocomplete tree (names of internal nodes and FASTA paths)
+  -V                    verbose
+  -P                    do not add prefixes to node names
