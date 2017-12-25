@@ -18,7 +18,7 @@ Quick example
 
 		prophyle download bacteria
 
-3. Build an index for randomly selected 10% genomes from the E.coli subtree (taxid 561) of the NCBI taxonomy, with k-mer size 25:
+3. Build an index for randomly selected 10% genomes from the E.coli subtree (taxid 561 in the NCBI taxonomy), with k-mer size 25:
 
 	.. code-block:: bash
 

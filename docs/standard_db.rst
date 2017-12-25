@@ -1,7 +1,7 @@
 .. _standard_db:
 
-Building standard databases
-===========================
+Building a standard database
+============================
 
 ProPhyle comes with several genome libraries containing
 RefSeq genomes, augmented with the NCBI taxonomy.
@@ -15,9 +15,11 @@ The command also copies a prebuild Newick/NHX tree for the specified library.
 If the `-d` parameter is not specified, all files are placed to `~/prophyle`.
 
 
-To download all viral and bacterial genomes from RefSeq, execute: ::
+To download all viral and bacterial genomes from RefSeq, execute
 
-        prophyle download bacteria viruses
+.. code-block:: bash
+
+	prophyle download bacteria viruses
 
 
 .. Use ``all`` to
@@ -36,9 +38,11 @@ To download all viral and bacterial genomes from RefSeq, execute: ::
 Index construction
 ------------------
 
-Once a library is downloaded, a ProPhyle index can be constructed using: ::
+Once a library is downloaded, a ProPhyle index can be constructed using
 
-        prophyle index [-g DIR] [-j INT] [-k INT] [-M] [-P] [-K] <tree.nw> [<tree.nw> ...] <index.dir>
+.. code-block:: bash
+
+	prophyle index [-g DIR] [-j INT] [-k INT] [-M] [-P] [-K] <tree.nw> [<tree.nw> ...] <index.dir>
 
 `<tree.nw>` is a Newick/NHX for the index. The trees from the previous command
 are placed in `~/prophyle` and they are called `bacteria.nw`, `viruses.nw`, etc.
@@ -56,14 +60,11 @@ The `-K` parameter can be used to deactivate *k*-LCP array construction. The res
 would be slightly smaller, but querying would become much slower.
 
 So the entire command for index construction can look, for instance,
-like this: ::
+like this:
 
-        prophyle index -k 25 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw my_BV_index
+.. code-block:: bash
+
+	prophyle index -k 25 ~/prophyle/bacteria.nw ~/prophyle/viruses.nw my_BV_index
 
 Index construction might take several hours, based on the database size, *k* and the number
 of used cores.
-
-
-
-
-

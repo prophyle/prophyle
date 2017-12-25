@@ -26,41 +26,53 @@ Installing ProPhyle using Bioconda
 To set-up Bioconda, install
 `Miniconda <https://conda.io/miniconda.html>`_
 or another Conda distribution, and
-add `Bioconda channels <https://bioconda.github.io/>`_::
+add `Bioconda channels <https://bioconda.github.io/>`_
 
-	$ conda config --add channels defaults
-	$ conda config --add channels conda-forge
-	$ conda config --add channels bioconda
+.. code-block:: bash
+
+	conda config --add channels defaults
+	conda config --add channels conda-forge
+	conda config --add channels bioconda
 
 You may either create a separate Conda environment
-(which is the recommended approach)::
+(which is the recommended approach)
 
-	$ conda create -n prophyle prophyle
-	$ source activate prophyle
+.. code-block:: bash
 
-or install ProPhyle directly to your main environment::
+	conda create -n prophyle prophyle
+	source activate prophyle
 
-	$ conda install prophyle
+or install ProPhyle directly to your main environment
+
+.. code-block:: bash
+
+	conda install prophyle
 
 
 Installing ProPhyle using PIP
 -----------------------------
 
-There three options of installing ProPhyle using PIP.
+There are three options of installing ProPhyle using PIP.
 
-1) From PyPI::
+1) From PyPI
 
-	$ pip install -U prophyle
+	.. code-block:: bash
 
-2) From Git::
+		pip install -U prophyle
 
-	$ pip install -U git+https://github.com/prophyle/prophyle
+2) From Git
 
-3) From PyPI to the current directory::
+	.. code-block:: bash
+	
+		pip install -U git+https://github.com/prophyle/prophyle
 
-	$ pip install --user prophyle
-	$ export PYTHONUSERBASE=`pwd`
-	$ export PATH=$PATH:`pwd`/bin
+3) From PyPI to the current directory
+
+	.. code-block:: bash
+
+		pip install --user prophyle
+		export PYTHONUSERBASE=`pwd`
+		export PATH=$PATH:`pwd`/bin
 
 
 
@@ -68,29 +80,37 @@ Running ProPhyle directly from the repository
 ---------------------------------------------
 
 It also is possible to run ProPhyle directly from the repository, by calling
-the main script::
+the main script
 
-	$ prophyle/prophyle/prophyle.py
+.. code-block:: bash
 
-or its alias::
+	prophyle/prophyle/prophyle.py
 
-	$ prophyle/prophyle/prophyle
+or its alias
+
+.. code-block:: bash
+
+	prophyle/prophyle/prophyle
 
 ProPhyle will then automatically adjust all paths of the auxiliary programs.
 
 Note that ProPhyle uses submodules, therefore the repository needs to
-be clonned with the `--recursive` option::
+be clonned with the `--recursive` option
 
-    $ git clone --recursive http://github.com/prophyle/prophyle
+.. code-block:: bash
+
+    git clone --recursive http://github.com/prophyle/prophyle
 
 
 Adjusting path
 ~~~~~~~~~~~~~~
 
 The ProPhyle path can be prepended to the `$PATH` variable so that ProPhyle
-can be executed in the same way as if it was installed using PIP::
+can be executed in the same way as if it was installed using PIP
 
-    $ export PATH=$(pwd)/prophyle/prophyle:$PATH
+.. code-block:: bash
+
+    export PATH=$(pwd)/prophyle/prophyle:$PATH
 
 
 Installing dependencies
@@ -99,10 +119,14 @@ Installing dependencies
 When run from the repository,
 some of the ProPhyle dependencies, listed in `requirements.txt`, might
 be missing in the system.
-It is possible to install them either using BioConda::
+It is possible to install them either using BioConda
 
-    $ cat prophyle/requirements.txt | perl -pe 's/==.*//g' | xargs conda install
+.. code-block:: bash
 
-or using PIP::
+    cat prophyle/requirements.txt | perl -pe 's/==.*//g' | xargs conda install
 
-    $ cat prophyle/requirements.txt | xargs pip install
+or using PIP
+
+.. code-block:: bash
+
+    cat prophyle/requirements.txt | xargs pip install

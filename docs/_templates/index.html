@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% set title = _('Welcome to ProPhyle') %}
 {% block body %}
+
   <h1>Welcome to ProPhyle</h1>
 
   <p>
@@ -28,27 +29,18 @@
         <p class="biglink"><a class="biglink" href="{{ pathto("example") }}">Quick example</a><br/>
            <span class="linkdescr">5 minutes example</span></p>
       </td><td>
-        <p class="biglink"><a class="biglink" href="{{ pathto("tutorial") }}">Tutorial</a><br/>
-           <span class="linkdescr">overview of basic tasks</span></p>
+        <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Contents</a><br/>
+           <span class="linkdescr">for a complete overview</span></p>
       </td>
     </tr><tr>
       <td>
         {%- if hasdoc('search') %}<p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a><br/>
            <span class="linkdescr">search the documentation</span></p>{%- endif %}
       </td><td>
-        <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Contents</a><br/>
-           <span class="linkdescr">for a complete overview</span></p>
-      </td>
-    </tr><tr>
-      <td>
-        <p class="biglink"><a class="biglink" href="{{ pathto("reference") }}">Reference</a><br/>
-           <span class="linkdescr">command-line interface and data formats</span></p>
-      </td><td>
         <p class="biglink"><a class="biglink" href="https://github.com/prophyle/prophyle/releases">
           Releases
         </a><br/>
            <span class="linkdescr">release history</span></p>
-      </td><td>
       </td>
     </tr>
   </table>

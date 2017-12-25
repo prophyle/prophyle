@@ -13,7 +13,7 @@ For the index from above, the command would be:
 
 .. code-block:: bash
 
-        prophyle classify my_BV_index my_reads.fq
+	prophyle classify my_BV_index my_reads.fq
 
 The assignments are reported in the SAM format.
 Unless specified otherwise, the *k*-mer length is deduced from the index.
