@@ -24,9 +24,15 @@ NHX trees
 `New Hampshire X Format <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_
 is parsed using the `ETE3 library <http://etetoolkit.org/>`_  (see specification of `format 1 <http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#reading-and-writing-newick-trees>`_).
 
+Sequences
+^^^^^^^^^
 
-Output data formats
--------------------
+Input sequences can be provided in the FASTA or FASTQ formats. Any non-ACGT characters are treated as
+unknown nucleotides. All k-mers containing an unknown nucleotide are discarded.
+
+
+Assignments
+-----------
 
 Read assignments in SAM/BAM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -41,6 +47,8 @@ Read assignments in a Kraken-like format
 `Kraken <https://ccb.jhu.edu/software/kraken/MANUAL.html#output-format>`_
 
 
+Abundances
+----------
 
 Abundances in a Kraken report
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
