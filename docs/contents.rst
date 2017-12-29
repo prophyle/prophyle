@@ -15,5 +15,6 @@ ProPhyle documentation contents
 	custom_db
 	classify
 	analyze
+	compress
 	formats
 	cli
