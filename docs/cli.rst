@@ -58,10 +58,10 @@ ProPhyle – the main program
 	.. include:: reference/prophyle_index.txt
 		:code: text
 
-	.. include:: reference/prophyle_index_build.txt
+	.. include:: reference/prophyle_index.txt_build.txt
 		:code: text
 
-	.. include:: reference/prophyle_index_query.txt
+	.. include:: reference/prophyle_index.txt_query.txt
 		:code: text
 
 
