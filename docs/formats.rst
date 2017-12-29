@@ -1,6 +1,5 @@
 .. _formats:
 
-
 File formats
 ============
 
@@ -16,28 +15,52 @@ Input data formats
 Newick trees
 ^^^^^^^^^^^^
 
-`Newick <http://evolution.genetics.washington.edu/phylip/newicktree.html>`_ trees are eventually transformed to NHX.
+Introduction
+""""""""""""
+
+The Newick format can be used for index construction
+in combination with the ``-A`` parameter.
+Names of files with sequences will be inferred from the node names
+as ``[node_name].fa``.
+If names of internal nodes are not specified in the original tree, they will be assigned automatically
+as the lexigraphically minimal name of children's names with incremented ID.
+Branch lenghts are ignored.
+
+Specification
+"""""""""""""
+
+See specifications of Newick on the
+`Phylip website <http://evolution.genetics.washington.edu/phylip/newicktree.html>`_
+or on
+`Wikipedia <https://en.wikipedia.org/wiki/Newick_format>`_.
 
 Examples
 """"""""
 
-	A Newick tree with named leaves::
+A Newick tree with named leaves::
 
-		((n1,n2,n3),(n5,n6));
-
-
-	A Newick tree with nameds nodes::
-
-		((n1,n2)o1,(n3,n4,n5)o2)p1;
+	((n1,n2,n3),(n5,n6));
 
 
+A Newick tree with named nodes::
+
+	((n1,n2)o1,(n3,n4,n5)o2)p1;
+
+A Newick tree with automatically assigned names of internal node names::
+
+	((n1,n2,n3)n1-up1,(n4,n5)n4-up1)n1-up2;
 
 NHX trees
 ^^^^^^^^^
 
-`New Hampshire X Format <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_
-is parsed using the `ETE3 library <http://etetoolkit.org/>`_  (see specification of `format 1 <http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#reading-and-writing-newick-trees>`_).
+Introduction
+""""""""""""
 
+`New Hampshire X Format <https://sites.google.com/site/cmzmasek/home/software/forester/nhx>`_
+is parsed using the `ETE3 library <http://etetoolkit.org/>`_  (see specification of `Format 1 <http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#reading-and-writing-newick-trees>`_).
+
+Specification
+"""""""""""""
 
 	.. list-table:: NHX attributes
 	   :widths: 7 7 20
@@ -46,28 +69,33 @@ is parsed using the `ETE3 library <http://etetoolkit.org/>`_  (see specification
 	   * - Attribute
 	     - Type
 	     - Description
-	   * - name
+	   * - (name)
 	     - string
-	     - unique node name (ideally the TaxID of the node)
-	   * - taxid
-	     -
-	     - unique taxonomic identifier
-	   * - seqname
-	     -
-	     - names of the sequences sharing the same taxid, separated by @
+	     - Node name (typically the TaxID of the node). The names should be unique and must not contain ``@``.
 	   * - fastapath
-	     -
-	     - paths of the sequences' fasta files, separated by @ (relative paths from ProPhyle's home directory)
-	   * - base_len
-	     -
-	     - length of each sequence, separated by @
-
+	     - string
+	     - Files with genomic sequences, separated by ``@`` (relative paths from the directory of the tree). Only for leaves.
+	   * - rank
+	     - string/int
+	     - Taxonomic rank.
+	   * - dist
+	     - float
+	     - To be ignored (an internal parameter of ETE3).
+	   * - support
+	     - float
+	     - To be ignored (an internal parameter of ETE3).
+	   * - kmers_full
+	     - integer
+	     - Number of k-mers associated with this node. Added automatically during index construction.
+	   * - kmers_reduced
+	     - integer
+	     - Number of k-mers represented by this node. Added automatically during index construction.
 
 Example
 """""""
-	Previous tree after autocomplete::
+Previous tree after autocompleting to NHX::
 
-		(((n1:1[&&NHX:dist=1.0:fastapath=n1.fa:support=1.0],n2:1[&&NHX:dist=1.0:fastapath=n2.fa:support=1.0])o1:1[&&NHX:dist=1.0:support=1.0],(n3:1[&&NHX:dist=1.0:fastapath=n3.fa:support=1.0],n4:1[&&NHX:dist=1.0:fastapath=n4.fa:support=1.0],n5:1[&&NHX:dist=1.0:fastapath=n5.fa:support=1.0])o2:1[&&NHX:dist=1.0:support=1.0])p1:0[&&NHX:dist=0.0:support=1.0])merge_root:1[&&NHX:dist=1.0:support=1.0];
+	(((n1:1[&&NHX:dist=1.0:fastapath=n1.fa:support=1.0],n2:1[&&NHX:dist=1.0:fastapath=n2.fa:support=1.0])o1:1[&&NHX:dist=1.0:support=1.0],(n3:1[&&NHX:dist=1.0:fastapath=n3.fa:support=1.0],n4:1[&&NHX:dist=1.0:fastapath=n4.fa:support=1.0],n5:1[&&NHX:dist=1.0:fastapath=n5.fa:support=1.0])o2:1[&&NHX:dist=1.0:support=1.0])p1:0[&&NHX:dist=0.0:support=1.0])merge_root:1[&&NHX:dist=1.0:support=1.0];
 
 
 Sequences
@@ -76,8 +104,6 @@ Sequences
 Input sequences can be provided in the FASTA or FASTQ formats. Any non-ACGT characters are treated as
 unknown nucleotides. All k-mers containing an unknown nucleotide are discarded.
 
-
-.. <hr />
 
 Assignments
 -----------
@@ -112,7 +138,7 @@ Read assignments in SAM/BAM
 	     - ``60`` if assigned, unused (``0``) otherwise
 	   * - 6
 	     - CIGAR
-	     - Coverage bit-mask (e.g., `7=3X3=` means `1111111000111`) if assigned, unused (``*``) otherwise
+	     - Coverage bit-mask encoded as a CIGAR string if assigned, unused (``*``) otherwise. For instance, `7=3X3=` means `1111111000111`.
 	   * - 7
 	     - RNEXT
 	     - Unused (``*``)
@@ -131,7 +157,7 @@ Read assignments in SAM/BAM
 
 
 	.. list-table:: SAM tags
-	   :widths: 5 5 20
+	   :widths: 3 3 20
 	   :header-rows: 1
 
 	   * - Tag
@@ -163,7 +189,7 @@ Read assignments in SAM/BAM
 	     - ID of the curent assignment
 	   * - hc
 	     - string
-	     - Hit bit-mask  (e.g., `7=1X3=` means `11111110111`)
+	     - Hit bit-mask encoded as a CIGAR string. For instance, `7=1X3=` means `11111110111`.
 
 
 Read assignments in a Kraken-like format

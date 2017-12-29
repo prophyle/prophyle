@@ -9,11 +9,13 @@
     text-indent:-20px;
 }
 
-
 .body h1, .body h2, .body h3, .body h4, .body h5, .body h6 {
     font-weight: normal!important;
 }
 
+div.body h4 {
+    font-weight: bold!important;
+}
 
 /*
  * sphinx13.css
