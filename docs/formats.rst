@@ -9,6 +9,10 @@ File formats
 	:backlinks: none
 
 
+
+
+
+
 Input data formats
 ------------------
 
@@ -20,7 +24,7 @@ Introduction
 
 The Newick format can be used for index construction
 in combination with the ``-A`` parameter.
-Names of files with sequences will be inferred from the node names
+Names of files with sequences will be inferred from the names of leaves
 as ``[node_name].fa``.
 If names of internal nodes are not specified in the original tree, they will be assigned automatically
 as the lexigraphically minimal name of children's names with incremented ID.
@@ -101,8 +105,22 @@ Previous tree after autocompleting to NHX::
 Sequences
 ^^^^^^^^^
 
-Input sequences can be provided in the FASTA or FASTQ formats. Any non-ACGT characters are treated as
-unknown nucleotides. All k-mers containing an unknown nucleotide are discarded.
+Input sequences can be provided in the FASTA or FASTQ formats. Any non-``ACGT`` characters are treated as
+unknown nucleotides.
+All k-mers containing an unknown nucleotide are discarded.
+Sequence names are ignored.
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Assignments
@@ -111,10 +129,17 @@ Assignments
 Read assignments in SAM/BAM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`SAM format <http://samtools.github.io/hts-specs/>`_
+Introduction
+""""""""""""
 
+ProPhyle uses `SAM/BAM <http://samtools.github.io/hts-specs/>`_ as
+the main format for reporting the final assignments, i.e.,
+the output of classification.
 
-	.. list-table:: SAM fields
+Specification
+"""""""""""""
+
+	.. list-table:: ProPhyle SAM fields
 	   :widths: 3 3 20
 	   :header-rows: 1
 
@@ -155,8 +180,9 @@ Read assignments in SAM/BAM
 	     - QUAL
 	     - Base qualities if ``-P``, unused (``*``) otherwise
 
+|
 
-	.. list-table:: SAM tags
+	.. list-table:: ProPhyle SAM tags
 	   :widths: 3 3 20
 	   :header-rows: 1
 
@@ -191,11 +217,60 @@ Read assignments in SAM/BAM
 	     - string
 	     - Hit bit-mask encoded as a CIGAR string. For instance, `7=1X3=` means `11111110111`.
 
+|
 
 Read assignments in a Kraken-like format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Kraken <https://ccb.jhu.edu/software/kraken/MANUAL.html#output-format>`_
+Introduction
+""""""""""""
+
+ProPhyle uses a format similar to the `Kraken output <https://ccb.jhu.edu/software/kraken/MANUAL.html#output-format>`_ for reporting k-mer matches by `ProPhyle Index <https://github.com/prophyle/prophyle_index>`_. It can also use this format
+for reporting the final assignments.
+
+
+Specification
+"""""""""""""
+
+	.. list-table:: Kraken-like format
+	   :widths: 3 25
+	   :header-rows: 1
+
+	   * - Column
+	     - Description
+	   * - 1
+	     - C / U (classified / unclassified)
+	   * - 2
+	     - Query name
+	   * - 3
+	     - Final assignments – a comma separated list of node names
+	   * - 4
+	     - Query length
+	   * - 5
+	     - K-mer mappings: a space-delimited lists of mappings. A single mapping is of the form ``comma_delimited_list_of_nodes:length``. Pseudo-nodes ``A`` and ``0`` are used for k-mers with a non-``ACGT`` nucleotide and without any mapping, respectively.
+
+
+
+Examples
+""""""""
+
+Assigned k-mers, no sequences::
+
+	U	read3	0	8	left,right:1 A:3 0:1 right:1
+
+
+Assigned k-mers, version with sequences and base qualities::
+
+	U	read3	0	8	left,right:1 A:3 0:1 right:1	CTTNGTTT	IGIIIIHI
+
+
+
+
+
+
+
+
+
 
 
 Abundances estimates (experimental)
@@ -203,6 +278,12 @@ Abundances estimates (experimental)
 
 Abundances in the Kraken report format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Introduction
+""""""""""""
+
+Specification
+"""""""""""""
 
 `kraken-report <https://ccb.jhu.edu/software/kraken/MANUAL.html#sample-reports>`_ format:
 
@@ -230,7 +311,16 @@ Abundances in the Kraken report format
 Abundances in the Metaphlan2 report format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`MetaPhlAn2 <https://bitbucket.org/biobakery/biobakery/wiki/metaphlan2#rst-header-output-files>`_ format
+Introduction
+""""""""""""
+
+`MetaPhlAn2 <http://huttenhower.sph.harvard.edu/metaphlan2>`_ is a computational tool for profiling the composition of microbial communities from metagenomic sequencing data.
+
+
+Specification
+"""""""""""""
+
+`MetaPhlAn2 report format <https://bitbucket.org/biobakery/biobakery/wiki/metaphlan2#rst-header-output-files>`_
 
 	.. list-table:: Metaphlan 2 report format
 	   :widths: 5 20
@@ -250,6 +340,9 @@ Since sequence-based profiling is relative and does not provide absolute cellula
 
 Abundances in the Centrifuge report format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Introduction
+""""""""""""
 
 `Centrifuge <https://ccb.jhu.edu/software/centrifuge/manual.shtml#centrifuge-summary-output-the-default-filename-is-centrifuge_report.tsv>`_ format.
 
@@ -288,13 +381,28 @@ Example
 	Wigglesworthia glossinidia endosymbiont of Glossina brevipalpis 36870   leaf       703004      5981.37    5964             0
 
 
+
+
+
+
+
+
+
 Internal ProPhyle formats
 -------------------------
 
 ProPhyle Index
 ^^^^^^^^^^^^^^
 
-Directory with the following files:
+Introduction
+""""""""""""
+
+ProPhyle index directory contains a BWA index,
+a k-LCP array and several small auxiliary files.
+
+
+Specification
+"""""""""""""
 
 	.. list-table:: ProPhyle index
 	   :widths: 5 20
@@ -331,7 +439,16 @@ Directory with the following files:
 Compressed ProPhyle index for transmission
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A ``.tar.gz`` archive with the following subset of the index files:
+Introduction
+""""""""""""
+
+ProPhyle can create a ``.tar.gz`` archive with the a subset of the index files so
+that the original index can be derived.
+
+Specification
+"""""""""""""
+
+The archive contains the following subset of the original index files:
 
 	.. list-table:: Compressed ProPhyle index
 	   :widths: 5 20
