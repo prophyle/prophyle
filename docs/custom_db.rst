@@ -9,12 +9,15 @@ Building a custom database
 	:backlinks: none
 
 
-Building a custom database with a user-specified taxonomy
----------------------------------------------------------
+Building a custom database with user-provided data
+--------------------------------------------------
 
 
-Building a custom database with the NCBI taxonomy
--------------------------------------------------
+
+
+
+Building a custom database with RefSeq genomes and the NCBI taxonomy
+--------------------------------------------------------------------
 
 
 Download sequences from NCBI
