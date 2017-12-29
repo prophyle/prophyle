@@ -26,7 +26,7 @@ sync:
 	$(MAKE) html
 	rm -fr $(WEBSITEDIR)/*
 	cp -va .build/html/* $(WEBSITEDIR)
-	cd $(WEBSITEDIR) && git add '*' && git diff HEAD && (git commit || exit 0) && git push
+	cd $(WEBSITEDIR) && git add '*' && (git diff HEAD || true) && (git commit || exit 0) && git push
 
 clean:
 	rm -fr .build
