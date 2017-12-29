@@ -3,9 +3,9 @@
 Compressing indexes for transmission
 ====================================
 
-To simplify archiving indexes and transmitting them over the Internet, ProPhyle
+To simplify archiving indexes and their transmission over the Internet, ProPhyle
 provides a compression feature. This compression is based
-on creating a .tar.gz archive containing all information necessary to
+on creating a ``.tar.gz`` archive containing all information necessary to
 reconstruct the entire index.
 For a specification of the format, see Section :doc:`formats`.
 

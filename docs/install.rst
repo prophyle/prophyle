@@ -102,8 +102,8 @@ be clonned with the `--recursive` option
     git clone --recursive http://github.com/prophyle/prophyle
 
 
-Adjusting path
-~~~~~~~~~~~~~~
+Adjusting the PATH variable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ProPhyle path can be prepended to the `$PATH` variable so that ProPhyle
 can be executed in the same way as if it was installed using PIP

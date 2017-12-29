@@ -47,10 +47,10 @@ Read assignments in a Kraken-like format
 `Kraken <https://ccb.jhu.edu/software/kraken/MANUAL.html#output-format>`_
 
 
-Abundances
-----------
+Abundances estimates (experimental)
+-----------------------------------
 
-Abundances in a Kraken report
+Abundances as a Kraken report
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `kraken-report <https://ccb.jhu.edu/software/kraken/MANUAL.html#sample-reports>`_ format:
@@ -63,7 +63,7 @@ Abundances in a Kraken report
 	6. indented scientific name
 
 
-Abundances in a Metaphlan2 report
+Abundances as a Metaphlan2 report
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `MetaPhlAn2 <https://bitbucket.org/biobakery/biobakery/wiki/metaphlan2#rst-header-output-files>`_ format:
@@ -77,7 +77,7 @@ Since sequence-based profiling is relative and does not provide absolute cellula
 	(again, making sure to include clades unclassified at this level).
 
 
-Abundances in a Centrifuge report
+Abundances as a Centrifuge report
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Centrifuge <https://ccb.jhu.edu/software/centrifuge/manual.shtml#centrifuge-summary-output-the-default-filename-is-centrifuge_report.tsv>`_ format::
