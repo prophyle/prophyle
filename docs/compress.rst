@@ -1,5 +1,7 @@
 .. _compress:
 
+.. index:: Compression
+
 Compressing indexes for transmission
 ====================================
 

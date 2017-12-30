@@ -16,6 +16,8 @@ File formats
 Input data formats
 ------------------
 
+.. index:: Newick
+
 Newick trees
 ^^^^^^^^^^^^
 
@@ -53,6 +55,9 @@ A Newick tree with named nodes::
 A Newick tree with automatically assigned names of internal node names::
 
 	((n1,n2,n3)n1-up1,(n4,n5)n4-up1)n1-up2;
+
+
+.. index:: NHX
 
 NHX trees
 ^^^^^^^^^
@@ -125,6 +130,9 @@ Sequence names are ignored.
 
 Assignments
 -----------
+
+
+.. index:: SAM, BAM
 
 Read assignments in SAM/BAM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -276,6 +284,8 @@ Assigned k-mers, version with sequences and base qualities::
 Abundances estimates (experimental)
 -----------------------------------
 
+.. index:: Kraken report
+
 Abundances in the Kraken report format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -308,7 +318,10 @@ Specification
 	     - Indented scientific name
 
 
-Abundances in the Metaphlan2 report format
+
+.. index:: MetaPhlAn report
+
+Abundances in the MetaPhlAn2 report format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Introduction
@@ -337,6 +350,8 @@ Specification
 
 Since sequence-based profiling is relative and does not provide absolute cellular abundance measures, clades are hierarchically summed. Each level will sum to 100%; that is, the sum of all kindom-level clades is 100%, the sum of all genus-level clades (including unclassified) is also 100%, and so forth. OTU equivalents can be extracted by using only the species-level ``s__`` clades from this file (again, making sure to include clades unclassified at this level).
 
+
+.. index:: Centrifuge report
 
 Abundances in the Centrifuge report format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -391,6 +406,9 @@ Example
 Internal ProPhyle formats
 -------------------------
 
+.. index:: ProPhyle index
+
+
 ProPhyle Index
 ^^^^^^^^^^^^^^
 
@@ -435,6 +453,9 @@ Specification
 	   * - ``tree.preliminary.nw``
 	     - Phylogenetic tree before adjusting
 
+
+
+.. index:: ProPhyle compressed index
 
 Compressed ProPhyle index for transmission
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
