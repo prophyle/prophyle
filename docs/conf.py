@@ -6,12 +6,16 @@ import datetime
 import re
 import sphinx
 
+needs_sphinx = '1.4.3'
+
 with open("version.py","r") as rnf:
     exec(rnf.read())
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo',
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
-              'sphinx.ext.viewcode']
+              'sphinx.ext.viewcode', 'sphinx.ext.imgmath']
+
+imgmath_image_format = 'svg'
 
 master_doc = 'contents'
 templates_path = ['_templates']

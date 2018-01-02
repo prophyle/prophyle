@@ -111,8 +111,7 @@ Sequences
 ^^^^^^^^^
 
 Input sequences can be provided in the FASTA or FASTQ formats. Any non-``ACGT`` characters are treated as
-unknown nucleotides.
-All k-mers containing an unknown nucleotide are discarded.
+unknown nucleotides and k-mers containing them thus discarded.
 Sequence names are ignored.
 
 
@@ -147,6 +146,21 @@ the output of classification.
 Specification
 """""""""""""
 
+	.. list-table:: ProPhyle SAM headers
+	   :widths: 1 3
+	   :header-rows: 1
+
+	   * - Tag
+	     - Description
+	   * - HD
+	     - Version of SAM.
+	   * - PG
+	     - Version of ProPhyle.
+	   * - SQ
+	     - Description of a leaf. *SN:* Name of the node. *LN:* a fake length. *UR:* Name of the original FASTA file. *SP:* Name of the species (if present in the tree). 
+
+|
+
 	.. list-table:: ProPhyle SAM fields
 	   :widths: 3 3 20
 	   :header-rows: 1
@@ -156,74 +170,84 @@ Specification
 	     - Description
 	   * - 1
 	     - QNAME
-	     - Query name
+	     - Query name.
 	   * - 2
 	     - FLAG
-	     - ``0`` if assigned, ``4`` otherwise
+	     - ``0`` if assigned, ``4`` otherwise.
 	   * - 3
 	     - RNAME
-	     - Node name
+	     - Node name.
 	   * - 4
 	     - POS
-	     - ``1`` if assigned, unused (``0``) otherwise
+	     - ``1`` if assigned, unused (``0``) otherwise.
 	   * - 5
 	     - MAPQ
-	     - ``60`` if assigned, unused (``0``) otherwise
+	     - ``60`` if assigned, unused (``0``) otherwise.
 	   * - 6
 	     - CIGAR
 	     - Coverage bit-mask encoded as a CIGAR string if assigned, unused (``*``) otherwise. For instance, `7=3X3=` means `1111111000111`.
 	   * - 7
 	     - RNEXT
-	     - Unused (``*``)
+	     - Unused (``*``).
 	   * - 8
 	     - PNEXT
-	     - Unused (``0``)
+	     - Unused (``0``).
 	   * - 9
 	     - TLEN
-	     - Unused (``0``)
+	     - Unused (``0``).
 	   * - 10
 	     - SEQ
-	     - Sequence of bases if ``-P``, unused (``*``) otherwise
+	     - Sequence of bases if ``-P``, unused (``*``) otherwise.
 	   * - 11
 	     - QUAL
-	     - Base qualities if ``-P``, unused (``*``) otherwise
+	     - Base qualities if ``-P``, unused (``*``) otherwise.
 
 |
 
 	.. list-table:: ProPhyle SAM tags
-	   :widths: 3 3 20
+	   :widths: 3 3 15 7
 	   :header-rows: 1
 
 	   * - Tag
 	     - Type
 	     - Description
+	     - Range
 	   * - h1
 	     - integer
-	     - Number of shared k-mers
+	     - Number of shared k-mers.
+	     - :math:`\{1, \ldots, |query|-k+1\}`
 	   * - h2
 	     - float
-	     - Normalized number of shared k-mers
+	     - Proportion of hits in the reference.
+	     - :math:`[0,1]`
 	   * - hf
 	     - float
-	     - Proportion of hits
+	     - Proportion of hits in the query.
+	     - :math:`[0,1]`
 	   * - c1
 	     - integer
-	     - Number of covered positions in the query
+	     - Number of covered positions in the query.
+	     - :math:`\{0, ..., |query|\}`
 	   * - c2
 	     - float
-	     - Normalized number of covered positions in the query
+	     - Normalized number of covered positions in the query.
+	     - :math:`[0,1]`
 	   * - cf
 	     - float
-	     - Proportion of coverage
+	     - Proportion of covered positions in the query.
+	     - :math:`[0,1]`
 	   * - is
 	     - int
-	     - Number of reported assignments for the query
+	     - Number of reported assignments (nodes) for the query.
+	     - :math:`\{1, \ldots, |leaves|\}`
 	   * - ii
 	     - int
-	     - ID of the curent assignment
+	     - ID of the curent assignment.
+	     - :math:`\{1, \ldots, is\}`
 	   * - hc
 	     - string
 	     - Hit bit-mask encoded as a CIGAR string. For instance, `7=1X3=` means `11111110111`.
+	     -
 
 |
 
@@ -416,7 +440,7 @@ Introduction
 """"""""""""
 
 ProPhyle index directory contains a BWA index,
-a k-LCP array and several small auxiliary files.
+a k-LCP array and several auxiliary files.
 
 
 Specification
