@@ -16,8 +16,8 @@ ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classifica
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1045429.svg
         :target: https://doi.org/10.5281/zenodo.1045429
 
-Documentation is avaiable at the `ProPhyle homepage <http://prophyle.github.io>`_
+|
+
+Documentation is available at the `ProPhyle homepage <http://prophyle.github.io>`_
 or can be downloaded
 as a `single archive <https://github.com/prophyle/prophyle.github.io/archive/master.tar.gz>`_.
-
-
