@@ -64,9 +64,9 @@ epub_use_index = False
 epub_guide = (('toc', 'contents.xhtml', u'Table of Contents'),)
 epub_description = 'Sphinx documentation generator system manual'
 
-latex_documents = [('contents', 'sphinx.tex', 'Sphinx Documentation',
-                    'Georg Brandl', 'manual', 1)]
-latex_logo = '_static/sphinx.png'
+latex_documents = [('contents', 'prophyle.tex', 'ProPhyle Documentation',
+                    'Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov', 'manual', 1)]
+#latex_logo = '_static/sphinx.png'
 latex_elements = {
     'fontpkg': '\\usepackage{palatino}',
     'passoptionstopackages': '\\PassOptionsToPackage{svgnames}{xcolor}',
@@ -90,10 +90,10 @@ extlinks = {'duref': ('http://docutils.sourceforge.net/docs/ref/rst/'
 
 man_pages = [
     ('contents', 'sphinx-all', 'Sphinx documentation generator system manual',
-     'Georg Brandl', 1),
+     'Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov', 1),
     ('man/sphinx-build', 'sphinx-build', 'Sphinx documentation generator tool',
      '', 1),
-    ('man/sphinx-quickstart', 'sphinx-quickstart', 'Sphinx documentation '
+    ('man/sphinx-quickstart', 'sphinx-quickstart', 'ProPhyle documentation'
      'template generator', '', 1),
     ('man/sphinx-apidoc', 'sphinx-apidoc', 'Sphinx API doc generator tool',
      '', 1),
@@ -102,8 +102,8 @@ man_pages = [
 ]
 
 texinfo_documents = [
-    ('contents', 'sphinx', 'Sphinx Documentation', 'Georg Brandl',
-     'Sphinx', 'The Sphinx documentation builder.', 'Documentation tools',
+    ('contents', 'prophyle', 'ProPhyle Documentation', 'Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov',
+     'ProPhyle', 'The ProPhyle DNA classifier.', 'Documentation tools',
      1),
 ]
 
