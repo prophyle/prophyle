@@ -227,7 +227,7 @@ Specification
 	   * - c1
 	     - integer
 	     - Number of covered positions in the query.
-	     - :math:`\{0, ..., |query|\}`
+	     - :math:`\{k, ..., |query|\}`
 	   * - c2
 	     - float
 	     - Normalized number of covered positions in the query.
