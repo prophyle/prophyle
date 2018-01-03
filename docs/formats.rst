@@ -16,6 +16,10 @@ File formats
 Input data formats
 ------------------
 
+
+Node names should not contain the ``@`` character, and they should not be equal to ``A``, ``0``, and ``root`` (reserved names).
+
+
 .. index:: Newick
 
 Newick trees
@@ -157,7 +161,7 @@ Specification
 	   * - PG
 	     - Version of ProPhyle.
 	   * - SQ
-	     - Description of a leaf. *SN:* Name of the node. *LN:* a fake length. *UR:* Name of the original FASTA file. *SP:* Name of the species (if present in the tree). 
+	     - Description of a leaf. *SN:* Name of the node. *LN:* a fake length. *UR:* Name of the original FASTA file. *SP:* Name of the species (if present in the tree).
 
 |
 
@@ -227,7 +231,7 @@ Specification
 	   * - c1
 	     - integer
 	     - Number of covered positions in the query.
-	     - :math:`\{k, ..., |query|\}`
+	     - :math:`\{k, \ldots, |query|\}`
 	   * - c2
 	     - float
 	     - Normalized number of covered positions in the query.
