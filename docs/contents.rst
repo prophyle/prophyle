@@ -7,6 +7,7 @@ ProPhyle documentation contents
 .. toctree::
 	:maxdepth: 2
 	:name: mastertoc
+	:numbered: 2
 
 	example
 	requirements
