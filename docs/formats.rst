@@ -223,11 +223,11 @@ Specification
 	   * - h2
 	     - float
 	     - Proportion of hits in the reference.
-	     - :math:`[0,1]`
+	     - :math:`(0,1]`
 	   * - hf
 	     - float
 	     - Proportion of hits in the query.
-	     - :math:`[0,1]`
+	     - :math:`(0,1]`
 	   * - c1
 	     - integer
 	     - Number of covered positions in the query.
@@ -235,11 +235,11 @@ Specification
 	   * - c2
 	     - float
 	     - Normalized number of covered positions in the query.
-	     - :math:`[0,1]`
+	     - :math:`(0,1]`
 	   * - cf
 	     - float
 	     - Proportion of covered positions in the query.
-	     - :math:`[0,1]`
+	     - :math:`(0,1]`
 	   * - is
 	     - int
 	     - Number of reported assignments (nodes) for the query.
