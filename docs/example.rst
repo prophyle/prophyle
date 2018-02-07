@@ -1,5 +1,8 @@
 .. _example:
 
+.. index:: Example
+
+
 Quick example
 =============
 

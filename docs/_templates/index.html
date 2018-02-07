@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% set title = _('Welcome to ProPhyle') %}
+{% set title = _('ProPhyle: DNA sequence classification') %}
 {% block body %}
 
   <h1>Welcome to ProPhyle</h1>
@@ -9,7 +9,7 @@
     based on the bottom-up propagation of k-mers in the phylogenetic/taxonomic tree, assembling contigs at each node and matching using a full-text search.
   </p>
 
-  <p>Compared to other state-of-the-arts classifiers, ProPhyle provides several unique features:
+  <p>Compared to other state-of-the-art classifiers, ProPhyle provides several unique features:
   
   <img src="{{ pathto('_static/prophyle_overview.jpg', 1) }}"  style="float:right; width:250px" />
 
@@ -92,17 +92,17 @@
 </div>
 
 <p style="font-size:90%">
-    [1] is the main reference for the entire ProPhyle package. The poster [2] contains a summary of the ProPhyle algorithm. [3] thoroughly describes the methods (see Chapter 12). [4] explains details of the BWT-indexing technique. 
+    [1] is the main reference for the entire ProPhyle package. [2] contains a summary of the ProPhyle algorithm, [3] provides a thorough description (see Chapter 12), and [4] explains details of the BWT-indexing technique. 
 </p>
   
 
   <h2>Authors</h2>
 
   <ul>
-  <li><a href="http://brinda.cz">Karel Brinda <<a href="">kbrinda@hsph.harvard.edu</a>></li>
-  <li>Kamil Salikhov <<a href="">kamil.salikhov@univ-mlv.fr</a>></li>
-  <li>Simone Pignotti <<a href="">pignottisimone@gmail.com</a>></li>
-  <li><a href="http://igm.univ-mlv.fr/~koutcher/">Gregory Kucherov <<a href="">gregory.kucherov@univ-mlv.fr</a>></li>
+  <li><a href="http://brinda.cz">Karel Břinda</a> &lt;<a href="mailto:kbrinda@hsph.harvard.edu">kbrinda@hsph.harvard.edu</a>&gt;</li>
+  <li>Kamil Salikhov &lt;<a href="mailto:kamil.salikhov@univ-mlv.fr">kamil.salikhov@univ-mlv.fr</a>&gt;</li>
+  <li>Simone Pignotti &lt;<a href="mailto:pignottisimone@gmail.com">pignottisimone@gmail.com</a>&gt;</li>
+  <li><a href="http://igm.univ-mlv.fr/~koutcher/">Gregory Kucherov</a> &lt;<a href="mailto:gregory.kucherov@univ-mlv.fr">gregory.kucherov@univ-mlv.fr</a>&gt;</li>
   </ul>
 
 {% endblock %}

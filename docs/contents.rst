@@ -7,6 +7,7 @@ ProPhyle documentation contents
 .. toctree::
 	:maxdepth: 2
 	:name: mastertoc
+	:numbered: 2
 
 	example
 	requirements
@@ -15,5 +16,6 @@ ProPhyle documentation contents
 	custom_db
 	classify
 	analyze
+	compress
 	formats
 	cli

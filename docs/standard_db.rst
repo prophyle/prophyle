@@ -1,5 +1,8 @@
 .. _standard_db:
 
+.. index:: RefSeq, NCBI
+
+
 Building a standard database
 ============================
 

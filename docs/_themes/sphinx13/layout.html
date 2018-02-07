@@ -75,8 +75,27 @@
         <img src="{{ pathto('_static/sphinxheader.png', 1) }}" alt="SPHINX" />
       -->
       <div style="color:white;font-size:240%">ProPhyle</div>
-      <div style="color:white;font-size:140%">a phylogeny-based metagenomic classifier</div>
+      <div style="color:white;font-size:140%">DNA sequence classification</div>
     </a>
   </div>
 </div>
 {% endblock %}
+
+
+
+{% block footer %}
+
+{{ super() }}
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-112241191-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-112241191-1');
+</script>
+
+{% endblock %}
+
