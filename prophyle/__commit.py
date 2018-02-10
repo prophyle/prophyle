@@ -1,4 +1,4 @@
-BRANCH = "docs"
-SHORTHASH = "f4effca"
-REVCOUNT = 1702
+BRANCH = "fix-brew"
+SHORTHASH = "c669703"
+REVCOUNT = 1705
 LATESTTAG = ""
