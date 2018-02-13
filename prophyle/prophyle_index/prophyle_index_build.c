@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
+#include "bwt.h"
 #include "prophyle_index_build.h"
 #include "klcp.h"
 #include "prophyle_utils.h"
 #include "bwa_utils.h"
 #include "utils.h"
+
+#define MAX_CHARACTERS_PER_LINE 100
 
 typedef struct {
 	klcp_t* klcp;
@@ -104,5 +107,45 @@ int debwtupdate(const char* bwt_input_file, const char* bwt_output_file) {
 	bwt_dump_bwt(bwt_output_file, bwt);
 	// fprintf(stderr, "after dump\n");
 	bwt_destroy(bwt);
+	return 0;
+}
+
+int bwt2fa(const char* prefix, const char* output_filename) {
+	bwt_t *bwt;
+	{
+		if ((bwt = bwa_idx_load_bwt_without_sa(prefix)) == 0) {
+			fprintf(stderr, "[prophyle_index:%s] Couldn't load idx from %s\n", __func__, prefix);
+			return 1;
+		}
+	}
+	char* seq = malloc(bwt->seq_len * sizeof(char));
+
+	bwtint_t i = 0;
+	bwtint_t bwt_pos = 0;
+	while(i < bwt->seq_len) {
+		bwtint_t new_pos = bwt_pos - (bwt_pos > bwt->primary);
+		new_pos = bwt_B0(bwt, new_pos);
+		seq[bwt->seq_len - i - 1] = "ACGT"[new_pos];
+		new_pos = bwt->L2[new_pos] + bwt_occ(bwt, bwt_pos, new_pos);
+		bwt_pos = bwt_pos == bwt->primary? 0 : new_pos;
+		i++;
+	}
+
+	bntseq_t* bns = bns_restore_ann_only(prefix);
+
+	FILE* output_file = fopen(output_filename, "w");
+	for (i = 0; i < bns->n_seqs; ++i) {
+		bntann1_t* p = bns->anns + i;
+		fprintf(output_file, ">%s\n", p->name);
+		bwtint_t position;
+		for (position = p->offset; position < p->offset + p->len; position++) {
+			fprintf(output_file, "%c", seq[position]);
+			if (position - p->offset % MAX_CHARACTERS_PER_LINE == 0 && position - p->offset > 0) {
+				fprintf(output_file, "\n");
+			}
+		}
+		fprintf(output_file, "\n");
+	}
+	fclose(output_file);
 	return 0;
 }

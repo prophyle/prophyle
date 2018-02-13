@@ -29,8 +29,10 @@ static int usage()
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage:   prophyle_index command [options]\n");
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Command: build     construct index\n");
-	fprintf(stderr, "         query     query reads against index\n");
+	fprintf(stderr, "Command: build           construct index\n");
+	fprintf(stderr, "         query           query reads against index\n");
+	fprintf(stderr, "         debwtupdate     remove OCC array from bwt file\n");
+	fprintf(stderr, "         bwt2fa          reconstruct fa file from bwt\n");
 	fprintf(stderr, "\n");
 	return 1;
 }
@@ -49,6 +51,13 @@ static int usage_build(){
 static int usage_debwtupdate(){
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage:   prophyle_index debwtupdate input.bwt output.bwt\n");
+	fprintf(stderr, "\n");
+	return 1;
+}
+
+static int usage_bwt2fa(){
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Usage:   prophyle_index bwt2fa input.fa output.fa\n");
 	fprintf(stderr, "\n");
 	return 1;
 }
@@ -143,6 +152,14 @@ int prophyle_debwtupdate(int argc, char *argv[])
 	return debwtupdate(argv[0], argv[1]);
 }
 
+int prophyle_bwt2fa(int argc, char *argv[])
+{
+	if (argc < 2) {
+		return usage_bwt2fa();
+	}
+	return bwt2fa(argv[0], argv[1]);
+}
+
 int main(int argc, char *argv[])
 {
 	int ret = 0;
@@ -150,6 +167,7 @@ int main(int argc, char *argv[])
 	if (strcmp(argv[1], "build") == 0) ret = prophyle_index_build(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "query") == 0) ret = prophyle_index_query(argc - 1, argv+1);
 	else if (strcmp(argv[1], "debwtupdate") == 0) ret = prophyle_debwtupdate(argc - 2, argv + 2);
+	else if (strcmp(argv[1], "bwt2fa") == 0) ret = prophyle_bwt2fa(argc - 2, argv + 2);
 	else return usage();
 
 	return ret;
