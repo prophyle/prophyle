@@ -137,7 +137,8 @@ int bwt2fa(const char* prefix, const char* output_filename) {
 	for (i = 0; i < bns->n_seqs; ++i) {
 		bntann1_t* p = bns->anns + i;
 		fprintf(output_file, ">%s\n", p->name);
-		for (bwtint_t position = p->offset; position < p->offset + p->len; position++) {
+		bwtint_t position;
+		for (position = p->offset; position < p->offset + p->len; position++) {
 			fprintf(output_file, "%c", seq[position]);
 			if (position - p->offset % MAX_CHARACTERS_PER_LINE == 0 && position - p->offset > 0) {
 				fprintf(output_file, "\n");
