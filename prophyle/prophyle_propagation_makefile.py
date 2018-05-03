@@ -244,8 +244,8 @@ class TreeIndex:
 
         if node.is_leaf():
 
-            if hasattr(node, "fastapath"):
-                fastas_fn = node.fastapath.split("@")
+            if hasattr(node, "path"):
+                fastas_fn = node.path.split("@")
                 for i in range(len(fastas_fn)):
                     fastas_fn[i] = os.path.join(self.library_dir, fastas_fn[i])
                 merge_fasta_files(fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo)
