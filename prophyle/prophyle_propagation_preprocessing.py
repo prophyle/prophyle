@@ -134,7 +134,7 @@ def merge_trees(input_trees_fn, output_tree_fn, verbose, add_prefixes, sampling_
         )
 
     for node in t.traverse("postorder"):
-        if node.hasattr("fastapath"):
+        if hasattr(node, "fastapath"):
             node.add_feature("path", node.fastapath)
             node.del_feature("fastapath")
 
