@@ -79,12 +79,14 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
             """\
                 ifneq ($(call ifdef_any_of,REASM MASKREP),)
                 {ocompl}: {i}
+                \trm -f {o} {o}.tmp
                 \t$(foreach f,$^,cat $(f) >> {o}.tmp$(NL))
                 \tcat {o}.tmp $(CMD_MASKING) $(CMD_REASM) > {o}
                 \trm {o}.tmp
                 \t@touch $@
                 else
                 {ocompl}: {i}
+                \trm -f {o}
                 \t$(foreach f,$^,cat $(f) >> {o}$(NL))
                 \t@touch $@
                 endif
