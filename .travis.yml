@@ -1,7 +1,6 @@
 language: cpp
 
 cache:
-  - brew
   - apt: true
 
 matrix:
@@ -31,13 +30,7 @@ matrix:
 
     - os: osx
       compiler: clang-3.7
-      before_install:
-        - brew update
-        - brew tap homebrew/versions
       install:
-        - export CXX="clang++-3.7" CC="clang-3.7"
-        - brew install llvm37
-
         - if [ ! -d "$HOME/miniconda/bin" ]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh && bash miniconda.sh -f -b -p $HOME/miniconda; fi
         - export PATH="$HOME/miniconda/bin:$PATH"
         - hash -r
