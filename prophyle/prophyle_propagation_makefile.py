@@ -77,10 +77,17 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
     if is_leaf:
         cmd = textwrap.dedent(
             """\
-
+                ifneq ($(call ifdef_any_of,REASM MASKREP),)
                 {ocompl}: {i}
-                \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
+                \t$(foreach f,$^,cat $(f) >> .tmp.{o}$(NL))
+                \tcat .tmp.{o} $(CMD_MASKING) $(CMD_REASM) > {o}
+                \trm .tmp.{o}
                 \t@touch $@
+                else
+                {ocompl}: {i}
+                \t$(foreach f,$^,cat $(f) >> {o}$(NL))
+                \t@touch $@
+                endif
 
             """.format(
                 i=' '.join(input_files_fn),
@@ -283,6 +290,13 @@ class TreeIndex:
                     .PHONY: all clean
 
                     SHELL=/usr/bin/env bash -euc -o pipefail
+
+                    define NL
+
+
+                    endef
+
+                    ifdef_any_of = $(filter-out undefined,$(foreach v,$(1),$(origin $(v))))
 
                     PRG_ASM?=prophyle_assembler
                     PRG_DUST?=dustmasker
