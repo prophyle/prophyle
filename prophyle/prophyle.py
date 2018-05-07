@@ -447,7 +447,7 @@ def _kmer_stats(index_dir):
     """
     propagation_dir = os.path.join(index_dir, 'propagation')
     command = [
-        "cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "sort", "|", "uniq", ">",
+        "cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "grep", "-v", "^-", "|", "sort", "|", "uniq", ">",
         os.path.join(index_dir, "index.fa.kmers.tsv")
     ]
     pro.run_safe(
