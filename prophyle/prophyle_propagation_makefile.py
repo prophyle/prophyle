@@ -283,13 +283,6 @@ class TreeIndex:
 
                     SHELL=/usr/bin/env bash -euc -o pipefail
 
-                    define NL
-
-
-                    endef
-
-                    ifdef_any_of = $(filter-out undefined,$(foreach v,$(1),$(origin $(v))))
-
                     PRG_ASM?=prophyle_assembler
                     PRG_DUST?=dustmasker
 
