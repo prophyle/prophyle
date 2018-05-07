@@ -56,7 +56,7 @@ built using `ETE Toolkit <http://etetoolkit.org/>`_ and saved with newick format
 1. Necessary node attributes are:
 
 * ``name``: unique node name (for RefSeq DB: the taxid of the node)
-* ``fastapath``: paths of the sequences' fasta files, separated by @
+* ``path``: paths of the sequences' fasta files, separated by @ (relative paths from ProPhyle's home directory)
 
 Other optional attributes are ``taxid``, ``sci_name``, ``named_lineage``, ``lineage``, ``rank`` (more info
 `here <http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html#automatic-tree-annotation-using-ncbi-taxonomy>`_

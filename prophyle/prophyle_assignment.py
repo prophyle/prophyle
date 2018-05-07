@@ -389,7 +389,7 @@ class Assignment:
         for node in self.tree_index.tree.traverse("postorder"):
 
             try:
-                ur = "\tUR:{}".format(node.fastapath)
+                ur = "\tUR:{}".format(node.path)
             except:
                 ur = ""
 
