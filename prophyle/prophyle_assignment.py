@@ -55,6 +55,7 @@ class Assignment:
         kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
+        mask_unmatched_bases (bool): Mask unmatched bases.
 
     Attributes:
         output_fo (file): Output file object.
@@ -62,6 +63,7 @@ class Assignment:
         k (int): k-mer size.
         kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
+        mask_unmatched_bases (bool): Mask unmatched bases.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
         krakline_parser (KraklineParser): Parser of kraklines.
         hitmasks_dict (dict): Hit masks
@@ -71,13 +73,14 @@ class Assignment:
         max_val (int/float): Maximal value of the measure.
     """
 
-    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
+    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False, mask_unmatched_bases=False):
         self.output_fo = output_fo
         self.tree_index = tree_index
         self.k = self.tree_index.k
         self.kmer_lca = kmer_lca
         self.annotate = annotate
         self.tie_lca = tie_lca
+        self.mask_unmatched_bases = mask_unmatched_bases
 
         self.krakline_parser = KraklineParser()
 
@@ -341,9 +344,18 @@ class Assignment:
         Args:
             node_name (str): Node name. None if unassigned.
             suffix (str): Suffix with additional tags.
+            mask_unmatched_bases (bool): Change unmatched bases to N.
         """
 
         qname = self.krakline_parser.readname
+
+        covmask=self.ass_dict[node_name]["covmask"]
+
+        if self.mask_unmatched_bases and self.krakline_parser.seq:
+            seq = "".join( ("N" if covmask[i]==0 else ch for i, ch in enumerate(self.krakline_parser.seq)) )
+        else:
+            seq = self.krakline_parser.seq
+
 
         if node_name is not None:
             flag = 0
@@ -367,7 +379,7 @@ class Assignment:
             "*",  # RNEXT
             "0",  # PNEXT
             "0",  # TLEN
-            self.krakline_parser.seq if self.krakline_parser.seq else "*",  # SEQ
+            seq if self.krakline_parser.seq else "*",  # SEQ
             self.krakline_parser.qual if self.krakline_parser.qual else "*",  # QUAL
         ]
 
