@@ -57,7 +57,7 @@ built using `ETE Toolkit <http://etetoolkit.org/>`_ and saved with newick format
 * ``name``: unique node name (ideally the TaxID of the node)
 * ``taxid``: unique taxonomic identifier
 * ``seqname``: names of the sequences sharing the same taxid, separated by @
-* ``fastapath``: paths of the sequences' fasta files, separated by @ (relative paths from ProPhyle's home directory)
+* ``path``: paths of the sequences' fasta files, separated by @ (relative paths from ProPhyle's home directory)
 * ``infasta_offset``: positions where each sequence starts inside the corresponding fasta files, separated by @
 * ``base_len``: length of each sequence, separated by @
 
@@ -79,5 +79,3 @@ Run the standard command to build ProPhyle index
 .. code-block:: bash
 
 	prophyle index -k <kmer_length> <tree_1.nw> [<tree_2.nw> ...] <index_dir>
-
-
