@@ -316,6 +316,7 @@ class TreeIndex:
 
                     ifdef NONPROP
                        $(info | K-mer propagation:      Off)
+                       REASM=1
                     else
                        $(info | K-mer propagation:      On)
                     endif
