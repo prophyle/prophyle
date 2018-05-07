@@ -78,9 +78,8 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
         cmd = textwrap.dedent(
             """\
                 {ocompl}: {i}
-                \t($(foreach f,$^,cat $(f) $(CMD_MASKING) $(CMD_REASM);)) \
-                \t> {o}
-                \t@touch $@
+                \t($(foreach f,$^,cat $(f);))  $(CMD_MASKING) $(CMD_REASM)> "{o}"
+                \t@touch "$@"
 
             """.format(
                 i=' '.join(input_files_fn),
