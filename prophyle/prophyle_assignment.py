@@ -88,6 +88,7 @@ class Assignment:
         self.max_nodenames = []
         self.max_val = 0
 
+
     def process_read(self, krakline, form, measure):
         """Process one Kraken-like line.
 
@@ -114,6 +115,7 @@ class Assignment:
             self.diagnostics()
 
         self.print_selected_assignments(form)
+
 
     def blocks_to_masks(self, kmer_blocks, kmer_lca):
         """Extract hit and coverage masks from krakline blocks (without propagation) and store them in self.{hit,cov}masks_dict.
@@ -155,8 +157,10 @@ class Assignment:
 
             pos += count
 
+        self.readlen = readlen
         self.hitmasks_dict = hitmasks_dict
         self.covmasks_dict = covmasks_dict
+
 
     def compute_assignments(self):
         """Compute assignments & characteristics.
@@ -167,6 +171,7 @@ class Assignment:
 
         nodenames = self.hitmasks_dict.keys()
         self.ass_dict = {nodename: self.evaluate_single_assignment(nodename) for nodename in nodenames}
+
 
     def evaluate_single_assignment(self, nodename):
         """Evaluate a single assignment.
@@ -222,6 +227,7 @@ class Assignment:
 
         return assignment
 
+
     def select_best_assignments(self, measure):
         """Find the best assignments and save it to self.max_nodenames (max value: self.max_val).
 
@@ -244,6 +250,7 @@ class Assignment:
 
         if CONFIG['SORT_NODES']:
             self.max_nodenames.sort()
+
 
     def make_lca_from_winners(self):
         """Create LCA from winners.
@@ -276,6 +283,7 @@ class Assignment:
         asg['covmask'] = None
         asg['hitmask'] = None
 
+
     def print_selected_assignments(self, form):
         """Print the best assignments.
 
@@ -305,6 +313,7 @@ class Assignment:
         elif form == "kraken":
             self.print_kraken_line(*self.max_nodenames)
 
+
     @staticmethod
     @functools.lru_cache(maxsize=5)
     def cigar_from_bitmask(bitmask):
@@ -325,6 +334,7 @@ class Assignment:
             c.append('=' if run[0] else 'X')
         return "".join(c)
 
+
     def print_sam_line(self, node_name, suffix):
         """Print a single SAM record.
 
@@ -333,7 +343,6 @@ class Assignment:
             suffix (str): Suffix with additional tags.
         """
 
-        tags = []
         qname = self.krakline_parser.readname
 
         if node_name is not None:
@@ -362,6 +371,8 @@ class Assignment:
             self.krakline_parser.qual if self.krakline_parser.qual else "*",  # QUAL
         ]
 
+        columns.append("{}:{}:{}".format("ln", "i", self.readlen))
+
         if node_name is not None:
             asg = self.ass_dict[node_name]
 
@@ -380,6 +391,7 @@ class Assignment:
                 columns.append("hc:Z:{}".format(asg['hitcigar']))
 
         print("\t".join(columns), suffix, file=self.output_fo, sep="")
+
 
     def print_sam_header(self):
         """Print SAM headers.
@@ -413,6 +425,7 @@ class Assignment:
                         sp=sp,
                     ), file=self.output_fo
                 )
+
 
     def print_kraken_line(self, *nodenames):
         """Print a single record in the Kraken-like format.
@@ -452,6 +465,7 @@ class Assignment:
         columns = [stat, self.krakline_parser.readname, krak_ass, str(self.krakline_parser.readlen), krakmers]
         print("\t".join(columns), file=self.output_fo)
 
+
     @staticmethod
     def bitarray_block(alen, blen, pos):
         """Create a bitarray containing a block of one's.
@@ -465,6 +479,7 @@ class Assignment:
             bitarray (bitarray)
         """
         return bitarray(pos * "0" + blen * "1" + (alen - pos - blen) * "0")
+
 
     def diagnostics(self):
         """Print debug messages.
