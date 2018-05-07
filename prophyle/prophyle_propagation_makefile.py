@@ -142,7 +142,7 @@ def assembly(
             endif
 
             ifdef NONPROP
-               CMD_ASM_{nid} = @touch {x}; {ln};
+               CMD_ASM_{nid} = @touch {x}; echo "" > "{c}"; {ln};
             else
                CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -x {x} -i {ii} $(CMD_ASM_OUT_{nid}) -s {c}
             endif
@@ -157,7 +157,7 @@ def assembly(
             o=' '.join(output_files_fn),
             ii=' -i '.join(input_files_fn),
             oo=' -o '.join(output_files_fn),
-            ln='; '.join(['ln -s "{}" "{}"'.format(x, y) for (x,y) in zip(input_files_fn, output_files_fn)]),
+            ln='; '.join(['mv "{x}" "{y}"; touch "{x}"'.format(x=x, y=y) for (x,y) in zip(input_files_fn, output_files_fn)]),
             x=intersection_file_fn,
             xcompl=_compl(intersection_file_fn),
             c=counts_fn,
@@ -292,9 +292,6 @@ class TreeIndex:
                     INTERNAL_NODES={internal_nodes}
                     DATETIME=$$(date '+%Y-%m-%d %H:%M:%S')
                     PRINT_PROGRESS=@echo "[prophyle_propagation]" $(DATETIME) "Progress of k-mer propagation:" $$(( $$(find . -name '*.full.fa.complete' | wc -l) - $(LEAVES) )) / $(INTERNAL_NODES)
-
-                    NONPROP=1
-
 
                     $(info )
                     $(info /------------------------------------------------------------------)
