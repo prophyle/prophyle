@@ -87,7 +87,10 @@ Specification
 	     - Node name (typically the TaxID of the node). The names should be unique and must not contain ``@``.
 	   * - path
 	     - string
-	     - Files with genomic sequences, separated by ``@`` (relative paths from the directory of the tree). Only for leaves. Previously ``fastapath`` (deprecated)
+	     - Files with genomic sequences, separated by ``@`` (relative paths from the directory of the tree). Only for leaves.
+	   * - fastapath
+	     - string
+	     - Deprecated (use `path` instead).
 	   * - rank
 	     - string/int
 	     - Taxonomic rank.
