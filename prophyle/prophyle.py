@@ -23,6 +23,7 @@ Example:
 import argparse
 import collections
 import hashlib
+import json
 import multiprocessing
 import os
 import sys
@@ -98,6 +99,17 @@ FILES_TO_ARCHIVE = [
     "index.fa.amb",  # but will be empty
     'index.fa.kmers.tsv'
 ]
+
+
+def _get_zenodo_libraries(zenodo_id):
+    import requests
+    url = "https://zenodo.org/api/records/1054426"
+    r = requests.get(url)
+    print(r)
+    zenodo_record = json.loads(r.text)
+    files_urls=[x['links']['self'] for x in zenodo_record['files']]
+    for x in files_urls:
+        print(x)
 
 
 def _file_md5(fn, block_size=2**20):
@@ -1072,9 +1084,8 @@ def parser():
     parser_download.add_argument(
         'library',
         metavar='<library>',
-        nargs='+',
-        choices=LIBRARIES + ['all'],
-        help='genomic library {}'.format(LIBRARIES + ['all']),
+        nargs='*',
+        help='genomic library',
     )
 
     parser_download.add_argument(
@@ -1492,14 +1503,18 @@ def main():
 
         if subcommand == "download":
             pro.open_log(args.log_fn)
-            for single_lib in args.library:
-                pro.message('Downloading "{}" started'.format(single_lib))
-                prophyle_download(
-                    library=single_lib,
-                    library_dir=args.home_dir,
-                    force=args.force,
-                )
-                pro.message('Downloading "{}" finished'.format(single_lib))
+            if len(args.library)==0:
+                par.parse_args(args=["download", "-h"])
+                _get_zenodo_libraries("")
+            else:
+                for single_lib in args.library:
+                    pro.message('Downloading "{}" started'.format(single_lib))
+                    prophyle_download(
+                        library=single_lib,
+                        library_dir=args.home_dir,
+                        force=args.force,
+                    )
+                    pro.message('Downloading "{}" finished'.format(single_lib))
             pro.close_log()
 
         elif subcommand == "index":
