@@ -404,19 +404,25 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
     _log_file_md5(makefile)
 
 
-def _propagate(index_dir, threads):
+def _propagate(index_dir, threads, nonprop=0):
     """Run k-mer propagation.
 
     Args:
         index_dir (str): Index directory.
         threads (int): Number of threads for Makefile.
+        nonprop (bool): Switch propagation off.
     """
     pro.message('Running k-mer propagation')
     propagation_dir = os.path.join(index_dir, 'propagation')
     pro.test_files(os.path.join(propagation_dir, 'Makefile'), test_nonzero=True)
 
+    if nonprop:
+        nonprop_cmd_str="NONPROP=1"
+    else:
+        nonprop_cmd_str=""
+
     # test if input files for propagation exist
-    command = ['make', '-C', propagation_dir, '-n', '-s', '>', '/dev/null']
+    command = ['make', '-C', propagation_dir, '-n', '-s', nonprop_cmd_str, '>', '/dev/null']
     pro.run_safe(
         command,
         err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
@@ -425,7 +431,7 @@ def _propagate(index_dir, threads):
     )
 
     # run propagation
-    command = ['make', '-j', threads, '-C', propagation_dir, 'V=1']
+    command = ['make', '-j', threads, '-C', propagation_dir, nonprop_cmd_str, 'V=1']
     pro.run_safe(
         command,
         err_msg="K-mer propagation has not been finished because of an error. See messages above.",
