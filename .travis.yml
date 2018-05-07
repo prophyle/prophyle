@@ -54,6 +54,7 @@ script:
   # tests in the package dir
   - make clean
   - pip --version
+  - rm requirements.txt
   - make install
   - make test_package
 
