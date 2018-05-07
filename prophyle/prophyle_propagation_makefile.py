@@ -341,10 +341,9 @@ class TreeIndex:
                     all: {root_red_compl}
 
                     clean:
-                    \trm -f *.complete
-                    \trm -f *.fa
-
-                    \trm -f *.tsv
+                    \tfind . -name "*.complete" -exec rm -f {{}} \\;
+                    \tfind . -name "*.fa" -exec rm -f {{}} \\;
+                    \tfind . -name "*.tsv" -exec rm -f {{}} \\;
 
                     {root_red_compl}: {root_nonred_compl}
                     \tln -s {root_nonred} {root_red}
