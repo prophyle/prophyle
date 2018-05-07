@@ -646,7 +646,7 @@ def _bwtocc2sa_klcp(fa_fn, k):
 
 def prophyle_index(
     index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files,
-    sampling_rate, autocomplete
+    sampling_rate, autocomplete, nonprop,
 ):
     """Build a ProPhyle index.
 
@@ -663,6 +663,7 @@ def prophyle_index(
         keep_tmp_files (bool): Keep temporary files from k-mer propagation.
         sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
         autocomplete (bool): Autocomplete names of internal nodes and fasta paths.
+        nonprop (bool): Switch propagation off.
     """
 
     assert isinstance(k, int)
@@ -722,7 +723,7 @@ def prophyle_index(
     if recompute:
         pro.message('[2/6] Running k-mer propagation', upper=True)
         _create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
-        _propagate(index_dir, threads=threads)
+        _propagate(index_dir, threads=threads, nonprop=nonprop)
         _propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
         _test_tree(index_tree_2)
         _kmer_stats(index_dir)
@@ -1214,6 +1215,13 @@ def parser():
         action='store_true',
     )
 
+    parser_index.add_argument(
+        '-R',
+        help='switch propagation off (only re-assemble leaves)',
+        dest='nonprop',
+        action='store_true',
+    )
+
     _add_configuration_parameter(parser_index)
 
     ##########
@@ -1518,6 +1526,7 @@ def main():
                 keep_tmp_files=args.keep_tmp_files,
                 sampling_rate=args.sampling_rate,
                 autocomplete=args.autocomplete,
+                nonprop=args.nonprop,
             )
             pro.message('Index construction finished')
             pro.close_log()
