@@ -103,13 +103,25 @@ FILES_TO_ARCHIVE = [
 
 def _get_zenodo_libraries(zenodo_id):
     import requests
-    url = "https://zenodo.org/api/records/1054426"
-    r = requests.get(url)
-    print(r)
-    zenodo_record = json.loads(r.text)
-    files_urls=[x['links']['self'] for x in zenodo_record['files']]
-    for x in files_urls:
-        print(x)
+    try:
+        url = "https://zenodo.org/api/records/1054426"
+        r = requests.get(url)
+        zenodo_record = json.loads(r.text)
+        files_urls=[x['links']['self'] for x in zenodo_record['files']]
+        libraries = []
+        for x in files_urls:
+            parts = x.split("/")
+            file=append(parts[-1])
+            pref,_,suf=file.rpartition(file)
+            if suf=="nw":
+                libraries.add(suf)
+        return libraries
+    except requests.exceptions.ConnectionError:
+        print(
+            "Error: ProPhyle could not connect to Zenodo.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
 
 def _file_md5(fn, block_size=2**20):
@@ -1504,8 +1516,8 @@ def main():
         if subcommand == "download":
             pro.open_log(args.log_fn)
             if len(args.library)==0:
+                print(_get_zenodo_libraries(""))
                 par.parse_args(args=["download", "-h"])
-                _get_zenodo_libraries("")
             else:
                 for single_lib in args.library:
                     pro.message('Downloading "{}" started'.format(single_lib))
