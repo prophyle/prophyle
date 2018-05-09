@@ -78,7 +78,10 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
         cmd = textwrap.dedent(
             """\
                 {ocompl}: {i}
-                \t($(foreach f,$^,cat $(f);))  $(CMD_MASKING) $(CMD_REASM)> "{o}"
+                \trm -f "{o}" "{o}.tmp"
+                \t$(foreach f,$^,echo $(f) >> "{o}.tmp"$(NL))
+                \t<"{o}.tmp" xargs -I % cat % $(CMD_MASKING) $(CMD_REASM)> "{o}"
+                \trm "{o}.tmp"
                 \t@touch "$@"
 
             """.format(
@@ -283,6 +286,11 @@ class TreeIndex:
                     .PHONY: all clean
 
                     SHELL=/usr/bin/env bash -euc -o pipefail
+
+                    define NL
+
+
+                    endef
 
                     PRG_ASM?=prophyle_assembler
                     PRG_DUST?=dustmasker
