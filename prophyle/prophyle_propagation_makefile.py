@@ -80,7 +80,7 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
                 {ocompl}: {i}
                 \tprintf "" > "{o}"
                 \tprintf "" > "{o}.txt"
-                \t$(foreach f,$^,echo $(f) >> "{o}.txt"$(NL))
+                \t$(foreach f,$^,echo '$(f)' >> "{o}.txt"$(NL))
                 \txargs cat <"{o}.txt" $(CMD_MASKING) $(CMD_REASM) >"{o}"
                 \ttouch "$@"
 
@@ -285,7 +285,7 @@ class TreeIndex:
 
                     .PHONY: all clean
 
-                    SHELL=/usr/bin/env bash -euc -o pipefail
+                    SHELL=/usr/bin/env bash -euc -x -o pipefail
 
                     define NL
 
