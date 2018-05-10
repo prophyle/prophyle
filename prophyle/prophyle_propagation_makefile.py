@@ -78,10 +78,10 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
         cmd = textwrap.dedent(
             """\
                 {ocompl}: {i}
-                \trm -f "{o}" "{o}.tmp"
-                \t$(foreach f,$^,echo $(f) >> "{o}.tmp"$(NL))
-                \t<"{o}.tmp" xargs -I % cat % $(CMD_MASKING) $(CMD_REASM)> "{o}"
-                \trm "{o}.tmp"
+                \t@printf "" > "{o}"
+                \t@printf "" > "{o}.txt"
+                \t$(foreach f,$^,@echo $(f) >> "{o}.txt"$(NL))
+                \t<"{o}.txt" xargs -I % cat % $(CMD_MASKING) $(CMD_REASM)> "{o}"
                 \t@touch "$@"
 
             """.format(
@@ -352,6 +352,7 @@ class TreeIndex:
                     \tfind . -name "*.complete" -exec rm -f {{}} \\;
                     \tfind . -name "*.fa" -exec rm -f {{}} \\;
                     \tfind . -name "*.tsv" -exec rm -f {{}} \\;
+                    \tfind . -name "*.txt" -exec rm -f {{}} \\;
 
                     {root_red_compl}: {root_nonred_compl}
                     \tln -s {root_nonred} {root_red}
