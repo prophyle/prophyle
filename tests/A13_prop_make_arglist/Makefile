@@ -1,22 +1,18 @@
-.PHONY: all clean index
+.PHONY: all clean index index_noprop
 
 include ../conf.mk
 
 K=5
 
-all: index.fa index_noprop.fa
-	# with masking
-	diff -c index_noprop.fa expected_noprop.txt
-	# with propagation
-	diff -c index.fa expected.txt
+all: index index_noprop
 
-index_noprop.fa:
-	$(PROP) index -R -T -k $(K) -g lib tree.nw index_noprop
-	$(NORM) -i index_noprop/index.fa > $@
+index_noprop:
+	$(PROP) index -R -T -k $(K) -g lib tree.nw $@
+	find $@/propagation -name "*.fa" -print | xargs -I {} -P 4 bash -c 'diff -c <($(F2K) -i "{}" -k $(K) -m c -f fa) expected_noprop/`basename "{}"`'
 
-index.fa:
+index:
 	$(PROP) index -T -k $(K) -g lib tree.nw index
-	$(NORM) -i index/index.fa > $@
+	find $@/propagation -name "*.fa" -print | xargs -I {} -P 4 bash -c 'diff -c <($(F2K) -i "{}" -k $(K) -m c -f fa) expected/`basename "{}"`'
 
 clean:
 	rm -rf index*
