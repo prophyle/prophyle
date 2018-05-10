@@ -1,4 +1,4 @@
-BRANCH = "arg_list"
-SHORTHASH = "1f8ce50"
-REVCOUNT = 1709
+BRANCH = "fix-A13-travis"
+SHORTHASH = "f20a0fb"
+REVCOUNT = 1752
 LATESTTAG = "0.3.1.0"

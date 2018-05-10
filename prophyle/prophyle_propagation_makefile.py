@@ -288,8 +288,8 @@ class TreeIndex:
                     SHELL=/usr/bin/env bash -euc -x -o pipefail
 
                     define NL
-
-
+                    
+                    
                     endef
 
                     PRG_ASM?=prophyle_assembler
