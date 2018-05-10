@@ -78,11 +78,11 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
         cmd = textwrap.dedent(
             """\
                 {ocompl}: {i}
-                \t@printf "" > "{o}"
-                \t@printf "" > "{o}.txt"
-                \t$(foreach f,$^,@echo $(f) >> "{o}.txt"$(NL))
+                \tprintf "" > "{o}"
+                \tprintf "" > "{o}.txt"
+                \t$(foreach f,$^,echo $(f) >> "{o}.txt"$(NL))
                 \txargs cat <"{o}.txt" $(CMD_MASKING) $(CMD_REASM) >"{o}"
-                \t@touch "$@"
+                \ttouch "$@"
 
             """.format(
                 i=' '.join(input_files_fn),

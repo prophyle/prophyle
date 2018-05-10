@@ -422,7 +422,7 @@ def _propagate(index_dir, threads, nonprop=0):
         nonprop_cmd_str=""
 
     # test if input files for propagation exist
-    command = ['make', '-j', threads, '-C', propagation_dir, '-n', '-s', nonprop_cmd_str, '>', '/dev/null']
+    command = ['make', '-j', threads, '-C', propagation_dir, '-n', nonprop_cmd_str, '>', '/dev/null']
     pro.run_safe(
         command,
         err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
