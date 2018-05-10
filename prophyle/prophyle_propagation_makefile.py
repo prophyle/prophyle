@@ -81,7 +81,7 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
                 \t@printf "" > "{o}"
                 \t@printf "" > "{o}.txt"
                 \t$(foreach f,$^,@echo $(f) >> "{o}.txt"$(NL))
-                \t<"{o}.txt" xargs -I % cat % $(CMD_MASKING) $(CMD_REASM)> "{o}"
+                \txargs -I % cat % <"{o}.txt" $(CMD_MASKING) $(CMD_REASM) >"{o}"
                 \t@touch "$@"
 
             """.format(
