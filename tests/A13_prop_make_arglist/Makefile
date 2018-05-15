@@ -15,7 +15,7 @@ index: lib
 	find $@/propagation -name '*.fa' | xargs -I {} bash -c 'diff -c <($(F2K) -i "{}" -k $(K) -m c -f fa) expected/`basename "{}"`'
 
 lib:
-	cd lib && for ((i=6; i<=10000; i++)); do ln -s 5.fa "$$i.fa" ; done
+	cd lib && for ((i=6; i<=10000; i++)); do ln -snf 5.fa "$$i.fa" ; done
 
 clean:
 	rm -rf index*
