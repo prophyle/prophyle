@@ -79,8 +79,8 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
             cmd = textwrap.dedent(
                 """\
                     {ocompl}: {i}
-                        \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
-                        \t@touch $@
+                    \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
+                    \t@touch $@
 
                 """.format(
                     i=' '.join(input_files_fn),
@@ -97,8 +97,8 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
             cmd = textwrap.dedent(
                 """\
                     {ocompl}: {i}
-                        \tbash {o}.sh $(CMD_MASKING) $(CMD_REASM) > {o}
-                        \t@touch $@
+                    \tbash {o}.sh $(CMD_MASKING) $(CMD_REASM) > {o}
+                    \t@touch $@
 
                 """.format(
                     i=' '.join(input_files_fn),
@@ -301,7 +301,7 @@ class TreeIndex:
 
                     .PHONY: all clean
 
-                    SHELL=/usr/bin/env bash -euc -x -o pipefail
+                    SHELL=/usr/bin/env bash -euc -o pipefail
 
                     define NL
 
