@@ -75,21 +75,37 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
     """
 
     if is_leaf:
-        cmd = textwrap.dedent(
-            """\
-                {ocompl}: {i}
-                \tprintf "" > "{o}"
-                \tprintf "" > "{o}.txt"
-                \t$(foreach f,$^,echo '$(f)' >> "{o}.txt"$(NL))
-                \txargs cat <"{o}.txt" $(CMD_MASKING) $(CMD_REASM) >"{o}"
-                \ttouch "$@"
+        if len(input_files_fn) < 100:
+            cmd = textwrap.dedent(
+                """\
+                    {ocompl}: {i}
+                        \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
+                        \t@touch $@
 
-            """.format(
-                i=' '.join(input_files_fn),
-                o=output_file_fn,
-                ocompl=_compl(output_file_fn),
+                """.format(
+                    i=' '.join(input_files_fn),
+                    o=output_file_fn,
+                    ocompl=_compl(output_file_fn),
+                )
             )
-        )
+        else:
+            bash_cat_cmd = "#! /usr/bin/env bash\nset -euo pipefail\n"
+            for ifn in input_files_fn:
+                bash_cat_cmd += "cat {}\n".format(ifn)
+            with open("{o}.sh".format(o=output_file_fn)) as bash_cat_f:
+                print(bash_cat_cmd, file=bash_cat_f)
+            cmd = textwrap.dedent(
+                """\
+                    {ocompl}: {i}
+                        \tbash {o}.sh $(CMD_MASKING) $(CMD_REASM) > {o}
+                        \t@touch $@
+
+                """.format(
+                    i=' '.join(input_files_fn),
+                    o=output_file_fn,
+                    ocompl=_compl(output_file_fn),
+                )
+            )
     else:
 
         cmd = textwrap.dedent(
@@ -288,8 +304,8 @@ class TreeIndex:
                     SHELL=/usr/bin/env bash -euc -x -o pipefail
 
                     define NL
-                    
-                    
+
+
                     endef
 
                     PRG_ASM?=prophyle_assembler
