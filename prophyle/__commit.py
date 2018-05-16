@@ -1,4 +1,4 @@
-BRANCH = "arg_list"
-SHORTHASH = "1f8ce50"
-REVCOUNT = 1709
+BRANCH = "fix-mimic-kraken"
+SHORTHASH = "6f2dc3c"
+REVCOUNT = 1751
 LATESTTAG = "0.3.1.0"
