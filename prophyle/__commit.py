@@ -1,4 +1,4 @@
 BRANCH = "fix-mimic-kraken"
-SHORTHASH = "81c741f"
-REVCOUNT = 1736
+SHORTHASH = "fe13d9d"
+REVCOUNT = 1737
 LATESTTAG = "0.3.1.0"
