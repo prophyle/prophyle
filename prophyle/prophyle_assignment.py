@@ -551,7 +551,7 @@ class TreeIndex:
         if len(node_names) == 1:
             return node_names[0]
         nodes = [self.nodename_to_node[n] for n in node_names]
-        lca = nodes[0].get_common_ancestor(nodes[1:])
+        lca = nodes[0].get_common_ancestor(nodes)
 
         if lca.is_root() and len(lca.children) == 1:
             lca = lca.children[0]
