@@ -200,6 +200,7 @@ class Assignment:
         hit = hitmask.count()
         cov = covmask.count()
         readlen = self.krakline_parser.readlen
+        kcount = self.tree_index.nodename_to_kmercount[nodename]
 
         assignment = {
             # 1. hit count
@@ -207,14 +208,14 @@ class Assignment:
             #'hitcigar': self.cigar_from_bitmask(hitmask),
             'h1': [hit],
             'hf': [hit / (readlen - self.k + 1)],
-            'h2': [hit / self.tree_index.nodename_to_kmercount[nodename]],
+            'h2': [hit / kcount if kcount > 0 else 0],
 
             # 2. coverage
             'covmask': covmask,
             #'covcigar': self.cigar_from_bitmask(covmask),
             'c1': [cov],
             'cf': [cov / readlen],
-            'c2': [cov / self.tree_index.nodename_to_kmercount[nodename]],
+            'c2': [cov / kcount if kcount > 0 else 0],
 
             # 3. other values
             'ln': readlen,
