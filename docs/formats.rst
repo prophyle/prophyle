@@ -219,6 +219,10 @@ Specification
 	     - Type
 	     - Description
 	     - Range
+	   * - ln
+	     - integer
+	     - Read length.
+	     -
 	   * - h1
 	     - integer
 	     - Number of shared k-mers.

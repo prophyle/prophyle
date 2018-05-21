@@ -55,6 +55,7 @@ class Assignment:
         kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
+        mask_unmatched_bases (bool): Mask unmatched bases.
 
     Attributes:
         output_fo (file): Output file object.
@@ -62,6 +63,7 @@ class Assignment:
         k (int): k-mer size.
         kmer_lca (bool): Simulate LCA on the k-mer level.
         tie_lca (bool): If a tie (multiple winning nodes), compute LCA.
+        mask_unmatched_bases (bool): Mask unmatched bases.
         annotate (bool): If taxonomic info present in the tree, annotate the assignments using SAM tags.
         krakline_parser (KraklineParser): Parser of kraklines.
         hitmasks_dict (dict): Hit masks
@@ -71,13 +73,14 @@ class Assignment:
         max_val (int/float): Maximal value of the measure.
     """
 
-    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
+    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False, mask_unmatched_bases=False):
         self.output_fo = output_fo
         self.tree_index = tree_index
         self.k = self.tree_index.k
         self.kmer_lca = kmer_lca
         self.annotate = annotate
         self.tie_lca = tie_lca
+        self.mask_unmatched_bases = mask_unmatched_bases
 
         self.krakline_parser = KraklineParser()
 
@@ -87,6 +90,7 @@ class Assignment:
 
         self.max_nodenames = []
         self.max_val = 0
+
 
     def process_read(self, krakline, form, measure):
         """Process one Kraken-like line.
@@ -114,6 +118,7 @@ class Assignment:
             self.diagnostics()
 
         self.print_selected_assignments(form)
+
 
     def blocks_to_masks(self, kmer_blocks, kmer_lca):
         """Extract hit and coverage masks from krakline blocks (without propagation) and store them in self.{hit,cov}masks_dict.
@@ -155,8 +160,10 @@ class Assignment:
 
             pos += count
 
+        self.readlen = readlen
         self.hitmasks_dict = hitmasks_dict
         self.covmasks_dict = covmasks_dict
+
 
     def compute_assignments(self):
         """Compute assignments & characteristics.
@@ -167,6 +174,7 @@ class Assignment:
 
         nodenames = self.hitmasks_dict.keys()
         self.ass_dict = {nodename: self.evaluate_single_assignment(nodename) for nodename in nodenames}
+
 
     def evaluate_single_assignment(self, nodename):
         """Evaluate a single assignment.
@@ -247,6 +255,7 @@ class Assignment:
         if CONFIG['SORT_NODES']:
             self.max_nodenames.sort()
 
+
     def make_lca_from_winners(self):
         """Create LCA from winners.
 
@@ -304,6 +313,7 @@ class Assignment:
         elif form == "kraken":
             self.print_kraken_line(*self.max_nodenames)
 
+
     @staticmethod
     @functools.lru_cache(maxsize=5)
     def cigar_from_bitmask(bitmask):
@@ -324,15 +334,25 @@ class Assignment:
             c.append('=' if run[0] else 'X')
         return "".join(c)
 
+
     def print_sam_line(self, node_name, suffix):
         """Print a single SAM record.
 
         Args:
             node_name (str): Node name. None if unassigned.
             suffix (str): Suffix with additional tags.
+            mask_unmatched_bases (bool): Change unmatched bases to N.
         """
 
         qname = self.krakline_parser.readname
+
+        covmask=self.ass_dict[node_name]["covmask"]
+
+        if self.mask_unmatched_bases and self.krakline_parser.seq:
+            seq = "".join( ("N" if covmask[i]==0 else ch for i, ch in enumerate(self.krakline_parser.seq)) )
+        else:
+            seq = self.krakline_parser.seq
+
 
         if node_name is not None:
             flag = 0
@@ -356,9 +376,11 @@ class Assignment:
             "*",  # RNEXT
             "0",  # PNEXT
             "0",  # TLEN
-            self.krakline_parser.seq if self.krakline_parser.seq else "*",  # SEQ
+            seq if self.krakline_parser.seq else "*",  # SEQ
             self.krakline_parser.qual if self.krakline_parser.qual else "*",  # QUAL
         ]
+
+        columns.append("{}:{}:{}".format("ln", "i", self.readlen))
 
         if node_name is not None:
             asg = self.ass_dict[node_name]
@@ -378,6 +400,7 @@ class Assignment:
                 columns.append("hc:Z:{}".format(asg['hitcigar']))
 
         print("\t".join(columns), suffix, file=self.output_fo, sep="")
+
 
     def print_sam_header(self):
         """Print SAM headers.
@@ -411,6 +434,7 @@ class Assignment:
                         sp=sp,
                     ), file=self.output_fo
                 )
+
 
     def print_kraken_line(self, *nodenames):
         """Print a single record in the Kraken-like format.
@@ -450,6 +474,7 @@ class Assignment:
         columns = [stat, self.krakline_parser.readname, krak_ass, str(self.krakline_parser.readlen), krakmers]
         print("\t".join(columns), file=self.output_fo)
 
+
     @staticmethod
     def bitarray_block(alen, blen, pos):
         """Create a bitarray containing a block of one's.
@@ -463,6 +488,7 @@ class Assignment:
             bitarray (bitarray)
         """
         return bitarray(pos * "0" + blen * "1" + (alen - pos - blen) * "0")
+
 
     def diagnostics(self):
         """Print debug messages.
