@@ -1,4 +1,4 @@
-BRANCH = "fix-A13-travis"
-SHORTHASH = "52e4406"
-REVCOUNT = 1756
+BRANCH = "fix-mimic-kraken"
+SHORTHASH = "89ceb66"
+REVCOUNT = 1753
 LATESTTAG = "0.3.1.0"
