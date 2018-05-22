@@ -89,7 +89,9 @@ def merge_fasta_files(prop_dir, input_files_fn, output_file_fn, is_leaf, makefil
                 )
             )
         else:
-            bash_cat_cmd = "#! /usr/bin/env bash\nset -euo pipefail\n" + '\n'.join(("cat {}".format(ifn) for ifn in input_files_fn))
+            bash_cat_cmd = "#! /usr/bin/env bash\nset -euo pipefail\n" + '\n'.join(
+                ("cat {}".format(ifn) for ifn in input_files_fn)
+            )
             with open(os.path.join(prop_dir, "{}.sh".format(output_file_fn)), 'w') as bash_cat_f:
                 print(bash_cat_cmd, file=bash_cat_f)
             cmd = textwrap.dedent(
@@ -174,7 +176,9 @@ def assembly(
             o=' '.join(output_files_fn),
             ii=' -i '.join(input_files_fn),
             oo=' -o '.join(output_files_fn),
-            ln='; '.join(['mv "{x}" "{y}"; touch "{x}"'.format(x=x, y=y) for (x,y) in zip(input_files_fn, output_files_fn)]),
+            ln='; '.join(
+                ['mv "{x}" "{y}"; touch "{x}"'.format(x=x, y=y) for (x, y) in zip(input_files_fn, output_files_fn)]
+            ),
             x=intersection_file_fn,
             xcompl=_compl(intersection_file_fn),
             c=counts_fn,
@@ -267,7 +271,9 @@ class TreeIndex:
                 fastas_fn = node.path.split("@")
                 for i in range(len(fastas_fn)):
                     fastas_fn[i] = os.path.join(self.library_dir, fastas_fn[i])
-                merge_fasta_files(prop_dir, fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo)
+                merge_fasta_files(
+                    prop_dir, fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo
+                )
 
         else:
             children = node.get_children()

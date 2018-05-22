@@ -168,8 +168,9 @@ def _compile_prophyle_bin(clean=False, parallel=False, silent=True, force=False)
     except RuntimeError:
         if not os.path.isfile(IND) or not os.path.isfile(ASM):
             print(
-                "Error: ProPhyle executables could not be compiled. Please, the command '{}' manually.".
-                format(" ".join(command)), file=sys.stderr
+                "Error: ProPhyle executables could not be compiled. Please, the command '{}' manually.".format(
+                    " ".join(command)
+                ), file=sys.stderr
             )
             sys.exit(1)
         else:
@@ -417,9 +418,9 @@ def _propagate(index_dir, threads, nonprop=0):
     pro.test_files(os.path.join(propagation_dir, 'Makefile'), test_nonzero=True)
 
     if nonprop:
-        nonprop_cmd_str="NONPROP=1"
+        nonprop_cmd_str = "NONPROP=1"
     else:
-        nonprop_cmd_str=""
+        nonprop_cmd_str = ""
 
     # test if input files for propagation exist
     command = ['make', '-j', threads, '-C', propagation_dir, '-n', '-s', nonprop_cmd_str, '>', '/dev/null']
@@ -645,8 +646,19 @@ def _bwtocc2sa_klcp(fa_fn, k):
 
 
 def prophyle_index(
-    index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files,
-    sampling_rate, autocomplete, nonprop,
+    index_dir,
+    threads,
+    k,
+    trees_fn,
+    library_dir,
+    construct_klcp,
+    force,
+    no_prefixes,
+    mask_repeats,
+    keep_tmp_files,
+    sampling_rate,
+    autocomplete,
+    nonprop,
 ):
     """Build a ProPhyle index.
 

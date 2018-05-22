@@ -34,15 +34,7 @@ RANKS_DICT = {
     '60': 'genus',
     '70': 'species',
 }
-KRAKEN_RANKS = {
-    '10': 'K',
-    '20': 'P',
-    '30': 'C',
-    '40': 'O',
-    '50': 'F',
-    '60': 'G',
-    '70': 'S'
-}
+KRAKEN_RANKS = {'10': 'K', '20': 'P', '30': 'C', '40': 'O', '50': 'F', '60': 'G', '70': 'S'}
 METAPHLAN_RANKS = {
     'unclassified': 'u__',
     '10': 'k__',
@@ -272,7 +264,6 @@ def compute_histogram(tree, asgs, stats):
 
 
 def print_histogram(histogram, out_f, tree=None):
-
     """Print a histogram in tsv format with header, each line containing:
      - node name;
      - score of the node in the first sample;
@@ -312,7 +303,8 @@ def print_histogram(histogram, out_f, tree=None):
 
     for node_name, w in merged_histo.most_common():
         sample_scores = [histogram[sample][node_name] for sample in samples]
-        out_line = [node_name] + ["{:.2f}".format(round(c, 2)) if isinstance(c, float) else str(c) for c in sample_scores]
+        out_line = [node_name
+                    ] + ["{:.2f}".format(round(c, 2)) if isinstance(c, float) else str(c) for c in sample_scores]
         if tree is not None:
             info = ['NA'] * len(KNOWN_RANKS)
             try:
@@ -355,7 +347,8 @@ def load_histo(in_fns, tree):
                 histo[sample] = Counter()
             for line_num, line in enumerate(f):
                 fields = list(map(str.strip, line.split('\t')[:fields_no]))
-                assert len(fields) == (len(samples) + 1), "Malformed histogram (check fields at line {})".format(line_num + 2)
+                assert len(fields) == (len(samples) +
+                                       1), "Malformed histogram (check fields at line {})".format(line_num + 2)
                 node_name = fields[0]
                 scores = fields[1:]
                 if node_name not in tree_names:
