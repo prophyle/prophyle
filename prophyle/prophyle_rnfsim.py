@@ -37,6 +37,33 @@ simulators = [
     'WgSim',
 ]
 
+def print_snakefile():
+    return
+
+def simulate_all_reads(tree_fn,
+                        lib_dir='',
+                        simulator='DwgSim',
+                        coverage=0,
+                        n_reads=1000,
+                        read_len=100,
+                        paired_end=False):
+    if not lib_dir:
+        lib_dir = os.path.dirname(tree_fn)
+    else:
+        lib_dir = args.library_dir
+    tree = Tree(tree_fn)
+    fastas = []
+    for leaf in tree:
+        if hasattr(leaf, 'path'):
+            path_list = leaf.path
+        elif hasattr(leaf, 'fastapath'):
+            path_list = leaf.fastapath
+        else:
+            print('[prophyle_rnfsim] Warning: leaf {} has no path or fastapath attribute'.format(leaf.name), file=sys.stderr)
+            continue
+        for p in path_list.split('@'):
+            fastas.append(os.path.join(lib_dir, p))
+    print_snakefile(fastas, simulator, coverage, n_reads, read_len, paired_end)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Simulator for similarity matrix computation based on RNFtools')
@@ -49,11 +76,38 @@ def parse_args():
     )
 
     parser.add_argument(
+        '-g',
+        default='',
+        dest='lib_dir',
+        metavar='STR',
+        help='directory with the library sequences [dir. of tree]',
+    )
+
+    parser.add_argument(
+        '-x',
+        type=float,
+        default=1.,
+        dest='coverage',
+        metavar='FLOAT',
+        help='min simulation coverage [1.0]',
+    )
+
+    parser.add_argument(
         '-n',
         type=int,
-        default=1,
+        default=1000,
         dest='n_reads',
-        help='min number of reads to simulate',
+        metavar='INT',
+        help='min number of reads to simulate [1000]',
+    )
+
+    parser.add_argument(
+        '-l',
+        type=int,
+        default=100,
+        dest='read_len',
+        metavar='INT',
+        help='reads length [100]',
     )
 
     parser.add_argument(
@@ -61,14 +115,15 @@ def parse_args():
         choices=simulators,
         default='DwgSim',
         dest='simulator',
-        help='simulator to use',
+        metavar='STR',
+        help='simulator to use (ArtIllumina, CuReSim, DwgSim, MasonIllumina, WgSim) [DwgSim]',
     )
 
     parser.add_argument(
         '-P',
         action='store_true',
         dest='paired_end',
-        help='simulate paired_end reads',
+        help='simulate paired_end reads [false]',
     )
 
     parser.add_argument(
@@ -93,6 +148,7 @@ def main():
     try:
         simulate_all_reads(
             tree_fn=args.tree_fn,
+            lib_dir=args.lib_dir,
             simulator=args.simulator,
             coverage=args.coverage,
             n_reads=args.n_reads,
