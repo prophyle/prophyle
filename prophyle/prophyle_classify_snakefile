@@ -5,32 +5,38 @@ configfile: "config.json"
 idx = config['idx']
 read_suffix = config['read_suffix']
 class_options = config['class_options']
-targets = config['targets']
+to_classify = config['targets']
 
 out_cmd_dict = {
-    "sam": ">"
+    "sam": ">",
     "bam": "| samtools view -b -o",
     "kraken": "-f kraken >",
 }
 
 class_suffix = set()
-for t in targets:
+for t in to_classify:
     class_suffix.add(t.split('.')[-1])
 assert len(class_suffix) == 1, "Target files have different suffix: {}".format(class_suffix)
-class_suffix = class_suffix[0]
+class_suffix = list(class_suffix)[0]
 
-out_cmd = out_cmd_dict.get(class_suffix, '>')
+out_cmd = out_cmd_dict[class_suffix]
+
+print(idx)
+print(read_suffix)
+print(class_options)
+print(to_classify)
+print(out_cmd)
+
+rule all:
+    input:
+        to_classify
 
 rule classify:
     output:
-        "{fasta_prefix}."+class_suffix
+        "{prefix}."+class_suffix
     input:
-        ["{fasta_prefix}."+rs for rs in read_suffix]
+        ["{prefix}."+rs for rs in read_suffix]
     shell:
         """
             prophyle classify {idx} {input} {class_options} {out_cmd} {output}
         """
-
-rule all:
-    input:
-        targets

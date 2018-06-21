@@ -110,7 +110,7 @@ def classify_all_reads(
             path = '.'.join(p.split('.')[:-1]) if '.' in os.path.basename(p) else p
             targets.append("{}.{}".format(os.path.join(lib_dir, path), format))
 
-    read_suffix = ['.1.fq', '.2.fq'] if paired_end else ['.fq']
+    read_suffix = ['1.fq', '2.fq'] if paired_end else ['fq']
 
     gen_snakefile(work_dir, idx_dir, read_suffix, class_options, targets, cluster)
 
