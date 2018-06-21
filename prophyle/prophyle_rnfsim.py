@@ -47,7 +47,7 @@ def gen_snakefile(fastas, work_dir, simulator, coverage, n_reads, read_len, clus
 
     pro.makedirs(work_dir)
 
-    snake_template = os.path.join(os.path.dirname(__file__), 'prophyle_rnfsim_snakefile')
+    snake_template = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'prophyle_rnfsim_snakefile')
     snake_fn = os.path.join(work_dir, 'Snakefile')
     config_fn = os.path.join(work_dir, 'config.json')
     cluster_fn = os.path.join(work_dir, 'cluster.json')
@@ -66,38 +66,42 @@ def gen_snakefile(fastas, work_dir, simulator, coverage, n_reads, read_len, clus
 
     config_dict = {
         'simulator': simulator,
-        'fastas': fastas,
         'reads_in_tuple': 2 if paired_end else 1,
         'read_length': read_len,
         'coverage': coverage,
         'number_of_read_tuples': n_reads,
+        'fastas': fastas,
     }
 
     with open(config_fn, 'w') as config_f:
         json.dump(config_dict, config_f)
 
     ln_cmd = ['ln', '-s', '-f', snake_template, snake_fn]
-    pro.run_safe(ln_cmd)
+    pro.run_safe(ln_cmd, silent=True)
 
 def simulate_all_reads(
             tree_fn,
             work_dir='',
             lib_dir='',
             simulator='dwgsim',
-            jobs=DEFAULT_THREADS,
             coverage=1,
             n_reads=1000,
             read_len=100,
-            cluster=False,
             paired_end=False,
+            jobs=DEFAULT_THREADS,
+            cluster=False,
             run=False,
         ):
 
     tree_dir = os.path.abspath(os.path.dirname(tree_fn))
     if not lib_dir:
         lib_dir = tree_dir
+    else:
+        lib_dir = os.path.abspath(lib_dir)
     if not work_dir:
         work_dir = tree_dir
+    else:
+        work_dir = os.path.abspath(work_dir)
 
     tree = Tree(tree_fn)
     fastas = []
@@ -120,6 +124,8 @@ def simulate_all_reads(
         if cluster:
             cluster_fn = os.path.join(work_dir, 'cluster.json')
             snk_cmd = [
+                'cd', work_dir,
+                '&&'
                 'snakemake',
                 '-j', jobs,
                 '--cluster-config', cluster_fn,
@@ -129,6 +135,8 @@ def simulate_all_reads(
             ]
         else:
             snk_cmd = [
+                'cd', work_dir,
+                '&&'
                 'snakemake',
                 '-j', jobs,
             ]
@@ -253,12 +261,12 @@ def main():
             work_dir=args.work_dir,
             lib_dir=args.lib_dir,
             simulator=args.simulator,
-            jobs=args.jobs,
             coverage=args.coverage,
             n_reads=args.n_reads,
             read_len=args.read_len,
-            cluster=args.cluster,
             paired_end=args.paired_end,
+            jobs=args.jobs,
+            cluster=args.cluster,
             run=args.run,
         )
 
