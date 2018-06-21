@@ -1,0 +1,37 @@
+import rnftools
+import sys
+import os
+
+rnf_sim_dict = {
+    'artillumina': rnftools.mishmash.ArtIllumina,
+    'curesim': rnftools.mishmash.CuReSim,
+    'dwgsim': rnftools.mishmash.DwgSim,
+    'mason': rnftools.mishmash.MasonIllumina,
+    'wgsim': rnftools.mishmash.WgSim,
+}
+
+configfile: "config.json"
+
+simulator = config['simulator']
+fastas = config['fastas']
+reads_in_tuple = int(config['reads_in_tuple'])
+read_length = int(config['read_length'])
+coverage = int(config['coverage'])
+number_of_read_tuples = int(config['number_of_read_tuples'])
+
+simulate = rnf_sim_dict[simulator]
+r2_len = read_length if reads_in_tuple == 2 else 0
+
+for fasta in fastas:
+    sample = '.'.join(fasta.split('.')[:-1]) if '.' in os.path.basename(fasta) else fasta
+    rnftools.mishmash.sample(sample, reads_in_tuple=reads_in_tuple)
+    simulate(
+        fasta=fasta,
+        coverage=coverage,
+        number_of_read_tuples=number_of_read_tuples,
+        read_length_1=read_length,
+        read_length_2=r2_len,
+    )
+
+include: rnftools.include()
+rule: input: rnftools.input()

@@ -12,7 +12,7 @@ License: MIT
 
 CONFIG = {
     # read simulator
-    'SIMULATOR': 'DwgSim',
+    'SIMULATOR': 'dwgsim',
     # print diagnostics messages
     'DIAGNOSTICS': False,
 }
@@ -20,9 +20,11 @@ CONFIG = {
 ###############################################################################################
 ###############################################################################################
 
-import argparse
 import os
 import sys
+import json
+import argparse
+import multiprocessing
 from ete3 import Tree
 
 sys.path.append(os.path.dirname(__file__))
@@ -30,29 +32,76 @@ import prophylelib as pro
 import version
 
 simulators = [
-    'ArtIllumina',
-    'CuReSim',
-    'DwgSim',
-    'MasonIllumina',
-    'WgSim',
+    'artillumina',
+    'curesim',
+    'dwgsim',
+    'mason',
+    'wgsim',
 ]
 
-def print_snakefile():
-    return
+DEFAULT_SIMULATOR = 'dwgsim'
+DEFAULT_THREADS = multiprocessing.cpu_count()
 
-def simulate_all_reads(tree_fn,
-                        lib_dir='',
-                        simulator='DwgSim',
-                        coverage=0,
-                        n_reads=1000,
-                        read_len=100,
-                        paired_end=False):
+
+def gen_snakefile(fastas, work_dir, simulator, coverage, n_reads, read_len, cluster, paired_end):
+
+    pro.makedirs(work_dir)
+
+    snake_template = os.path.join(os.path.dirname(__file__), 'prophyle_rnfsim_snakefile')
+    snake_fn = os.path.join(work_dir, 'Snakefile')
+    config_fn = os.path.join(work_dir, 'config.json')
+    cluster_fn = os.path.join(work_dir, 'cluster.json')
+
+    if cluster:
+        cluster_dict = {
+            "__default__": {
+                "time": "0-06:00",
+                "c": 2,
+                "queue": "short",
+                "memory": "8G"
+            }
+        }
+        with open(cluster_fn, 'w') as cluster_f:
+            json.dump(cluster_dict, cluster_f)
+
+    config_dict = {
+        'simulator': simulator,
+        'fastas': fastas,
+        'reads_in_tuple': 2 if paired_end else 1,
+        'read_length': read_len,
+        'coverage': coverage,
+        'number_of_read_tuples': n_reads,
+    }
+
+    with open(config_fn, 'w') as config_f:
+        json.dump(config_dict, config_f)
+
+    ln_cmd = ['ln', '-s', '-f', snake_template, snake_fn]
+    pro.run_safe(ln_cmd)
+
+def simulate_all_reads(
+            tree_fn,
+            work_dir='',
+            lib_dir='',
+            simulator='dwgsim',
+            jobs=DEFAULT_THREADS,
+            coverage=1,
+            n_reads=1000,
+            read_len=100,
+            cluster=False,
+            paired_end=False,
+            run=False,
+        ):
+
+    tree_dir = os.path.abspath(os.path.dirname(tree_fn))
     if not lib_dir:
-        lib_dir = os.path.dirname(tree_fn)
-    else:
-        lib_dir = args.library_dir
+        lib_dir = tree_dir
+    if not work_dir:
+        work_dir = tree_dir
+
     tree = Tree(tree_fn)
     fastas = []
+
     for leaf in tree:
         if hasattr(leaf, 'path'):
             path_list = leaf.path
@@ -61,9 +110,30 @@ def simulate_all_reads(tree_fn,
         else:
             print('[prophyle_rnfsim] Warning: leaf {} has no path or fastapath attribute'.format(leaf.name), file=sys.stderr)
             continue
+
         for p in path_list.split('@'):
             fastas.append(os.path.join(lib_dir, p))
-    print_snakefile(fastas, simulator, coverage, n_reads, read_len, paired_end)
+
+    gen_snakefile(fastas, work_dir, simulator, coverage, n_reads, read_len, cluster, paired_end)
+
+    if run:
+        if cluster:
+            cluster_fn = os.path.join(work_dir, 'cluster.json')
+            snk_cmd = [
+                'snakemake',
+                '-j', jobs,
+                '--cluster-config', cluster_fn,
+                '--output-wait', '60',
+                --cluster,
+                "'sbatch -p {{cluster.queue}} -c {{cluster.c}} -t {{cluster.time}} --mem={{cluster.memory}}'"
+            ]
+        else:
+            snk_cmd = [
+                'snakemake',
+                '-j', jobs,
+            ]
+
+        pro.run_safe(snk_cmd)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Simulator for similarity matrix computation based on RNFtools')
@@ -73,6 +143,15 @@ def parse_args():
         type=str,
         metavar='<tree.nhx>',
         help='phylogenetic tree (Newick/NHX)',
+    )
+
+    parser.add_argument(
+        '-w',
+        type=str,
+        default='',
+        dest='work_dir',
+        metavar='STR',
+        help='directory where the simulation Snakefile will be created [dir. of tree]',
     )
 
     parser.add_argument(
@@ -113,10 +192,19 @@ def parse_args():
     parser.add_argument(
         '-s',
         choices=simulators,
-        default='DwgSim',
+        default=DEFAULT_SIMULATOR,
         dest='simulator',
         metavar='STR',
-        help='simulator to use (ArtIllumina, CuReSim, DwgSim, MasonIllumina, WgSim) [DwgSim]',
+        help='simulator to use (artillumina, curesim, dwgsim, mason, wgsim) [dwgsim]',
+    )
+
+    parser.add_argument(
+        '-j',
+        type=int,
+        default=DEFAULT_THREADS,
+        dest='jobs',
+        metavar='INT',
+        help='number of snakemake jobs (ignored if -R is not set) [auto ({})]'.format(DEFAULT_THREADS),
     )
 
     parser.add_argument(
@@ -124,6 +212,20 @@ def parse_args():
         action='store_true',
         dest='paired_end',
         help='simulate paired_end reads [false]',
+    )
+
+    parser.add_argument(
+        '-C',
+        action='store_true',
+        dest='cluster',
+        help='create configuration files for cluster submission (SLURM only, other environments need manual adjustment) [false]',
+    )
+
+    parser.add_argument(
+        '-R',
+        action='store_true',
+        dest='run',
+        help='run snakemake after generating the snakefile [false]',
     )
 
     parser.add_argument(
@@ -148,12 +250,16 @@ def main():
     try:
         simulate_all_reads(
             tree_fn=args.tree_fn,
+            work_dir=args.work_dir,
             lib_dir=args.lib_dir,
             simulator=args.simulator,
+            jobs=args.jobs,
             coverage=args.coverage,
             n_reads=args.n_reads,
             read_len=args.read_len,
+            cluster=args.cluster,
             paired_end=args.paired_end,
+            run=args.run,
         )
 
     except BrokenPipeError:
