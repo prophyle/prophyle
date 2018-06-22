@@ -94,7 +94,7 @@ def classify_all_reads(
     else:
         work_dir = os.path.abspath(work_dir)
 
-    tree = Tree(tree_fn)
+    tree = Tree(tree_fn, format=1)
     targets = []
 
     for leaf in tree:
@@ -195,7 +195,7 @@ def parse_args():
         '-P',
         action='store_true',
         dest='paired_end',
-        help='simulate paired_end reads [false]',
+        help='paired end reads [false]',
     )
 
     parser.add_argument(
