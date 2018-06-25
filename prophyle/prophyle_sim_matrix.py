@@ -21,9 +21,9 @@ CONFIG = {
 
 import os
 import sys
-import numpy
 import pysam
 import argparse
+import numpy as np
 import multiprocessing
 import concurrent.futures
 from ete3 import Tree
@@ -54,8 +54,11 @@ def analyse_assignments(leaf_idx, ass_fn_list, nodes2leaves, vec_pos):
                         cur_ref.append(read_ref)
                     else:
                         for ref in cur_ref:
-                            for leaf in nodes2leaves[ref]:
-                                assignments[vec_pos[leaf]] += 1
+                            try:
+                                for leaf in nodes2leaves[ref]:
+                                    assignments[vec_pos[leaf]] += 1
+                            except KeyError:
+                                print('[prophyle_sim_matrix] Warning: assignments to {} ignored because not in the tree. Are you using the right tree/index?'.format(ref), file=sys.stderr)
                         cur_ref = [read_ref]
                         prev_read_name = read_name
         else:
@@ -67,16 +70,22 @@ def analyse_assignments(leaf_idx, ass_fn_list, nodes2leaves, vec_pos):
                         cur_ref.append(read_ref)
                     else:
                         for ref in cur_ref:
-                            for leaf in nodes2leaves[ref]:
-                                assignments[vec_pos[leaf]] += 1
+                            try:
+                                for leaf in nodes2leaves[ref]:
+                                    assignments[vec_pos[leaf]] += 1
+                            except KeyError:
+                                print('[prophyle_sim_matrix] Warning: assignments to {} ignored because not in the tree. Are you using the right tree/index?'.format(ref), file=sys.stderr)
                         cur_ref = [read_ref]
                         prev_read_name = read_name
 
         # last assignment
         if len(cur_ref) > 0:
-            for ref in cur_ref:
-                for leaf in nodes2leaves[ref]:
-                    assignments[vec_pos[leaf]] += 1
+            try:
+                for ref in cur_ref:
+                    for leaf in nodes2leaves[ref]:
+                        assignments[vec_pos[leaf]] += 1
+            except KeyError:
+                print('[prophyle_sim_matrix] Warning: assignments to {} ignored because not in the tree. Are you using the right tree/index?'.format(ref), file=sys.stderr)
 
         ass_f.close()
 
@@ -85,14 +94,13 @@ def analyse_assignments(leaf_idx, ass_fn_list, nodes2leaves, vec_pos):
     if sum(assignments) == 0:
         assignments[leaf_idx] = 1
 
-    ass_to_this = assignments[leaf_idx]
     # normalize
-    assignments /= ass_to_this
+    assignments /= assignments[leaf_idx]
 
     # check that the right leaf has the highest number of assignments
     for i, a in enumerate(assignments):
-        if ass_to_this < a:
-            print("[prophyle_sim_matrix] Warning: leaf {} has less assignments than leaf {} for its own simulations; going to reduce its entry to 1".format(leaf_idx, i), file=sys.stderr)
+        if a > 1:
+            print("[prophyle_sim_matrix] Warning: leaf {} has more assignments than leaf {} for the reads simulated from {}; going to reduce its entry to 1".format(i, leaf_idx, leaf_idx), file=sys.stderr)
             assignments[i] = 1.
 
     return assignments
@@ -129,12 +137,12 @@ def compute_sim_matrix(tree_fn, lib_dir, out_fn, jobs):
                 complete_paths[i] = None
         assigned_fns.append(list(complete_paths))
 
-    sim_matrix = np.array((len(vec_pos), len(vec_pos)))
+    sim_matrix = np.empty(shape=((len(vec_pos), len(vec_pos))))
     completed = 0
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as executor:
         # Start the load operations and mark each future with its URL
-        future2simcolumn = {executor.submit(analyse_assignments, ass_fn, nodes2leaves, vec_pos): i for i, ass_fn in enumerate(assigned_fns)}
+        future2simcolumn = {executor.submit(analyse_assignments, i, ass_fn, nodes2leaves, vec_pos): i for i, ass_fn in enumerate(assigned_fns)}
         for future in concurrent.futures.as_completed(future2simcolumn):
             i = future2simcolumn[future]
             try:
@@ -144,7 +152,7 @@ def compute_sim_matrix(tree_fn, lib_dir, out_fn, jobs):
                 print('[prophyle_sim_matrix] Warning: leaf {} generated an exception: {}. Setting its column to 0 0 .. 1[i] .. 0 0'.format(i, e), file=sys.stderr)
                 column_i = np.zeros(len(vec_pos))
                 column_i[i] = 1
-            print('[prophyle_sim_matrix] {}%% Leaf {} acquired'.format(completed/len(vec_pos), i))
+            print('[prophyle_sim_matrix] {}% - Leaf {} acquired'.format(int(completed*100/len(vec_pos)), i), file=sys.stderr)
             sim_matrix[:,i] = column_i
 
     np.save(out_fn, sim_matrix)
@@ -205,7 +213,7 @@ def main():
     try:
         compute_sim_matrix(
             tree_fn=args.tree_fn,
-            lib_dir=args.idx_dir,
+            lib_dir=args.lib_dir,
             out_fn=args.out_fn,
             jobs=args.jobs,
         )

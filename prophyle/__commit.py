@@ -1,4 +1,4 @@
-BRANCH = "devel"
-SHORTHASH = "4061bee"
-REVCOUNT = 1771
+BRANCH = "enet_abundances"
+SHORTHASH = "1fb0acf"
+REVCOUNT = 1781
 LATESTTAG = "0.3.1.0"
