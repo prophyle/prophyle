@@ -94,12 +94,12 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio
     nodes2leaves = {node.name: {leaf.name for leaf in node} for node in tree.traverse("postorder")}
     vec_pos = {leaf.name: i for i, leaf in enumerate(tree)}
 
-    count_fn = '.'.join(args.sam_fn.split('.')[:-1]+['npy'])
+    count_fn = '.'.join(asg_fn.split('.')[:-1]+['npy'])
     if os.path.isfile(count_fn):
         print("Loading counts from existing npy file", file=sys.stderr)
         map_counts = np.load(count_fn)
     else:
-        map_counts = analyse_sam(asg_fn, nodes2leaves, vec_pos)
+        map_counts = analyse_assignments(asg_fn, nodes2leaves, vec_pos)
         np.save(count_fn, map_counts)
 
     assert len(leaves) == len(map_counts), "Length of mappings different from #leaves...try to remove <asg.npy> and analyse assignments again using the right tree!"
@@ -167,6 +167,16 @@ def parse_args():
         default=0.99,
         metavar='FLOAT',
         help='l1 ratio'
+    )
+
+    parser.add_argument(
+        '-c',
+        dest='config',
+        metavar='STR',
+        nargs='*',
+        type=str,
+        default=[],
+        help='configuration (a JSON dictionary)',
     )
 
     args = parser.parse_args()
