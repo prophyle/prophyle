@@ -49,8 +49,11 @@ def analyse_assignments(ass_fn, nodes2leaves, vec_pos):
                     cur_ref.append(read_ref)
                 else:
                     for ref in cur_ref:
-                        for leaf in nodes2leaves[ref]:
-                            assignments[vec_pos[leaf]] += 1
+                        try:
+                            for leaf in nodes2leaves[ref]:
+                                assignments[vec_pos[leaf]] += 1
+                        except KeyError:
+                            print('[prophyle_sim_matrix] Warning: assignments to {} ignored because not in the tree. Are you using the right tree/index?'.format(ref), file=sys.stderr)
                     cur_ref = [read_ref]
                     prev_read_name = read_name
     else:
@@ -62,16 +65,22 @@ def analyse_assignments(ass_fn, nodes2leaves, vec_pos):
                     cur_ref.append(read_ref)
                 else:
                     for ref in cur_ref:
-                        for leaf in nodes2leaves[ref]:
-                            assignments[vec_pos[leaf]] += 1
+                        try:
+                            for leaf in nodes2leaves[ref]:
+                                assignments[vec_pos[leaf]] += 1
+                        except KeyError:
+                            print('[prophyle_sim_matrix] Warning: assignments to {} ignored because not in the tree. Are you using the right tree/index?'.format(ref), file=sys.stderr)
                     cur_ref = [read_ref]
                     prev_read_name = read_name
 
     # last assignment
     if len(cur_ref) > 0:
-        for ref in cur_ref:
-            for leaf in nodes2leaves[ref]:
-                assignments[vec_pos[leaf]] += 1
+        try:
+            for ref in cur_ref:
+                for leaf in nodes2leaves[ref]:
+                    assignments[vec_pos[leaf]] += 1
+        except KeyError:
+            print('[prophyle_sim_matrix] Warning: assignments to {} ignored because not in the tree. Are you using the right tree/index?'.format(ref), file=sys.stderr)
 
     ass_f.close()
 
@@ -99,7 +108,7 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio
     assert len(leaves) == len(temp_sim_mat), "Size of similarity matrix different from #leaves...have you used the right index/tree?"
     sim_mat = np.zeros((len(map_counts), len(map_counts)))
 
-    glm = sm.GLM(map_counts, sim_mat, family=sm.families.Poisson())
+    glm = sm.GLM(map_counts, sim_mat, family=sm.families.Poisson(link = "identity"))
 
     glm_results = glm.fit_regularized(alpha=alpha, L1_wt=l1_ratio, refit=True)
     print(glm_results.summary())
