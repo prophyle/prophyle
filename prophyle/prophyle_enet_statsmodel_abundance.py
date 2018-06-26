@@ -106,9 +106,8 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio
 
     sim_mat = np.load(sim_mat_fn)
     assert len(leaves) == len(sim_mat), "Size of similarity matrix different from #leaves...have you used the right index/tree?"
-    sim_mat = np.zeros((len(map_counts), len(map_counts)))
 
-    glm = sm.GLM(map_counts, sim_mat, family=sm.families.Poisson(link=sm.families.links.log))
+    glm = sm.GLM(map_counts, sim_mat, family=sm.families.Poisson(link=sm.families.links.identity))
 
     glm_results = glm.fit_regularized(alpha=alpha, L1_wt=l1_ratio, refit=True)
     print(glm_results.summary())
