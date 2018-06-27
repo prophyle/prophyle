@@ -964,8 +964,8 @@ def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
 
 
 def prophyle_footprint(index_dir):
-    bwt_size=pro.file_sizes(os.path.join(index_dir, "index.fa.bwt"))[0]
-    index_size=2*bwt_size
+    bwt_size = pro.file_sizes(os.path.join(index_dir, "index.fa.bwt"))[0]
+    index_size = 2 * bwt_size
     print(pro.sizeof_fmt(index_size))
 
 
@@ -1608,9 +1608,7 @@ def main():
 
         elif subcommand == "footprint":
 
-            prophyle_footprint(
-                index_dir=args.index_dir,
-            )
+            prophyle_footprint(index_dir=args.index_dir, )
 
         elif subcommand == "compress":
 
