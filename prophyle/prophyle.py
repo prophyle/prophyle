@@ -958,6 +958,17 @@ def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
     pro.run_safe(cmd_analyze)
 
 
+######################
+# PROPHYLE FOOTPRINT #
+######################
+
+
+def prophyle_footprint(index_dir):
+    bwt_size = pro.file_sizes(os.path.join(index_dir, "index.fa.bwt"))[0]
+    index_size = 2 * bwt_size
+    print(pro.sizeof_fmt(index_size))
+
+
 #####################
 # PROPHYLE COMPRESS #
 #####################
@@ -1400,6 +1411,23 @@ def parser():
 
     ##########
 
+    parser_footprint = subparsers.add_parser(
+        'footprint',
+        help='estimate memory footprint',
+        formatter_class=fc,
+    )
+
+    parser_footprint.add_argument(
+        'index_dir',
+        metavar='<index.dir>',
+        type=str,
+        help='index directory',
+    )
+
+    _add_configuration_parameter(parser_footprint)
+
+    ##########
+
     parser_compress = subparsers.add_parser(
         'compress',
         help='compress a ProPhyle index',
@@ -1577,6 +1605,10 @@ def main():
                 stats=args.stats,
                 in_format=args.in_format,
             )
+
+        elif subcommand == "footprint":
+
+            prophyle_footprint(index_dir=args.index_dir, )
 
         elif subcommand == "compress":
 

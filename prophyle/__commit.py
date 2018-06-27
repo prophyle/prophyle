@@ -1,4 +1,4 @@
-BRANCH = "devel"
-SHORTHASH = "4061bee"
-REVCOUNT = 1771
+BRANCH = "footprint"
+SHORTHASH = "d0e33cf"
+REVCOUNT = 1774
 LATESTTAG = "0.3.1.0"
