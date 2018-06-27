@@ -275,6 +275,26 @@ def file_sizes(*fns):
     return tuple([os.stat(fn).st_size for fn in fns])
 
 
+def sizeof_fmt(bs, suffix='B'):
+    """Convert bytes to a human readable string.
+
+    Based on https://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
+
+    Args:
+        bs (int): File size in bytes.
+
+    Args:
+        str: Human readable string.
+    """
+
+    num=bs
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f %s%s" % (num, 'Yi', suffix)
+
+
 def touch(*fns):
     """Touch files.
 
