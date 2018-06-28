@@ -53,7 +53,7 @@ C_ASSIGN = os.path.join(C_D, "prophyle_assignment", "prophyle_assignment")
 if GITDIR:
     PROPHYLE = os.path.join(C_D, "prophyle.py")
     PY_ASSIGN = os.path.join(C_D, "prophyle_assignment.py")
-    ANALYZE = os.path.join(C_D, "prophyle_analyze.py")
+    PROFILE = os.path.join(C_D, "prophyle_profile.py")
     PROPAGATION_POSTPROCESSING = os.path.join(C_D, "prophyle_propagation_postprocessing.py")
     PROPAGATION_PREPROCESSING = os.path.join(C_D, "prophyle_propagation_preprocessing.py")
     NEWICK2MAKEFILE = os.path.join(C_D, "prophyle_propagation_makefile.py")
@@ -64,7 +64,7 @@ if GITDIR:
 else:
     PROPHYLE = "prophyle"
     PY_ASSIGN = "prophyle_assignment.py"
-    ANALYZE = "prophyle_analyze.py"
+    PROFILE = "prophyle_profile.py"
     PROPAGATION_POSTPROCESSING = "prophyle_propagation_postprocessing.py"
     PROPAGATION_PREPROCESSING = "prophyle_propagation_preprocessing.py"
     NEWICK2MAKEFILE = "prophyle_propagation_makefile.py"
@@ -82,9 +82,6 @@ DEFAULT_HOME_DIR = os.path.join(os.path.expanduser('~'), 'prophyle')
 LIBRARIES = ['bacteria', 'viruses', 'plasmids', 'hmp']
 
 ZENODO_URL = 'https://zenodo.org/record/1054426'
-
-ANALYZE_IN_FMTS = ['sam', 'bam', 'cram', 'uncompressed_bam', 'kraken', 'histo']
-ANALYZE_STATS = ['w', 'u', 'wl', 'ul']
 
 FILES_TO_ARCHIVE = [
     ".complete.1",
@@ -825,6 +822,16 @@ def prophyle_index(
             pro.message('[6/6] k-LCP already exists, skipping its construction', upper=True)
 
 
+#######################
+# PROPHYLE SIMILARITY #
+#######################
+
+def prophyle_similarity(
+    index_dir, library_dir, read_len, coverage, n_reads, simulator, jobs, paired_end, run
+):
+    return
+
+
 #####################
 # PROPHYLE CLASSIFY #
 #####################
@@ -942,20 +949,20 @@ def prophyle_classify(
 
 
 ####################
-# PROPHYLE ANALYZE #
+# PROPHYLE PROFILE #
 ####################
 
 
-def prophyle_analyze(index_dir, out_prefix, input_fns, stats, in_format):
+def prophyle_profile(index_dir, input_fn, out_prefix, alpha, l1_ratio):
 
-    cmd_analyze = [ANALYZE, '-s', stats, index_dir, out_prefix] + input_fns
+    tree_fn = os.path.join(index_dir, "tree.nw")
+    sim_mat_fn = os.path.join(index_dit, "sim_mat.npy")
 
-    if in_format is not None:
-        cmd_analyze += ['-f', in_format]
+    cmd_profile = [PROFILE, '-a', alpha, '-l', l1_ratio, tree_fn, input_fn, sim_mat_fn, out_prefix]
 
-    pro.test_files(*filter(lambda x: x != "-", input_fns), test_nonzero=True)
+    # pro.test_files(*filter(lambda x: x != "-", input_fns), test_nonzero=True)
 
-    pro.run_safe(cmd_analyze)
+    pro.run_safe(cmd_profile)
 
 
 #####################
@@ -1238,6 +1245,91 @@ def parser():
 
     ##########
 
+    parser_similarity = subparsers.add_parser(
+        'similarity',
+        help='build similarity matrix',
+        formatter_class=fc,
+    )
+
+    parser_similarity.add_argument(
+        'index_dir',
+        metavar='<index.dir>',
+        type=str,
+        help='index directory',
+    )
+
+    parser_similarity.add_argument(
+        '-g',
+        metavar='DIR',
+        dest='library_dir',
+        type=str,
+        help='directory with the library sequences [parent dir. of index]',
+        default=None,
+    )
+
+    parser_similarity.add_argument(
+        '-l',
+        type=int,
+        default=150,
+        dest='read_len',
+        metavar='INT',
+        help='reads length [150]',
+    )
+
+    parser_similarity.add_argument(
+        '-x',
+        type=float,
+        default=1.,
+        dest='coverage',
+        metavar='FLOAT',
+        help='min simulation coverage [1.0]',
+    )
+
+    parser_similarity.add_argument(
+        '-n',
+        type=int,
+        default=1000,
+        dest='n_reads',
+        metavar='INT',
+        help='min number of reads to simulate [1000]',
+    )
+
+    parser_similarity.add_argument(
+        '-s',
+        choices=simulators,
+        default=DEFAULT_SIMULATOR,
+        dest='simulator',
+        metavar='STR',
+        help='simulator to use (artillumina, curesim, dwgsim, mason, wgsim) [dwgsim]',
+    )
+
+    parser_similarity.add_argument(
+        '-j',
+        type=int,
+        default=DEFAULT_THREADS,
+        dest='jobs',
+        metavar='INT',
+        help='number of snakemake jobs (ignored if -R is not set) [auto ({})]'.format(DEFAULT_THREADS),
+    )
+
+    parser_similarity.add_argument(
+        '-P',
+        action='store_true',
+        dest='paired_end',
+        help='paired end reads [false]',
+    )
+
+    parser.add_argument(
+        '-R',
+        action='store_true',
+        dest='run',
+        help='run snakemake after generating the snakefile [false]',
+    )
+
+    _add_configuration_parameter(parser_similarity)
+
+    ##########
+
     parser_classify = subparsers.add_parser(
         'classify',
         help='classify reads',
@@ -1356,47 +1448,52 @@ def parser():
 
     ##########
 
-    parser_analyze = subparsers.add_parser(
-        'analyze',
-        help='analyze results (experimental)',
+    parser_profile = subparsers.add_parser(
+        'profile',
+        help='compute abundances',
         formatter_class=fc,
     )
 
-    parser_analyze.add_argument(
-        'index_dir', metavar='{index_dir, tree.nw}', type=str, help='index directory or phylogenetic tree'
+    parser_profile.add_argument(
+        'index_dir',
+        metavar='{index_dir, tree.nw}',
+        type=str,
+        help='index directory or phylogenetic tree'
     )
 
-    parser_analyze.add_argument(
+    parser_profile.add_argument(
+        'input_fn',
+        metavar='<classified.bam>',
+        type=str,
+        help="classified reads (use '-' for stdin)",
+    )
+
+    parser_profile.add_argument(
         'out_prefix',
-        metavar='<out.pref>',
+        metavar='<out_prefix>',
         type=str,
         help="output prefix",
     )
 
-    parser_analyze.add_argument(
-        'input_fns',
-        metavar='<classified.bam>',
-        type=str,
-        nargs='+',
-        default=None,
-        help="classified reads (use '-' for stdin)",
+    parser_profile.add_argument(
+        '-a',
+        dest='alpha',
+        type=float,
+        default=0.1,
+        metavar='FLOAT',
+        help='regularization weight'
     )
 
-    parser_analyze.add_argument(
-        '-s', metavar=ANALYZE_STATS, type=str, dest='stats', choices=ANALYZE_STATS, default=ANALYZE_STATS[0],
-        help="""statistics to use for the computation of histograms:
-                w (default) => weighted assignments;
-                u => unique assignments, non-weighted;
-                wl => weighted assignments, propagated to leaves;
-                ul => unique assignments, propagated to leaves."""
+    parser_profile.add_argument(
+        '-l',
+        dest='l1_ratio',
+        type=float,
+        default=0.99,
+        metavar='FLOAT',
+        help='l1 ratio'
     )
 
-    parser_analyze.add_argument(
-        '-f', metavar=ANALYZE_IN_FMTS, type=str, dest='in_format', choices=ANALYZE_IN_FMTS, default=None,
-        help="""Input format of assignments [auto]"""
-    )
-
-    _add_configuration_parameter(parser_analyze)
+    _add_configuration_parameter(parser_profile)
 
     ##########
 
@@ -1543,6 +1640,20 @@ def main():
             pro.message('Index construction finished')
             pro.close_log()
 
+        elif subcommand == "similarity":
+
+            prophyle_similarity(
+                index_dir=args.index_dir,
+                library_dir=args.library_dir,
+                read_len=args.read_len,
+                coverage=args.coverage,
+                n_reads=args.n_reads,
+                simulator=args.simulator,
+                jobs=args.jobs,
+                paired_end=args.paired_end,
+                run=args.run,
+            )
+
         elif subcommand == "classify":
             # if args.log_fn is None:
             #    args.log_fn = os.path.join(args.index_dir, "log.txt")
@@ -1568,14 +1679,14 @@ def main():
             pro.message('Classification finished')
             pro.close_log()
 
-        elif subcommand == "analyze":
+        elif subcommand == "profile":
 
-            prophyle_analyze(
+            prophyle_profile(
                 index_dir=args.index_dir,
+                input_fn=args.input_fn,
                 out_prefix=args.out_prefix,
-                input_fns=args.input_fns,
-                stats=args.stats,
-                in_format=args.in_format,
+                alpha=args.alpha,
+                l1_ratio=args.l1_ratio,
             )
 
         elif subcommand == "compress":
