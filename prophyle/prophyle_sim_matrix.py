@@ -158,7 +158,7 @@ def compute_sim_matrix(tree_fn, lib_dir, out_fn, jobs):
     np.save(out_fn, sim_matrix)
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Classify reads simulated from the reference genomes to their index, in order to compute a similarity matrix for abundance estimation')
+    parser = argparse.ArgumentParser(description='Compute similarity matrix from the assignments of the reads simulated from the reference genomes')
 
     parser.add_argument(
         'tree_fn',
