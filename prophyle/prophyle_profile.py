@@ -122,6 +122,9 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio
 
     enet.fit(sim_mat, map_counts)
 
+    if enet.score(sim_mat, map_counts) < 0.8:
+        print("[prophyle_abundances] Warning: the fit to the model is quite poor, you may want to lower the alpha regularization parameter", file=sys.stderr)
+
     with open(out_fn, 'w') as out_f:
         for leaf, ab in zip(leaves, enet.coef_):
             print(leaf, ab, sep='\t', file=out_f)
@@ -129,7 +132,7 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Estimate abundances from ProPhyle's assignment using a regularized Poisson GLM"
+        description="Estimate abundances from ProPhyle's assignment using a regularized GLM (Elastic Net)"
     )
 
     parser.add_argument(
