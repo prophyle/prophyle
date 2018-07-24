@@ -82,9 +82,9 @@ def classify_all_reads(
             run=False,
         ):
 
-    idx_parent_dir = os.path.abspath(os.path.dirname(idx_dir))
     idx_dir = os.path.abspath(idx_dir)
-    tree_fn = os.path.join(idx_dir, 'tree.preliminary.nw')
+    idx_parent_dir = os.path.abspath(os.path.join(idx_dir, '..'))
+    tree_fn = os.path.join(idx_dir, 'tree.nw')
     if not lib_dir:
         lib_dir = idx_parent_dir
     else:
@@ -154,7 +154,7 @@ def parse_args():
         default='',
         dest='work_dir',
         metavar='STR',
-        help='directory where the classification Snakefile will be created (should be the same use for simulation) [parent dir. of idx]',
+        help='directory where the classification Snakefile will be created [parent dir. of idx]',
     )
 
     parser.add_argument(
@@ -244,12 +244,6 @@ def main():
             cluster=args.cluster,
             run=args.run,
         )
-
-    except BrokenPipeError:
-        # pipe error (e.g., when head is used)
-        sys.stderr.close()
-        sys.stdout.close()
-        exit(0)
 
     except KeyboardInterrupt:
         pro.message("Error: Keyboard interrupt")
