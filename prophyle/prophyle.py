@@ -1019,6 +1019,12 @@ def prophyle_profile(index_dir, input_fn, out_prefix, alpha, l1_ratio, sim_mat_f
     if (not sim_mat_fn) or (not os.path.exists(sim_mat_fn)):
         print("Error: please provide similarity matrix with -s option", file=sys.stderr)
         sys.exit(2)
+    if alpha < 0:
+        print("Error: regularization weight (-a) must be non-negative", file=sys.stderr)
+        sys.exit(2)
+    if l1_ratio < 0 or l1_ratio > 1:
+        print("Error: l1/l2 regularization ratio (-l) must be 0 < l1_ratio < 1", file=sys.stderr)
+        sys.exit(2)
 
     cmd_profile = [PROFILE, '-a', alpha, '-l', l1_ratio, tree_fn, input_fn, sim_mat_fn, out_prefix]
 
@@ -1545,30 +1551,30 @@ def parser():
     )
 
     parser_profile.add_argument(
-        '-a',
-        dest='alpha',
-        type=float,
-        default=0.1,
-        metavar='FLOAT',
-        help='regularization weight'
-    )
-
-    parser_profile.add_argument(
-        '-l',
-        dest='l1_ratio',
-        type=float,
-        default=0.99,
-        metavar='FLOAT',
-        help='l1 ratio'
-    )
-
-    parser_profile.add_argument(
         '-s',
         dest='sim_mat_fn',
         type=str,
         default='',
         metavar='STR',
         help='similarity matrix [index_dir/sim_mat.npy]'
+    )
+
+    parser_profile.add_argument(
+        '-a',
+        dest='alpha',
+        type=float,
+        default=0.1,
+        metavar='FLOAT',
+        help='regularization weight [0.1]'
+    )
+
+    parser_profile.add_argument(
+        '-l',
+        dest='l1_ratio',
+        type=float,
+        default=0.98,
+        metavar='FLOAT',
+        help='l1 ratio [0.98]'
     )
 
     _add_configuration_parameter(parser_profile)
