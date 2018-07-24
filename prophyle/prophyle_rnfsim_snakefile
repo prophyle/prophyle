@@ -25,13 +25,16 @@ r2_len = read_length if reads_in_tuple == 2 else 0
 for fasta in fastas:
     sample = '.'.join(fasta.split('.')[:-1]) if '.' in os.path.basename(fasta) else fasta
     rnftools.mishmash.sample(sample, reads_in_tuple=reads_in_tuple)
-    simulate(
-        fasta=fasta,
-        coverage=coverage,
-        number_of_read_tuples=number_of_read_tuples,
-        read_length_1=read_length,
-        read_length_2=r2_len,
-    )
+    params = {
+        'fasta': fasta,
+        'read_length_1': read_length,
+        'read_length_2': r2_len,
+    }
+    if coverage > 0:
+        params['coverage'] = coverage
+    if number_of_read_tuples > 0:
+        params['number_of_read_tuples'] = number_of_read_tuples
+    simulate(**params)
 
 include: rnftools.include()
 rule: input: rnftools.input()
