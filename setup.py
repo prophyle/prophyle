@@ -119,6 +119,7 @@ setuptools.setup(
         'pysam',
         'scipy',
         'six',
+        'scikit-learn'
     ],
     #
 )
