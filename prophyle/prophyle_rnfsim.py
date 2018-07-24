@@ -85,7 +85,7 @@ def simulate_all_reads(
             lib_dir='',
             simulator='dwgsim',
             coverage=1,
-            n_reads=1000,
+            n_reads=0,
             read_len=100,
             paired_end=False,
             jobs=DEFAULT_THREADS,
@@ -103,7 +103,7 @@ def simulate_all_reads(
     else:
         work_dir = os.path.abspath(work_dir)
 
-    tree = Tree(tree_fn)
+    tree = Tree(tree_fn, format=1)
     fastas = []
 
     for leaf in tree:
@@ -182,10 +182,10 @@ def parse_args():
     parser.add_argument(
         '-n',
         type=int,
-        default=1000,
+        default=0,
         dest='n_reads',
         metavar='INT',
-        help='min number of reads to simulate [1000]',
+        help='min number of reads to simulate [0]',
     )
 
     parser.add_argument(
@@ -269,12 +269,6 @@ def main():
             cluster=args.cluster,
             run=args.run,
         )
-
-    except BrokenPipeError:
-        # pipe error (e.g., when head is used)
-        sys.stderr.close()
-        sys.stdout.close()
-        exit(0)
 
     except KeyboardInterrupt:
         pro.message("Error: Keyboard interrupt")
