@@ -1,0 +1,29 @@
+$ prophyle_rnfsim.py -h
+
+usage: prophyle_rnfsim.py [-h] [-w STR] [-g STR] [-x FLOAT] [-n INT] [-l INT]
+                          [-s STR] [-j INT] [-P] [-C] [-R]
+                          [-c [STR [STR ...]]]
+                          <tree.nhx>
+
+Simulator for similarity matrix computation based on RNFtools
+
+positional arguments:
+  <tree.nhx>          phylogenetic tree (Newick/NHX)
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -w STR              directory where the simulation Snakefile will be created
+                      [dir. of tree]
+  -g STR              directory with the library sequences [dir. of tree]
+  -x FLOAT            min simulation coverage [1.0]
+  -n INT              min number of reads to simulate [0]
+  -l INT              reads length [100]
+  -s STR              simulator to use (artillumina, curesim, dwgsim, mason,
+                      wgsim) [dwgsim]
+  -j INT              number of snakemake jobs (ignored if -R is not set)
+                      [auto (4)]
+  -P                  simulate paired_end reads [false]
+  -C                  create configuration files for cluster submission (SLURM
+                      only, other environments need manual adjustment) [false]
+  -R                  run snakemake after generating the snakefile [false]
+  -c [STR [STR ...]]  configuration (a JSON dictionary)

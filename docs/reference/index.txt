@@ -1,7 +1,8 @@
 $ prophyle index -h
 
 usage: prophyle.py index [-h] [-g DIR] [-j INT] [-k INT] [-l STR] [-s FLOAT]
-                         [-F] [-M] [-P] [-K] [-T] [-A] [-c [STR [STR ...]]]
+                         [-F] [-M] [-P] [-K] [-T] [-A] [-R]
+                         [-c [STR [STR ...]]]
                          <tree.nw> [<tree.nw> ...] <index.dir>
 
 positional arguments:
@@ -24,4 +25,5 @@ optional arguments:
   -T                  keep temporary files from k-mer propagation
   -A                  autocomplete tree (names of internal nodes and FASTA
                       paths)
+  -R                  switch propagation off (only re-assemble leaves)
   -c [STR [STR ...]]  advanced configuration (a JSON dictionary)

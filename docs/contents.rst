@@ -15,7 +15,8 @@ ProPhyle documentation contents
 	standard_db
 	custom_db
 	classify
-	analyze
+	profile
 	compress
 	formats
+	similarity
 	cli

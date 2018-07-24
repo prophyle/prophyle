@@ -1,0 +1,20 @@
+$ prophyle_profile.py -h
+
+usage: prophyle_profile.py [-h] [-a FLOAT] [-l FLOAT] [-c [STR [STR ...]]]
+                           <tree.nw> <pseudo_aln.bam> <sim_matrix.npy>
+                           <output_fn>
+
+Estimate abundances from ProPhyle's assignment using a regularized GLM
+(Elastic Net)
+
+positional arguments:
+  <tree.nw>           taxonomic tree (tree.preliminary.nw)
+  <pseudo_aln.bam>    assignments (output of prophyle classify)
+  <sim_matrix.npy>    similarity matrix
+  <output_fn>         output file
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -a FLOAT            regularization weight
+  -l FLOAT            l1 ratio
+  -c [STR [STR ...]]  configuration (a JSON dictionary)

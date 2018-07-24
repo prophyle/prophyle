@@ -3,7 +3,7 @@ $ prophyle  -h
 usage: prophyle.py [-h] [-v]  ...
 
 Program: prophyle (phylogeny-based metagenomic classification)
-Version: 0.3.1.0
+Version: 0.3.2.0
 Authors: Karel Brinda, Kamil Salikhov, Simone Pignotti, Gregory Kucherov
 Contact: kbrinda@hsph.harvard.edu
 
@@ -17,8 +17,9 @@ subcommands:
   
     download     download a genomic database
     index        build index
+    similarity   build similarity matrix
     classify     classify reads
-    analyze      analyze results (experimental)
+    profile      compute abundances
     compress     compress a ProPhyle index
     decompress   decompress a compressed ProPhyle index
     compile      compile auxiliary ProPhyle programs

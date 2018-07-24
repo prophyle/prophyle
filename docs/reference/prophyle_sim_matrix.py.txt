@@ -1,0 +1,19 @@
+$ prophyle_sim_matrix.py -h
+
+usage: prophyle_sim_matrix.py [-h] [-j INT] [-c [STR [STR ...]]]
+                              <tree.nhx> <lib_dir> <out_fn>
+
+Classify reads simulated from the reference genomes to their index, in order
+to compute a similarity matrix for abundance estimation
+
+positional arguments:
+  <tree.nhx>          phylogenetic tree (Newick/NHX)
+  <lib_dir>           library directory containing classification result for
+                      each reference genome
+  <out_fn>            output filename (matrix is stored in npy format from
+                      numpy)
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -j INT              number of threads [auto (4)]
+  -c [STR [STR ...]]  configuration (a JSON dictionary)

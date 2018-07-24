@@ -1,0 +1,27 @@
+$ prophyle_classify_index.py -h
+
+usage: prophyle_classify_index.py [-h] [-w STR] [-g STR] [-f STR] [-o STR]
+                                  [-j INT] [-P] [-C] [-R] [-c [STR [STR ...]]]
+                                  <idx_dir>
+
+Classify reads simulated from the reference genomes to their index, in order
+to compute a similarity matrix for abundance estimation
+
+positional arguments:
+  <idx_dir>           index directory
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -w STR              directory where the classification Snakefile will be
+                      created [parent dir. of idx]
+  -g STR              directory with the library sequences [parent dir. of
+                      idx]
+  -f STR              classification format (sam, bam, kraken) [bam]
+  -o STR              classification options (-m, -L, -K etc.) [""]
+  -j INT              number of snakemake jobs (ignored if -R is not set)
+                      [auto (4)]
+  -P                  paired end reads [false]
+  -C                  create configuration files for cluster submission (SLURM
+                      only, other environments need manual adjustment) [false]
+  -R                  run snakemake after generating the snakefile [false]
+  -c [STR [STR ...]]  configuration (a JSON dictionary)
