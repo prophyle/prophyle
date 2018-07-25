@@ -102,7 +102,7 @@ setuptools.setup(
             'prophyle = prophyle.prophyle:main',
             'prophyle_analyze.py = prophyle.prophyle_analyze:main',
             'prophyle_assignment.py = prophyle.prophyle_assignment:main',
-            'prophyle_classify_index.py = prophyle.prophyle_classify_index:main'
+            'prophyle_classify_index.py = prophyle.prophyle_classify_index:main',
             'prophyle_ncbi_tree.py = prophyle.prophyle_ncbi_tree:main',
             'prophyle_otu_table.py = prophyle.prophyle_otu_table:main',
             'prophyle_paired_end.py = prophyle.prophyle_paired_end:main',
@@ -111,8 +111,8 @@ setuptools.setup(
             'prophyle_propagation_makefile.py = prophyle.prophyle_propagation_makefile:main',
             'prophyle_propagation_postprocessing.py = prophyle.prophyle_propagation_postprocessing:main',
             'prophyle_propagation_preprocessing.py = prophyle.prophyle_propagation_preprocessing:main',
-            'prophyle_rnfsim.py = prophyle.prophyle_rnfsim:main'
-            'prophyle_sim_matrix.py = prophyle.prophyle_sim_matrix:main'
+            'prophyle_rnfsim.py = prophyle.prophyle_rnfsim:main',
+            'prophyle_sim_matrix.py = prophyle.prophyle_sim_matrix:main',
             'prophyle_split_allseq.py = prophyle.prophyle_split_allseq:main',
         ],
     },
