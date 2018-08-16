@@ -16,7 +16,7 @@ simulator = config['simulator']
 fastas = config['fastas']
 reads_in_tuple = int(config['reads_in_tuple'])
 read_length = int(config['read_length'])
-coverage = int(config['coverage'])
+coverage = float(config['coverage'])
 number_of_read_tuples = int(config['number_of_read_tuples'])
 
 simulate = rnf_sim_dict[simulator]
