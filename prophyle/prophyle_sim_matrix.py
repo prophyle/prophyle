@@ -126,14 +126,14 @@ def compute_sim_matrix(tree_fn, lib_dir, out_fn, jobs):
 
         complete_paths = [os.path.join(lib_dir, '.'.join(p.split('.')[:-1])) for p in path.split('@')]
         for i, cp in enumerate(complete_paths):
-            if os.path.isfile("{}.kraken".format(cp)):
-                complete_paths[i] = "{}.kraken".format(cp)
+            if os.path.isfile("{}.bam".format(cp)):
+                complete_paths[i] = "{}.bam".format(cp)
             elif os.path.isfile("{}.sam".format(cp)):
                 complete_paths[i] = "{}.sam".format(cp)
-            elif os.path.isfile("{}.bam".format(cp)):
-                complete_paths[i] = "{}.bam".format(cp)
+            elif os.path.isfile("{}.kraken".format(cp)):
+                complete_paths[i] = "{}.kraken".format(cp)
             else:
-                print('[prophyle_sim_matrix] Warnig: reference genome {} has no assignment file associated (please use the same prefix as the reference, and .kraken, .sam or .bam suffix depending on the classification format)'.format(cp), file=sys.stderr)
+                print('[prophyle_sim_matrix] Warnig: reference genome {} has no assignment file associated (please use the same prefix as the reference (e.g. ref.fa -> ref), and .kraken, .sam or .bam suffix depending on the classification format)'.format(cp), file=sys.stderr)
                 complete_paths[i] = None
         assigned_fns.append(list(complete_paths))
 
