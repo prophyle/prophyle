@@ -109,7 +109,7 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio
     assert len(leaves) == len(sim_mat), "Size of similarity matrix different from #leaves...have you used the right index/tree?"
 
     enet = ElasticNetCV(
-        l1_ratio=l1_ratio,
+        l1_ratio=[.1, .5, .7, .9, .95, .96, .97, .98, .99, .998, .999, 1],
         fit_intercept=False,
         max_iter=10000,
         copy_X=True,
