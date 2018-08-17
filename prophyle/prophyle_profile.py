@@ -25,7 +25,7 @@ import argparse
 import numpy as np
 
 from ete3 import Tree
-from sklearn.linear_model import ElasticNetCV
+from sklearn.linear_model import ElasticNet
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
@@ -108,16 +108,15 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, rcount_thresh=10, a
     sim_mat = np.load(sim_mat_fn)
     assert len(leaves) == len(sim_mat), "Size of similarity matrix different from #leaves...have you used the right index/tree?"
 
-    enet = ElasticNetCV(
-        n_alphas=10,
-        l1_ratio=[.1, .5, .7, .9, .95, .96, .97, .98, .99, .998, 1],
+    enet = ElasticNet(
+        alpha=alpha,
+        l1_ratio=l1_ratio,
         fit_intercept=False,
         max_iter=10000,
         copy_X=True,
         normalize=False,
         positive=True,
         warm_start=True,
-        precompute=False,
         selection='cyclic',
     )
 
