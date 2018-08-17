@@ -210,7 +210,7 @@ def main():
     if args.alpha < 0:
         print("Error: regularization weight (-a) must be >= 0", file=sys.stderr)
         sys.exit(2)
-    if args.l1_ratio < 0 or l1_ratio > 1:
+    if args.l1_ratio < 0 or args.l1_ratio > 1:
         print("Error: L1/L2 regularization ratio (-l) must be 0 <= l <= 1", file=sys.stderr)
         sys.exit(2)
 
