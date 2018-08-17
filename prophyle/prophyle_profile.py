@@ -126,13 +126,19 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, rcount_thresh=10, a
 
     enet.fit(sim_mat, map_counts)
 
+    abund = enet.coef_/sum(enet.coef_)
+
+    with open(out_fn, 'w') as out_f:
+        for leaf, ab in zip(leaves, abund):
+            print(leaf, ab, sep='\t', file=out_f)
+
     if enet.score(sim_mat, map_counts) < 0.8:
         print("[prophyle_abundances] Warning: the fit to the model is quite poor, you may want to lower the alpha regularization parameter", file=sys.stderr)
 
     enet.fit(sim_mat, np.log(map_counts))
     abund = enet.coef_/sum(enet.coef_)
 
-    with open(out_fn, 'w') as out_f:
+    with open(out_fn+'_log', 'w') as out_f:
         for leaf, ab in zip(leaves, abund):
             print(leaf, ab, sep='\t', file=out_f)
 
