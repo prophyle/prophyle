@@ -88,7 +88,7 @@ def analyse_assignments(ass_fn, nodes2leaves, vec_pos):
     return assignments
 
 
-def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio=0.99):
+def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, rcount_thresh=10, alpha=0.1, l1_ratio=0.99):
 
     tree = Tree(tree_fn, format=1)
     leaves = [leaf.name for leaf in tree]
@@ -107,6 +107,11 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, alpha=0.1, l1_ratio
 
     sim_mat = np.load(sim_mat_fn)
     assert len(leaves) == len(sim_mat), "Size of similarity matrix different from #leaves...have you used the right index/tree?"
+
+    select_idx = map_counts > 10
+    map_counts = map_counts[select_idx]
+    sim_mat = sim_mat[np.ix_(select_idx, select_idx)]
+    map_counts = np.log(map_counts)
 
     enet = ElasticNet(
         alpha=alpha,
