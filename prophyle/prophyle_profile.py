@@ -25,7 +25,7 @@ import argparse
 import numpy as np
 
 from ete3 import Tree
-from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import ElasticNetCV
 
 sys.path.append(os.path.dirname(__file__))
 import prophylelib as pro
