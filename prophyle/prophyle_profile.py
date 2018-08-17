@@ -125,11 +125,12 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, rcount_thresh=10, a
     if enet.score(sim_mat, map_counts) < 0.8:
         print("[prophyle_abundances] Warning: the fit to the model is quite poor, you may want to lower the alpha regularization parameter", file=sys.stderr)
 
-    # abund = enet.coef_/sum(enet.coef_)
-    # select_idx = abund > 1e-4
-    # map_counts = map_counts[select_idx]
-    # sim_mat = sim_mat[np.ix_(select_idx, select_idx)]
-    # map_counts = np.log(map_counts)
+    abund = enet.coef_/sum(enet.coef_)
+    select_idx = abund > 1e-4
+    map_counts = map_counts[select_idx]
+    assert all(map_counts > 0)
+    sim_mat = sim_mat[np.ix_(select_idx, select_idx)]
+    map_counts = np.log(map_counts)
 
     enet.fit(sim_mat, np.log(map_counts))
     abund = enet.coef_/sum(enet.coef_)
