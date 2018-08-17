@@ -113,9 +113,9 @@ def estimate_abundances(tree_fn, asg_fn, sim_mat_fn, out_fn, rcount_thresh=10, a
     sim_mat = sim_mat[np.ix_(select_idx, select_idx)]
     map_counts = np.log(map_counts)
 
-    enet = ElasticNet(
-        alpha=alpha,
-        l1_ratio=l1_ratio,
+    enet = ElasticNetCV(
+        n_alphas=10,
+        l1_ratio=[.1, .5, .7, .9, .95, .96, .97, .98, .99, .998, .999, 1],
         fit_intercept=False,
         max_iter=10000,
         copy_X=True,
