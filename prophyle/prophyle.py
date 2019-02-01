@@ -1011,8 +1011,6 @@ def prophyle_decompress(archive, output_dir, klcp):
     if not os.path.isdir(output_dir):
         pro.error("Directory '{}' does not exist.".format(output_dir))
 
-    _compile_prophyle_bin(parallel=True)
-
     with tarfile.open(archive) as tar:
         names = tar.getnames()
         index_name = names[0]
@@ -1030,6 +1028,8 @@ def prophyle_decompress(archive, output_dir, klcp):
     if index_exists:
         pro.message("Index already exists")
         return
+
+    _compile_prophyle_bin(parallel=True)
 
     pro.message("Decompressing core index files")
     cmd = ["tar", "xvf", archive, "-C", output_dir]
