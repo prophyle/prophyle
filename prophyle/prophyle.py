@@ -167,12 +167,11 @@ def _compile_prophyle_bin(clean=False, parallel=False, silent=True, force=False)
 
     except RuntimeError:
         if not os.path.isfile(IND) or not os.path.isfile(ASM):
-            print(
+            pro.error(
                 "Error: ProPhyle executables could not be compiled. Please, the command '{}' manually.".format(
                     " ".join(command)
-                ), file=sys.stderr
+                )
             )
-            sys.exit(1)
         else:
             print("Warning: ProPhyle executables could not be recompiled. Going to use the old ones.", file=sys.stderr)
 
@@ -358,7 +357,7 @@ def prophyle_download(library, library_dir, force=False):
         # _pseudo_fai(d)
 
     else:
-        raise ValueError('Unknown library "{}"'.format(library))
+        pro.error('Unknown library "{}"'.format(library))
 
 
 ##################
@@ -1009,6 +1008,9 @@ def prophyle_compress(index_dir, archive):
 def prophyle_decompress(archive, output_dir, klcp):
     pro.test_files(archive)
 
+    if not os.path.isdir(output_dir):
+        pro.error("Directory '{}' does not exist.".format(output_dir))
+
     _compile_prophyle_bin(parallel=True)
 
     with tarfile.open(archive) as tar:
@@ -1057,9 +1059,9 @@ def parser():
         def error(self, message):
             if len(sys.argv) == 2:
                 self.print_help()
+                sys.exit(2)
             else:
-                print('error: {}'.format(message), file=sys.stderr)
-            sys.exit(2)
+                pro.error(message, 2)
 
     desc = """\
         Program: prophyle (phylogeny-based metagenomic classification)
@@ -1655,9 +1657,7 @@ def main():
         exit(0)
 
     except KeyboardInterrupt:
-        pro.message("Error: Keyboard interrupt")
-        pro.close_log()
-        exit(1)
+        pro.error("Error: Keyboard interrupt")
 
     finally:
         sys.stdout.flush()
