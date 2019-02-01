@@ -72,7 +72,9 @@ def close_log():
 
 
 def error(*msg, error_code=1):
-    print('Error:', *msg, file=sys.stderr)
+    print('ProPhyle Error:', *msg, file=sys.stderr)
+    sys.stdout.flush()
+    sys.stderr.flush()
     close_log()
     sys.exit(error_code)
 
