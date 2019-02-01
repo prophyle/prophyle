@@ -128,12 +128,10 @@ def _test_tree(fn):
 
     Args:
         fn (str): Newick/NHX tree.
-
-    Raises:
-        AssertionError: The tree is not valid.
     """
     tree = pro.load_nhx_tree(fn, validate=False)
-    assert pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr)
+    if not pro.validate_prophyle_nhx_tree(tree, verbose=True, throw_exceptions=False, output_fo=sys.stderr):
+        error("The tree '{}' could not be properly parsed.".format(fn))
 
 
 def _compile_prophyle_bin(clean=False, parallel=False, silent=True, force=False):
@@ -713,7 +711,8 @@ def prophyle_index(
             if not autocomplete:
                 pro.validate_prophyle_nhx_tree(tree)
             if root != "":
-                assert len(tree.search_nodes(name=root)) != 0, "Node '{}' does not exist in '{}'.".format(root, tree_fn)
+                if len(tree.search_nodes(name=root)) == 0:
+                    pro.error("Node '{}' does not exist in '{}'.".format(root, tree_fn))
         if len(trees_fn) != 1:
             pro.message('Merging {} trees'.format(len(trees_fn)))
         _propagation_preprocessing(
@@ -878,7 +877,8 @@ def prophyle_classify(
     )
 
     (bwt_s, sa_s) = pro.file_sizes(index_fa + '.bwt', index_fa + '.sa')
-    assert abs(bwt_s - 2 * sa_s) < 1000, 'Inconsistent index (SA vs. BWT)'
+    if not abs(bwt_s - 2 * sa_s) < 1000:
+        pro.error('Inconsistent index (SA vs. BWT)')
     #assert abs(bwt_s - 2 * pac_s) < 1000, 'Inconsistent index (PAC vs. BWT)'
 
     klcp_fn = "{}.{}.klcp".format(index_fa, k)
@@ -891,7 +891,8 @@ def prophyle_classify(
             pro.message("k-LCP file found, going to use rolling window")
             pro.test_files(klcp_fn)
             (klcp_s, ) = pro.file_sizes(klcp_fn)
-            assert abs(bwt_s - 4 * klcp_s) < 1000, 'Inconsistent index (KLCP vs. BWT)'
+            if not abs(bwt_s - 4 * klcp_s) < 1000:
+                pro.error('Inconsistent index (KLCP vs. BWT)')
         else:
             pro.message("k-LCP file not found, going to use restarted search")
 
@@ -1015,7 +1016,8 @@ def prophyle_decompress(archive, output_dir, klcp):
         names = tar.getnames()
         index_name = names[0]
         for x in FILES_TO_ARCHIVE:
-            assert os.path.join(index_name, x) in names, "File '{}' is missing in the archive".format(x)
+            if not os.path.join(index_name, x) in names:
+                pro.error("File '{}' is missing in the archive".format(x))
 
     index_dir = os.path.join(output_dir, index_name)
 
@@ -1667,7 +1669,7 @@ def main():
         exit(0)
 
     except KeyboardInterrupt:
-        pro.error("Error: Keyboard interrupt")
+        pro.error("Keyboard interrupt")
 
     finally:
         sys.stdout.flush()
