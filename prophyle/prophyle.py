@@ -1034,11 +1034,12 @@ def prophyle_decompress(archive, output_dir, klcp):
     pro.message("Decompressing core index files")
     cmd = ["tar", "xvf", archive, "-C", output_dir]
     pro.run_safe(cmd)
-    pro.message("Reconstructing the index")
+    fn = os.path.join(index_dir, ".complete.4")
+    pro.rm(fn)
 
+    pro.message("Reconstructing the index")
     pro.touch(os.path.join(index_dir, "index.fa"))
     pro.touch(os.path.join(index_dir, "index.fa.pac"))
-
     if klcp:
         config = pro.load_index_config(index_dir)
         cmd = [PROPHYLE, "index", "-k", config['k'], os.path.join(index_dir, "tree.nw"), index_dir]
