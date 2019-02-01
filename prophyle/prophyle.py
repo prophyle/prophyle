@@ -1021,11 +1021,20 @@ def prophyle_decompress(archive, output_dir, klcp):
 
     index_dir = os.path.join(output_dir, index_name)
 
-    pro.message("Decompressing index core files")
+    index_exists = True
+    for i in range(1, 7):
+        fn = os.path.join(index_dir, ".complete.{}".format(i))
+        if not os.path.isfile(fn):
+            index_exists = False
+            break
+    if index_exists:
+        pro.message("Index already exists")
+        return
 
+    pro.message("Decompressing core index files")
     cmd = ["tar", "xvf", archive, "-C", output_dir]
     pro.run_safe(cmd)
-    pro.message("Core files have been decompressed, reconstructing the index")
+    pro.message("Reconstructing the index")
 
     pro.touch(os.path.join(index_dir, "index.fa"))
     pro.touch(os.path.join(index_dir, "index.fa.pac"))
