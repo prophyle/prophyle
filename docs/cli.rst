@@ -71,12 +71,6 @@ ProPhyle – the main program
 	.. include:: reference/prophyle_assignment.py.txt
 		:code: text
 
-``prophyle_analyze.py``
------------------------
-
-	.. include:: reference/prophyle_analyze.py.txt
-		:code: text
-
 ``prophyle_propagation_makefile.py``
 ------------------------------------
 
