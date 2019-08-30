@@ -32,11 +32,6 @@ ProPhyle – the main program
 	.. include:: reference/classify.txt
 		:code: text
 
-``prophyle analyze``
-^^^^^^^^^^^^^^^^^^^^
-	.. include:: reference/analyze.txt
-		:code: text
-
 ``prophyle compress``
 ^^^^^^^^^^^^^^^^^^^^^
 	.. include:: reference/compress.txt
