@@ -108,7 +108,7 @@ class Assignment:
         if CONFIG['DIAGNOSTICS']:
             self.diagnostics()
 
-        self.select_best_assignments(measure)
+        self.select_best_assignments(measure, self.tie_lca)
         if CONFIG['DIAGNOSTICS']:
             self.diagnostics()
 
@@ -146,7 +146,7 @@ class Assignment:
                 covmask_1block = self.bitarray_block(covmask_len, count + self.k - 1, pos)
 
                 if kmer_lca:
-                    node_names = [self.tree_index.lca(*node_names)]
+                    node_names = [self.tree_index.lca(node_names)]
 
                 for node_name in node_names:
                     hitmasks_dict[node_name] |= hitmask_1block
@@ -183,8 +183,6 @@ class Assignment:
         hitmask = bitarray(self.hitmasks_dict[nodename])
         covmask = bitarray(self.covmasks_dict[nodename])
 
-        node = self.tree_index.nodename_to_node[nodename]
-
         ##########################
         # B) Update from ancestors
         ##########################
@@ -199,6 +197,7 @@ class Assignment:
         hit = hitmask.count()
         cov = covmask.count()
         readlen = self.krakline_parser.readlen
+        kcount = self.tree_index.nodename_to_kmercount[nodename]
 
         assignment = {
             # 1. hit count
@@ -206,14 +205,14 @@ class Assignment:
             #'hitcigar': self.cigar_from_bitmask(hitmask),
             'h1': [hit],
             'hf': [hit / (readlen - self.k + 1)],
-            'h2': [hit / self.tree_index.nodename_to_kmercount[nodename]],
+            'h2': [hit / kcount if kcount > 0 else 0],
 
             # 2. coverage
             'covmask': covmask,
             #'covcigar': self.cigar_from_bitmask(covmask),
             'c1': [cov],
             'cf': [cov / readlen],
-            'c2': [cov / self.tree_index.nodename_to_kmercount[nodename]],
+            'c2': [cov / kcount if kcount > 0 else 0],
 
             # 3. other values
             'ln': readlen,
@@ -221,18 +220,18 @@ class Assignment:
 
         return assignment
 
-    def select_best_assignments(self, measure):
+    def select_best_assignments(self, measure, tie_lca=False):
         """Find the best assignments and save it to self.max_nodenames (max value: self.max_val).
 
         Args:
             measure (str): Measure (h1/c1/h2/c2).
+            tie_lca (bool): Compute LCA in case of tie.
         """
 
         self.max_val = 0
         self.max_nodenames = []
 
-        for nodename in self.ass_dict:
-            ass = self.ass_dict[nodename]
+        for nodename, ass in self.ass_dict.items():
 
             if ass[measure][0] > self.max_val:
                 self.max_val = ass[measure][0]
@@ -240,6 +239,9 @@ class Assignment:
 
             elif ass[measure][0] == self.max_val:
                 self.max_nodenames.append(nodename)
+
+        if tie_lca:
+            self.make_lca_from_winners()
 
         if CONFIG['SORT_NODES']:
             self.max_nodenames.sort()
@@ -252,11 +254,10 @@ class Assignment:
         """
 
         # all characteristics are already computed
-        if len(self.max_nodenames) == 1:
+        if len(self.max_nodenames) <= 1:
             return
 
-        first_winner = self.ass_dict[max_nodenames[0]]
-        lca = self.tree_index.lca(winners)
+        lca = self.tree_index.lca(self.max_nodenames)
 
         ass = {
             'covmask': None,
@@ -267,13 +268,11 @@ class Assignment:
         }
 
         for tag in ['h1', 'hf', 'h2', 'c1', 'cf', 'c2']:
-            ass[tag] = [self.ass_dict[nodename][tag] for nodename in self.max_nodenames],
+            # ass[tag] = [self.ass_dict[nodename][tag] for nodename in self.max_nodenames]
+            ass[tag] = [0]
 
         self.max_nodenames = [lca]
         self.ass_dict[lca] = ass
-
-        asg['covmask'] = None
-        asg['hitmask'] = None
 
     def print_selected_assignments(self, form):
         """Print the best assignments.
@@ -332,7 +331,6 @@ class Assignment:
             suffix (str): Suffix with additional tags.
         """
 
-        tags = []
         qname = self.krakline_parser.readname
 
         if node_name is not None:
@@ -438,7 +436,7 @@ class Assignment:
                     #else:
                     #    pass
                 else:
-                    nodename = self.tree_index.lca(*nodenames)
+                    nodename = self.tree_index.lca(nodenames)
                 nodenames_lca_seq.extend(count * [nodename])
             c = []
             runs = itertools.groupby(nodenames_lca_seq)
@@ -539,10 +537,10 @@ class TreeIndex:
                 node = node.up
                 self.nodename_to_upnodenames[nodename].add(node.name)
 
-    def lca(self, *node_names):
+    def lca(self, node_names):
         """Return LCA for a given list of nodes.
 
-        *node_names (list of str): List of node names.
+        node_names (list of str): List of node names.
 
         Returns:
             str: Name of the LCA.
@@ -550,12 +548,12 @@ class TreeIndex:
         assert len(node_names) > 0
         if len(node_names) == 1:
             return node_names[0]
-        nodes = list(map(lambda x: self.nodename_to_node[x], node_names))
+        nodes = [self.nodename_to_node[n] for n in node_names]
         lca = nodes[0].get_common_ancestor(nodes)
 
         if lca.is_root() and len(lca.children) == 1:
             lca = lca.children[0]
-        assert lca.name != ""  #, [x.name for x in lca.children]
+        assert lca.name != ""  # , [x.name for x in lca.children]
 
         return lca.name
 
