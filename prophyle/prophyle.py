@@ -431,7 +431,9 @@ def _propagate(index_dir, threads, nonprop=0):
     )
 
     # run propagation
-    command = ['make', '-j', threads, '-C', propagation_dir, nonprop_cmd_str, 'V=1']
+    # TODO: progress report is switched off; come up with a better way than
+    # counting files
+    command = ['make', '-j', threads, '-C', propagation_dir, nonprop_cmd_str, 'V=1', 'PRINT_PROGRESS=']
     pro.run_safe(
         command,
         err_msg="K-mer propagation has not been finished because of an error. See messages above.",
