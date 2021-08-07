@@ -70,7 +70,6 @@ class Assignment:
         max_nodenames (list of str): List of nodenames of winners.
         max_val (int/float): Maximal value of the measure.
     """
-
     def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
         self.output_fo = output_fo
         self.tree_index = tree_index
@@ -498,7 +497,6 @@ class TreeIndex:
         nodename_to_upnodenames (dict): node name => set of node names of ancestors.
         nodename_to_kmercount (dict): nname => number of k-mers (full set).
     """
-
     def __init__(self, tree_newick_fn, k):
         tree = pro.load_nhx_tree(tree_newick_fn)
         self.tree = pro.minimal_subtree(tree)
@@ -592,7 +590,6 @@ class KraklineParser():
         qual (str): Sequence of qualities. None if unknown.
         kmer_blocks (list of (list of str, int)): Assigned k-mer blocks, list of (nodenames, count).
     """
-
     def __init__(self, k):
         self.k = k
         self.krakline = None
