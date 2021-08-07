@@ -516,7 +516,7 @@ def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
     tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
     index_fa = os.path.join(index_dir, "index.fa")
 
-    command = ["cat", os.path.join(propagation_dir, "*.tsv"), '>', tsv_fn]
+    command = ["find", propagation_dir, "-name", "'*.tsv'", "|", "sort", "|", "xargs", "cat", '>', tsv_fn]
     pro.run_safe(
         command,
         err_msg="K-mer statistics could not be created.",
