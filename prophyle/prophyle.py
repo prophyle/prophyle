@@ -404,19 +404,25 @@ def _create_makefile(index_dir, k, library_dir, mask_repeats=False):
     _log_file_md5(makefile)
 
 
-def _propagate(index_dir, threads):
+def _propagate(index_dir, threads, nonprop=0):
     """Run k-mer propagation.
 
     Args:
         index_dir (str): Index directory.
         threads (int): Number of threads for Makefile.
+        nonprop (bool): Switch propagation off.
     """
     pro.message('Running k-mer propagation')
     propagation_dir = os.path.join(index_dir, 'propagation')
     pro.test_files(os.path.join(propagation_dir, 'Makefile'), test_nonzero=True)
 
+    if nonprop:
+        nonprop_cmd_str="NONPROP=1"
+    else:
+        nonprop_cmd_str=""
+
     # test if input files for propagation exist
-    command = ['make', '-C', propagation_dir, '-n', '-s', '>', '/dev/null']
+    command = ['make', '-j', '-C', propagation_dir, '-n', '-s', nonprop_cmd_str, '>', '/dev/null']
     pro.run_safe(
         command,
         err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
@@ -425,7 +431,7 @@ def _propagate(index_dir, threads):
     )
 
     # run propagation
-    command = ['make', '-j', threads, '-C', propagation_dir, 'V=1']
+    command = ['make', '-j', threads, '-C', propagation_dir, nonprop_cmd_str, 'V=1']
     pro.run_safe(
         command,
         err_msg="K-mer propagation has not been finished because of an error. See messages above.",
@@ -640,7 +646,7 @@ def _bwtocc2sa_klcp(fa_fn, k):
 
 def prophyle_index(
     index_dir, threads, k, trees_fn, library_dir, construct_klcp, force, no_prefixes, mask_repeats, keep_tmp_files,
-    sampling_rate, autocomplete
+    sampling_rate, autocomplete, nonprop,
 ):
     """Build a ProPhyle index.
 
@@ -657,6 +663,7 @@ def prophyle_index(
         keep_tmp_files (bool): Keep temporary files from k-mer propagation.
         sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
         autocomplete (bool): Autocomplete names of internal nodes and fasta paths.
+        nonprop (bool): Switch propagation off.
     """
 
     assert isinstance(k, int)
@@ -716,7 +723,7 @@ def prophyle_index(
     if recompute:
         pro.message('[2/6] Running k-mer propagation', upper=True)
         _create_makefile(index_dir, k, library_dir, mask_repeats=mask_repeats)
-        _propagate(index_dir, threads=threads)
+        _propagate(index_dir, threads=threads, nonprop=nonprop)
         _propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
         _test_tree(index_tree_2)
         _kmer_stats(index_dir)
@@ -1211,6 +1218,13 @@ def parser():
         action='store_true',
     )
 
+    parser_index.add_argument(
+        '-R',
+        help='switch propagation off (only re-assemble leaves)',
+        dest='nonprop',
+        action='store_true',
+    )
+
     _add_configuration_parameter(parser_index)
 
     ##########
@@ -1515,6 +1529,7 @@ def main():
                 keep_tmp_files=args.keep_tmp_files,
                 sampling_rate=args.sampling_rate,
                 autocomplete=args.autocomplete,
+                nonprop=args.nonprop,
             )
             pro.message('Index construction finished')
             pro.close_log()
