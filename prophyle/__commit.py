@@ -1,4 +1,4 @@
-BRANCH = "docs"
-SHORTHASH = "f4effca"
-REVCOUNT = 1702
-LATESTTAG = ""
+BRANCH = "gh-actions"
+SHORTHASH = "ab3e2f0"
+REVCOUNT = 1714
+LATESTTAG = "0.3.1.0"
