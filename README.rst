@@ -1,8 +1,8 @@
 ProPhyle – accurate and resource-frugal phylogeny-based metagenomic classification
 ==================================================================================
 
-.. image:: https://travis-ci.org/prophyle/prophyle.svg?branch=master
-        :target: https://travis-ci.org/prophyle/prophyle
+.. image:: https://github.com/snakemake/snakemake/workflows/CI/badge.svg?branch=main
+        :target: https://github.com/snakemake/snakemake/actions?query=branch%3Amain+workflow%3ACI
 
 .. image:: https://codecov.io/gh/prophyle/prophyle/branch/master/graph/badge.svg
         :target: https://codecov.io/gh/prophyle/prophyle
