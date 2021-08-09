@@ -1,4 +1,4 @@
 BRANCH = "gh-actions"
-SHORTHASH = "bc3badc"
-REVCOUNT = 1729
+SHORTHASH = "ca839e1"
+REVCOUNT = 1730
 LATESTTAG = "0.3.1.0"
