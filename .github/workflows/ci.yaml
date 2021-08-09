@@ -26,7 +26,7 @@ jobs:
       run: |
         make CC=${{ matrix.compiler }}
 
-  test:
+  bioconda:
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -36,6 +36,11 @@ jobs:
         export PATH="/usr/share/miniconda/bin:$PATH"
         conda install -c conda-forge -q mamba
         mamba env create -q --name prophyle python>=3.8 ete3 bitarray parallel psutil scipy sphinx codecov pysam
+
+  test:
+    runs-on: ubuntu-latest
+    needs: bioconda
+    steps:
 
     - name: Run tests
       env:
