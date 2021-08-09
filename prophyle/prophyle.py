@@ -523,6 +523,7 @@ def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
 
     _merge_kmer_stats(index_dir)
 
+    tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
     command = [PROPAGATION_POSTPROCESSING, propagation_dir, index_fa, in_tree_fn, tsv_fn, out_tree_fn]
     pro.run_safe(
         command,
