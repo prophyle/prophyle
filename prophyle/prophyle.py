@@ -489,6 +489,7 @@ def _merge_kmer_stats(index_dir):
     Args:
         index_dir (str): Index directory.
     """
+    tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
     propagation_dir = os.path.join(index_dir, 'propagation')
     command = [
         "find", propagation_dir, "-name", "'*.tsv'", \
@@ -518,7 +519,6 @@ def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
     pro.message('Propagation post-processing')
 
     propagation_dir = os.path.join(index_dir, 'propagation')
-    tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
     index_fa = os.path.join(index_dir, "index.fa")
 
     _merge_kmer_stats(index_dir)
