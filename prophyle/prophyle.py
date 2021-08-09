@@ -441,24 +441,6 @@ def _propagate(index_dir, threads, nonprop=0):
     )
 
 
-def _kmer_stats(index_dir):
-    """Create a file with k-mer statistics.
-
-    Args:
-        index_dir (str): Index directory.
-    """
-    propagation_dir = os.path.join(index_dir, 'propagation')
-    command = [
-        "cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "sort", "|", "uniq", ">",
-        os.path.join(index_dir, "index.fa.kmers.tsv")
-    ]
-    pro.run_safe(
-        command,
-        err_msg="A file with k-mer statistics could not be created.",
-        thr_exc=False,
-    )
-
-
 def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate, autocomplete):
     """Merge input trees into a single tree.
 
@@ -501,6 +483,29 @@ def _remove_tmp_propagation_files(index_dir):
     pro.run_safe(command)
 
 
+def _merge_kmer_stats(index_dir):
+    """Create a file with k-mer statistics.
+
+    Args:
+        index_dir (str): Index directory.
+    """
+    propagation_dir = os.path.join(index_dir, 'propagation')
+    command = [
+        "find", propagation_dir, "-name", "'*.tsv'", \
+        "|", "sort", \
+        "|", "xargs", "cat", \
+        "|", "grep", "-v", "^#",
+        "|", "sort", \
+        "|", "uniq", \
+        '>', tsv_fn]
+
+    pro.run_safe(
+        command,
+        err_msg="A file with k-mer statistics could not be created.",
+        thr_exc=False,
+    )
+
+
 def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
     """Merge reduced FASTA files after k-mer propagation and create index.fa.
 
@@ -516,12 +521,7 @@ def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
     tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
     index_fa = os.path.join(index_dir, "index.fa")
 
-    command = ["find", propagation_dir, "-name", "'*.tsv'", "|", "sort", "|", "xargs", "cat", '>', tsv_fn]
-    pro.run_safe(
-        command,
-        err_msg="K-mer statistics could not be created.",
-        thr_exc=True,
-    )
+    _merge_kmer_stats(index_dir)
 
     command = [PROPAGATION_POSTPROCESSING, propagation_dir, index_fa, in_tree_fn, tsv_fn, out_tree_fn]
     pro.run_safe(
@@ -741,7 +741,6 @@ def prophyle_index(
         _propagate(index_dir, threads=threads, nonprop=nonprop)
         _propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
         _test_tree(index_tree_2)
-        _kmer_stats(index_dir)
         if not keep_tmp_files:
             _remove_tmp_propagation_files(index_dir)
         else:
