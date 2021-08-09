@@ -14,8 +14,11 @@ jobs:
         compiler: [gcc, clang]
 
     steps:
-    - name: Checkout bwa
+    - name: Checkout ProPhyle
       uses: actions/checkout@v2
 
     - name: Compile with ${{ matrix.compiler }}
       run:  make CC=${{ matrix.compiler }}
+
+    - name: Test
+      run:  make test
