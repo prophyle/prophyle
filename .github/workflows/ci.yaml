@@ -47,6 +47,8 @@ jobs:
       env:
         CI: true
       run:  |
+        export PATH="/usr/share/miniconda/bin:$PATH"
         source activate prophyle
+
         make test
 
