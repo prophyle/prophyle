@@ -12,13 +12,35 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, clang]
-
+        python-version: ["3.7"]
     steps:
+
     - name: Checkout ProPhyle
       uses: actions/checkout@v2
 
-    - name: Compile with ${{ matrix.compiler }}
-      run:  make CC=${{ matrix.compiler }}
+    - name: Setup apt dependencies
+      run: |
+        sudo apt install -y texinfo zlib1g-dev
 
-    - name: Test
-      run:  make test
+    - name: Compile with ${{ matrix.compiler }}
+      run: |
+        make CC=${{ matrix.compiler }}
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+
+    - name: Setup ProPhyle environment
+      run: |
+        export PATH="/usr/share/miniconda/bin:$PATH"
+        conda install -c conda-forge -q mamba
+        mamba env create -q --name prophyle --file test-environment.yml
+        mamba env create -q --name prophyle python ete3 bitarray parallel psutil scipy sphinx codecov pysam
+
+    - name: Run tests
+      env:
+          CI: true
+      run:  |
+        make test
+
