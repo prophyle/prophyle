@@ -25,7 +25,7 @@ matrix:
         - conda config --add channels bioconda
         - conda update -q conda
         - conda info -a
-        - if [ ! -d "$HOME/miniconda/envs/prophyle" ]; then conda create -q -n prophyle python==3.5 ete3 bitarray parallel psutil scipy sphinx codecov pysam; fi
+        - if [ ! -d "$HOME/miniconda/envs/prophyle" ]; then conda create -q -n prophyle python>=3.6 ete3 bitarray parallel psutil scipy sphinx codecov pysam; fi
         - source activate prophyle
 
     - os: osx
@@ -40,7 +40,7 @@ matrix:
         - conda config --add channels bioconda
         - conda update -q conda
         - conda info -a
-        - if [ ! -d "$HOME/miniconda/envs/prophyle" ]; then conda create -q -n prophyle python==3.4 ete3 bitarray parallel psutil scipy sphinx pysam; fi
+        - if [ ! -d "$HOME/miniconda/envs/prophyle" ]; then conda create -q -n prophyle python>=3.6 ete3 bitarray parallel psutil scipy sphinx pysam; fi
         - source activate prophyle
 
 script:
