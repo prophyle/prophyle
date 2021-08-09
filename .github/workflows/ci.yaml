@@ -35,7 +35,7 @@ jobs:
       run: |
         export PATH="/usr/share/miniconda/bin:$PATH"
         conda install -c conda-forge -q mamba
-        mamba create -q --name prophyle python>=3.6 ete3 bitarray parallel psutil scipy sphinx codecov pysam
+        mamba create --name prophyle -y "python>=3.8" ete3 bitarray parallel psutil scipy sphinx codecov pysam
 
   test:
     runs-on: ubuntu-latest
