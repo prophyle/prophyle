@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        compiler: [gcc, clang]
-        python-version: ["3.7"]
+        compiler: [gcc]
+          #compiler: [gcc, clang]
     steps:
 
     - name: Checkout ProPhyle
