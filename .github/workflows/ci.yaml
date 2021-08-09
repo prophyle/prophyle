@@ -37,7 +37,6 @@ jobs:
         export PATH="/usr/share/miniconda/bin:$PATH"
         conda install -c conda-forge -q mamba
         mamba create -c conda-forge -c bioconda --name prophyle -y "python>=3.8" ete3 bitarray parallel psutil scipy sphinx codecov pysam
-        source activate prophyle
 
         #test:
         #runs-on: ubuntu-latest
@@ -46,7 +45,8 @@ jobs:
 
     - name: Run tests
       env:
-          CI: true
+        CI: true
       run:  |
+        source activate prophyle
         make test
 
