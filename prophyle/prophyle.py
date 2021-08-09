@@ -655,6 +655,7 @@ def prophyle_index(
     construct_klcp,
     force,
     no_prefixes,
+    stop_after_propagation,
     mask_repeats,
     keep_tmp_files,
     sampling_rate,
@@ -672,6 +673,7 @@ def prophyle_index(
         klcp (bool): Generate klcp.
         force (bool): Rewrite files if they already exist.
         no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
+        stop_after_propagation (bool): Stop after k-mer propagation.
         mask_repeats (bool): Mask repeats using DustMasker.
         keep_tmp_files (bool): Keep temporary files from k-mer propagation.
         sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
@@ -747,6 +749,10 @@ def prophyle_index(
         _mark_complete(index_dir, 2)
     else:
         pro.message('[2/6] K-mers have already been propagated, skipping propagation', upper=True)
+
+    if stop_after_propagation:
+        pro.message('Stop after propagation requested. Propagation finished; going to stop.', upper=True)
+        return
 
     #
     # 3) BWT
@@ -1211,6 +1217,13 @@ def parser():
     )
 
     parser_index.add_argument(
+        '-S',
+        dest='stop_after_propagation',
+        action='store_true',
+        help='stop after k-mer propagation (no BWT index construction)',
+    )
+
+    parser_index.add_argument(
         '-K',
         dest='klcp',
         action='store_false',
@@ -1538,6 +1551,7 @@ def main():
                 force=args.force,
                 construct_klcp=args.klcp,
                 no_prefixes=args.no_prefixes,
+                stop_after_propagation=args.stop_after_propagation,
                 mask_repeats=args.mask_repeats,
                 keep_tmp_files=args.keep_tmp_files,
                 sampling_rate=args.sampling_rate,
