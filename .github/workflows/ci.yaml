@@ -35,8 +35,7 @@ jobs:
       run: |
         export PATH="/usr/share/miniconda/bin:$PATH"
         conda install -c conda-forge -q mamba
-        mamba env create -q --name prophyle --file test-environment.yml
-        mamba env create -q --name prophyle python ete3 bitarray parallel psutil scipy sphinx codecov pysam
+        mamba env create -q --name prophyle>=3.8 python ete3 bitarray parallel psutil scipy sphinx codecov pysam
 
     - name: Run tests
       env:
