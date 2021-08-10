@@ -1,4 +1,4 @@
 BRANCH = "master"
-SHORTHASH = "cebeaec"
-REVCOUNT = 1804
+SHORTHASH = "555fb4a"
+REVCOUNT = 1805
 LATESTTAG = "0.3.2.0"
