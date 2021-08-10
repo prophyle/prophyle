@@ -1,4 +1,4 @@
-BRANCH = "docs"
-SHORTHASH = "f4effca"
-REVCOUNT = 1702
-LATESTTAG = ""
+BRANCH = "master"
+SHORTHASH = "555fb4a"
+REVCOUNT = 1805
+LATESTTAG = "0.3.2.0"

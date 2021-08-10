@@ -77,10 +77,9 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
     if is_leaf:
         cmd = textwrap.dedent(
             """\
-
                 {ocompl}: {i}
-                \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
-                \t@touch $@
+                \t($(foreach f,$^,cat $(f);))  $(CMD_MASKING) $(CMD_REASM)> "{o}"
+                \t@touch "$@"
 
             """.format(
                 i=' '.join(input_files_fn),
@@ -143,7 +142,7 @@ def assembly(
             endif
 
             ifdef NONPROP
-               CMD_ASM_{nid} = @touch {x} {o}
+               CMD_ASM_{nid} = @touch {x}; echo "" > "{c}"; {ln};
             else
                CMD_ASM_{nid} = $(PRG_ASM) -S -k $(K) -x {x} -i {ii} $(CMD_ASM_OUT_{nid}) -s {c}
             endif
@@ -158,6 +157,9 @@ def assembly(
             o=' '.join(output_files_fn),
             ii=' -i '.join(input_files_fn),
             oo=' -o '.join(output_files_fn),
+            ln='; '.join(
+                ['mv "{x}" "{y}"; touch "{x}"'.format(x=x, y=y) for (x, y) in zip(input_files_fn, output_files_fn)]
+            ),
             x=intersection_file_fn,
             xcompl=_compl(intersection_file_fn),
             c=counts_fn,
@@ -181,7 +183,6 @@ def assembly(
 class TreeIndex:
     """Main class for k-mer propagation.
     """
-
     def __init__(self, tree_newick_fn, index_dir, library_dir, makefile_fn):
         """Init the class.
 
@@ -293,7 +294,6 @@ class TreeIndex:
                     DATETIME=$$(date '+%Y-%m-%d %H:%M:%S')
                     PRINT_PROGRESS=@echo "[prophyle_propagation]" $(DATETIME) "Progress of k-mer propagation:" $$(( $$(find . -name '*.full.fa.complete' | wc -l) - $(LEAVES) )) / $(INTERNAL_NODES)
 
-
                     $(info )
                     $(info /------------------------------------------------------------------)
 
@@ -317,6 +317,7 @@ class TreeIndex:
 
                     ifdef NONPROP
                        $(info | K-mer propagation:      Off)
+                       REASM=1
                     else
                        $(info | K-mer propagation:      On)
                     endif
