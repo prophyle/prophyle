@@ -19,6 +19,8 @@ import tempfile
 import time
 import gzip
 
+sys.setrecursionlimit(30000)
+
 ###########
 # LOGGING #
 ###########

@@ -513,7 +513,6 @@ class TreeIndex:
         nodename_to_upnodenames (dict): node name => set of node names of ancestors.
         nodename_to_kmercount (dict): nname => number of k-mers (full set).
     """
-
     def __init__(self, tree_newick_fn, k):
         tree = pro.load_nhx_tree(tree_newick_fn)
         self.tree = pro.minimal_subtree(tree)
