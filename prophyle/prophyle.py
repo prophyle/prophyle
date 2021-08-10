@@ -441,25 +441,6 @@ def _propagate(index_dir, threads, nonprop=0):
     )
 
 
-def _kmer_stats(index_dir):
-    """Create a file with k-mer statistics.
-
-    Args:
-        index_dir (str): Index directory.
-    """
-    propagation_dir = os.path.join(index_dir, 'propagation')
-    command = [
-        "cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "grep", "-v", "^-", "|", "sort", "|",
-        "uniq", ">",
-        os.path.join(index_dir, "index.fa.kmers.tsv")
-    ]
-    pro.run_safe(
-        command,
-        err_msg="A file with k-mer statistics could not be created.",
-        thr_exc=False,
-    )
-
-
 def _propagation_preprocessing(in_trees, out_tree, no_prefixes, sampling_rate, autocomplete):
     """Merge input trees into a single tree.
 
