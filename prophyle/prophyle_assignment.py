@@ -72,7 +72,6 @@ class Assignment:
         max_nodenames (list of str): List of nodenames of winners.
         max_val (int/float): Maximal value of the measure.
     """
-
     def __init__(
         self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False, mask_unmatched_bases=False
     ):
@@ -606,7 +605,6 @@ class KraklineParser():
         qual (str): Sequence of qualities. None if unknown.
         kmer_blocks (list of (list of str, int)): Assigned k-mer blocks, list of (nodenames, count).
     """
-
     def __init__(self, k):
         self.k = k
         self.krakline = None
