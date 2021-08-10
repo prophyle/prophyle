@@ -417,9 +417,9 @@ def _propagate(index_dir, threads, nonprop=0):
     pro.test_files(os.path.join(propagation_dir, 'Makefile'), test_nonzero=True)
 
     if nonprop:
-        nonprop_cmd_str="NONPROP=1"
+        nonprop_cmd_str = "NONPROP=1"
     else:
-        nonprop_cmd_str=""
+        nonprop_cmd_str = ""
 
     # test if input files for propagation exist
     command = ['make', '-j', '-C', propagation_dir, '-n', '-s', nonprop_cmd_str, '>', '/dev/null']
@@ -449,7 +449,8 @@ def _kmer_stats(index_dir):
     """
     propagation_dir = os.path.join(index_dir, 'propagation')
     command = [
-        "cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "grep", "-v", "^-", "|", "sort", "|", "uniq", ">",
+        "cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "grep", "-v", "^-", "|", "sort", "|",
+        "uniq", ">",
         os.path.join(index_dir, "index.fa.kmers.tsv")
     ]
     pro.run_safe(

@@ -1,4 +1,4 @@
-BRANCH = "master"
-SHORTHASH = "a5105a1"
-REVCOUNT = 1765
-LATESTTAG = "0.3.1.0"
+BRANCH = "nonprop-count"
+SHORTHASH = "3c2b4c6"
+REVCOUNT = 1819
+LATESTTAG = "0.3.2.0"
