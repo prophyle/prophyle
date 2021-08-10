@@ -180,12 +180,11 @@ def _compile_prophyle_bin(clean=False, parallel=False, silent=True, force=False)
 
     except RuntimeError:
         if not os.path.isfile(IND) or not os.path.isfile(ASM):
-            print(
+            pro.error(
                 "Error: ProPhyle executables could not be compiled. Please, the command '{}' manually.".format(
                     " ".join(command)
-                ), file=sys.stderr
+                )
             )
-            sys.exit(1)
         else:
             print("Warning: ProPhyle executables could not be recompiled. Going to use the old ones.", file=sys.stderr)
 
@@ -371,7 +370,7 @@ def prophyle_download(library, library_dir, force=False):
         # _pseudo_fai(d)
 
     else:
-        raise ValueError('Unknown library "{}"'.format(library))
+        pro.error('Unknown library "{}"'.format(library))
 
 
 ##################
@@ -436,7 +435,7 @@ def _propagate(index_dir, threads, nonprop=0):
         nonprop_cmd_str = ""
 
     # test if input files for propagation exist
-    command = ['make', '-j', threads, '-C', propagation_dir, '-n', '-s', nonprop_cmd_str, '>', '/dev/null']
+    command = ['make', '-j', '-C', propagation_dir, '-n', '-s', nonprop_cmd_str, '>', '/dev/null']
     pro.run_safe(
         command,
         err_msg="Some FASTA files needed for k-mer propagation are probably missing, see the messages above.",
@@ -445,28 +444,12 @@ def _propagate(index_dir, threads, nonprop=0):
     )
 
     # run propagation
-    command = ['make', '-j', threads, '-C', propagation_dir, nonprop_cmd_str, 'V=1']
+    # TODO: progress report is switched off; come up with a better way than
+    # counting files
+    command = ['make', '-j', threads, '-C', propagation_dir, nonprop_cmd_str, 'V=1', 'PRINT_PROGRESS=']
     pro.run_safe(
         command,
         err_msg="K-mer propagation has not been finished because of an error. See messages above.",
-        thr_exc=False,
-    )
-
-
-def _kmer_stats(index_dir):
-    """Create a file with k-mer statistics.
-
-    Args:
-        index_dir (str): Index directory.
-    """
-    propagation_dir = os.path.join(index_dir, 'propagation')
-    command = [
-        "cat", propagation_dir + "/*.count.tsv", "|", "grep", "-v", "^#", "|", "sort", "|", "uniq", ">",
-        os.path.join(index_dir, "index.fa.kmers.tsv")
-    ]
-    pro.run_safe(
-        command,
-        err_msg="A file with k-mer statistics could not be created.",
         thr_exc=False,
     )
 
@@ -513,6 +496,30 @@ def _remove_tmp_propagation_files(index_dir):
     pro.run_safe(command)
 
 
+def _merge_kmer_stats(index_dir):
+    """Create a file with k-mer statistics.
+
+    Args:
+        index_dir (str): Index directory.
+    """
+    tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
+    propagation_dir = os.path.join(index_dir, 'propagation')
+    command = [
+        "find", propagation_dir, "-name", "'*.tsv'", \
+        "|", "sort", \
+        "|", "xargs", "cat", \
+        "|", "grep", "-v", "^#",
+        "|", "sort", \
+        "|", "uniq", \
+        '>', tsv_fn]
+
+    pro.run_safe(
+        command,
+        err_msg="A file with k-mer statistics could not be created.",
+        thr_exc=False,
+    )
+
+
 def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
     """Merge reduced FASTA files after k-mer propagation and create index.fa.
 
@@ -525,16 +532,11 @@ def _propagation_postprocessing(index_dir, in_tree_fn, out_tree_fn):
     pro.message('Propagation post-processing')
 
     propagation_dir = os.path.join(index_dir, 'propagation')
-    tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
     index_fa = os.path.join(index_dir, "index.fa")
 
-    command = ["cat", os.path.join(propagation_dir, "*.tsv"), '>', tsv_fn]
-    pro.run_safe(
-        command,
-        err_msg="K-mer statistics could not be created.",
-        thr_exc=True,
-    )
+    _merge_kmer_stats(index_dir)
 
+    tsv_fn = os.path.join(index_dir, "index.fa.kmers.tsv")
     command = [PROPAGATION_POSTPROCESSING, propagation_dir, index_fa, in_tree_fn, tsv_fn, out_tree_fn]
     pro.run_safe(
         command,
@@ -667,6 +669,7 @@ def prophyle_index(
     construct_klcp,
     force,
     no_prefixes,
+    stop_after_propagation,
     mask_repeats,
     keep_tmp_files,
     sampling_rate,
@@ -684,6 +687,7 @@ def prophyle_index(
         klcp (bool): Generate klcp.
         force (bool): Rewrite files if they already exist.
         no_prefixes (bool): Don't prepend prefixes to node names during tree merging.
+        stop_after_propagation (bool): Stop after k-mer propagation.
         mask_repeats (bool): Mask repeats using DustMasker.
         keep_tmp_files (bool): Keep temporary files from k-mer propagation.
         sampling rate (float): Sampling rate for subsampling the tree or None for no subsampling.
@@ -751,7 +755,6 @@ def prophyle_index(
         _propagate(index_dir, threads=threads, nonprop=nonprop)
         _propagation_postprocessing(index_dir, index_tree_1, index_tree_2)
         _test_tree(index_tree_2)
-        _kmer_stats(index_dir)
         if not keep_tmp_files:
             _remove_tmp_propagation_files(index_dir)
         else:
@@ -759,6 +762,10 @@ def prophyle_index(
         _mark_complete(index_dir, 2)
     else:
         pro.message('[2/6] K-mers have already been propagated, skipping propagation', upper=True)
+
+    if stop_after_propagation:
+        pro.message('Stop after propagation requested. Propagation finished; going to stop.', upper=True)
+        return
 
     #
     # 3) BWT
@@ -1071,6 +1078,9 @@ def prophyle_compress(index_dir, archive):
 def prophyle_decompress(archive, output_dir, klcp):
     pro.test_files(archive)
 
+    if not os.path.isdir(output_dir):
+        pro.error("Directory '{}' does not exist.".format(output_dir))
+
     _compile_prophyle_bin(parallel=True)
 
     with tarfile.open(archive) as tar:
@@ -1119,9 +1129,9 @@ def parser():
         def error(self, message):
             if len(sys.argv) == 2:
                 self.print_help()
+                sys.exit(2)
             else:
-                print('error: {}'.format(message), file=sys.stderr)
-            sys.exit(2)
+                pro.error(message, 2)
 
     desc = """\
         Program: prophyle (phylogeny-based metagenomic classification)
@@ -1277,6 +1287,13 @@ def parser():
         dest='no_prefixes',
         action='store_true',
         help='do not add prefixes to node names when multiple trees are used',
+    )
+
+    parser_index.add_argument(
+        '-S',
+        dest='stop_after_propagation',
+        action='store_true',
+        help='stop after k-mer propagation (no BWT index construction)',
     )
 
     parser_index.add_argument(
@@ -1715,6 +1732,7 @@ def main():
                 force=args.force,
                 construct_klcp=args.klcp,
                 no_prefixes=args.no_prefixes,
+                stop_after_propagation=args.stop_after_propagation,
                 mask_repeats=args.mask_repeats,
                 keep_tmp_files=args.keep_tmp_files,
                 sampling_rate=args.sampling_rate,
@@ -1820,9 +1838,7 @@ def main():
         exit(0)
 
     except KeyboardInterrupt:
-        pro.message("Error: Keyboard interrupt")
-        pro.close_log()
-        exit(1)
+        pro.error("Error: Keyboard interrupt")
 
     finally:
         sys.stdout.flush()

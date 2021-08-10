@@ -76,6 +76,7 @@ class Assignment:
     def __init__(
         self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False, mask_unmatched_bases=False
     ):
+    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
         self.output_fo = output_fo
         self.tree_index = tree_index
         self.k = self.tree_index.k
@@ -84,7 +85,7 @@ class Assignment:
         self.tie_lca = tie_lca
         self.mask_unmatched_bases = mask_unmatched_bases
 
-        self.krakline_parser = KraklineParser()
+        self.krakline_parser = KraklineParser(k=self.k)
 
         self.hitmasks_dict = {}
         self.covmasks_dict = {}
@@ -512,7 +513,6 @@ class TreeIndex:
         nodename_to_upnodenames (dict): node name => set of node names of ancestors.
         nodename_to_kmercount (dict): nname => number of k-mers (full set).
     """
-
     def __init__(self, tree_newick_fn, k):
         tree = pro.load_nhx_tree(tree_newick_fn)
         self.tree = pro.minimal_subtree(tree)
@@ -595,6 +595,9 @@ class TreeIndex:
 class KraklineParser():
     """Class for parsing Kraken-like input into a structure.
 
+    Args:
+        k (int): K-mer size.
+
     Attributes:
         krakline (str): Original krakline.
         readname (str): Name of the read.
@@ -603,8 +606,8 @@ class KraklineParser():
         qual (str): Sequence of qualities. None if unknown.
         kmer_blocks (list of (list of str, int)): Assigned k-mer blocks, list of (nodenames, count).
     """
-
-    def __init__(self):
+    def __init__(self, k):
+        self.k = k
         self.krakline = None
         self.readname = None
         self.readlen = None
@@ -632,12 +635,19 @@ class KraklineParser():
 
         # list of (count,list of nodes)
         self.kmer_blocks = []
+        kmer_countdown = self.readlen - self.k + 1
 
         for block in self.krakmers.split(" "):
-            (ids, count) = block.split(":")
-            count = int(count)
-            nodenames = ids.split(",")
-            self.kmer_blocks.append((nodenames, count))
+            try:
+                (ids, count) = block.split(":")
+                count = int(count)
+                kmer_countdown -= count
+                nodenames = ids.split(",")
+                self.kmer_blocks.append((nodenames, count))
+            except ValueError:
+                pro.message("Warning: prophex output for read '{}' has been truncated.".format(self.readname))
+        self.kmer_blocks.append((['0'], kmer_countdown))
+        #pro.message(str(self.kmer_blocks))
 
     def check_consistency(self, k):
         """Check consistency of the fields loaded from the krakline.

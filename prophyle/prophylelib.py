@@ -20,6 +20,8 @@ import time
 import gzip
 import pysam
 
+sys.setrecursionlimit(30000)
+
 ###########
 # LOGGING #
 ###########
@@ -87,6 +89,12 @@ def close_log():
             log_file.flush()
         finally:
             log_file.close()
+
+
+def error(*msg, error_code=1):
+    print('Error:', *msg, file=sys.stderr)
+    close_log()
+    sys.exit(error_code)
 
 
 def message(*msg, subprogram='', upper=False, only_log=False):
