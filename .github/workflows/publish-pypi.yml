@@ -1,4 +1,4 @@
-name: Publish ProPhyle to PyPI
+name: Publish
 
 on: push
 
