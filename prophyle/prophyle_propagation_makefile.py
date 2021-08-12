@@ -63,7 +63,7 @@ def tree_size(tree):
     return (nodes, leaves)
 
 
-def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_file_fn=None):
+def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_file_fn=None, node_name=None):
     """Print Makefile lines for merging FASTA files and removing empty lines.
 
     Args:
@@ -72,11 +72,13 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
         is_leaf (str): Is a leaf (i.e., copying must be done).
         makefile_fo (file): Output file.
         nhx_file_fn (str): File with the tree (for including in rule dependencies).
+        node_name (str): Name of the node.
     """
 
     if is_leaf:
         cmd = textwrap.dedent(
             """\
+                {tsv}
                 {ocompl}: {i}
                 \t($(foreach f,$^,cat $(f);))  $(CMD_MASKING) $(CMD_REASM)> "{o}"
                 \t@touch "$@"
@@ -85,6 +87,7 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
                 i=' '.join(input_files_fn),
                 o=output_file_fn,
                 ocompl=_compl(output_file_fn),
+                tsv='TSVstr:=-s "{}.tsv"'.format(node_name) if node_name else "/dev/null",
             )
         )
     else:
@@ -249,7 +252,10 @@ class TreeIndex:
                 fastas_fn = node.fastapath.split("@")
                 for i in range(len(fastas_fn)):
                     fastas_fn[i] = os.path.join(self.library_dir, fastas_fn[i])
-                merge_fasta_files(fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo)
+                merge_fasta_files(
+                    fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo,
+                    node_name=node.name
+                )
 
         else:
             children = node.get_children()
@@ -331,7 +337,7 @@ class TreeIndex:
 
                     ifdef REASM
                        $(info | Re-assembling leaves:   On)
-                       CMD_REASM= | $(PRG_ASM) -k $(K) -S -i - -o -
+                       CMD_REASM= | $(PRG_ASM) -k $(K) $(TSVstr) -S -i - -o -
                     else
                        $(info | Re-assembling leaves:   Off)
                        CMD_REASM=
