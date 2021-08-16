@@ -5,20 +5,25 @@ on: [push, pull_request]
 jobs:
   coverage:
     runs-on: ubuntu-latest
-    env:
-      PYTHON: '3.7'
 
     steps:
       - uses: actions/checkout@master
 
-      - name: Setup Python
-        uses: actions/setup-python@master
-        with:
-           python-version: 3.7
+        #- name: Setup Python
+        #uses: actions/setup-python@master
+        #with:
+        #   python-version: 3.7
+
+      - name: Setup ProPhyle environment
+        run: |
+          export PATH="/usr/share/miniconda/bin:$PATH"
+          conda install -c conda-forge -q mamba
+          mamba create -c conda-forge -c bioconda --name prophyle -y "python>=3.8" ete3 bitarray parallel psutil scipy sphinx codecov pysam samtools
+          source activate prophyle
 
       - name: Generate coverage report
         run: |
-          pip install coverage
+          #pip install coverage
           make coverage
 
       - name: Upload coverage to Codecov
