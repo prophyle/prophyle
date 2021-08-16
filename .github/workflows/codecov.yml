@@ -23,7 +23,7 @@ jobs:
 
       - name: Generate coverage report
         run: |
-          #pip install coverage
+          pip install coverage
           make coverage
 
       - name: Upload coverage to Codecov
