@@ -13,7 +13,7 @@ ProPhyle – the main program
 ---------------------------
 
 ``prophyle``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
 	.. include:: reference/main.txt
 		:code: text
 
@@ -27,9 +27,19 @@ ProPhyle – the main program
 	.. include:: reference/index.txt
 		:code: text
 
+``prophyle similarity``
+^^^^^^^^^^^^^^^^^^^^^^^
+	.. include:: reference/similarity.txt
+		:code: text
+
 ``prophyle classify``
 ^^^^^^^^^^^^^^^^^^^^^
 	.. include:: reference/classify.txt
+		:code: text
+
+``prophyle profile``
+^^^^^^^^^^^^^^^^^^^^
+	.. include:: reference/profile.txt
 		:code: text
 
 ``prophyle compress``
@@ -65,6 +75,33 @@ ProPhyle – the main program
 
 	.. include:: reference/prophyle_assignment.py.txt
 		:code: text
+
+``prophyle_profile.py``
+-----------------------
+
+	.. include:: reference/prophyle_profile.py.txt
+		:code: text
+
+
+``prophyle_rnfsim.py``
+----------------------
+
+	.. include:: reference/prophyle_rnfsim.py.txt
+		:code: text
+
+
+``prophyle_classify_index.py``
+------------------------------
+
+	.. include:: reference/prophyle_classify_index.py.txt
+		:code: text
+
+``prophyle_sim_matrix.py``
+--------------------------
+
+	.. include:: reference/prophyle_sim_matrix.py.txt
+		:code: text
+
 
 ``prophyle_propagation_makefile.py``
 ------------------------------------

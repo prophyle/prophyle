@@ -18,6 +18,7 @@ import sys
 import tempfile
 import time
 import gzip
+import pysam
 
 sys.setrecursionlimit(30000)
 
@@ -44,6 +45,23 @@ def open_gzip(fn):
         return gzip.open(fn, 'rt')
     # not compressed
     return open(fn, 'rt')
+
+
+def open_asg(in_fn, in_format=None):
+
+    # try to detect kraken format automatically
+    if in_format is None:
+        with open(in_fn, 'rb') as f:
+            f_start = f.read(2)
+            if f_start == b'C\t' or f_start == b'U\t':
+                in_format = 'kraken'
+
+    if in_format == 'kraken':
+        in_f = open(in_fn, 'r')
+    # let pysam assess the format
+    else:
+        in_f = pysam.AlignmentFile(in_fn)
+    return in_f, in_format
 
 
 def open_log(fn):

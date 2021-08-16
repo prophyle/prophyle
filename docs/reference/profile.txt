@@ -1,0 +1,17 @@
+$ prophyle profile -h
+
+usage: prophyle.py profile [-h] [-s STR] [-a FLOAT] [-l FLOAT]
+                           [-c [STR [STR ...]]]
+                           {index_dir, tree.nw} <classified.bam> <out_prefix>
+
+positional arguments:
+  {index_dir, tree.nw}  index directory or phylogenetic tree
+  <classified.bam>      classified reads (use '-' for stdin)
+  <out_prefix>          output prefix
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s STR                similarity matrix [index_dir/sim_mat.npy]
+  -a FLOAT              regularization weight [0.1]
+  -l FLOAT              l1 ratio [0.98]
+  -c [STR [STR ...]]    advanced configuration (a JSON dictionary)

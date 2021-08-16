@@ -1,0 +1,36 @@
+import snakemake
+
+configfile: "config.json"
+
+idx = config['idx']
+read_suffix = config['read_suffix']
+class_options = config['class_options']
+to_classify = config['targets']
+
+out_cmd_dict = {
+    "sam": ">",
+    "bam": "| samtools view -b -o",
+    "kraken": "-f kraken >",
+}
+
+class_suffix = set()
+for t in to_classify:
+    class_suffix.add(t.split('.')[-1])
+assert len(class_suffix) == 1, "Target files have different suffix: {}".format(class_suffix)
+class_suffix = list(class_suffix)[0]
+
+out_cmd = out_cmd_dict[class_suffix]
+
+rule all:
+    input:
+        to_classify
+
+rule classify:
+    output:
+        "{prefix}."+class_suffix
+    input:
+        ["{prefix}."+rs for rs in read_suffix]
+    shell:
+        """
+            prophyle classify {idx} {input} {class_options} {out_cmd} {output}
+        """

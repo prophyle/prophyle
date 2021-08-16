@@ -338,6 +338,7 @@ class Assignment:
         Args:
             node_name (str): Node name. None if unassigned.
             suffix (str): Suffix with additional tags.
+            mask_unmatched_bases (bool): Change unmatched bases to N.
         """
 
         qname = self.krakline_parser.readname

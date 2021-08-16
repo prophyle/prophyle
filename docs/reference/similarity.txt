@@ -1,0 +1,25 @@
+$ prophyle similarity -h
+
+usage: prophyle.py similarity [-h] [-o STR] [-g DIR] [-l INT] [-x FLOAT]
+                              [-n INT] [-s STR] [-j INT] [-P] [-R]
+                              [-c [STR [STR ...]]]
+                              <index.dir>
+
+positional arguments:
+  <index.dir>         index directory
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -o STR              similarity matrix [index_dir/sim_mat.npy]
+  -g DIR              directory with the library sequences [parent dir. of
+                      index]
+  -l INT              reads length [150]
+  -x FLOAT            min simulation coverage [1.0]
+  -n INT              min number of reads to simulate [0]
+  -s STR              simulator to use (artillumina, curesim, dwgsim, mason,
+                      wgsim) [dwgsim]
+  -j INT              number of snakemake jobs (ignored if -R is not set)
+                      [auto (4)]
+  -P                  paired end reads [false]
+  -R                  run snakemake after generating the snakefiles [false]
+  -c [STR [STR ...]]  advanced configuration (a JSON dictionary)

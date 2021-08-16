@@ -8,9 +8,12 @@ ProPhyle is written in Python, C and C++. It is distributed as a Python package
 and all C/C++ programs are compiled upon the first execution
 of the main program. ProPhyle requires a Unix operating system and the following dependencies:
 
-* Python 3.3+ with the `ETE3 library <http://etetoolkit.org/>`_
+* Python 3.3+
 * GCC 4.8+
 * ZLib
+* `ETE3 <http://etetoolkit.org/>`_ Python library (for NHX/Newick trees)
+* `Scikit-Learn <http://scikit-learn.org/stable/>`_ Python library (for abundance estimation with the Elastic Net)
+* `RNFtools <https://rnftools.readthedocs.io/en/latest/>`_ Python library (optional, for similarity matrix computation prior to abundance estimation)
 
 There are multiple ways of installation:
 
@@ -48,6 +51,13 @@ or install ProPhyle directly to your main environment
 
 	conda install prophyle
 
+To install the optional RNFtools dependency
+
+.. code-block:: bash
+
+	source activate prophyle
+	conda install rnftools
+
 
 Installing ProPhyle using PIP
 -----------------------------
@@ -63,7 +73,7 @@ There are three options of installing ProPhyle using PIP.
 2) From Git
 
 	.. code-block:: bash
-	
+
 		pip install -U git+https://github.com/prophyle/prophyle
 
 3) From PyPI to the current directory
@@ -74,7 +84,11 @@ There are three options of installing ProPhyle using PIP.
 		export PYTHONUSERBASE=`pwd`
 		export PATH=$PATH:`pwd`/bin
 
+To install the optional RNFtools dependency
 
+.. code-block:: bash
+
+	pip install rnftools
 
 Running ProPhyle directly from the repository
 ---------------------------------------------
