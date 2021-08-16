@@ -1,4 +1,4 @@
-BRANCH = "enet_abundances"
-SHORTHASH = "1c3b17f"
-REVCOUNT = 1811
-LATESTTAG = "0.3.1.0"
+BRANCH = "devel"
+SHORTHASH = "7fc469b"
+REVCOUNT = 1837
+LATESTTAG = "0.3.2.0"

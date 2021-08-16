@@ -72,11 +72,9 @@ class Assignment:
         max_nodenames (list of str): List of nodenames of winners.
         max_val (int/float): Maximal value of the measure.
     """
-
     def __init__(
         self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False, mask_unmatched_bases=False
     ):
-    def __init__(self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False):
         self.output_fo = output_fo
         self.tree_index = tree_index
         self.k = self.tree_index.k
@@ -290,24 +288,27 @@ class Assignment:
         """
 
         if form == "sam":
-            tag_is = len(self.max_nodenames)
-            for tag_ii, nodename in enumerate(self.max_nodenames, 1):
-                ass = self.ass_dict[nodename]
-                # compute cigar
-                if ass['covmask'] is None:
-                    ass['covcigar'] = None
-                else:
-                    ass['covcigar'] = self.cigar_from_bitmask(ass['covmask'])
+            if len(self.max_nodenames):
+                tag_is = len(self.max_nodenames)
+                for tag_ii, nodename in enumerate(self.max_nodenames, 1):
+                    ass = self.ass_dict[nodename]
+                    # compute cigar
+                    if ass['covmask'] is None:
+                        ass['covcigar'] = None
+                    else:
+                        ass['covcigar'] = self.cigar_from_bitmask(ass['covmask'])
 
-                if ass['hitmask'] is None:
-                    ass['hitcigar'] = None
-                else:
-                    ass['hitcigar'] = self.cigar_from_bitmask(ass['hitmask'])
+                    if ass['hitmask'] is None:
+                        ass['hitcigar'] = None
+                    else:
+                        ass['hitcigar'] = self.cigar_from_bitmask(ass['hitmask'])
 
-                suffix_parts = ["ii:i:{}".format(tag_ii), "is:i:{}".format(tag_is)]
-                if self.annotate:
-                    suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
-                self.print_sam_line(nodename, "\t".join([""] + suffix_parts))
+                    suffix_parts = ["ii:i:{}".format(tag_ii), "is:i:{}".format(tag_is)]
+                    if self.annotate:
+                        suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
+                    self.print_sam_line(nodename, "\t".join([""] + suffix_parts))
+            else:
+                self.print_sam_line(None)
         elif form == "kraken":
             self.print_kraken_line(*self.max_nodenames)
 
@@ -331,7 +332,7 @@ class Assignment:
             c.append('=' if run[0] else 'X')
         return "".join(c)
 
-    def print_sam_line(self, node_name, suffix):
+    def print_sam_line(self, node_name, suffix=""):
         """Print a single SAM record.
 
         Args:
@@ -342,9 +343,8 @@ class Assignment:
 
         qname = self.krakline_parser.readname
 
-        covmask = self.ass_dict[node_name]["covmask"]
-
-        if self.mask_unmatched_bases and self.krakline_parser.seq:
+        if self.mask_unmatched_bases and self.krakline_parser.seq and node_name is not None:
+            covmask = self.ass_dict[node_name]["covmask"]
             seq = "".join(("N" if covmask[i] == 0 else ch for i, ch in enumerate(self.krakline_parser.seq)))
         else:
             seq = self.krakline_parser.seq
