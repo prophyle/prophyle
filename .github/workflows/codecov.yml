@@ -1,12 +1,6 @@
-name: Code coverage
+name: CodeCov
 
-  #on:
-  #push:
-  #  branches:
-  #  - master
-  #pull_request:
-
-on: [push]
+on: [push, pull_request]
 
 jobs:
   coverage:
@@ -24,6 +18,7 @@ jobs:
 
       - name: Generate coverage report
         run: |
+          pip install coverage
           make coverage
 
       - name: Upload coverage to Codecov
