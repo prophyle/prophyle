@@ -18,7 +18,7 @@ jobs:
         run: |
           export PATH="/usr/share/miniconda/bin:$PATH"
           conda install -c conda-forge -q mamba
-          mamba create -c conda-forge -c bioconda --name prophyle -y "python>=3.8" ete3 bitarray parallel psutil scipy sphinx codecov pysam samtools
+          mamba create -c conda-forge -c bioconda --name prophyle -y "python>=3.8" ete3 bitarray parallel psutil scipy sphinx coverage pysam samtools
           source activate prophyle
 
       - name: Generate coverage report
