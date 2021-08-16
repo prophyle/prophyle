@@ -18,9 +18,20 @@ jobs:
           pip install sphinx
           make -C docs html
 
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+#      - name: Deploy 🚀
+#        uses: JamesIves/github-pages-deploy-action@4.1.4
+#        with:
+#          repository-name: prophyle/prophyle.github.io
+#          branch: master # The branch the action should deploy to.
+#          toke:
+#          folder: docs/.build/html # The folder the action should deploy.
+
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          repository-name: prophyle/prophyle.github.io
-          branch: master # The branch the action should deploy to.
-          folder: docs/.build/html # The folder the action should deploy.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository: prophyle/prophyle.github.io
+          publish_branch: master
+          publish_dir: ./docs/.build/html
