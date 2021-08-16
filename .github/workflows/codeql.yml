@@ -63,8 +63,8 @@ jobs:
     #    uses a compiled language
 
     - run: |
-        export PATH="/usr/share/miniconda/bin:$PATH"
-        source activate prophyle
+        #export PATH="/usr/share/miniconda/bin:$PATH"
+        #source activate prophyle
         make
 
     - name: Perform CodeQL Analysis
