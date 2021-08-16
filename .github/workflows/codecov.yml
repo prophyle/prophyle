@@ -27,7 +27,7 @@ jobs:
           make coverage
 
       - name: Upload coverage to Codecov
-      - uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v2
         with:
           #flags: unittests # optional
           #name: codecov-umbrella # optional
