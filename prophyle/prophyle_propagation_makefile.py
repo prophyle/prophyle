@@ -202,7 +202,6 @@ def assembly(
 class TreeIndex:
     """Main class for k-mer propagation.
     """
-
     def __init__(self, tree_newick_fn, index_dir, library_dir, makefile_fn):
         """Init the class.
 

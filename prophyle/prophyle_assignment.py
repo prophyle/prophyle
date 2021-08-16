@@ -72,7 +72,6 @@ class Assignment:
         max_nodenames (list of str): List of nodenames of winners.
         max_val (int/float): Maximal value of the measure.
     """
-
     def __init__(
         self, output_fo, tree_index, kmer_lca=False, tie_lca=False, annotate=False, mask_unmatched_bases=False
     ):
@@ -84,7 +83,7 @@ class Assignment:
         self.tie_lca = tie_lca
         self.mask_unmatched_bases = mask_unmatched_bases
 
-        self.krakline_parser = KraklineParser()
+        self.krakline_parser = KraklineParser(k=self.k)
 
         self.hitmasks_dict = {}
         self.covmasks_dict = {}
@@ -289,24 +288,27 @@ class Assignment:
         """
 
         if form == "sam":
-            tag_is = len(self.max_nodenames)
-            for tag_ii, nodename in enumerate(self.max_nodenames, 1):
-                ass = self.ass_dict[nodename]
-                # compute cigar
-                if ass['covmask'] is None:
-                    ass['covcigar'] = None
-                else:
-                    ass['covcigar'] = self.cigar_from_bitmask(ass['covmask'])
+            if len(self.max_nodenames):
+                tag_is = len(self.max_nodenames)
+                for tag_ii, nodename in enumerate(self.max_nodenames, 1):
+                    ass = self.ass_dict[nodename]
+                    # compute cigar
+                    if ass['covmask'] is None:
+                        ass['covcigar'] = None
+                    else:
+                        ass['covcigar'] = self.cigar_from_bitmask(ass['covmask'])
 
-                if ass['hitmask'] is None:
-                    ass['hitcigar'] = None
-                else:
-                    ass['hitcigar'] = self.cigar_from_bitmask(ass['hitmask'])
+                    if ass['hitmask'] is None:
+                        ass['hitcigar'] = None
+                    else:
+                        ass['hitcigar'] = self.cigar_from_bitmask(ass['hitmask'])
 
-                suffix_parts = ["ii:i:{}".format(tag_ii), "is:i:{}".format(tag_is)]
-                if self.annotate:
-                    suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
-                self.print_sam_line(nodename, "\t".join([""] + suffix_parts))
+                    suffix_parts = ["ii:i:{}".format(tag_ii), "is:i:{}".format(tag_is)]
+                    if self.annotate:
+                        suffix_parts.append(self.tree_index.nodename_to_samannot[nodename])
+                    self.print_sam_line(nodename, "\t".join([""] + suffix_parts))
+            else:
+                self.print_sam_line(None)
         elif form == "kraken":
             self.print_kraken_line(*self.max_nodenames)
 
@@ -330,20 +332,18 @@ class Assignment:
             c.append('=' if run[0] else 'X')
         return "".join(c)
 
-    def print_sam_line(self, node_name, suffix):
+    def print_sam_line(self, node_name, suffix=""):
         """Print a single SAM record.
 
         Args:
             node_name (str): Node name. None if unassigned.
             suffix (str): Suffix with additional tags.
-            mask_unmatched_bases (bool): Change unmatched bases to N.
         """
 
         qname = self.krakline_parser.readname
 
-        covmask = self.ass_dict[node_name]["covmask"]
-
-        if self.mask_unmatched_bases and self.krakline_parser.seq:
+        if self.mask_unmatched_bases and self.krakline_parser.seq and node_name is not None:
+            covmask = self.ass_dict[node_name]["covmask"]
             seq = "".join(("N" if covmask[i] == 0 else ch for i, ch in enumerate(self.krakline_parser.seq)))
         else:
             seq = self.krakline_parser.seq
@@ -512,7 +512,6 @@ class TreeIndex:
         nodename_to_upnodenames (dict): node name => set of node names of ancestors.
         nodename_to_kmercount (dict): nname => number of k-mers (full set).
     """
-
     def __init__(self, tree_newick_fn, k):
         tree = pro.load_nhx_tree(tree_newick_fn)
         self.tree = pro.minimal_subtree(tree)
@@ -595,6 +594,9 @@ class TreeIndex:
 class KraklineParser():
     """Class for parsing Kraken-like input into a structure.
 
+    Args:
+        k (int): K-mer size.
+
     Attributes:
         krakline (str): Original krakline.
         readname (str): Name of the read.
@@ -603,8 +605,8 @@ class KraklineParser():
         qual (str): Sequence of qualities. None if unknown.
         kmer_blocks (list of (list of str, int)): Assigned k-mer blocks, list of (nodenames, count).
     """
-
-    def __init__(self):
+    def __init__(self, k):
+        self.k = k
         self.krakline = None
         self.readname = None
         self.readlen = None
@@ -632,12 +634,19 @@ class KraklineParser():
 
         # list of (count,list of nodes)
         self.kmer_blocks = []
+        kmer_countdown = self.readlen - self.k + 1
 
         for block in self.krakmers.split(" "):
-            (ids, count) = block.split(":")
-            count = int(count)
-            nodenames = ids.split(",")
-            self.kmer_blocks.append((nodenames, count))
+            try:
+                (ids, count) = block.split(":")
+                count = int(count)
+                kmer_countdown -= count
+                nodenames = ids.split(",")
+                self.kmer_blocks.append((nodenames, count))
+            except ValueError:
+                pro.message("Warning: prophex output for read '{}' has been truncated.".format(self.readname))
+        self.kmer_blocks.append((['0'], kmer_countdown))
+        #pro.message(str(self.kmer_blocks))
 
     def check_consistency(self, k):
         """Check consistency of the fields loaded from the krakline.

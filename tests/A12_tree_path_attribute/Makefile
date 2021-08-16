@@ -13,7 +13,7 @@ index_fastapath:
 	$(PROP) index -k $(K) tree_fastapath.nw $@
 
 index_path:
-	$(PROP) index -k $(K) tree_fastapath.nw $@
+	$(PROP) index -k $(K) tree_path.nw $@
 
 clean:
 	rm -rf index_*
