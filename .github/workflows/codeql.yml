@@ -42,12 +42,6 @@ jobs:
       uses: actions/checkout@v2
 
 
-    - name: Setup ProPhyle environment
-      run: |
-        export PATH="/usr/share/miniconda/bin:$PATH"
-        conda install -c conda-forge -q mamba
-        mamba create -c conda-forge -c bioconda --name prophyle -y "python>=3.8" ete3 bitarray parallel psutil scipy sphinx pysam samtools
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
@@ -72,11 +66,7 @@ jobs:
         export PATH="/usr/share/miniconda/bin:$PATH"
         source activate prophyle
         make
-       #make release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
-        #run:
-        #export PATH="/usr/share/miniconda/bin:$PATH"
-        #source activate prophyle
 
