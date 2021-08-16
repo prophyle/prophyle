@@ -26,6 +26,8 @@ jobs:
           source activate prophyle
           #pip install coverage
           make coverage
+          coverage combine
+          coverage xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
