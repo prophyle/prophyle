@@ -35,3 +35,4 @@ jobs:
           external_repository: prophyle/prophyle.github.io
           publish_branch: master
           publish_dir: ./docs/.build/html
+
