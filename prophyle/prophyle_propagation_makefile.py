@@ -63,7 +63,7 @@ def tree_size(tree):
     return (nodes, leaves)
 
 
-def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_file_fn=None):
+def merge_fasta_files(prop_dir, input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_file_fn=None):
     """Print Makefile lines for merging FASTA files and removing empty lines.
 
     Args:
@@ -75,18 +75,37 @@ def merge_fasta_files(input_files_fn, output_file_fn, is_leaf, makefile_fo, nhx_
     """
 
     if is_leaf:
-        cmd = textwrap.dedent(
-            """\
-                {ocompl}: {i}
-                \t($(foreach f,$^,cat $(f);))  $(CMD_MASKING) $(CMD_REASM)> "{o}"
-                \t@touch "$@"
+        if len(input_files_fn) < 100:
+            cmd = textwrap.dedent(
+                """\
+                    {ocompl}: {i}
+                    \tcat $^ $(CMD_MASKING) $(CMD_REASM) > {o}
+                    \t@touch $@
 
-            """.format(
-                i=' '.join(input_files_fn),
-                o=output_file_fn,
-                ocompl=_compl(output_file_fn),
+                """.format(
+                    i=' '.join(input_files_fn),
+                    o=output_file_fn,
+                    ocompl=_compl(output_file_fn),
+                )
             )
-        )
+        else:
+            bash_cat_cmd = "#! /usr/bin/env bash\nset -euo pipefail\n" + '\n'.join(
+                ("cat {}".format(ifn) for ifn in input_files_fn)
+            )
+            with open(os.path.join(prop_dir, "{}.sh".format(output_file_fn)), 'w') as bash_cat_f:
+                print(bash_cat_cmd, file=bash_cat_f)
+            cmd = textwrap.dedent(
+                """\
+                    {ocompl}: {i}
+                    \tbash {o}.sh $(CMD_MASKING) $(CMD_REASM) > {o}
+                    \t@touch $@
+
+                """.format(
+                    i=' '.join(input_files_fn),
+                    o=output_file_fn,
+                    ocompl=_compl(output_file_fn),
+                )
+            )
     else:
 
         cmd = textwrap.dedent(
@@ -243,13 +262,17 @@ class TreeIndex:
             makefile_fo: Output file.
         """
 
+        prop_dir = os.path.dirname(self.makefile_fn)
+
         if node.is_leaf():
 
-            if hasattr(node, "fastapath"):
-                fastas_fn = node.fastapath.split("@")
+            if hasattr(node, "path"):
+                fastas_fn = node.path.split("@")
                 for i in range(len(fastas_fn)):
                     fastas_fn[i] = os.path.join(self.library_dir, fastas_fn[i])
-                merge_fasta_files(fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo)
+                merge_fasta_files(
+                    prop_dir, fastas_fn, self.nonreduced_fasta_fn(node), is_leaf=True, makefile_fo=makefile_fo
+                )
 
         else:
             children = node.get_children()
@@ -284,6 +307,11 @@ class TreeIndex:
                     .PHONY: all clean
 
                     SHELL=/usr/bin/env bash -euc -o pipefail
+
+                    define NL
+
+
+                    endef
 
                     PRG_ASM?=prophyle_assembler
                     PRG_DUST?=dustmasker
@@ -342,10 +370,10 @@ class TreeIndex:
                     all: {root_red_compl}
 
                     clean:
-                    \trm -f *.complete
-                    \trm -f *.fa
-
-                    \trm -f *.tsv
+                    \tfind . -name "*.complete" -exec rm -f {{}} \\;
+                    \tfind . -name "*.fa" -exec rm -f {{}} \\;
+                    \tfind . -name "*.tsv" -exec rm -f {{}} \\;
+                    \tfind . -name "*.txt" -exec rm -f {{}} \\;
 
                     {root_red_compl}: {root_nonred_compl}
                     \tln -s {root_nonred} {root_red}

@@ -1,4 +1,4 @@
-BRANCH = "master"
+BRANCH = "devel"
 SHORTHASH = "7fc469b"
 REVCOUNT = 1837
 LATESTTAG = "0.3.2.0"
