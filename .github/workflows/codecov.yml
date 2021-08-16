@@ -22,6 +22,7 @@ jobs:
 
       - name: Generate coverage report
         run: |
+          export PATH="/usr/share/miniconda/bin:$PATH"
           source activate prophyle
           #pip install coverage
           make coverage
