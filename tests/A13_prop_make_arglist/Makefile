@@ -20,4 +20,5 @@ lib.complete:
 
 clean:
 	rm -rf _index* *.complete
-	for ((i=6; i<=10000; i++)); do rm -f "lib/$$i.fa" ; done
+	for ((i=6; i<=10; i++)); do rm -f "lib/$$i.fa" ; done
+	rm -f lib/??.fa lib/???.fa lib/????.fa lib/?????.fa
