@@ -1,4 +1,4 @@
-ete3==3.1.1
+ete3==3.1.2
 wheel==0.30.0
 bitarray==0.8.1
 psutil==5.6.6
