@@ -2,6 +2,6 @@ ete3==3.1.2
 wheel==0.38.4
 bitarray==2.6.0
 psutil==5.9.4
-pysam==0.19.1
+pysam==0.20.0
 scipy==1.9.1
 six==1.16.0
