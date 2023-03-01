@@ -1,6 +1,6 @@
 ete3==3.1.2
 wheel==0.38.4
-bitarray==2.6.0
+bitarray==2.7.3
 psutil==5.9.4
 pysam==0.20.0
 scipy==1.9.3
