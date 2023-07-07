@@ -10,13 +10,13 @@
   </p>
 
   <p>Compared to other state-of-the-art classifiers, ProPhyle provides several unique features:
-  
+
   <img src="{{ pathto('_static/prophyle_overview.jpg', 1) }}"  style="float:right; width:250px" />
 
   <ul>
     <li><b>Low memory requirements.</b> Compared to Kraken, ProPhyle has 7x smaller memory footprint for index construction and 5x smaller footprint for querying, while providing a more expressive index.</li>
     <li><b>Flexibility.</b> ProPhyle is easy to use with any user-provided phylogenetic trees and reference genomics sequences (e.g., reads or assemblies). It can classify short reads, long reads, or even assembled contigs.</li>
-    <li><b>Standard bioinformatics formats.</b> Newick/NHX is used for representing phylogenetic trees and SAM/BAM for reporting assignments.</li> 
+    <li><b>Standard bioinformatics formats.</b> Newick/NHX is used for representing phylogenetic trees and SAM/BAM for reporting assignments.</li>
     <li><b>Lossless k-mer indexing.</b> ProPhyle stores a list of all genomes containing a k-mer. The classification is, therefore, accurate even with trees containing similar genomes (e.g, phylogenetic trees for a single species).</li>
     <li><b>Reproducibility.</b> ProPhyle is fully deterministic, with a mathematically well-defined behavior. Databases are versioned and distributed via Zenodo.</li>
   </ul>
@@ -68,38 +68,44 @@
 
   <div class="cit">
   <p>
-    [1] Břinda K, Salikhov K, Pignotti S, Kucherov G.
-    <b>ProPhyle 0.3.1.0</b>, Zenodo, 2017.
-    doi:<a href="http://doi.org/10.5281/zenodo.1045429">10.5281/zenodo.1045429</a>.
+	[1] K. Břinda, L. Lima, S. Pignotti, N. Quinones-Olvera, K. Salikhov,
+	R. Chikhi, G. Kucherov, Z. Iqbal, and M. Baym,
+	<b>Efficient and robust search of microbial genomes via phylogenetic compression,</b>
+    <a href="https://doi.org/10.1101/2023.04.15.536996">https://doi.org/10.1101/2023.04.15.536996</a>.
   </p>
   <p>
-    [2] Břinda K, Salikhov K, Pignotti S, Kucherov G.
+    [2] Břinda K, Salikhov K, Pignotti S, Kucherov G.
+    <b>ProPhyle 0.3.1.0</b>, Zenodo, 2017.
+    <a href="http://doi.org/10.5281/zenodo.1045429">https://doi.org/10.5281/zenodo.1045429</a>.
+  </p>
+  <p>
+    [3] Břinda K, Salikhov K, Pignotti S, Kucherov G.
     <b>ProPhyle: a phylogeny-based metagenomic classifier using the Burrows-Wheeler Transform.</b>
     Poster at HiTSeq 2017.
-    doi:<a href="http://doi.org/10.5281/zenodo.1045427">10.5281/zenodo.1045427</a>
+    <a href="http://doi.org/10.5281/zenodo.1045427">https://doi.org/10.5281/zenodo.1045427</a>
   </p>
   <p>
-    [3] Břinda K.
+    [4] Břinda K.
     <b>Novel computational techniques for mapping and classifying Next-Generation Sequencing data.</b>
     PhD Thesis, Université Paris-Est, 2016.
-    doi:<a href="http://doi.org/10.5281/zenodo.1045317">10.5281/zenodo.1045317</a>
+    <a href="http://doi.org/10.5281/zenodo.1045317">https://doi.org/10.5281/zenodo.1045317</a>
   </p>
   <p>
-    [4] Salikhov K.
+    [5] Salikhov K.
     <b>Efficient algorithms and data structures for indexing DNA sequence data.</b>
     PhD Thesis, Université Paris-Est, 2017.
   </p>
 </div>
 
 <p style="font-size:90%">
-    [1] is the main reference for the entire ProPhyle package. [2] contains a summary of the ProPhyle algorithm, [3] provides a thorough description (see Chapter 12), and [4] explains details of the BWT-indexing technique. 
+    [1] is the main reference for the entire ProPhyle package. [2] contains a summary of the ProPhyle algorithm, [3] provides a thorough description (see Chapter 12), and [4] explains details of the BWT-indexing technique.
 </p>
-  
+
 
   <h2>Authors</h2>
 
   <ul>
-  <li><a href="http://brinda.cz">Karel Břinda</a> &lt;<a href="mailto:kbrinda@hsph.harvard.edu">kbrinda@hsph.harvard.edu</a>&gt;</li>
+  <li><a href="http://brinda.eu">Karel Břinda</a> &lt;<a href="mailto:karel.brinda@inria.fr">karel.brinda@inria.fr</a>&gt;</li>
   <li>Kamil Salikhov &lt;<a href="mailto:kamil.salikhov@univ-mlv.fr">kamil.salikhov@univ-mlv.fr</a>&gt;</li>
   <li>Simone Pignotti &lt;<a href="mailto:pignottisimone@gmail.com">pignottisimone@gmail.com</a>&gt;</li>
   <li><a href="http://igm.univ-mlv.fr/~koutcher/">Gregory Kucherov</a> &lt;<a href="mailto:gregory.kucherov@univ-mlv.fr">gregory.kucherov@univ-mlv.fr</a>&gt;</li>
