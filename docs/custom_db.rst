@@ -12,6 +12,18 @@ Building a custom database
 Building a custom database with user-provided data
 --------------------------------------------------
 
+* Put all your genomes in a separate directory
+* Create a phylogenetic/taxonomic tree in the newick format,
+  with leaves named the same way as the FASTA files (e.g., a leaf named `genome1` will correspond to
+  `genome1.fa`). Ensure that all leaves have their respective FASTA files.
+* Build a ProPhyle index by
+    .. code-block:: bash
+
+        prophyle index -A -k <kmer_length> \
+           -g [<dir_with_genomes>] <tree_1.nw> <index_dir>
+
+  The `-A` parameter will ensure that your tree gets autocompleted, which includes creating
+  names for internal nodes.
 
 
 
