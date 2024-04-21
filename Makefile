@@ -94,10 +94,11 @@ inc: ## Increment version
 inc: hooks
 	./prophyle/increment_version.py
 
-pypi: ## Upload ProPhyle to PyPI
-pypi: hooks
+pypi: ## Upload to PyPI
+pypi:
 	$(MAKE) clean
-	$(PYTHON) setup.py sdist bdist_wheel upload
+	$(PYTHON) setup.py sdist bdist_wheel
+	$(PYTHON) -m twine upload dist/*
 
 sha256: ## Compute sha256 for the PyPI package
 sha256:
