@@ -3,5 +3,5 @@ wheel==0.45.1
 bitarray==3.3.0
 psutil==7.0.0
 pysam==0.23.0
-scipy==1.14.1
+scipy==1.15.2
 six==1.16.0
